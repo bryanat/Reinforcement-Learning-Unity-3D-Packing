@@ -113,6 +113,7 @@ Reward options: maximizing reward (traditional reward hypothesis) vs the desired
 Environment and Tools
 - RL Environment options:
   - Unity
+- RL Agents framework:
   - Acme
 
 
