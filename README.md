@@ -39,10 +39,6 @@
   - #### JAX is "recommended!" also new cool kid on the block (Tensorflow's redeemer)
   - #### Want to stick with JAX and be humble and listen to smarter people's leading recommendations!
   - #### We have a non-complex enough environment that can be modeled without Unity, so **choosing JAX > Unity & PyTorch**
-### Simulation must be proven in the Real
-- #### Reality is the best test for Theory/Simulation
-- #### Test inference in the Real with a Uhaul rental
-  - #### would probably have to train a CNN for vision (package dimensions and truck dimension) so this unfortunately is a stretch/evo goal after MVP in simulation.
 
 ## Box
 - ### Agent will sample spatial information of Box
