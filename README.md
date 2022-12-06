@@ -16,9 +16,11 @@
   - #### Pointer Networks are useful for solving combinatorial optimization problems (box placement is combinatorial), allowing to train and infer on different sized inputs (sometimes there may be 505 boxes, sometimes 347, based on size of boxes (less larger boxes or more smaller boxes))
   - #### "previous attention attempts in that, instead of using attention to blend hidden units of an encoder to a context vector at each decoder step, it uses attention as a pointer to select a member of the input sequence as the output. We call this architecture a Pointer Net (Ptr-Net)" 
   - #### [ Pointer-Network ] "uses attention as a pointer to select a member of the input sequence as the output" ... instead of [ Attention-based RNN ] "using attention to blend hidden units of an encoder to a context vector at each decoder step" 
-  ![](screenshot of pointer network) 
+  - #### Pointer Network
+  ![](images/Screenshot%20from%202022-12-06%2015-45-25.png) 
   vs
-  ![](screenshot of attention rnn by stanford) 
+  - #### Attention-based RNN
+  ![](images/Screenshot%20from%202022-12-06%2015-42-33.png) 
   - #### MVP Evolve: compare two agents in same environment and plot performance with plotly, to show performance difference in Attention-based RNN vs. Self-Attention Transformer policies. 
     - #### MVP Evolve: after the two agents, could also throw additional agents with different models in the environment, such as hueristics, non-seq2seq models, like RL models ppo etc.
 - ### Sequence-to-Sequence (Seq2Seq) which have been applied to language translation models can also be applied to our fitting boxes model. 
@@ -103,6 +105,14 @@ Attention mechanisms are probabilistic mechanisms
 
 <ins>Reinforcement Learning: Agent’s reward</ins>
 Reward options: maximizing reward (traditional reward hypothesis) vs the desired reward
+- Penalty for crushing boxes
+  - Need to ensure structural integrity of boxes, using their mass and the gravity of the reinforcement learning agent's environment simulated physics can model the stress especially of the boxes on the bottom
+  - some of the agents box placements may possibly recommend a bridge like support placement, where the bottom face of the box is supported at the edges by other boxes acting like pillars. If so, then like a bridge need to ensure box will not collapse in the center.
+- Reward for more boxes placed
+  - MVP reward schedule is fairly simple (+1 for each additional box placed in container), future Evolved MVP reward schedule could possible introduce additional dimensions (speed of packing?)
+- Generalize agent to more general environments, such as changed 3D dimension of the container if say instead of packing for ground transportation (truck) but for air transportation (airplane) 
+  - https://en.wikipedia.org/wiki/Unit_load_device#Types
+  - ![](https://upload.wikimedia.org/wikipedia/commons/8/81/Unit_load_device_sizes.png)
 
 Environment and Tools
 - RL Environment options:
