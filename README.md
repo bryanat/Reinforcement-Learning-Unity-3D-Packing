@@ -111,14 +111,19 @@ Reward options: maximizing reward (traditional reward hypothesis) vs the desired
   - ![](https://upload.wikimedia.org/wikipedia/commons/8/81/Unit_load_device_sizes.png)
 
 Environment and Tools
-- RL Environment options:
+- RL Environment options: (**Environment-driven AI!**)
   - Unity
+  - Gym
+  - dm_env
 - RL Agents framework:
   - Acme
 
-
-
-
-
+## Intution/Heuristics: the most basic idea behind heuristics of bin packing 
+(although we are using NN instead of heuristics, there is intuition from heuristics)
+1. It is a NP hard problem, the motivation of all heuristics is thus to reduce the complexity in linear programming
+2. When more boxes are of the same size, the complexity decreases
+3. heuristics ideas: first pack large items (reduce number of combinations), group items into size group and round (reduce number of contraints in LP), 
+use fractional LP (relaxes constraints), add back the smaller items at the very end
+the deep mind's paper on AI winning at Atari shows clearly that they developed an expert level strategy, and right now, the bin packing strategy humans can come up with involves around those basic ideas, it'd be nice to see if the agent end up picking the bigger boxes first, or group the boxes somehow
 
 
