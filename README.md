@@ -39,6 +39,10 @@
   - #### JAX is "recommended!" also new cool kid on the block (Tensorflow's redeemer)
   - #### Want to stick with JAX and be humble and listen to smarter people's leading recommendations!
   - #### We have a non-complex enough environment that can be modeled without Unity, so **choosing JAX > Unity & PyTorch**
+### Bin packing problem > Cutting stock problem > Knapsack problem
+  - #### subsets of combinatorial optimization problems
+  - #### NP-hard, NP-complete if agent has to decide if all boxes can fit in bin
+  - #### Policy should determine
 
 ## Box
 - ### Agent will sample spatial information of Box
@@ -47,8 +51,8 @@
   - #### rl environment has physics engire
 
 ## RL environment/engine
-- ### Bryan is looking at RL environments to decide since Unity is off the table due to the recommended JAX over PyTorch, and Unity is highly PyTorch dependent. 
-- ### researching Acme, another DeepMind library  
+- ### Unity (C#) vs. Gym (python)
+- ### Unity ml-agents vs. Acme, a DeepMind RL library for modelling agents behavior
   - #### https://github.com/deepmind/acme
   - #### https://www.deepmind.com/publications/acme-a-new-framework-for-distributed-reinforcement-learning
 
