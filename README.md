@@ -9,6 +9,10 @@
 
 ## DRL
 ![](images/Screenshot%20from%202022-12-03%2023-56-10.png)
+![](images/Screenshot%20from%202022-12-04%2022-44-53.png)
+![](images/Screenshot%20from%202022-12-12%2016-40-31.png)
+### Δ/difference/change/relativity/generality based : policy gradient methods/policies are probalistic because they do not deal with actual values they deal with with greater than or less than (new Q(s,a) is just converted to Δ/change/relativity aka new Q(s,a) is greater than or less than old Q(s,a)) 
+### Δ/difference/change/relativity/generality based : value based methods/policies are non-probablistic because the do deal with actual values and not greater than or less than (they use actual Q(s,a) values and store them and instead of just comparing Δ/change/relativity)
 
 ## LSTM / RNN evo
 ### Pointer Networks https://arxiv.org/pdf/1506.03134.pdf
@@ -60,9 +64,6 @@
 - ### showcase the evolution and dynamics of the agent's policy
 - ### because the optimal answer may not be known beforehand by the human, (which is a benefit of DRL as the human can learn the unknown from the agent), we want to use graphs to show how the agent approached local optima and global optima
 
-![](images/Screenshot%20from%202022-12-04%2022-44-53.png)
-- ### perhaps only terminal action needs to be remembered by NN
-
 
 <br/>
 <br/>
@@ -101,7 +102,18 @@
   - Pointer Network
   - Attention-based RNN
   - Transformer
-Attention mechanisms are probabilistic mechanisms
+
+#### Attention mechanisms are probabilistic mechanisms
+## Multiple different Agent Models/"Brains": turn our problem of "which model may lead to most optimization?" as apart of the final solution
+- ### in the same environment, state space, and action space for agents, have agents with different "brains" (models generating thier policy and thus actions)
+  - #### such as lines of trucks with each agent packing the truck, like agent parallelism, but plotting/visualizing the metrics of efficiency and model performance (stretch: if can plot/visualize above each truck or on the ground along with a name on the ground of each agents model type, alternative is a UI that can be expanded or collapsed with an arrow)
+- ### stretch goal: multi-agent learning. could an agent with a core lesser model (such as non-transformer) + learning from observing other agents actions sequence learn from an agent who has a core greater model (such as transformer)
+#### (decision) transformers: optimal inference, non-optimal training
+  - #### transformers are great off the shelf for inference once trained, but they require a lot of data to train (optimal inference, non-optimal training)
+  - #### this may be because they are sequence based (and visiting all the possible sequences of state space is effectively combinatorial or !)
+  - #### recent 100,000 timesteps will influence network more than previous 100,000 timesteps (sequences with decay create adaptive bias)
+
+ 
 
 <ins>Reinforcement Learning: Agent’s reward</ins>
 Reward options: maximizing reward (traditional reward hypothesis) vs the desired reward
