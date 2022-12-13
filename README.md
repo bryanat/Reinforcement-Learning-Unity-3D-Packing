@@ -10,8 +10,13 @@
 ## DRL
 ![](images/Screenshot%20from%202022-12-03%2023-56-10.png)
 ![](images/Screenshot%20from%202022-12-12%2016-40-31.png)
-### Δ/difference/change/relativity/generality based : policy gradient methods/policies are probalistic because they do not deal with actual values they deal with with greater than or less than (new Q(s,a) is just converted to Δ/change/relativity aka new Q(s,a) is greater than or less than old Q(s,a)) 
-### Δ/difference/change/relativity/generality based : value based methods/policies are non-probablistic because the do deal with actual values and not greater than or less than (they use actual Q(s,a) values and store them and instead of just comparing Δ/change/relativity)
+![](images/Screenshot%20from%202022-12-04%2022-44-53.png)
+### Bryan: `mlagents_envs` (environment state) RL-side of DRL (RL Simulation/Environment-driven)
+### Yueqi: `mlagents` (learning algorithms) DL-side of DRL (DL Model/Policy-driven)
+Unity ML-Agents: "`mlagents` provides a set of reinforcement and imitation learning algorithms designed to be used with Unity environments. The algorithms interface with the Python API provided by `mlagents_envs`."
+
+### Δ/difference/gradient/change/relativity/generality based : policy gradient methods/policies are probalistic because they do not deal with actual values they deal with with greater than or less than (new Q(s,a) is just converted to Δ/change/relativity aka new Q(s,a) is greater than or less than old Q(s,a)) 
+### NON-Δ/difference/gradient/change/relativity/generality based : value based methods/policies are non-probablistic because the do deal with actual values and not greater than or less than (they use actual Q(s,a) values and store them and instead of just comparing Δ/change/relativity) ~ (cant do gradient descent on discrete values)
 
 ## LSTM / RNN evo
 ### Pointer Networks https://arxiv.org/pdf/1506.03134.pdf
@@ -63,7 +68,6 @@
 - ### showcase the evolution and dynamics of the agent's policy
 - ### because the optimal answer may not be known beforehand by the human, (which is a benefit of DRL as the human can learn the unknown from the agent), we want to use graphs to show how the agent approached local optima and global optima
 
-![](images/Screenshot%20from%202022-12-04%2022-44-53.png)
 
 
 <br/>
