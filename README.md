@@ -58,11 +58,11 @@ Unity ML-Agents: "`mlagents` provides a set of reinforcement and imitation learn
 - ### Mass: Structural Integrity to make sure Boxes aren't crushed (w = mg)
   - #### rl environment has physics engire
 
-## RL environment/engine
+## Unity `mlagents_env` RL environment/engine
 - ### Unity (C#) vs. Gym (python)
-- ### Unity ml-agents vs. Acme, a DeepMind RL library for modelling agents behavior
-  - #### https://github.com/deepmind/acme
-  - #### https://www.deepmind.com/publications/acme-a-new-framework-for-distributed-reinforcement-learning
+  - ### Unity mlagents_env has a wrapper around gym (includes gym)
+- ### Actions and Rewards are defined in Agent's C# script
+
 
 ## plotly
 - ### showcase the evolution and dynamics of the agent's policy
@@ -147,4 +147,10 @@ Environment and Tools
 use fractional LP (relaxes constraints), add back the smaller items at the very end
 the deep mind's paper on AI winning at Atari shows clearly that they developed an expert level strategy, and right now, the bin packing strategy humans can come up with involves around those basic ideas, it'd be nice to see if the agent end up picking the bigger boxes first, or group the boxes somehow
 
+![](images/Model-Script.png)
+## Assets folder opened in Unity
+<br/>
+<br/>
 
+![](images/git-file-structure.png)
+## picture showing git file structure (note Assets folder is previous picture above)
