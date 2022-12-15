@@ -147,7 +147,7 @@ Environment and Tools
 use fractional LP (relaxes constraints), add back the smaller items at the very end
 the deep mind's paper on AI winning at Atari shows clearly that they developed an expert level strategy, and right now, the bin packing strategy humans can come up with involves around those basic ideas, it'd be nice to see if the agent end up picking the bigger boxes first, or group the boxes somehow
 
-![](images/Model-Script.png)
+![](images/DL-RL-Model-Script.png)
 ## Assets folder opened in Unity
 <br/>
 <br/>
