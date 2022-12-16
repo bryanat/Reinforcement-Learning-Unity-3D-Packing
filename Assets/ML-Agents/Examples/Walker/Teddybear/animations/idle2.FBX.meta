@@ -1,0 +1,699 @@
+fileFormatVersion: 2
+guid: 434a5493c00ad6143897bdaa7ca9c79c
+timeCreated: 1531827053
+licenseType: Store
+ModelImporter:
+  serializedVersion: 18
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: ROOT
+    100004: Teddy
+    100006: Teddy 1
+    100008: Teddy EarL
+    100010: Teddy EarR
+    100012: Teddy Head
+    100014: Teddy L Calf
+    100016: Teddy L Clavicle
+    100018: Teddy L Finger0
+    100020: Teddy L Finger01
+    100022: Teddy L Finger1
+    100024: Teddy L Finger11
+    100026: Teddy L Foot
+    100028: Teddy L Forearm
+    100030: Teddy L Hand
+    100032: Teddy L Thigh
+    100034: Teddy L Toe0
+    100036: Teddy L UpperArm
+    100038: Teddy LidL
+    100040: Teddy LidR
+    100042: Teddy Neck
+    100044: Teddy Nose
+    100046: Teddy Pelvis
+    100048: Teddy R Calf
+    100050: Teddy R Clavicle
+    100052: Teddy R Finger0
+    100054: Teddy R Finger01
+    100056: Teddy R Finger1
+    100058: Teddy R Finger11
+    100060: Teddy R Foot
+    100062: Teddy R Forearm
+    100064: Teddy R Hand
+    100066: Teddy R Thigh
+    100068: Teddy R Toe0
+    100070: Teddy R UpperArm
+    100072: Teddy Spine
+    100074: Teddy Spine1
+    100076: Teddy Tail
+    400000: //RootNode
+    400002: ROOT
+    400004: Teddy
+    400006: Teddy 1
+    400008: Teddy EarL
+    400010: Teddy EarR
+    400012: Teddy Head
+    400014: Teddy L Calf
+    400016: Teddy L Clavicle
+    400018: Teddy L Finger0
+    400020: Teddy L Finger01
+    400022: Teddy L Finger1
+    400024: Teddy L Finger11
+    400026: Teddy L Foot
+    400028: Teddy L Forearm
+    400030: Teddy L Hand
+    400032: Teddy L Thigh
+    400034: Teddy L Toe0
+    400036: Teddy L UpperArm
+    400038: Teddy LidL
+    400040: Teddy LidR
+    400042: Teddy Neck
+    400044: Teddy Nose
+    400046: Teddy Pelvis
+    400048: Teddy R Calf
+    400050: Teddy R Clavicle
+    400052: Teddy R Finger0
+    400054: Teddy R Finger01
+    400056: Teddy R Finger1
+    400058: Teddy R Finger11
+    400060: Teddy R Foot
+    400062: Teddy R Forearm
+    400064: Teddy R Hand
+    400066: Teddy R Thigh
+    400068: Teddy R Toe0
+    400070: Teddy R UpperArm
+    400072: Teddy Spine
+    400074: Teddy Spine1
+    400076: Teddy Tail
+    4300000: Teddy
+    7400000: idle2
+    9500000: //RootNode
+    13700000: Teddy
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    motionNodeName: ROOT
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 3
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: idle2
+      takeName: Take 001
+      firstFrame: 0
+      lastFrame: 160
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: ROOT
+        weight: 1
+      - path: ROOT/Teddy 1
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy L Thigh
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy L Thigh/Teddy L Calf
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy L Thigh/Teddy L Calf/Teddy L Foot
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy L Thigh/Teddy L Calf/Teddy L Foot/Teddy
+          L Toe0
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy R Thigh
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy R Thigh/Teddy R Calf
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy R Thigh/Teddy R Calf/Teddy R Foot
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy R Thigh/Teddy R Calf/Teddy R Foot/Teddy
+          R Toe0
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy L Clavicle
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy L Clavicle/Teddy
+          L UpperArm
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy L Clavicle/Teddy
+          L UpperArm/Teddy L Forearm
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy L Clavicle/Teddy
+          L UpperArm/Teddy L Forearm/Teddy L Hand
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy L Clavicle/Teddy
+          L UpperArm/Teddy L Forearm/Teddy L Hand/Teddy L Finger0
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy L Clavicle/Teddy
+          L UpperArm/Teddy L Forearm/Teddy L Hand/Teddy L Finger0/Teddy L Finger01
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy L Clavicle/Teddy
+          L UpperArm/Teddy L Forearm/Teddy L Hand/Teddy L Finger1
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy L Clavicle/Teddy
+          L UpperArm/Teddy L Forearm/Teddy L Hand/Teddy L Finger1/Teddy L Finger11
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy Neck
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy Neck/Teddy
+          Head
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy Neck/Teddy
+          Head/Teddy EarL
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy Neck/Teddy
+          Head/Teddy EarR
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy Neck/Teddy
+          Head/Teddy LidL
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy Neck/Teddy
+          Head/Teddy LidR
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy Neck/Teddy
+          Head/Teddy Nose
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy R Clavicle
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy R Clavicle/Teddy
+          R UpperArm
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy R Clavicle/Teddy
+          R UpperArm/Teddy R Forearm
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy R Clavicle/Teddy
+          R UpperArm/Teddy R Forearm/Teddy R Hand
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy R Clavicle/Teddy
+          R UpperArm/Teddy R Forearm/Teddy R Hand/Teddy R Finger0
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy R Clavicle/Teddy
+          R UpperArm/Teddy R Forearm/Teddy R Hand/Teddy R Finger0/Teddy R Finger01
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy R Clavicle/Teddy
+          R UpperArm/Teddy R Forearm/Teddy R Hand/Teddy R Finger1
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Spine/Teddy Spine1/Teddy R Clavicle/Teddy
+          R UpperArm/Teddy R Forearm/Teddy R Hand/Teddy R Finger1/Teddy R Finger11
+        weight: 1
+      - path: ROOT/Teddy 1/Teddy Pelvis/Teddy Tail
+        weight: 1
+      - path: Teddy
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 1
+  copyAvatar: 1
+  humanDescription:
+    human:
+    - boneName: Teddy Pelvis
+      humanName: Hips
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Thigh
+      humanName: LeftUpperLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Thigh
+      humanName: RightUpperLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Calf
+      humanName: LeftLowerLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Calf
+      humanName: RightLowerLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Foot
+      humanName: LeftFoot
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Foot
+      humanName: RightFoot
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy Spine
+      humanName: Spine
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy Spine1
+      humanName: Chest
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy Head
+      humanName: Head
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Clavicle
+      humanName: LeftShoulder
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Clavicle
+      humanName: RightShoulder
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L UpperArm
+      humanName: LeftUpperArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R UpperArm
+      humanName: RightUpperArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Forearm
+      humanName: LeftLowerArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Forearm
+      humanName: RightLowerArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Hand
+      humanName: LeftHand
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Hand
+      humanName: RightHand
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Toe0
+      humanName: LeftToes
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Toe0
+      humanName: RightToes
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Finger0
+      humanName: Left Thumb Proximal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Finger01
+      humanName: Left Thumb Intermediate
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Finger1
+      humanName: Left Index Proximal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy L Finger11
+      humanName: Left Index Intermediate
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Finger0
+      humanName: Right Thumb Proximal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Finger01
+      humanName: Right Thumb Intermediate
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Finger1
+      humanName: Right Index Proximal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Teddy R Finger11
+      humanName: Right Index Intermediate
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    skeleton:
+    - name: TeddyAvatar(Clone)
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: ROOT
+      position: {x: 0, y: 0, z: 1.90734859e-08}
+      rotation: {x: -5.96244032e-09, y: 0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy 1
+      position: {x: -0, y: .313352048, z: -1.53368003e-08}
+      rotation: {x: -.500000358, y: .499999642, z: .499999642, w: .500000358}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy Pelvis
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: -.5, y: .5, z: .499999315, w: .500000715}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy L Thigh
+      position: {x: 1.52587887e-07, y: 1.63592148e-07, z: .108087026}
+      rotation: {x: -.0281300079, y: .999604285, z: -6.72390797e-07, w: -7.56325107e-07}
+      scale: {x: 1, y: 1.00000012, z: 1}
+      transformModified: 1
+    - name: Teddy L Calf
+      position: {x: -.11603006, y: -1.19209287e-09, z: 0}
+      rotation: {x: -2.41394429e-14, y: 2.23355515e-15, z: .054786399, w: .998498082}
+      scale: {x: 1, y: .999999881, z: 1}
+      transformModified: 1
+    - name: Teddy L Foot
+      position: {x: -.116030112, y: 1.49011603e-09, z: 0}
+      rotation: {x: -1.16603138e-09, y: -4.3695831e-08, z: -.0266769454, w: .999644101}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy L Toe0
+      position: {x: -.0819408521, y: .100293837, z: 0}
+      rotation: {x: 9.26087867e-22, y: 9.26087867e-22, z: -.707106829, w: .707106829}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy R Thigh
+      position: {x: -1.52587887e-07, y: -1.36198068e-07, z: -.108087026}
+      rotation: {x: -.0281300079, y: .999604285, z: -6.72390797e-07, w: -7.56325107e-07}
+      scale: {x: 1, y: 1.00000012, z: 1}
+      transformModified: 1
+    - name: Teddy R Calf
+      position: {x: -.11603006, y: 0, z: 0}
+      rotation: {x: -2.41394429e-14, y: 2.23355515e-15, z: .054786399, w: .998498082}
+      scale: {x: 1, y: .999999881, z: 1}
+      transformModified: 1
+    - name: Teddy R Foot
+      position: {x: -.116030112, y: 5.96046434e-10, z: 0}
+      rotation: {x: -1.16603138e-09, y: -4.3695831e-08, z: -.0266769454, w: .999644101}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy R Toe0
+      position: {x: -.0819408521, y: .100293823, z: 0}
+      rotation: {x: 9.26087867e-22, y: 9.26087867e-22, z: -.707106829, w: .707106829}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy Spine
+      position: {x: -.0907491669, y: .00054583844, z: 6.7110625e-07}
+      rotation: {x: 7.32710323e-05, y: 7.9934631e-07, z: -.000398080971, w: .99999994}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy Spine1
+      position: {x: -.159661561, y: -.000127426902, z: -3.53502394e-10}
+      rotation: {x: -4.35559921e-12, y: 0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy L Clavicle
+      position: {x: -.100223884, y: -.00644262834, z: .0136093004}
+      rotation: {x: -.707106709, y: -.000282505644, z: .707106769, w: -.000280544424}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy L UpperArm
+      position: {x: -.0845104754, y: 0, z: 0}
+      rotation: {x: 8.08198877e-08, y: 1.57128838e-07, z: 7.60370167e-05, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy L Forearm
+      position: {x: -.163735241, y: 0, z: 0}
+      rotation: {x: 1.33049712e-15, y: 3.55337733e-15, z: .00049829483, w: .999999881}
+      scale: {x: .999999881, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy L Hand
+      position: {x: -.163735271, y: 0, z: 0}
+      rotation: {x: -.706825197, y: 2.33164321e-16, z: -2.3335006e-16, w: .707388222}
+      scale: {x: 1, y: 1, z: 1.00000012}
+      transformModified: 1
+    - name: Teddy L Finger0
+      position: {x: -.0328651369, y: -.00102816324, z: -.0806638375}
+      rotation: {x: -.00260594371, y: -.382036775, z: 5.36888838e-05, w: .924143493}
+      scale: {x: 1.00000048, y: .999999821, z: .999999523}
+      transformModified: 1
+    - name: Teddy L Finger01
+      position: {x: -.0454593264, y: 0, z: 0}
+      rotation: {x: -2.32828867e-10, y: -9.07108481e-13, z: .00389600149, w: .99999243}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy L Finger1
+      position: {x: -.0670393333, y: -.0123573299, z: 9.83953487e-06}
+      rotation: {x: -.00039813717, y: -1.07479008e-11, z: 2.76952872e-14, w: .99999994}
+      scale: {x: 1, y: .99999994, z: .99999994}
+      transformModified: 1
+    - name: Teddy L Finger11
+      position: {x: -.0454593636, y: 0, z: 0}
+      rotation: {x: 4.0316278e-14, y: -2.58347618e-12, z: -.000466838479, w: .999999881}
+      scale: {x: 1.00000012, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy Neck
+      position: {x: -.126092181, y: .00459071109, z: 1.12817212e-07}
+      rotation: {x: -1.9996121e-06, y: -5.0159241e-07, z: 2.81008394e-11, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy Head
+      position: {x: -.0265402216, y: 2.98023217e-10, z: 0}
+      rotation: {x: -7.33517008e-05, y: 3.94071236e-07, z: .000398752483, w: .99999994}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy EarL
+      position: {x: -.308368385, y: .0342234634, z: .175960347}
+      rotation: {x: -.00888338778, y: .462843627, z: -.0377097093, w: .885592937}
+      scale: {x: 1.00000012, y: 1, z: 1.00000012}
+      transformModified: 1
+    - name: Teddy EarR
+      position: {x: -.308368385, y: .0342239626, z: -.18023926}
+      rotation: {x: .00888352748, y: -.462843418, z: -.0377123393, w: .885592937}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy LidL
+      position: {x: -.179576799, y: .209992632, z: .0641957}
+      rotation: {x: .153595015, y: -.690226018, z: .690343142, w: -.153045833}
+      scale: {x: 1, y: 1.00000012, z: 1.00000012}
+      transformModified: 1
+    - name: Teddy LidR
+      position: {x: -.179576799, y: .209992841, z: -.0609453805}
+      rotation: {x: .153595015, y: -.690226018, z: .690343142, w: -.153045833}
+      scale: {x: 1, y: 1.00000012, z: 1.00000012}
+      transformModified: 1
+    - name: Teddy Nose
+      position: {x: -.110823594, y: .154582992, z: 2.18751225e-07}
+      rotation: {x: .707387507, y: -.706825972, z: -3.31142246e-06, w: -1.35205005e-06}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy R Clavicle
+      position: {x: -.100223884, y: -.00644255336, z: -.0136093395}
+      rotation: {x: .707106709, y: .000280581182, z: .707106769, w: -.000282542402}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy R UpperArm
+      position: {x: -.0845104754, y: 0, z: 0}
+      rotation: {x: -8.08254796e-08, y: -5.79161341e-09, z: -7.46660662e-05, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy R Forearm
+      position: {x: -.163735241, y: 5.96046434e-10, z: 0}
+      rotation: {x: -1.33049712e-15, y: -3.55337733e-15, z: .00049829483, w: .999999881}
+      scale: {x: .999999881, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy R Hand
+      position: {x: -.163735256, y: -5.96046434e-10, z: 0}
+      rotation: {x: .706825197, y: -2.33164083e-16, z: -2.33349821e-16, w: .707388222}
+      scale: {x: 1, y: 1, z: 1.00000012}
+      transformModified: 1
+    - name: Teddy R Finger0
+      position: {x: -.0328868032, y: -.00104244484, z: .0806749985}
+      rotation: {x: .00202032039, y: .38203609, z: .00166495156, w: .924143732}
+      scale: {x: 1.00000048, y: .999999821, z: .999999523}
+      transformModified: 1
+    - name: Teddy R Finger01
+      position: {x: -.0454593264, y: 0, z: -4.76837148e-09}
+      rotation: {x: 2.32828867e-10, y: 9.07108481e-13, z: .00389600149, w: .99999243}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy R Finger1
+      position: {x: -.0670393333, y: -.0123573299, z: -9.83953487e-06}
+      rotation: {x: .00039813717, y: 1.07479442e-11, z: 2.41425549e-14, w: .99999994}
+      scale: {x: 1, y: .99999994, z: .99999994}
+      transformModified: 1
+    - name: Teddy R Finger11
+      position: {x: -.0454593636, y: 0, z: 0}
+      rotation: {x: -1.18945728e-14, y: 2.58346296e-12, z: -.000466838479, w: .999999881}
+      scale: {x: 1.00000012, y: 1, z: 1}
+      transformModified: 1
+    - name: Teddy Tail
+      position: {x: -.0205916967, y: -.108023517, z: 2.18363596e-07}
+      rotation: {x: -7.60927833e-07, y: -1.06920638e-07, z: .779989898, w: .625792086}
+      scale: {x: 1.00000012, y: 1.00000012, z: 1}
+      transformModified: 1
+    - name: Teddy
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: -.707106829, y: 0, z: -0, w: .707106829}
+      scale: {x: 1, y: 1, z: 1}
+      transformModified: 1
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 1
+  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: 1622c48eaa34e05418bbb44ae7f44386,
+    type: 3}
+  animationType: 3
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

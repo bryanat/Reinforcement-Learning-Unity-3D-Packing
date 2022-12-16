@@ -1,0 +1,47 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1671063441",
+        "python_version": "3.9.15 (main, Nov 24 2022, 14:31:59) \n[GCC 11.2.0]",
+        "command_line_arguments": "/home/bryanat/anaconda3/envs/UnityDRL-Box1/bin/mlagents-learn Teddybear.yaml --run-id=Tebbles001",
+        "mlagents_version": "0.30.0",
+        "mlagents_envs_version": "0.30.0",
+        "communication_protocol_version": "1.5.0",
+        "pytorch_version": "1.11.0+cu102",
+        "numpy_version": "1.21.2",
+        "end_time_seconds": "1671063494"
+    },
+    "total": 52.79878153899335,
+    "count": 1,
+    "self": 0.01489602099172771,
+    "children": {
+        "run_training.setup": {
+            "total": 0.023021909000817686,
+            "count": 1,
+            "self": 0.023021909000817686
+        },
+        "TrainerController.start_learning": {
+            "total": 52.76086360900081,
+            "count": 1,
+            "self": 0.0002971210051327944,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 52.76055623800494,
+                    "count": 1,
+                    "self": 52.76055623800494
+                },
+                "trainer_threads": {
+                    "total": 1.057996996678412e-06,
+                    "count": 1,
+                    "self": 1.057996996678412e-06
+                },
+                "TrainerController._save_models": {
+                    "total": 9.191993740387261e-06,
+                    "count": 1,
+                    "self": 9.191993740387261e-06
+                }
+            }
+        }
+    }
+}
