@@ -5,7 +5,7 @@
 - ## BOX - Box. Box. Box. (RL Agent's existence)
 - ## SIM - Simulation in Unity/Gym (RL Environment)
 
-# Project Members: Bryan Boyett & Yueqi Peng & ??DRL_Teammate_#3!??
+# Project Members: Bryan Boyett & Yueqi Peng & Pano Evangeliou
 
 ## DRL
 ![](images/Screenshot%20from%202022-12-03%2023-56-10.png)
