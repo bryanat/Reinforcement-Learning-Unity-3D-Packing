@@ -10,7 +10,7 @@
 ## DRL
 ![](VSCode/images/Screenshot%20from%202022-12-03%2023-56-10.png)
 ![](VSCode/images/Screenshot%20from%202022-12-12%2016-40-31.png)
-![](VSCode/images/Screenshot%20from%202022-12-04%2022-44-53.png)
+![](VSCode/images/drl-unity-api-io-sensor-actuator.png)
 ### Bryan: `mlagents_envs` (environment state) RL-side of DRL (RL Simulation/Environment-driven) (red)
 ### Yueqi: `mlagents` (learning algorithms) DL-side of DRL (DL Model/Policy-driven) (blue)
 Unity ML-Agents: "`mlagents` provides a set of reinforcement and imitation learning algorithms designed to be used with Unity environments. The algorithms interface with the Python API provided by `mlagents_envs`."
