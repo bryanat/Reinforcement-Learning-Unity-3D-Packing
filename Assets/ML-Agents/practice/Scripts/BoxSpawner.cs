@@ -27,13 +27,13 @@ public class BoxSpawner : MonoBehaviour {
             Debug.Log(size);
 
             ////// UNCOMMENT ////
-            // var box = new Box {
-            //     startingPos = position, // check
-            //     // how to console.log size
-            //     boxSize = new Vector3(size[0], size[1], size[2]) // boxSize is no longer error, but where is boxSize used?
-            //     // boxSize = new Vector3(1.0f, 2.0f, 3.0f ) // boxSize is no longer error, but where is boxSize used?
-            // };
-            // boxPool.Add(box);
+            var box = new Box {
+                startingPos = position, // check
+                // how to console.log size
+                // boxSize = new Vector3(size[0], size[1], size[2]) // boxSize is no longer error, but where is boxSize used?
+                boxSize = new Vector3(1.0f, 2.0f, 3.0f ) // boxSize is no longer error, but where is boxSize used?
+            };
+            boxPool.Add(box);
             
         }
     }

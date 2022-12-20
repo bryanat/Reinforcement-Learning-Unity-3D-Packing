@@ -83,18 +83,30 @@ public class PackerAgent : Agent
     public override void Initialize()
     {
 
-///////////////////NEED TO SEE IF CACHING IS NEEDED HERE///////////////////////////
-        // Cache the block rigidbody
+        ///////////////////NEED TO SEE IF CACHING IS NEEDED HERE///////////////////////////
+        // // Cache the block rigidbody
         //m_BlockRb = block.GetComponent<Rigidbody>();
+        // // box that will be pushed to into bin
+        // binDetect = m_Box.GetComponent<BinDetect>();
+        // binDetect.agent = this;
+        //  // Get the ground's bounds
+        // areaBounds = ground.GetComponent<Collider>().bounds;
+        // m_Box.SetUpBoxes(areaBounds);
+        //////////////////// OLD ABOVE ///////////////////////////////
 
-        // box that will be pushed to into bin
-        binDetect = m_Box.GetComponent<BinDetect>();
-        binDetect.agent = this;
 
-         // Get the ground's bounds
+        m_Box = GetComponent<BoxSpawner>();
+        // // Get the ground's bounds
         areaBounds = ground.GetComponent<Collider>().bounds;
+        // THIS BELOW m_Box.SetUpBoxes(areaBounds); is causing m_JdController.SetupBodyPart to not work
+        // m_Box.SetUpBoxes(areaBounds);
 
-        m_Box.SetUpBoxes(areaBounds);
+        // var boxList =  m_Box.boxPool;
+        // foreach (var box in boxList) {
+        //     binDetect = m_Box.GetComponent<BinDetect>();
+        //     binDetect.agent = this;
+        // }
+
 
         m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
         m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
@@ -117,6 +129,10 @@ public class PackerAgent : Agent
         m_JdController.SetupBodyPart(armR);
         m_JdController.SetupBodyPart(forearmR);
         m_JdController.SetupBodyPart(handR);
+
+        Debug.Log("==============++God==++++++=========");
+        int keysY = m_JdController.bodyPartsDict.Keys.Count;
+        Debug.Log(keysY);
 
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
