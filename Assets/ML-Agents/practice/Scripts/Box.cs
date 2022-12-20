@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 
+//////////////////////////////  NEED TO CHECK WHERE TO ATTACH THIS SCRIPT //////////////////////////////////////
 public class Box : Monobehavior
 {
     public Transform t;

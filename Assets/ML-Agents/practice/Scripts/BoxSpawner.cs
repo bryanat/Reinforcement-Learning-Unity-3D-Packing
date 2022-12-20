@@ -5,6 +5,7 @@ using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 
 
+///////////////////////// NEED TO CHECK WHERE TO ATTACH THIS SCRIPT ///////////////////////////////////
 
 public class BoxSpawner : MonoBehaviour {
 
@@ -57,18 +58,24 @@ public class BoxSpawner : MonoBehaviour {
 
 
 
-    
-/////////TO BE WORKED ON NEXT//////////////////////////
-    void ResetBoxes()
+
+///////////////////////////NEED TO CHECK ON HOW EACH COMPONENT IS RESSET//////////////////////
+    void ResetBoxes(Bounds areaBounds)
     {
-        // Get a random position for the block.
-        block.transform.position = Vector3.zero;//GetRandomSpawnPos();
+        foreach(var box in boxPool) {
+            box.transform.position = GetRandomSpawnPos(areaBounds);
+            box.velocity = Vector3.zero;
+            box.angularVelocity = Vector3.zero;
 
-        // Reset block velocity back to zero.
-        m_BlockRb.velocity = Vector3.zero;
+        }
+        // // Get a random position for the block.
+        // block.transform.position = Vector3.zero;//GetRandomSpawnPos();
 
-        // Reset block angularVelocity back to zero.
-        m_BlockRb.angularVelocity = Vector3.zero;
+        // // Reset block velocity back to zero.
+        // m_BlockRb.velocity = Vector3.zero;
+
+        // // Reset block angularVelocity back to zero.
+        // m_BlockRb.angularVelocity = Vector3.zero;
     }
  
 

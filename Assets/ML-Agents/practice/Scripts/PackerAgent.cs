@@ -15,6 +15,7 @@ public class PackerAgent : Agent
     [HideInInspector]
     public Bounds areaBounds;
 
+/////////////////////NEED TO CHECK IF CACHING IS NEEDED HERE////////////////////////////////////////////
     // Rigidbody m_BlockRb;  //cached on initialization
     // Rigidbody m_Block1Rb;  //cached on initialization
 
@@ -78,6 +79,7 @@ public class PackerAgent : Agent
     public override void Initialize()
     {
 
+///////////////////NEED TO SEE IF CACHING IS NEEDED HERE///////////////////////////
         // Cache the block rigidbody
         //m_BlockRb = block.GetComponent<Rigidbody>();
 
@@ -119,7 +121,7 @@ public class PackerAgent : Agent
     /// </summary>
     public override void OnEpisodeBegin()
     {
-        m_Box.ResetBoxes();
+        m_Box.ResetBoxes(areaBounds);
         //Reset all of the body parts
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
         {
@@ -141,6 +143,7 @@ public class PackerAgent : Agent
     /// <summary>
     /// Add relevant information on each box to observation
     /// <summary>
+    /////////////////////////////////NEED TO START WORKING ON THIS FUNCTION////////////////////////////////////////
     public void CollectObservationBox(Box box, VectorSensor sensor) {
         //box size, box location, box mass?, etc.
 
@@ -244,7 +247,6 @@ public class PackerAgent : Agent
               target = hits[availableBoxes[x]].transform;
          }
    }
-
     public void PickUpTarget() {
 
         //if the agent touches target
@@ -257,10 +259,7 @@ public class PackerAgent : Agent
         
     }
         
-
-      
-        
-        
+  
     
     public void DropBox(int x) {
         if (target!=null) {
@@ -414,8 +413,6 @@ public class PackerAgent : Agent
          AddReward(1f);
          print("Got to box!!!!!");
      }
-
-    
 
 
     /// <summary>
