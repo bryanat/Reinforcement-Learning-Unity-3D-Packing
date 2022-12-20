@@ -7,7 +7,8 @@ using Unity.MLAgentsExamples;
 using Unity.MLAgents.Sensors;
 using BodyPart = Unity.MLAgentsExamples.BodyPart;
 using Random = UnityEngine.Random;
-
+using Box = Boxes.Box;
+using Boxes;
 public class PackerAgent : Agent
 
 {
@@ -76,8 +77,6 @@ public class PackerAgent : Agent
     DirectionIndicator m_DirectionIndicator;
     JointDriveController m_JdController;
     EnvironmentParameters m_ResetParams;
-    
-    // ??
     BoxSpawner m_Box;
 
     public override void Initialize()
@@ -99,13 +98,15 @@ public class PackerAgent : Agent
         // // Get the ground's bounds
         areaBounds = ground.GetComponent<Collider>().bounds;
         // THIS BELOW m_Box.SetUpBoxes(areaBounds); is causing m_JdController.SetupBodyPart to not work
-        // m_Box.SetUpBoxes(areaBounds);
+         m_Box.SetUpBoxes(areaBounds);
 
-        // var boxList =  m_Box.boxPool;
-        // foreach (var box in boxList) {
-        //     binDetect = m_Box.GetComponent<BinDetect>();
-        //     binDetect.agent = this;
-        // }
+        var boxList =  m_Box.boxPool;
+        foreach (var box in boxList) {
+            binDetect = m_Box.GetComponent<BinDetect>();
+            binDetect.agent = this;
+        }
+
+        //Transform target = boxList[0].GetComponent<Transform>();
 
 
         m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
@@ -149,6 +150,7 @@ public class PackerAgent : Agent
         // m_Box is null
         m_Box = GetComponent<BoxSpawner>();
         m_Box.ResetBoxes(areaBounds);
+
         //Reset all of the body parts
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
         {
@@ -158,23 +160,26 @@ public class PackerAgent : Agent
         //Random start rotation to help generalize
         hips.rotation = Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
 
-        UpdateOrientationObjects();
+        //Update targets
+        var target = m_Box.boxPool[0].GetComponent<Transform>();
+        UpdateOrientationObjects(target);
 
         //Set our goal walking speed
         MTargetWalkingSpeed =
             randomizeWalkSpeedEachEpisode ? Random.Range(0.1f, m_maxWalkingSpeed) : MTargetWalkingSpeed;
 
         SetResetParameters();
+
     }
 
     /// <summary>
     /// Add relevant information on each box to observation
     /// <summary>
     /////////////////////////////////NEED TO START WORKING ON THIS FUNCTION////////////////////////////////////////
-    public void CollectObservationBox(Box box, VectorSensor sensor) {
-        //box size, box location, box mass?, etc.
+    // public void CollectObservationBox(Box box, VectorSensor sensor) {
+    //     //box size, box location, box mass?, etc.
 
-    }
+    // }
 
     /// <summary>
     /// Add relevant information on each body part to observations.
@@ -237,9 +242,9 @@ public class PackerAgent : Agent
 
         //observation of boxes when agent does not have a box
         //if (!pickupScript.isHeld) {
-            foreach (var box in m_Box.boxPool) {
-                CollectObservationBox(box, sensor);
-            }
+            // foreach (var box in m_Box.boxPool) {
+            //     CollectObservationBox(box, sensor);
+            // }
         //}
         //observation of boxes organized in bin when agent has a box
         // else {
@@ -355,7 +360,7 @@ public class PackerAgent : Agent
     }
 
     //Update OrientationCube and DirectionIndicator
-    void UpdateOrientationObjects()
+    void UpdateOrientationObjects(Transform target)
     {
         m_WorldDirToWalk = target.position - hips.position;
         // m_OrientationCube is null
@@ -369,7 +374,7 @@ public class PackerAgent : Agent
 
     void FixedUpdate()
     {
-        UpdateOrientationObjects();
+        UpdateOrientationObjects(target);
 
         var cubeForward = m_OrientationCube.transform.forward;
 

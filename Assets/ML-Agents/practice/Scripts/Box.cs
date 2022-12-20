@@ -22,7 +22,9 @@ public class Box : MonoBehaviour
     public Quaternion StartingRot;
 
 
-
+    public void Reset(Box box) {
+        box.transform.position = box.startingPos;
+    }
 }
 
 
