@@ -98,13 +98,13 @@ public class PackerAgent : Agent
         // // Get the ground's bounds
         areaBounds = ground.GetComponent<Collider>().bounds;
         // THIS BELOW m_Box.SetUpBoxes(areaBounds); is causing m_JdController.SetupBodyPart to not work
-         m_Box.SetUpBoxes(areaBounds);
+        m_Box.SetUpBoxes(areaBounds);
 
-        var boxList =  m_Box.boxPool;
-        foreach (var box in boxList) {
-            binDetect = m_Box.GetComponent<BinDetect>();
-            binDetect.agent = this;
-        }
+        // var boxList =  m_Box.boxPool;
+        // foreach (var box in boxList) {
+        //     binDetect = m_Box.GetComponent<BinDetect>();
+        //     binDetect.agent = this;
+        // }
 
         //Transform target = boxList[0].GetComponent<Transform>();
 
@@ -137,6 +137,7 @@ public class PackerAgent : Agent
 
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
+        //Update bodypart dictionary
         SetResetParameters();
     }
 
@@ -149,6 +150,8 @@ public class PackerAgent : Agent
         areaBounds = ground.GetComponent<Collider>().bounds;
         // m_Box is null
         m_Box = GetComponent<BoxSpawner>();
+        Debug.Log("++++++++++++++++++++BOX On Episode Begin++++++++++++++++++++++++++++++");
+        Debug.Log(m_Box);
         m_Box.ResetBoxes(areaBounds);
 
         //Reset all of the body parts
@@ -160,14 +163,15 @@ public class PackerAgent : Agent
         //Random start rotation to help generalize
         hips.rotation = Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
 
-        //Update targets
-        var target = m_Box.boxPool[0].GetComponent<Transform>();
-        UpdateOrientationObjects(target);
+        //Update target and orientation
+        target = m_Box.boxPool[0].transform;
+        UpdateOrientationObjects();
 
         //Set our goal walking speed
         MTargetWalkingSpeed =
             randomizeWalkSpeedEachEpisode ? Random.Range(0.1f, m_maxWalkingSpeed) : MTargetWalkingSpeed;
 
+        //Update bodypart dict
         SetResetParameters();
 
     }
@@ -360,7 +364,7 @@ public class PackerAgent : Agent
     }
 
     //Update OrientationCube and DirectionIndicator
-    void UpdateOrientationObjects(Transform target)
+    void UpdateOrientationObjects()
     {
         m_WorldDirToWalk = target.position - hips.position;
         // m_OrientationCube is null
@@ -374,7 +378,7 @@ public class PackerAgent : Agent
 
     void FixedUpdate()
     {
-        UpdateOrientationObjects(target);
+        UpdateOrientationObjects();
 
         var cubeForward = m_OrientationCube.transform.forward;
 

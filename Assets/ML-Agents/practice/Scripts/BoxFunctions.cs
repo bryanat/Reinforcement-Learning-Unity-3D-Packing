@@ -4,11 +4,14 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using static PickupScript;
+using static BinDetect;
 
 namespace Boxes {
 
 public class Box : MonoBehaviour
 {
+
+    public GameObject m_box;
     public Transform t;
     [HideInInspector]
     public BinDetect binDetect;
@@ -21,11 +24,6 @@ public class Box : MonoBehaviour
     public Vector3 boxSize; 
 
     public Quaternion StartingRot;
-
-
-    public void Reset(Box box) {
-        box.transform.position = box.startingPos;
-    }
 }
 
 
@@ -38,30 +36,35 @@ public class BoxSpawner : MonoBehaviour {
     public PackerAgent agent; // idk if this stays here
 
 
+    [HideInInspector]
     public List<Box> boxPool = new List<Box>();
 
     public GameObject ground;
 
+    public GameObject m_box;
 
-    public void SetUpBoxes(Bounds areaBound) {
-        //for each box in json, get a list of box sizes as Vector3;
+
+
+    public void SetUpBoxes(Bounds areaBounds) {
+        //for each box in json, get a list of box sizes;
         //sizes = readJson(); 
         float[,] sizes = new float[,] { { 1.0f, 2.0f, 3.0f }, { 3.0f, 2.0f, 3.0f } , { 5.0f, 2.0f, 3.0f }, { 7.0f, 2.0f, 3.0f }, { 5.0f, 5.0f, 5.0f } };
 
 
         foreach(var size in sizes) {
-            var position = GetRandomSpawnPos(areaBound);
-            Debug.Log(size);
-
-            ////// UNCOMMENT ////
-            var box = new Box {
-                startingPos = position, // check
-                // how to console.log size
-                // boxSize = new Vector3(size[0], size[1], size[2]) // boxSize is no longer error, but where is boxSize used?
-                boxSize = new Vector3(1.0f, 2.0f, 3.0f ) // boxSize is no longer error, but where is boxSize used?
-            };
-            boxPool.Add(box);
-            
+            var position = GetRandomSpawnPos(areaBounds);
+            var box = new GameObject();
+            box.AddComponent<Transform>();
+            box.AddComponent<BinDetect>();
+            box.AddComponent<PickupScript>();
+            box.AddComponent<Rigidbody>();
+            box.AddComponent<BoxCollider>();
+            box.transform.localScale = new Vector3(1.0f, 2.0f, 3.0f);
+            box.transform.position = position;
+            //box.binDetect.agent = agent;
+            var box2 = new Box{m_box = box};
+            if (box2.rb) {Debug.Log("RIGID BODY DDED DURING CREATION!!!!!");}
+            boxPool.Add(box2);          
         }
     }
 
@@ -100,7 +103,7 @@ public class BoxSpawner : MonoBehaviour {
     public void ResetBoxes(Bounds areaBounds)
     {
         foreach(var box in boxPool) {
-            box.transform.position = GetRandomSpawnPos(areaBounds);
+            box.rb.transform.position = GetRandomSpawnPos(areaBounds);
             // box.velocity = Vector3.zero;
             // box.angularVelocity = Vector3.zero;
 
