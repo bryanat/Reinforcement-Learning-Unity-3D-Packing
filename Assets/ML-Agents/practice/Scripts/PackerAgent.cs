@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
@@ -6,7 +7,6 @@ using Unity.MLAgentsExamples;
 using Unity.MLAgents.Sensors;
 using BodyPart = Unity.MLAgentsExamples.BodyPart;
 using Random = UnityEngine.Random;
-using Box;
 
 public class PackerAgent : Agent
 
@@ -14,6 +14,8 @@ public class PackerAgent : Agent
     public GameObject ground;
     [HideInInspector]
     public Bounds areaBounds;
+
+    public BinDetect binDetect;
 
 /////////////////////NEED TO CHECK IF CACHING IS NEEDED HERE////////////////////////////////////////////
     // Rigidbody m_BlockRb;  //cached on initialization
@@ -74,6 +76,8 @@ public class PackerAgent : Agent
     DirectionIndicator m_DirectionIndicator;
     JointDriveController m_JdController;
     EnvironmentParameters m_ResetParams;
+    
+    // ??
     BoxSpawner m_Box;
 
     public override void Initialize()
@@ -83,10 +87,14 @@ public class PackerAgent : Agent
         // Cache the block rigidbody
         //m_BlockRb = block.GetComponent<Rigidbody>();
 
+        // box that will be pushed to into bin
+        binDetect = m_Box.GetComponent<BinDetect>();
+        binDetect.agent = this;
+
          // Get the ground's bounds
         areaBounds = ground.GetComponent<Collider>().bounds;
 
-        m_Box.SetupBoxes(areaBounds);
+        m_Box.SetUpBoxes(areaBounds);
 
         m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
         m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
@@ -121,6 +129,7 @@ public class PackerAgent : Agent
     /// </summary>
     public override void OnEpisodeBegin()
     {
+        areaBounds = ground.GetComponent<Collider>().bounds;
         m_Box.ResetBoxes(areaBounds);
         //Reset all of the body parts
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
@@ -226,15 +235,14 @@ public class PackerAgent : Agent
     }
     
     public void SelectTarget(int x) {
-    	RaycastHit hits;
         if (target==null) {
             //TBD: add a condition if agent wants to pick up a box (based on leftover bin space for example)
             // do a ray search on all objects
-            hits = Physics.RaycastAll(transform.position, transform.forward, Mathf.Infinity);
+            RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward, Mathf.Infinity);
             //of all the available objects in the agent's field of vision, check for the ones marked for pick up (boxes)
             // will move this to state
-            availableBoxes = new List<int>();
-             for (int i = 0; i < hits.Length; i++) {
+            List<int> availableBoxes = new List<int>();
+            for (int i = 0; i < hits.Length; i++) {
              	RaycastHit hit = hits[i];
             	PickupScript pickupScript = hit.collider.gameObject.GetComponent<PickupScript>();
             	//will change this
@@ -251,10 +259,12 @@ public class PackerAgent : Agent
 
         //if the agent touches target
         PickupScript pickupScript = target.GetComponent<Collider>().gameObject.GetComponent<PickupScript>();
-        if (pickupScript!=null && !target.isOrganized) {
+        // right now boxes dont have organized tags 
+        // if (pickupScript!=null && !target.isOrganized) {
+        if (pickupScript!=null) {
             //Pick up the target
-            pickUpScript.isHeld = true;
-            target.position = transform.position + ransform.forward * 0.5f;
+            pickupScript.isHeld = true;
+            target.position = transform.position + transform.forward * 0.5f;
         }
         
     }
@@ -277,20 +287,19 @@ public class PackerAgent : Agent
         
     }
     
-   
 
 
 	////This is where the agent learns to move its joints and where it learns what is its next target to pick
     public override void OnActionReceived(ActionBuffers actionBuffers)
-
     {
 
         var bpDict = m_JdController.bodyPartsDict;
         var i = -1;
 
         var continuousActions = actionBuffers.ContinuousActions;
-        
-        SelectBox(continuousActions[++i]);        
+        var discreteActions = actionBuffers.DiscreteActions;
+
+        SelectTarget(discreteActions[++i]);        
         
         bpDict[chest].SetJointTargetRotation(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         bpDict[spine].SetJointTargetRotation(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
@@ -322,6 +331,7 @@ public class PackerAgent : Agent
         bpDict[forearmL].SetJointStrength(continuousActions[++i]);
         bpDict[armR].SetJointStrength(continuousActions[++i]);
         bpDict[forearmR].SetJointStrength(continuousActions[++i]);
+
     }
 
     //Update OrientationCube and DirectionIndicator

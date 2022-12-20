@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
+using static PickupScript;
 
 //////////////////////////////  NEED TO CHECK WHERE TO ATTACH THIS SCRIPT //////////////////////////////////////
-public class Box : Monobehavior
+public class Box : MonoBehaviour
 {
     public Transform t;
     [HideInInspector]
@@ -19,6 +20,7 @@ public class Box : Monobehavior
     public Vector3 boxSize; 
 
     public Quaternion StartingRot;
+
 
 
 }
