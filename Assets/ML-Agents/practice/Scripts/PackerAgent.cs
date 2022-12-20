@@ -130,6 +130,8 @@ public class PackerAgent : Agent
     public override void OnEpisodeBegin()
     {
         areaBounds = ground.GetComponent<Collider>().bounds;
+        // m_Box is null
+        m_Box = GetComponent<BoxSpawner>();
         m_Box.ResetBoxes(areaBounds);
         //Reset all of the body parts
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
@@ -234,7 +236,9 @@ public class PackerAgent : Agent
         // }
     }
     
-    public void SelectTarget(int x) {
+    public void SelectTarget(float x) {
+        // round input float x to int y 
+        int y = (int)Math.Round(x);
         if (target==null) {
             //TBD: add a condition if agent wants to pick up a box (based on leftover bin space for example)
             // do a ray search on all objects
@@ -252,7 +256,7 @@ public class PackerAgent : Agent
               	}	
               }
               //mark the box as target
-              target = hits[availableBoxes[x]].transform;
+              target = hits[availableBoxes[y]].transform;
          }
    }
     public void PickUpTarget() {
@@ -297,9 +301,7 @@ public class PackerAgent : Agent
         var i = -1;
 
         var continuousActions = actionBuffers.ContinuousActions;
-        var discreteActions = actionBuffers.DiscreteActions;
 
-        SelectTarget(discreteActions[++i]);        
         
         bpDict[chest].SetJointTargetRotation(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         bpDict[spine].SetJointTargetRotation(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
@@ -332,12 +334,16 @@ public class PackerAgent : Agent
         bpDict[armR].SetJointStrength(continuousActions[++i]);
         bpDict[forearmR].SetJointStrength(continuousActions[++i]);
 
+        SelectTarget(continuousActions[++i]);        
+
     }
 
     //Update OrientationCube and DirectionIndicator
     void UpdateOrientationObjects()
     {
         m_WorldDirToWalk = target.position - hips.position;
+        // m_OrientationCube is null
+        m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
         m_OrientationCube.UpdateOrientation(hips, target);
         if (m_DirectionIndicator)
         {
@@ -393,6 +399,8 @@ public class PackerAgent : Agent
 
         //ALL RBS
         int numOfRb = 0;
+        // may be a temporary fix
+        m_JdController = GetComponent<JointDriveController>();
         foreach (var item in m_JdController.bodyPartsList)
         {
             numOfRb++;
@@ -435,11 +443,16 @@ public class PackerAgent : Agent
         print("Box in bin!!!");
 
         // By marking an agent as done AgentReset() will be called automatically.
-        EndEpisode();
+        // EndEpisode();
     }
 
     public void SetTorsoMass()
     {
+        // this is a problem
+        Debug.Log("==============++God==++++++=========");
+        int keysX = m_JdController.bodyPartsDict.Keys.Count;
+        Debug.Log(keysX);
+        // Why is this dictionary empty? (0)
         m_JdController.bodyPartsDict[chest].rb.mass = m_ResetParams.GetWithDefault("chest_mass", 8);
         m_JdController.bodyPartsDict[spine].rb.mass = m_ResetParams.GetWithDefault("spine_mass", 8);
         m_JdController.bodyPartsDict[hips].rb.mass = m_ResetParams.GetWithDefault("hip_mass", 8);
