@@ -6,6 +6,7 @@ using Unity.MLAgentsExamples;
 using Unity.MLAgents.Sensors;
 using BodyPart = Unity.MLAgentsExamples.BodyPart;
 using Random = UnityEngine.Random;
+using Box;
 
 public class PackerAgent : Agent
 
@@ -14,26 +15,8 @@ public class PackerAgent : Agent
     [HideInInspector]
     public Bounds areaBounds;
 
-
-
-    //public List<GameObject> boxList = List(box1, box2);
-    //the quantity of boxes should be known, not 
-    [HideInInspector]
-    public List<Transform> boxPool;
-
-    // public GameObject block;
-    // public GameObject block1;
-
-    //cache each box on initialization
-    // foreach (var box in BoxList) {
-    //     RigidBody box;
-    // }
-
     // Rigidbody m_BlockRb;  //cached on initialization
     // Rigidbody m_Block1Rb;  //cached on initialization
-
-    [HideInInspector]
-    public BinDetect binDetect;
 
     // [HideInInspector]
     // public GameObject carriedObject;
@@ -90,20 +73,18 @@ public class PackerAgent : Agent
     DirectionIndicator m_DirectionIndicator;
     JointDriveController m_JdController;
     EnvironmentParameters m_ResetParams;
-    Box m_Box;
+    BoxSpawner m_Box;
 
     public override void Initialize()
     {
-        foreach (var box in boxPool) {
-            m_Box.SetupBox(box);
-            
-        }
-        // m_BlockRb = block.GetComponent<Rigidbody>();
-        // m_Block1Rb = block.GetComponent<Rigidbody>();
+
+        // Cache the block rigidbody
+        //m_BlockRb = block.GetComponent<Rigidbody>();
+
          // Get the ground's bounds
         areaBounds = ground.GetComponent<Collider>().bounds;
-        binDetect = block1.GetComponent<BinDetect>();
-        binDetect.agent = this;
+
+        m_Box.SetupBoxes(areaBounds);
 
         m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
         m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
@@ -132,52 +113,13 @@ public class PackerAgent : Agent
         SetResetParameters();
     }
 
-    /// <summary>
-    /// Use the ground's bounds to pick a random spawn position.
-    /// Cannot overlap with the agent or overlap with the bin area
-    /// </summary>
-    public Vector3 GetRandomSpawnPos()
-    {
-        var foundNewSpawnLocation = false;
-        var randomSpawnPos = Vector3.zero;
-        while (foundNewSpawnLocation == false)
-        {
-            var randomPosX = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
-
-            var randomPosZ = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
-            randomSpawnPos = ground.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
-            if (Physics.CheckBox(randomSpawnPos, new Vector3(2.5f, 0.01f, 2.5f)) == false)
-            {
-                foundNewSpawnLocation = true;
-            }
-        }
-        return randomSpawnPos;
-    }
-
-    void ResetBlock()
-    {
-        // Get a random position for the block.
-        block.transform.position = GetRandomSpawnPos();
-        block1.transform.position = GetRandomSpawnPos();
-
-        // Reset box velocity and angularVelocity back to zero.
-        foreach (var box in BoxList) {
-            box.velocity = Vector3.zero;
-            box.angularVelocity = Vector3.zero;
-        }
-
-        // Reset block angularVelocity back to zero.
-        // m_BlockRb.angularVelocity = Vector3.zero;
-        // m_Block1Rb.angularVelocity = Vector3.zero;
-    }
-
 
     /// <summary>
     /// Loop over body parts and reset them to initial conditions.
     /// </summary>
     public override void OnEpisodeBegin()
     {
-        ResetBlock();
+        m_Box.ResetBoxes();
         //Reset all of the body parts
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
         {
@@ -199,7 +141,7 @@ public class PackerAgent : Agent
     /// <summary>
     /// Add relevant information on each box to observation
     /// <summary>
-    public void CollectObservationBox(box, VectorSensor sensor) {
+    public void CollectObservationBox(Box box, VectorSensor sensor) {
         //box size, box location, box mass?, etc.
 
     }
@@ -265,7 +207,7 @@ public class PackerAgent : Agent
 
         //observation of boxes when agent does not have a box
         //if (!pickupScript.isHeld) {
-            foreach (var box in BoxList) {
+            foreach (var box in m_Box.boxPool) {
                 CollectObservationBox(box, sensor);
             }
         //}
@@ -340,7 +282,6 @@ public class PackerAgent : Agent
 
 
 	////This is where the agent learns to move its joints and where it learns what is its next target to pick
-
     public override void OnActionReceived(ActionBuffers actionBuffers)
 
     {
@@ -507,5 +448,4 @@ public class PackerAgent : Agent
 
 
 ////1. if the walker falls down, episode ends, cannot have walker fall down when pumping into objects (he has to learn to avoid objects first
-)
 ////2. 

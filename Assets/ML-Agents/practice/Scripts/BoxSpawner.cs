@@ -4,20 +4,62 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 
-public class BoxSpawner : Agent
-{
 
-    public GameObject block; 
-    // Start is called before the first frame update
-    Rigidbody m_BlockRb;  //cached on initialization
-   
-    public override void Initialize()
-    {
-         // Cache the block rigidbody
-        m_BlockRb = block.GetComponent<Rigidbody>();
+
+public class BoxSpawner : MonoBehaviour {
+
+    public PackerAgent agent;
+
+
+    public List<Box> boxPool = new List<Box>();
+
+
+    public void SetUpBoxes(Bound areaBound) {
+        //for each box in json, get a list of box sizes as Vector3;
+        sizes = readJson(); 
+        foreach(var size in sizes) {
+            position = GetRandomSpawnPos(areaBound);
+            var box = new Box {
+                startingPos = position,
+                binDetect.agent = agent,
+                boxSize = size
+            };
+            
+            boxPool.Add(box);
+        }
     }
 
-    void ResetBlock()
+
+
+    /// <summary>
+    /// Use the ground's bounds to pick a random spawn position.
+    /// Cannot overlap with the agent or overlap with the bin area
+    /// </summary>
+    public Vector3 GetRandomSpawnPos(Bound areaBounds)
+    {
+        var foundNewSpawnLocation = false;
+        var randomSpawnPos = Vector3.zero;
+        while (foundNewSpawnLocation == false)
+        {
+            var randomPosX = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
+
+            var randomPosZ = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
+            randomSpawnPos = ground.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
+            if (Physics.CheckBox(randomSpawnPos, new Vector3(2.5f, 0.01f, 2.5f)) == false)
+            {
+                foundNewSpawnLocation = true;
+            }
+        }
+        return randomSpawnPos;
+    }
+
+
+
+
+
+    
+/////////TO BE WORKED ON NEXT//////////////////////////
+    void ResetBoxes()
     {
         // Get a random position for the block.
         block.transform.position = Vector3.zero;//GetRandomSpawnPos();
@@ -28,25 +70,6 @@ public class BoxSpawner : Agent
         // Reset block angularVelocity back to zero.
         m_BlockRb.angularVelocity = Vector3.zero;
     }
+ 
 
-    public override void OnEpisodeBegin()
-    {
-        ResetBlock();
-        //setBlockProperties()
-    }
-
-    // public void SetBlockProperties()
-    // {
-    //     var scale = m_ResetParams.GetWithDefault("block_scale", 2);
-    //     //Set the scale of the block
-    //     m_BlockRb.transform.localScale = new Vector3(scale, 0.75f, scale);
-
-    //     // Set the drag of the block
-    //     m_BlockRb.drag = m_ResetParams.GetWithDefault("block_drag", 0.5f);
-    // }
-
-    // void SetResetParameters()
-    // {
-    //     SetBlockProperties();
-    // }
 }
