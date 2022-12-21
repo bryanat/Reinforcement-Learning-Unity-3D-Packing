@@ -22,8 +22,8 @@ public class PackerAgent : Agent
     // Rigidbody m_BlockRb;  //cached on initialization
     // Rigidbody m_Block1Rb;  //cached on initialization
 
-    // [HideInInspector]
-    // public GameObject carriedObject;
+    [HideInInspector]
+    public Transform carriedObject;
 
     [Header("Walk Speed")]
     [Range(0.1f, 10)]
@@ -170,10 +170,10 @@ public class PackerAgent : Agent
     /// Add relevant information on each box to observation
     /// <summary>
     /////////////////////////////////NEED TO START WORKING ON THIS FUNCTION////////////////////////////////////////
-    // public void CollectObservationBox(Box box, VectorSensor sensor) {
-    //     //box size, box location, box mass?, etc.
+    public void CollectObservationBox(Box box, VectorSensor sensor) {
+        //box size, box location, box mass?, etc.
 
-    // }
+    }
 
     /// <summary>
     /// Add relevant information on each body part to observations.
@@ -234,21 +234,14 @@ public class PackerAgent : Agent
             CollectObservationBodyPart(bodyPart, sensor);
         }
 
+
+        /////////QUESTION: IF THE TARGET IS SET TO ONE OF THE BOXES AND THE CARRIED OBJECT IS SET TO TARGET, WILL THE OBSERVATION BE COLLECTED ON THIS BOX STILL?
+
         //observation of boxes when agent does not have a box
-        //if (!pickupScript.isHeld) {
-            // foreach (var box in m_Box.boxPool) {
-            //     CollectObservationBox(box, sensor);
-            // }
-        //}
-        //observation of boxes organized in bin when agent has a box
-        // else {
-        //     foreach (var box in BoxList) {
-        //         PickupScript pickupScript = box.GetComponent<Collider>().gameObject.GetComponent<PickupScript>();
-        //         if (pickupScript.isOrganized) {
-        //             CollectObservationBox(box, sensor);
-        //         }
-        //     }
-        // }
+        foreach (var box in m_Box.boxPool) {
+            CollectObservationBox(box, sensor);
+        }
+
     }
     
     public void SelectTarget(int x) {
@@ -274,17 +267,16 @@ public class PackerAgent : Agent
               target = hits[availableBoxes[x]].transform;
          }
    }
-    public void PickUpTarget() {
-
-        //if the agent touches target
-        PickupScript pickupScript = target.GetComponent<Collider>().gameObject.GetComponent<PickupScript>();
-        // right now boxes dont have organized tags 
-        // if (pickupScript!=null && !target.isOrganized) {
-        if (pickupScript!=null) {
-            //Pick up the target
+    public void PickUpBox() {
+        //packer picks up target box not in bin
+        carriedObject = target.transform;
+        PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
+         if (pickupScript!=null && !pickupScript.isOrganized) {
             pickupScript.isHeld = true;
-            target.position = transform.position + transform.forward * 0.5f;
+            carriedObject.position = transform.position + transform.forward * 0.5f;
         }
+        //change target to bin
+        target = binDetect.transform;
         
     }
         
@@ -293,17 +285,13 @@ public class PackerAgent : Agent
     public void DropBox(int x) {
         if (target!=null) {
             //TBD:  if agent wants to drop the box
-
             //drop the box 
-            PickupScript pickupScript = target.GetComponent<Collider>().gameObject.GetComponent<PickupScript>();
+            PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
             pickupScript.isHeld = false;
             pickupScript.isOrganized = true;
-            //pickupScript.gameObject.setActive(true);
-            target.position = transform.position + transform.forward * 0.5f;
+            carriedObject.position = transform.position + transform.forward * 0.5f;
             target = null;
-
-        }
-        
+        }       
     }
     
 
@@ -446,6 +434,7 @@ public class PackerAgent : Agent
      {
          AddReward(1f);
          print("Got to box!!!!!");
+         PickUpBox();
      }
 
 
