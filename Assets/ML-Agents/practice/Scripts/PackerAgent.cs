@@ -117,11 +117,6 @@ public class PackerAgent : Agent
         Debug.Log(keysY);
 
         m_Box.SetUpBoxes();
-        // var boxList =  m_Box.boxPool;
-        // foreach (var box in boxList) {
-        //     binDetect = m_Box.GetComponent<BinDetect>();
-        //     binDetect.agent = this;
-        // }
 
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
@@ -156,7 +151,7 @@ public class PackerAgent : Agent
         //Update target and orientation
         Debug.Log("++++++++++++++++++++BOX POOL COUNT++++++++++++++++++++++++++++++++++++++++++");
         Debug.Log(m_Box.boxPool.Count);
-        target = m_Box.boxPool[0].rb.transform;
+        target = SelectTarget(0);
         UpdateOrientationObjects();
 
         //Set our goal walking speed
@@ -240,57 +235,35 @@ public class PackerAgent : Agent
 
     }
     
-    public void SelectTarget(int x) {
-        // round input float x to int y 
-        // int y = (int)Math.Round(x);
-        if (target==null) {
-            //TBD: add a condition if agent wants to pick up a box (based on leftover bin space for example)
-            // do a ray search on all objects
-            RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward, Mathf.Infinity);
-            //of all the available objects in the agent's field of vision, check for the ones marked for pick up (boxes)
-            foreach(var hit in hits) {
-                
-            }
-            // will move this to state
-            List<int> availableBoxes = new List<int>();
-            for (int i = 0; i < hits.Length; i++) {
-             	RaycastHit hit = hits[i];
-            	PickupScript pickupScript = hit.collider.gameObject.GetComponent<PickupScript>();
-            	//will change this
-                if (pickupScript != null && !pickupScript.isHeld && !pickupScript.isOrganized) {
-                    //TBD: label the "hit" as target and  have the agent walk towards the target
-                    availableBoxes.Add(i);
-              	}	
-              }
-              //mark the box as target
-              target = hits[availableBoxes[x]].transform;
-         }
+    public Transform SelectTarget(int x) {
+        return m_Box.boxPool[x].rb.transform;
    }
     public void PickUpBox() {
-        //packer picks up target box not in bin
-        carriedObject = target.transform;
-        PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
-         if (pickupScript!=null && !pickupScript.isOrganized) {
-            pickupScript.isHeld = true;
-            carriedObject.position = transform.position + transform.forward * 0.5f;
-        }
-        //change target to bin
-        target = binArea.transform;
-        
+        //packer picks up target box not in bin, a small reward is added
+        if (carriedObject==null) {
+            carriedObject = target.transform;
+            PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
+            if (pickupScript!=null && !pickupScript.isOrganized) {
+                pickupScript.isHeld = true;
+                carriedObject.position = transform.position + transform.forward * 0.5f;
+            }
+            //change target to bin
+            target = binArea.transform;
+        }      
     }
         
   
     
-    public void DropBox(int x) {
-        if (target!=null) {
-            //TBD:  if agent wants to drop the box
-            //drop the box 
+    public void DropoffBox(int x) {
+        //TBD:  if agent wants to drop the box
+        //drop off the box, when the box touches the bin area, reward is added
+        if (carriedObject!=null) {
             PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
             pickupScript.isHeld = false;
             pickupScript.isOrganized = true;
             carriedObject.position = transform.position + transform.forward * 0.5f;
-            target = null;
-        }       
+            carriedObject = null;   
+        }
     }
     
 
@@ -448,7 +421,10 @@ public class PackerAgent : Agent
 
         // By marking an agent as done AgentReset() will be called automatically.
         // EndEpisode();
+        AgentReset();
     }
+
+    public void AgentReset() {}
 
     public void SetTorsoMass()
     {
