@@ -5,6 +5,7 @@ using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using static PickupScript;
 using static BinDetect;
+using static BoxDetect;
 
 namespace Boxes {
 
@@ -14,8 +15,6 @@ public class Box : MonoBehaviour
     public GameObject m_box;
     //public Transform t;
     [HideInInspector]
-
-    public PackerAgent agent; // idk if this stays here
 
     public GameObject ground;
     public BinDetect binDetect;
@@ -76,7 +75,10 @@ public class BoxSpawner : MonoBehaviour {
     [HideInInspector]
     public List<Box> boxPool = new List<Box>();
 
+    [HideInInspector]
     public Box boxRef; 
+
+    public PackerAgent agent;
 
 
 
@@ -93,13 +95,16 @@ public class BoxSpawner : MonoBehaviour {
             box.transform.localScale = new Vector3(size[0], size[1], size[2]);
             ////need to fix randomspawn position function to make it work//////////////////
             var position = new Vector3(0, 1, 0);
-            Debug.Log("==============BOX POSITIONS=========================");
-            Debug.Log(position);
             box.transform.position = position;
             box.AddComponent<BinDetect>();
             box.AddComponent<PickupScript>();
+            box.AddComponent<BoxDetect>();
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
+            BinDetect binDetect = box.GetComponent<BinDetect>();
+            BoxDetect boxDetect = box.GetComponent<BoxDetect>();
+            binDetect.agent = agent;
+            boxDetect.agent = agent;
             //box.binDetect.agent = agent;
             var box2 = new Box{
                 rb = box.transform.GetComponent<Rigidbody>(), 

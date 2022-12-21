@@ -1,0 +1,29 @@
+{
+    "Packer": {
+        "checkpoints": [
+            {
+                "steps": 69646,
+                "file_path": "results/packer001/Packer/Packer-69646.onnx",
+                "reward": -0.15067355796694756,
+                "creation_time": 1671600935.0605867,
+                "auxillary_file_paths": [
+                    "results/packer001/Packer/Packer-69646.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 69646,
+            "file_path": "results/packer001/Packer.onnx",
+            "reward": -0.15067355796694756,
+            "creation_time": 1671600935.0605867,
+            "auxillary_file_paths": [
+                "results/packer001/Packer/Packer-69646.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.31.0.dev0",
+        "torch_version": "1.8.1+cu102"
+    }
+}
