@@ -251,9 +251,9 @@ public class PackerAgent : Agent
         // }
     }
     
-    public void SelectTarget(float x) {
+    public void SelectTarget(int x) {
         // round input float x to int y 
-        int y = (int)Math.Round(x);
+        // int y = (int)Math.Round(x);
         if (target==null) {
             //TBD: add a condition if agent wants to pick up a box (based on leftover bin space for example)
             // do a ray search on all objects
@@ -271,7 +271,7 @@ public class PackerAgent : Agent
               	}	
               }
               //mark the box as target
-              target = hits[availableBoxes[y]].transform;
+              target = hits[availableBoxes[x]].transform;
          }
    }
     public void PickUpTarget() {
@@ -314,9 +314,10 @@ public class PackerAgent : Agent
 
         var bpDict = m_JdController.bodyPartsDict;
         var i = -1;
+        var j = -1;
 
         var continuousActions = actionBuffers.ContinuousActions;
-
+        var discreteActions = actionBuffers.DiscreteActions;
         
         bpDict[chest].SetJointTargetRotation(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         bpDict[spine].SetJointTargetRotation(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
@@ -349,7 +350,7 @@ public class PackerAgent : Agent
         bpDict[armR].SetJointStrength(continuousActions[++i]);
         bpDict[forearmR].SetJointStrength(continuousActions[++i]);
 
-        SelectTarget(continuousActions[++i]);        
+        SelectTarget(discreteActions[++j]);        
 
     }
 
