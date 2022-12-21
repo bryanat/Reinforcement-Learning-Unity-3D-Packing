@@ -81,32 +81,11 @@ public class PackerAgent : Agent
 
     public override void Initialize()
     {
+        m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
 
-        ///////////////////NEED TO SEE IF CACHING IS NEEDED HERE///////////////////////////
-        // // Cache the block rigidbody
-        //m_BlockRb = block.GetComponent<Rigidbody>();
-        // // box that will be pushed to into bin
-        // binDetect = m_Box.GetComponent<BinDetect>();
-        // binDetect.agent = this;
-        //  // Get the ground's bounds
-        // areaBounds = ground.GetComponent<Collider>().bounds;
-        // m_Box.SetUpBoxes(areaBounds);
-        //////////////////// OLD ABOVE ///////////////////////////////
-
-
-        m_Box = GetComponent<BoxSpawner>();
-        // // Get the ground's bounds
-        areaBounds = ground.GetComponent<Collider>().bounds;
-        // THIS BELOW m_Box.SetUpBoxes(areaBounds); is causing m_JdController.SetupBodyPart to not work
-        m_Box.SetUpBoxes(areaBounds);
-
-        // var boxList =  m_Box.boxPool;
-        // foreach (var box in boxList) {
-        //     binDetect = m_Box.GetComponent<BinDetect>();
-        //     binDetect.agent = this;
-        // }
-
-        //Transform target = boxList[0].GetComponent<Transform>();
+        m_Box = GetComponentInChildren<BoxSpawner>();
+        Debug.Log("++++++++++++++++++++BOX in INITIALIZE++++++++++++++++++++++++++++++");
+        Debug.Log(m_Box);
 
 
         m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
@@ -135,6 +114,13 @@ public class PackerAgent : Agent
         int keysY = m_JdController.bodyPartsDict.Keys.Count;
         Debug.Log(keysY);
 
+        m_Box.SetUpBoxes();
+        // var boxList =  m_Box.boxPool;
+        // foreach (var box in boxList) {
+        //     binDetect = m_Box.GetComponent<BinDetect>();
+        //     binDetect.agent = this;
+        // }
+
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
         //Update bodypart dictionary
@@ -147,24 +133,28 @@ public class PackerAgent : Agent
     /// </summary>
     public override void OnEpisodeBegin()
     {
-        areaBounds = ground.GetComponent<Collider>().bounds;
-        // m_Box is null
-        m_Box = GetComponent<BoxSpawner>();
-        Debug.Log("++++++++++++++++++++BOX On Episode Begin++++++++++++++++++++++++++++++");
-        Debug.Log(m_Box);
-        m_Box.ResetBoxes(areaBounds);
-
         //Reset all of the body parts
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
         {
             bodyPart.Reset(bodyPart);
         }
 
+
+        // m_Box is null
+        //m_Box = GetComponentInChildren<BoxSpawner>();
+        Debug.Log("++++++++++++++++++++BOX in ONEPISODEBEGIN++++++++++++++++++++++++++++++");
+        Debug.Log(m_Box);
+        // foreach (var box in m_Box.boxPool) {
+        //     box.ResetBoxes(box);
+        // }
+
         //Random start rotation to help generalize
         hips.rotation = Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
 
         //Update target and orientation
-        target = m_Box.boxPool[0].transform;
+        Debug.Log("++++++++++++++++++++BOX POOL COUNT++++++++++++++++++++++++++++++++++++++++++");
+        Debug.Log(m_Box.boxPool.Count);
+        target = m_Box.boxPool[0].rb.transform;
         UpdateOrientationObjects();
 
         //Set our goal walking speed
