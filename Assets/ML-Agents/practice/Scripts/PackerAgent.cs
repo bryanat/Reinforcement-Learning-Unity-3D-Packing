@@ -255,7 +255,7 @@ public class PackerAgent : Agent
     }
         
   
-    //WORK TO DO: CHECK THE PHYSICS AND CONTRAINTS WHEN STACKING BOXES
+    //WORK TO DO: CHECK THE PHYSICS AND CONTRAINTS WHEN STACKING BOXES, SET ROTATION OF BOX, ETC.
     public void DropoffBox(int x) {
         //TBD:  if agent wants to drop the box
         //drop off the box, when the box touches the bin area, reward is added
@@ -266,6 +266,7 @@ public class PackerAgent : Agent
             carriedObject.position = transform.position + transform.forward * 0.5f;
             carriedObject = null;   
         }
+        //AgentReset();
     }
     
 
@@ -423,18 +424,15 @@ public class PackerAgent : Agent
 
         // By marking an agent as done AgentReset() will be called automatically.
         // EndEpisode();
-        AgentReset();
     }
 
     public void AgentReset() {}
 
     public void SetTorsoMass()
     {
-        // this is a problem
         Debug.Log("==============++God==++++++=========");
         int keysX = m_JdController.bodyPartsDict.Keys.Count;
         Debug.Log(keysX);
-        // Why is this dictionary empty? (0)
         m_JdController.bodyPartsDict[chest].rb.mass = m_ResetParams.GetWithDefault("chest_mass", 8);
         m_JdController.bodyPartsDict[spine].rb.mass = m_ResetParams.GetWithDefault("spine_mass", 8);
         m_JdController.bodyPartsDict[hips].rb.mass = m_ResetParams.GetWithDefault("hip_mass", 8);
