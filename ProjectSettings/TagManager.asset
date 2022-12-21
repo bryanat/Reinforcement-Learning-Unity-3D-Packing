@@ -30,6 +30,7 @@ TagManager:
   - purpleAgent
   - purpleGoal
   - tile
+  - lookhere
   layers:
   - Default
   - TransparentFX

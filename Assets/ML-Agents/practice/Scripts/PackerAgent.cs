@@ -18,9 +18,11 @@ public class PackerAgent : Agent
 
     public BinDetect binDetect;
 
+    public GameObject binArea;
+
 /////////////////////NEED TO CHECK IF CACHING IS NEEDED HERE////////////////////////////////////////////
-    // Rigidbody m_BlockRb;  //cached on initialization
-    // Rigidbody m_Block1Rb;  //cached on initialization
+    // Rigidbody m_BlockRb;  // cached on initialization
+    // Rigidbody m_Block1Rb;  // cached on initialization
 
     [HideInInspector]
     public Transform carriedObject;
@@ -166,25 +168,7 @@ public class PackerAgent : Agent
 
     }
 
-    /// <summary>
-    /// Add relevant information on each box to observation
-    /// <summary>
-    /////////////////////////////////NEED TO START WORKING ON THIS FUNCTION////////////////////////////////////////
-    public void CollectObservationBox(Box box, VectorSensor sensor) {
-            // do a ray search on all objects
-            RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward, Mathf.Infinity);
-            //of all the available objects in the agent's field of vision, check for the ones marked for pick up (boxes)
-            foreach(var hit in hits) {
-                RaycastHit hit = hit;
-                box = hit.collider.gameObject;
-                PickupScript pickupScript = box.GetComponent<PickupScript>();
-                if (pickupScript!=null) {
-                    sensor.AddObservation(box.boxSize);
-                    sensor.AddObservation(box.rb.position);
-                }
 
-            }
-    }
 
     /// <summary>
     /// Add relevant information on each body part to observations.
@@ -225,8 +209,10 @@ public class PackerAgent : Agent
         //current ragdoll velocity. normalized
         sensor.AddObservation(Vector3.Distance(velGoal, avgVel));
         //avg body vel relative to cube
+        // dont need velocity state
         sensor.AddObservation(m_OrientationCube.transform.InverseTransformDirection(avgVel));
         //vel goal relative to cube
+        // dont need velocity state
         sensor.AddObservation(m_OrientationCube.transform.InverseTransformDirection(velGoal));
 
         //rotation deltas
@@ -248,7 +234,8 @@ public class PackerAgent : Agent
 
         //observation of boxes when agent does not have a box
         foreach (var box in m_Box.boxPool) {
-            CollectObservationBox(box, sensor);
+            sensor.AddObservation(box.boxSize); //add box size to sensor observations
+            sensor.AddObservation(box.rb.transform.position); //add box position to sensor observations
         }
 
     }
@@ -288,7 +275,7 @@ public class PackerAgent : Agent
             carriedObject.position = transform.position + transform.forward * 0.5f;
         }
         //change target to bin
-        target = binDetect.transform;
+        target = binArea.transform;
         
     }
         

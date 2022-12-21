@@ -109,7 +109,8 @@ public class BoxSpawner : MonoBehaviour {
             var box2 = new Box{
                 rb = box.transform.GetComponent<Rigidbody>(), 
                 startingPos = box.transform.position,
-                boxSize = box.transform.localScale};
+                boxSize = box.transform.localScale
+            };
             Debug.Log(box2);
             if (box2.rb) {Debug.Log("RIGID BODY ADDED DURING CREATION!!!!!");}
             boxPool.Add(box2);          
