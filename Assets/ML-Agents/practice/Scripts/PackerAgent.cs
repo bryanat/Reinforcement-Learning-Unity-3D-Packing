@@ -116,6 +116,7 @@ public class PackerAgent : Agent
         int keysY = m_JdController.bodyPartsDict.Keys.Count;
         Debug.Log(keysY);
 
+        //Create boxes
         m_Box.SetUpBoxes();
 
         m_ResetParams = Academy.Instance.EnvironmentParameters;
@@ -245,6 +246,7 @@ public class PackerAgent : Agent
             PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
             if (pickupScript!=null && !pickupScript.isOrganized) {
                 pickupScript.isHeld = true;
+                //NEEDS TO MAKE THE BOX DOESN'T TOUCH THE GROUND WHEN IT'S CARRIED SINCE COLLISION WITH GROUND IN BIN IS REWARDED 
                 carriedObject.position = transform.position + transform.forward * 0.5f;
             }
             //change target to bin
@@ -253,7 +255,7 @@ public class PackerAgent : Agent
     }
         
   
-    
+    //WORK TO DO: CHECK THE PHYSICS AND CONTRAINTS WHEN STACKING BOXES
     public void DropoffBox(int x) {
         //TBD:  if agent wants to drop the box
         //drop off the box, when the box touches the bin area, reward is added
@@ -447,6 +449,5 @@ public class PackerAgent : Agent
 
 
 
-////1. if the walker falls down, episode ends, cannot have walker fall down when pumping into objects (he has to learn to avoid objects first
 ////2. QUESTION: IF THE TARGET IS SET TO ONE OF THE BOXES AND THE CARRIED OBJECT IS SET TO TARGET, WILL THE OBSERVATION BE COLLECTED ON THIS BOX STILL?
         
