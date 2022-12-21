@@ -171,8 +171,19 @@ public class PackerAgent : Agent
     /// <summary>
     /////////////////////////////////NEED TO START WORKING ON THIS FUNCTION////////////////////////////////////////
     public void CollectObservationBox(Box box, VectorSensor sensor) {
-        //box size, box location, box mass?, etc.
+            // do a ray search on all objects
+            RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward, Mathf.Infinity);
+            //of all the available objects in the agent's field of vision, check for the ones marked for pick up (boxes)
+            foreach(var hit in hits) {
+                RaycastHit hit = hit;
+                box = hit.collider.gameObject;
+                PickupScript pickupScript = box.GetComponent<PickupScript>();
+                if (pickupScript!=null) {
+                    sensor.AddObservation(box.boxSize);
+                    sensor.AddObservation(box.rb.position);
+                }
 
+            }
     }
 
     /// <summary>
@@ -227,15 +238,13 @@ public class PackerAgent : Agent
         if (target!=null) {
             sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(target.transform.position));
         }
+        
 
         //observation of each body part
         foreach (var bodyPart in m_JdController.bodyPartsList)
         {
             CollectObservationBodyPart(bodyPart, sensor);
         }
-
-
-        /////////QUESTION: IF THE TARGET IS SET TO ONE OF THE BOXES AND THE CARRIED OBJECT IS SET TO TARGET, WILL THE OBSERVATION BE COLLECTED ON THIS BOX STILL?
 
         //observation of boxes when agent does not have a box
         foreach (var box in m_Box.boxPool) {
@@ -252,6 +261,9 @@ public class PackerAgent : Agent
             // do a ray search on all objects
             RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward, Mathf.Infinity);
             //of all the available objects in the agent's field of vision, check for the ones marked for pick up (boxes)
+            foreach(var hit in hits) {
+                
+            }
             // will move this to state
             List<int> availableBoxes = new List<int>();
             for (int i = 0; i < hits.Length; i++) {
@@ -473,4 +485,5 @@ public class PackerAgent : Agent
 
 
 ////1. if the walker falls down, episode ends, cannot have walker fall down when pumping into objects (he has to learn to avoid objects first
-////2. 
+////2. QUESTION: IF THE TARGET IS SET TO ONE OF THE BOXES AND THE CARRIED OBJECT IS SET TO TARGET, WILL THE OBSERVATION BE COLLECTED ON THIS BOX STILL?
+        
