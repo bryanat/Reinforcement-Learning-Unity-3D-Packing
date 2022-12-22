@@ -40,7 +40,7 @@ public class Box : MonoBehaviour
 
     }
 
-        /// <summary>
+    /// <summary>
     /// Use the ground's bounds to pick a random spawn position.
     /// Cannot overlap with the agent or overlap with the bin area
     /// </summary>

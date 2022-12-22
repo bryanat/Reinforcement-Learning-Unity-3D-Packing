@@ -9,14 +9,11 @@ using BodyPart = Unity.MLAgentsExamples.BodyPart;
 using Random = UnityEngine.Random;
 using Box = Boxes.Box;
 using Boxes;
+using static AgentDetect;
 public class PackerAgent : Agent
 
 {
     public GameObject ground;
-    [HideInInspector]
-    public Bounds areaBounds;
-
-    public BinDetect binDetect;
 
     public GameObject binArea;
 
@@ -76,7 +73,7 @@ public class PackerAgent : Agent
     OrientationCubeController m_OrientationCube;
 
     //The indicator graphic gameobject that points towards the target
-    DirectionIndicator m_DirectionIndicator;
+    //DirectionIndicator m_DirectionIndicator;
     JointDriveController m_JdController;
     EnvironmentParameters m_ResetParams;
     BoxSpawner m_Box;
@@ -91,7 +88,7 @@ public class PackerAgent : Agent
 
 
         m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
-        m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
+        //m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
 
         //Setup each body part
         m_JdController = GetComponent<JointDriveController>();
@@ -118,6 +115,9 @@ public class PackerAgent : Agent
 
         //Create boxes
         m_Box.SetUpBoxes();
+        
+        AgentDetect agentDetect = this.GetComponent<AgentDetect>();
+        agentDetect.agent = this; 
 
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
@@ -324,10 +324,10 @@ public class PackerAgent : Agent
         // m_OrientationCube is null
         m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
         m_OrientationCube.UpdateOrientation(hips, target);
-        if (m_DirectionIndicator)
-        {
-            m_DirectionIndicator.MatchOrientation(m_OrientationCube.transform);
-        }
+        // if (m_DirectionIndicator)
+        // {
+        //     m_DirectionIndicator.MatchOrientation(m_OrientationCube.transform);
+        // }
     }
 
     void FixedUpdate()
@@ -408,24 +408,31 @@ public class PackerAgent : Agent
      public void TouchedTarget()
      {
          AddReward(1f);
-         print("Got to box!!!!!");
+         print("Got to box!!!!! 1 pt added");
          PickUpBox();
      }
 
 
     /// <summary>
-    ////Agent got to the bin
+    ////Box got dropped off
     ///</summary>
-    public void ScoredAGoal()
+    public void DroppedBox()
     { 
-        // We use a reward of 5.
         AddReward(5f);
-        print("Box in bin!!!");
+        print("Box dropped in bin!!! 5 pt added");
 
         // By marking an agent as done AgentReset() will be called automatically.
         // EndEpisode();
     }
 
+    /// <summmary>
+    ////Agent got to the bin
+    /// </summary>
+    public void GotToBin() 
+    {
+        AddReward(0.5f);
+        print("Agent got to bin!!!! 0.5 pt added");
+    }
     public void AgentReset() {}
 
     public void SetTorsoMass()

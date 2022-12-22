@@ -20,7 +20,6 @@ public class BoxDetect : MonoBehaviour
         // Touched goal.
         if (col.gameObject.CompareTag("agent"))
         {
-            print("agent got to the box!!!!!!!");
             agent.TouchedTarget();
         }
     }

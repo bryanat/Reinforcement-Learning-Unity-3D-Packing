@@ -20,8 +20,7 @@ public class BinDetect : MonoBehaviour
         // Touched goal.
         if (col.gameObject.CompareTag("goal"))
         {
-            print("box inside bin!!!!!!!");
-            agent.ScoredAGoal();
+            agent.DroppedBox();
         }
     }
 }
