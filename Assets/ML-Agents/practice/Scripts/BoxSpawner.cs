@@ -31,10 +31,12 @@ public class Box : MonoBehaviour
 
     public Bounds areaBounds;
 
+    public BoxSpawner boxSpawnerRef;
+
 
     public void ResetBoxes(Box box)
     {
-        box.rb.transform.position = GetRandomSpawnPos();
+        box.rb.transform.position = new Vector3(0, 1, 0);//GetRandomSpawnPos();
         box.rb.velocity = Vector3.zero;
         box.rb.angularVelocity = Vector3.zero;
 
@@ -46,7 +48,7 @@ public class Box : MonoBehaviour
     /// </summary>
     public Vector3 GetRandomSpawnPos()
     {
-        areaBounds = ground.GetComponent<Collider>().bounds;
+        areaBounds = boxSpawnerRef.ground.GetComponent<Collider>().bounds;
         var foundNewSpawnLocation = false;
         var randomSpawnPos = Vector3.zero;
         while (foundNewSpawnLocation == false)
@@ -79,6 +81,8 @@ public class BoxSpawner : MonoBehaviour {
     public Box boxRef; 
 
     public PackerAgent agent;
+
+    public GameObject ground;
 
 
 

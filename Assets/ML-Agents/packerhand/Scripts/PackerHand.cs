@@ -81,19 +81,15 @@ public class PackerHand : Agent
     }
 
 
-
-
     /// <summary>
     /// Loop over body parts to add them to observation.
     /// </summary>
-    public override void CollectObservations(VectorSensor sensor)
-    {
+    public override void CollectObservations(VectorSensor sensor) {
+    
+        // Bin position
+        sensor.AddObservation(binArea.transform.position); //(x, y, z)
 
-        //position of target relative to target
-        //if (target!=null) {
-            sensor.AddObservation(target.transform.position);
-        //}
-        //observation of boxes when agent does not have a box
+        //Box size and position
         foreach (var box in m_Box.boxPool) {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
             sensor.AddObservation(box.rb.transform.position); //add box position to sensor observations
@@ -107,9 +103,38 @@ public class PackerHand : Agent
         sensor.AddObservation(m_Agent.velocity.z);
 
     }
+
+    	////This is where the agent learns to move its joints and where it learns what is its next target to pick
+    public override void OnActionReceived(ActionBuffers actionBuffers)
+    {
+        Debug.Log($"Timestep reward: {GetCumulativeReward()}");
+
+        var j = -1;
+        //var i = -1;
+
+
+        var discreteActions = actionBuffers.DiscreteActions;
+        var continuousActions = actionBuffers.ContinuousActions;
     
-    public Transform SelectTarget(int x) {
-        return m_Box.boxPool[x].rb.transform;
+        SelectTarget(discreteActions[++j]); 
+
+        //AddReward(distance);
+        if (target!=null) {
+            // Vector3 controlSignal = Vector3.zero;
+            // controlSignal.x = continuousActions[++i];
+            // controlSignal.z = continuousActions[++i]; 
+            float distance = Vector3.Distance(target.transform.position, this.transform.position);
+            var x = 1/(distance);
+            Debug.Log($"REWARD IS:{x}");
+            if (x>1) {
+                x=1;
+            }
+            AddReward(x);
+        }
+    }
+    
+    public void SelectTarget(int x) {
+        target = m_Box.boxPool[x].rb.transform;
    }
     public void PickUpBox() {
         //packer picks up target box not in bin, a small reward is added
@@ -142,33 +167,16 @@ public class PackerHand : Agent
     }
     
 
-
-	////This is where the agent learns to move its joints and where it learns what is its next target to pick
-    public override void OnActionReceived(ActionBuffers actionBuffers)
-    {
-        var j = -1;
-
-        //var continuousActions = actionBuffers.ContinuousActions;
-        var discreteActions = actionBuffers.DiscreteActions;
-        
-
-        SelectTarget(discreteActions[++j]); 
-
-        //AddReward(distance);
-        float distance = Vector3.Distance(target.transform.position, this.transform.position);
-
-        SetReward(1/(distance*distance)*0.01f);
-       
-
-    }
-
     /// <summary>
     ////Agent touched the target
     ///may need to change to when the distance is close enough so agent does not bump into it and fall down
     ///</summary>
      public void TouchedTarget()
      {
-         //AddReward(1f);
+
+
+        Debug.Log("REWARD IN TOUCHED TARGET IS CALLED");
+         AddReward(1f);
          print("Got to box!!!!!");
          PickUpBox();
      }
@@ -191,12 +199,12 @@ public class PackerHand : Agent
     /// </summary>
     public void GotToBin() 
     {
-        AddReward(0.5f);
-        print("Agent got to bin!!!! 0.5 pt added");
+        AddReward(1f);
+        print("Agent got to bin!!!! 1 pt added");
     }
     public void AgentReset() 
     {
-        m_Agent.position = new Vector3(0, 5, 0);
+        //m_Agent.position = new Vector3(0, 5, 0);
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
     }
