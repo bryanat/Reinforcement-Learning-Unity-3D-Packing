@@ -18,6 +18,7 @@ public class PackerHand : Agent
 
     public GameObject binArea;
 
+
     //cache on initilization
     Rigidbody m_Agent; 
 
@@ -26,6 +27,9 @@ public class PackerHand : Agent
 
     [HideInInspector]
     public Transform target; //Target the agent will walk towards during training.
+
+
+    public PickupScript2 pickupScript;
 
 
     EnvironmentParameters m_ResetParams;
@@ -42,6 +46,9 @@ public class PackerHand : Agent
         
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
+
+        // Initialize PickupScript
+       pickupScript = new PickupScript2();
 
         //Create boxes
         m_Box.SetUpBoxes();
@@ -167,13 +174,27 @@ public class PackerHand : Agent
         float distance = Vector3.Distance(target.transform.position, this.transform.position);
         // x: value of microreward, quadratic
         var x = 1/(distance*distance);
-        Debug.Log($"Reward for moving towards target:{x}");
+        //Debug.Log($"Reward for moving towards target:{x}");
         // cap microstep reward as less than macrostep reward (1) (want to remove this in future to make more natural/automated)
         if (x>1.618f) {
             x=1.618f;
         }
         // return the value of the reward (dense reward acting as a pathguidestepwisegradient)
         return x;
+    }
+
+    public void SelectPosition() {
+
+        ///////////
+
+        ///////////////////////TBD////////////////////////
+
+
+        ///////////
+
+
+        pickupScript.DropoffBox(carriedObject);
+        
     }
 
 
@@ -214,36 +235,7 @@ public class PackerHand : Agent
     public void SelectTarget(int x) {
         target = m_Box.boxPool[x].rb.transform;
    }
-    public void PickUpBox() {
-        //packer picks up target box not in bin, a small reward is added
-        if (carriedObject==null) {
-            Debug.Log("AGENT ABOUT TO PICK UP BOX!!!!!!!!!!!!!!");
-            carriedObject = target.transform;
-            PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
-            // PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
-            if (pickupScript!=null && !pickupScript.isOrganized) {
-                pickupScript.isHeld = true;
-                //NEEDS TO MAKE THE BOX DOESN'T TOUCH THE GROUND WHEN IT'S CARRIED SINCE COLLISION WITH GROUND IN BIN IS REWARDED 
-                carriedObject.position = this.transform.position + this.transform.forward * 0.5f;
-            }
-            //change target to bin
-            target = binArea.transform;
-        }      
-    }
-        
-  
-    //WORK TO DO: CHECK THE PHYSICS AND CONTRAINTS WHEN STACKING BOXES, SET ROTATION OF BOX, ETC.
-    public void DropoffBox(int x) {
-        //TBD:  if agent wants to drop the box
-        //drop off the box, when the box touches the bin area, reward is added
-        if (carriedObject!=null) {
-            PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
-            pickupScript.isHeld = false;
-            pickupScript.isOrganized = true;
-            carriedObject.position = this.transform.position + this.transform.forward * 0.5f;
-            carriedObject = null;   
-        }
-    }
+
     
 
     /// <summary>
@@ -252,9 +244,10 @@ public class PackerHand : Agent
     ///</summary>
      public void TouchedTarget()
      {
-         SetReward(1.1f);
+         SetReward(2f);
          print($"Got to box!!!!! Total reward: {GetCumulativeReward()}");
-         PickUpBox();
+         pickupScript.Pickup(target);
+         target = binArea.transform;
      }
 
 
@@ -264,6 +257,7 @@ public class PackerHand : Agent
     public void DroppedBox()
     { 
         SetReward(5f);
+        carriedObject = null;
         print($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
 
         // By marking an agent as done AgentReset() will be called automatically.
@@ -277,8 +271,10 @@ public class PackerHand : Agent
     {
         if (carriedObject!=null) {
             SetReward(3f);
+            SelectPosition();
         }
         else {SetReward(-1f);}
+
         //////// if the agent moves to the bin without a box, it should have a negative reward /////
         print($"Agent got to bin!!!! Total reward: {GetCumulativeReward()}");
 
@@ -306,7 +302,6 @@ public class PackerHand : Agent
 
 
 
-////2. QUESTION: IF THE TARGET IS SET TO ONE OF THE BOXES AND THE CARRIED OBJECT IS SET TO TARGET, WILL THE OBSERVATION BE COLLECTED ON THIS BOX STILL?
 
 
 /////Rewarded: 

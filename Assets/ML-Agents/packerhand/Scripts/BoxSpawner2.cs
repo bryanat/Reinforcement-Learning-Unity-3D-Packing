@@ -101,7 +101,7 @@ public class BoxSpawner2 : MonoBehaviour {
             var position = new Vector3(0, 1, 0);
             box.transform.position = position;
             box.AddComponent<BinDetect2>();
-            box.AddComponent<PickupScript>();
+            box.AddComponent<PickupScript2>();
             box.AddComponent<BoxDetect2>();
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
@@ -110,7 +110,6 @@ public class BoxSpawner2 : MonoBehaviour {
             Debug.Log($"BINDETECT SCRIPT IS: {binDetect}");
             binDetect.agent = agent;
             boxDetect.agent = agent;
-            //box.binDetect.agent = agent;
             var box2 = new Box2{
                 rb = box.transform.GetComponent<Rigidbody>(), 
                 startingPos = box.transform.position,
