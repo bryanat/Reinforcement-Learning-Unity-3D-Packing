@@ -345,7 +345,7 @@ GameObject:
   - component: {fileID: 1077347131}
   m_Layer: 0
   m_Name: Hand
-  m_TagString: Untagged
+  m_TagString: agent
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -431,7 +431,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1077347123}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 10.7, y: 1, z: -3.4}
+  m_LocalPosition: {x: -1.2, y: 1, z: 9.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -514,7 +514,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1077347123}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 101abb3e66aec7b3a807c48702147551, type: 3}
+  m_Script: {fileID: 11500000, guid: ddc19bef0a6e1c272932a9477f1f3fe8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 0}
@@ -696,7 +696,7 @@ GameObject:
   - component: {fileID: 1564992657}
   - component: {fileID: 1564992656}
   - component: {fileID: 1564992655}
-  - component: {fileID: 1564992654}
+  - component: {fileID: 1564992658}
   m_Layer: 0
   m_Name: BoxSpawner11
   m_TagString: Untagged
@@ -712,29 +712,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1564992652}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -49, y: 14.139999, z: -0.56}
+  m_LocalPosition: {x: -49, y: 14.139999, z: -0.55999947}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1077347127}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1564992654
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1564992652}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 778fb285b2fdb4dfe8d4a95ff14ba9af, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  boxPool: []
-  boxRef: {fileID: 0}
-  agent: {fileID: 0}
-  ground: {fileID: 767763881}
 --- !u!135 &1564992655
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -806,6 +790,22 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1564992652}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1564992658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1564992652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d217fa01a4ea6395aa12868f202a602, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boxPool: []
+  boxRef: {fileID: 0}
+  agent: {fileID: 1077347129}
+  ground: {fileID: 767763881}
 --- !u!1 &1614004721
 GameObject:
   m_ObjectHideFlags: 0

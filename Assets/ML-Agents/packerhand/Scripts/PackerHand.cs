@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
-using Unity.MLAgentsExamples;
 using Unity.MLAgents.Sensors;
-using BodyPart = Unity.MLAgentsExamples.BodyPart;
 using Random = UnityEngine.Random;
-using Box = Boxes.Box;
-using Boxes;
-using static HandDetect;
+using Box = Boxes2.Box2;
+using Boxes2;
+using static AgentDetect2;
+using static BoxDetect2;
+using static BinDetect2;
+using static PickupScript;
 public class PackerHand : Agent
 
 {
@@ -23,20 +24,17 @@ public class PackerHand : Agent
     [HideInInspector]
     public Transform carriedObject;
 
-    private Vector3 distance = Vector3.right;
-
     [HideInInspector]
     public Transform target; //Target the agent will walk towards during training.
 
-    public Transform hand;
 
     EnvironmentParameters m_ResetParams;
-    BoxSpawner m_Box;
+    BoxSpawner2 m_Box;
 
     public override void Initialize()
     {
 
-        m_Box = GetComponentInChildren<BoxSpawner>();
+        m_Box = GetComponentInChildren<BoxSpawner2>();
 
         Debug.Log("++++++++++++++++++++BOX in INITIALIZE++++++++++++++++++++++++++++++");
         Debug.Log(m_Box);
@@ -48,12 +46,13 @@ public class PackerHand : Agent
         //Create boxes
         m_Box.SetUpBoxes();
         
-        //Setup Agent Detect
-        HandDetect handDetect = this.GetComponent<HandDetect>();
-        handDetect.agent = this; 
+        //Setup AgentDetect that detects when the agent goes inside the bin
+        AgentDetect2 agentDetect = this.GetComponent<AgentDetect2>();
+        agentDetect.agent = this; 
 
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
+        // Reset agent and rewards
         SetResetParameters();
     }
 
@@ -75,7 +74,7 @@ public class PackerHand : Agent
         Debug.Log(m_Box.boxPool.Count);
 
 
-        //Reset agent
+        //Reset agent and rewards
         SetResetParameters();
 
     }
@@ -107,7 +106,6 @@ public class PackerHand : Agent
     	////This is where the agent learns to move its joints and where it learns what is its next target to pick
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
-        Debug.Log($"Timestep reward: {GetCumulativeReward()}");
 
         var j = -1;
         //var i = -1;
@@ -119,7 +117,7 @@ public class PackerHand : Agent
         SelectTarget(discreteActions[++j]); 
         MoveAgent(discreteActions[++j]);
 
-        ////////////////SelectPosition
+        ////////////////SelectPosition:
 
 
 
@@ -135,11 +133,13 @@ public class PackerHand : Agent
             //     AddReward(0.5f);
             // }
             var x = 1/(distance*distance);
-            Debug.Log($"REWARD FOR MOVING TOWARDS A TARGET IS:{x}");
+            //Debug.Log($"REWARD FOR MOVING TOWARDS A TARGET IS:{x}");
             if (x>1) {
                 x=1;
             }
-            AddReward(x);
+            //AddReward(x);
+            //THIS ALSO SEEMS TO WORK, CHANGE UP IF THERE'S A BETTER ONE
+            AddReward(-1f / MaxStep);
         }
     }
 
@@ -184,8 +184,10 @@ public class PackerHand : Agent
     public void PickUpBox() {
         //packer picks up target box not in bin, a small reward is added
         if (carriedObject==null) {
+            Debug.Log("AGENT ABOUT TO PICK UP BOX!!!!!!!!!!!!!!");
             carriedObject = target.transform;
             PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
+            // PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
             if (pickupScript!=null && !pickupScript.isOrganized) {
                 pickupScript.isHeld = true;
                 //NEEDS TO MAKE THE BOX DOESN'T TOUCH THE GROUND WHEN IT'S CARRIED SINCE COLLISION WITH GROUND IN BIN IS REWARDED 
@@ -208,7 +210,6 @@ public class PackerHand : Agent
             carriedObject.position = this.transform.position + this.transform.forward * 0.5f;
             carriedObject = null;   
         }
-        AgentReset();
     }
     
 
@@ -218,10 +219,8 @@ public class PackerHand : Agent
     ///</summary>
      public void TouchedTarget()
      {
-
-        Debug.Log("REWARD IN TOUCHED TARGET IS CALLED");
-         SetReward(1f);
-         print("Got to box!!!!!");
+         SetReward(1.1f);
+         print($"Got to box!!!!! Total reward: {GetCumulativeReward()}");
          PickUpBox();
      }
 
@@ -232,7 +231,7 @@ public class PackerHand : Agent
     public void DroppedBox()
     { 
         SetReward(5f);
-        print("Box dropped in bin!!! 5 pt added");
+        print($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
 
         // By marking an agent as done AgentReset() will be called automatically.
         // EndEpisode();
@@ -243,9 +242,13 @@ public class PackerHand : Agent
     /// </summary>
     public void GotToBin() 
     {
-        SetReward(1f);
+        if (carriedObject!=null) {
+            SetReward(3f);
+        }
+        else {SetReward(-1f);}
         //////// if the agent moves to the bin without a box, it should have a negative reward /////
-        print("Agent got to bin!!!! 1 pt added");
+        print($"Agent got to bin!!!! Total reward: {GetCumulativeReward()}");
+
     }
     public void AgentReset() 
     {
@@ -254,10 +257,16 @@ public class PackerHand : Agent
         m_Agent.angularVelocity = Vector3.zero;
     }
 
+    public void TotalRewardReset()
+    {
+        //SetReward(-100f);
+    }
+
 
     public void SetResetParameters()
     {
         AgentReset();
+        TotalRewardReset();
     }
 }
 
