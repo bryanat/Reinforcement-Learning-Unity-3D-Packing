@@ -122,8 +122,8 @@ public class PackerHand : Agent
         //var continuousActions = actionBuffers.ContinuousActions;
     
         SelectTarget(discreteActions[++j]); 
-        // MoveAgent(actionBuffers.DiscreteActions);
-        MoveAgent(discreteActions[++j]); // should pass ActionSegment instead of int
+        MoveAgent(actionBuffers.DiscreteActions); // passign ActionSegment instead of int
+        // MoveAgent(discreteActions[++j]); // should pass ActionSegment instead of int
 
         ////////////////SelectPosition:
 
