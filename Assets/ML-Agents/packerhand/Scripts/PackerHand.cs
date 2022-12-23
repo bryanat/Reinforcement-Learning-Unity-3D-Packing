@@ -124,23 +124,56 @@ public class PackerHand : Agent
 
         //this.transform.position.Set(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]);
         ///m_Agent.AddForce(new Vector3(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]));
-        if (target!=null) {
-             // Move the agent using the action.
+        
+        // current - past // Reward
+        // current > past // good +Reward
+        // current < past // bad -Reward
 
-            // Add cumulative reward    
-            float distance = Vector3.Distance(target.transform.position, this.transform.position);
-            // if (distance<0.1f) {
-            //     AddReward(0.5f);
+        // Reward Layers
+            // layerX = X + denseX
+            // layer1 = 0 + dense1   0.1   0.08  0.14 0.43    1
+            // layer2 = 1 + dense2   1.1   1.08  1.14 1.43  >  2
+            // layer3 = 2 + dense3   2.1   2.08  2.14 2.43  >  3 
+
+        // Reward Layer 2: MacrostepSparseMilestoneCheckpointEvolution=dropoffbox() MicrostepDenseGradientPathguide=distancetobin
+            // if agent has pickedup a box
+            // if (target) {
+                // SetReward(RLayer2()); // vs. refactor as RLayer2() containing SetReward(y)
             // }
-            var x = 1/(distance*distance);
-            //Debug.Log($"REWARD FOR MOVING TOWARDS A TARGET IS:{x}");
-            if (x>1) {
-                x=1;
+        // Reward Layer 1: MacrostepSparseMilestoneCheckpointEvolution=pickupbox() MicrostepDenseGradientPathguide=distancetobox
+            // if agents hasnt picked up a box
+            if (target!=null) {
+                // Assign Reward Layer 1
+                // AddReward(x);
+                // SetReward(x);
+                SetReward(RLayer1()); // vs. refactor as RLayer1() containing SetReward(x)
             }
-            //AddReward(x);
-            //THIS ALSO SEEMS TO WORK, CHANGE UP IF THERE'S A BETTER ONE
-            AddReward(-1f / MaxStep);
+            
+            // // can also try this reward function
+            // AddReward(-1f / MaxStep);
+    }
+
+        public float RLayer2() {
+        // distance between target (box) and goalarea (bin)
+        float distance = Vector3.Distance(target.transform.position, binArea.transform.position);
+        // y: value of microreward
+        var y = 1/(distance*distance);
+        // Reward Layer 2 = RewardLayer1 + microstepRewardLayer2
+        return 1.618f + y;
+    }
+
+    public float RLayer1() {
+        // distance between agent and target (box)
+        float distance = Vector3.Distance(target.transform.position, this.transform.position);
+        // x: value of microreward, quadratic
+        var x = 1/(distance*distance);
+        Debug.Log($"Reward for moving towards target:{x}");
+        // cap microstep reward as less than macrostep reward (1) (want to remove this in future to make more natural/automated)
+        if (x>1.618f) {
+            x=1.618f;
         }
+        // return the value of the reward (dense reward acting as a pathguidestepwisegradient)
+        return x;
     }
 
 

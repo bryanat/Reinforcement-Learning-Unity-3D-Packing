@@ -1,0 +1,47 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1671764067",
+        "python_version": "3.9.15 (main, Nov 24 2022, 14:31:59) \n[GCC 11.2.0]",
+        "command_line_arguments": "/home/bryanat/anaconda3/envs/Unity1/bin/mlagents-learn Hand.yaml --run-id=HandTrain003",
+        "mlagents_version": "0.30.0",
+        "mlagents_envs_version": "0.30.0",
+        "communication_protocol_version": "1.5.0",
+        "pytorch_version": "1.11.0+cu102",
+        "numpy_version": "1.21.2",
+        "end_time_seconds": "1671764069"
+    },
+    "total": 2.357086078998691,
+    "count": 1,
+    "self": 0.00674123399585369,
+    "children": {
+        "run_training.setup": {
+            "total": 0.011818798000604147,
+            "count": 1,
+            "self": 0.011818798000604147
+        },
+        "TrainerController.start_learning": {
+            "total": 2.338526047002233,
+            "count": 1,
+            "self": 0.0003907290010829456,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 2.3381177810006193,
+                    "count": 1,
+                    "self": 2.3381177810006193
+                },
+                "trainer_threads": {
+                    "total": 1.7899983504321426e-06,
+                    "count": 1,
+                    "self": 1.7899983504321426e-06
+                },
+                "TrainerController._save_models": {
+                    "total": 1.57470021804329e-05,
+                    "count": 1,
+                    "self": 1.57470021804329e-05
+                }
+            }
+        }
+    }
+}
