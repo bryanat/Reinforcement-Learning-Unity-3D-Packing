@@ -10,7 +10,6 @@ using Boxes2;
 using static AgentDetect2;
 using static BoxDetect2;
 using static BinDetect2;
-using static PickupScript;
 public class PackerHand : Agent
 
 {
@@ -47,8 +46,9 @@ public class PackerHand : Agent
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
 
-        // Initialize PickupScript
-       pickupScript = new PickupScript2();
+        // uncomment when pickupScript2 class is created
+        // // Initialize PickupScript
+        pickupScript = new PickupScript2();
 
         //Create boxes
         m_Box.SetUpBoxes();
@@ -122,7 +122,8 @@ public class PackerHand : Agent
         //var continuousActions = actionBuffers.ContinuousActions;
     
         SelectTarget(discreteActions[++j]); 
-        MoveAgent(discreteActions[++j]);
+        // MoveAgent(actionBuffers.DiscreteActions);
+        MoveAgent(discreteActions[++j]); // should pass ActionSegment instead of int
 
         ////////////////SelectPosition:
 
@@ -183,6 +184,7 @@ public class PackerHand : Agent
         return x;
     }
 
+
     public void SelectPosition() {
 
         ///////////
@@ -201,33 +203,49 @@ public class PackerHand : Agent
         /// <summary>
     /// Moves the agent according to the selected action.
     /// </summary>
-    public void MoveAgent(int action)
+    // public void MoveAgent(int action)
+    public void MoveAgent(ActionSegment<int> action)
     {
         var dirToGo = Vector3.zero;
         var rotateDir = Vector3.zero;
 
-        switch (action)
-        {
+        var zBlueAxis = action[0];
+        var xRedAxis = action[1];
+        var xzRotateAxis = action[2];
+
+        switch(zBlueAxis){
+            // forward
             case 1:
                 dirToGo = transform.forward * 1f;
                 break;
+            // backward
             case 2:
                 dirToGo = transform.forward * -1f;
                 break;
-            case 3:
-                rotateDir = transform.up * 1f;
+        }
+        switch(xRedAxis){
+            // right
+            case 1:
+                dirToGo = transform.right * 1f;
                 break;
-            case 4:
-                rotateDir = transform.up * -1f;
-                break;
-            case 5:
-                dirToGo = transform.right * -0.75f;
-                break;
-            case 6:
-                dirToGo = transform.right * 0.75f;
+            // left
+            case 2:
+                dirToGo = transform.right * -1f;
                 break;
         }
-        transform.Rotate(rotateDir, Time.fixedDeltaTime * 200f);
+        // refactor: rotational axis 
+        switch(xzRotateAxis){
+            // turn clockwise (right)
+            case 1:
+                rotateDir = transform.up * 1f;
+                break;
+            // turn counterclockwise (left)
+            case 2:
+                rotateDir = transform.up * -1f;
+                break;
+        }
+
+        transform.Rotate(rotateDir, Time.fixedDeltaTime * 100f);
         m_Agent.AddForce(dirToGo, 
             ForceMode.VelocityChange);
     }
