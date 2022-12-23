@@ -1,0 +1,29 @@
+{
+    "Hand": {
+        "checkpoints": [
+            {
+                "steps": 6000,
+                "file_path": "results/hand2212/Hand/Hand-6000.onnx",
+                "reward": 6.320132215817769,
+                "creation_time": 1671768827.4082477,
+                "auxillary_file_paths": [
+                    "results/hand2212/Hand/Hand-6000.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 6000,
+            "file_path": "results/hand2212/Hand.onnx",
+            "reward": 6.320132215817769,
+            "creation_time": 1671768827.4082477,
+            "auxillary_file_paths": [
+                "results/hand2212/Hand/Hand-6000.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.31.0.dev0",
+        "torch_version": "1.8.1+cu102"
+    }
+}

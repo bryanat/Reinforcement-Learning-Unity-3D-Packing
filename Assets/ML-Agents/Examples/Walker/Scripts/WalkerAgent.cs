@@ -93,7 +93,6 @@ public class WalkerAgent : Agent
     /// </summary>
     public override void OnEpisodeBegin()
     {
-        print("===RESET=EPISODE===");
         //Reset all of the body parts
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
         {
