@@ -114,23 +114,68 @@ public class PackerHand : Agent
 
 
         var discreteActions = actionBuffers.DiscreteActions;
-        var continuousActions = actionBuffers.ContinuousActions;
+        //var continuousActions = actionBuffers.ContinuousActions;
     
         SelectTarget(discreteActions[++j]); 
+        MoveAgent(discreteActions[++j]);
 
-        //AddReward(distance);
+        ////////////////SelectPosition
+
+
+
+
+        //this.transform.position.Set(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]);
+        ///m_Agent.AddForce(new Vector3(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]));
         if (target!=null) {
-            // Vector3 controlSignal = Vector3.zero;
-            // controlSignal.x = continuousActions[++i];
-            // controlSignal.z = continuousActions[++i]; 
+             // Move the agent using the action.
+
+            // Add cumulative reward    
             float distance = Vector3.Distance(target.transform.position, this.transform.position);
-            var x = 1/(distance);
-            Debug.Log($"REWARD IS:{x}");
+            // if (distance<0.1f) {
+            //     AddReward(0.5f);
+            // }
+            var x = 1/(distance*distance);
+            Debug.Log($"REWARD FOR MOVING TOWARDS A TARGET IS:{x}");
             if (x>1) {
                 x=1;
             }
             AddReward(x);
         }
+    }
+
+
+        /// <summary>
+    /// Moves the agent according to the selected action.
+    /// </summary>
+    public void MoveAgent(int action)
+    {
+        var dirToGo = Vector3.zero;
+        var rotateDir = Vector3.zero;
+
+        switch (action)
+        {
+            case 1:
+                dirToGo = transform.forward * 1f;
+                break;
+            case 2:
+                dirToGo = transform.forward * -1f;
+                break;
+            case 3:
+                rotateDir = transform.up * 1f;
+                break;
+            case 4:
+                rotateDir = transform.up * -1f;
+                break;
+            case 5:
+                dirToGo = transform.right * -0.75f;
+                break;
+            case 6:
+                dirToGo = transform.right * 0.75f;
+                break;
+        }
+        transform.Rotate(rotateDir, Time.fixedDeltaTime * 200f);
+        m_Agent.AddForce(dirToGo, 
+            ForceMode.VelocityChange);
     }
     
     public void SelectTarget(int x) {
@@ -174,9 +219,8 @@ public class PackerHand : Agent
      public void TouchedTarget()
      {
 
-
         Debug.Log("REWARD IN TOUCHED TARGET IS CALLED");
-         AddReward(1f);
+         SetReward(1f);
          print("Got to box!!!!!");
          PickUpBox();
      }
@@ -187,7 +231,7 @@ public class PackerHand : Agent
     ///</summary>
     public void DroppedBox()
     { 
-        AddReward(5f);
+        SetReward(5f);
         print("Box dropped in bin!!! 5 pt added");
 
         // By marking an agent as done AgentReset() will be called automatically.
@@ -199,12 +243,13 @@ public class PackerHand : Agent
     /// </summary>
     public void GotToBin() 
     {
-        AddReward(1f);
+        SetReward(1f);
+        //////// if the agent moves to the bin without a box, it should have a negative reward /////
         print("Agent got to bin!!!! 1 pt added");
     }
     public void AgentReset() 
     {
-        //m_Agent.position = new Vector3(0, 5, 0);
+        m_Agent.position = new Vector3(5, 0, 5);
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
     }
@@ -220,4 +265,9 @@ public class PackerHand : Agent
 
 
 ////2. QUESTION: IF THE TARGET IS SET TO ONE OF THE BOXES AND THE CARRIED OBJECT IS SET TO TARGET, WILL THE OBSERVATION BE COLLECTED ON THIS BOX STILL?
-        
+
+
+/////Rewarded: 
+///on episode begin: negative reward proportional to the volumne inside the bin area 
+///small rewards: walking towards the target box, picking up the target box, getting to the bin, putting bin inside bin area
+///addreward vs setrewaard: add reward for getting to the next stage of actions, set reward at the beginning of each stage of actions, setreward > accumulated rewarded from previous stage
