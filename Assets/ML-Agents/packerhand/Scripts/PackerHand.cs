@@ -65,13 +65,13 @@ public class PackerHand : Agent
         Debug.Log("++++++++++++++++++++BOX POOL COUNT++++++++++++++++++++++++++++++++++++++++++");
         Debug.Log(m_Box.boxPool.Count);
 
-        // Initialize agent for box's scripts
+        // Initialize agent for box's script
         foreach (var box in m_Box.boxPool) {
-            box.sdb.agent = this;
             box.ps.agent = this;
         }
 
-        // Initialize agent for bin's scripts
+
+        // Initialize agent for bin's script
         SensorDetectBin binDetect= binArea.GetComponent<SensorDetectBin>();
         binDetect.agent = this; 
 
@@ -120,7 +120,17 @@ public class PackerHand : Agent
         SelectTarget(discreteActions[++j]); 
         MoveAgent(discreteActions[++j]);
 
-        ////////////////SelectPosition:
+        float distance = Vector3.Distance(this.transform.position, target.transform.position);
+        Debug.Log($"DISTANCE IS {distance}");
+        if (distance < 1f) {
+            Debug.Log("AGENT ABOUT TO PICK UP BOX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            if (CheckTarget()) {
+                PickupBox();
+                RewardPickedupTarget();
+            }
+        }
+
+        ////////////////SelectPosition///////////////
 
 
 
@@ -189,7 +199,6 @@ public class PackerHand : Agent
         if (carriedObject!=null) {}
         ///////////////////////TBD////////////////////////
 
-
         ///////////
 
         DropoffBox();
@@ -249,16 +258,15 @@ public class PackerHand : Agent
     /// Agent picks up the box
     /// </summary>
     public void PickupBox() {
-        Debug.Log("AGENT ABOUT TO PICK UP BOX!!!!!!!!!!!!!!");
         // Change carriedObject from null to target
-        carriedObject = target.transform;
+        carriedObject = Instantiate(target.transform, target.transform.position,Quaternion.identity);
 
         Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`Agent POSITION IS: {this.transform.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
         // Attach carriedObject to agent
         carriedObject.SetParent(GameObject.Find("agent").transform, false);
 
-        Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`TARGET BOX POSITION IS: {target.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`CARRIED OBJECT POSITION IS: {carriedObject.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
         // Prevent carriedObject from falling to the ground
         carriedObject.gameObject.GetComponent<Rigidbody>().useGravity = false;
@@ -290,7 +298,6 @@ public class PackerHand : Agent
         // Reset carriedObject to null
         carriedObject = null;
 
-        ////////TBD: HOW TO RESET TARGET  TO THE NETX BOX///////////////////////////
     }
 
 
@@ -330,8 +337,6 @@ public class PackerHand : Agent
             SetReward(3f);
             Debug.Log($"Agent got to bin with box!!!! Total reward: {GetCumulativeReward()}");
 
-            //Select bin position
-            //SelectPosition();
         }
         else {
             SetReward(-1f);

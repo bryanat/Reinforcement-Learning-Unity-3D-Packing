@@ -11,13 +11,12 @@ public class SensorDetectBin : MonoBehaviour
 
     void OnCollisionEnter(Collision col)
     {
-        // Touched goal.
         if (col.gameObject.CompareTag("box"))
         {
             agent.RewardDroppedBox();
         }
 
-        else if (col.gameObject.CompareTag("agent"))
+        if (col.gameObject.CompareTag("agent"))
         {
 
             agent.RewardGotToBin();
