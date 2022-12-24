@@ -17,7 +17,7 @@ public class BinDetect2 : MonoBehaviour
         // Touched goal.
         if (col.gameObject.CompareTag("goal"))
         {
-            agent.DroppedBox();
+            // agent.DroppedBox();
         }
     }
 }

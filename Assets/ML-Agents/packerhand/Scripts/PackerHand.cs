@@ -110,25 +110,25 @@ public class PackerHand : Agent
 
     }
 
-    	////This is where the agent learns to move its joints and where it learns what is its next target to pick
+    // dBranch1 = target: select target branch
+    // dBranch2 = transform z-axis: move agent z-axis branch
+    // dBranch3 = transform x-axis: move agent x-axis branch
+    // dBranch4 = transform rotate: rotate agent branch
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
 
         var j = -1;
         //var i = -1;
 
-
         var discreteActions = actionBuffers.DiscreteActions;
         //var continuousActions = actionBuffers.ContinuousActions;
     
         SelectTarget(discreteActions[++j]); 
-        MoveAgent(actionBuffers.DiscreteActions); // passign ActionSegment instead of int
-        // MoveAgent(discreteActions[++j]); // should pass ActionSegment instead of int
+        // ActionMoveAgent(discreteActions[++j]); // passign ActionSegment instead of int
+        ActionMoveAgent(actionBuffers.DiscreteActions); // passign ActionSegment instead of int
+        // ActionMoveAgent(discreteActions[++j]); // should pass ActionSegment instead of int
 
         ////////////////SelectPosition:
-
-
-
 
         //this.transform.position.Set(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]);
         ///m_Agent.AddForce(new Vector3(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]));
@@ -146,7 +146,7 @@ public class PackerHand : Agent
         // Reward Layer 2: MacrostepSparseMilestoneCheckpointEvolution=dropoffbox() MicrostepDenseGradientPathguide=distancetobin
             // if agent has pickedup a box
             // if (target) {
-                // SetReward(RLayer2()); // vs. refactor as RLayer2() containing SetReward(y)
+                // SetReward(RewardLayer2()); // vs. refactor as RewardLayer2() containing SetReward(y)
             // }
         // Reward Layer 1: MacrostepSparseMilestoneCheckpointEvolution=pickupbox() MicrostepDenseGradientPathguide=distancetobox
             // if agents hasnt picked up a box
@@ -154,14 +154,15 @@ public class PackerHand : Agent
                 // Assign Reward Layer 1
                 // AddReward(x);
                 // SetReward(x);
-                SetReward(RLayer1()); // vs. refactor as RLayer1() containing SetReward(x)
+                SetReward(RewardLayer1()); // vs. refactor as RewardLayer1() containing SetReward(x)
             }
             
             // // can also try this reward function
             // AddReward(-1f / MaxStep);
     }
 
-        public float RLayer2() {
+    // returns reward amount for layer 2
+    public float RewardLayer2() {
         // distance between target (box) and goalarea (bin)
         float distance = Vector3.Distance(target.transform.position, binArea.transform.position);
         // y: value of microreward
@@ -170,9 +171,11 @@ public class PackerHand : Agent
         return 1.618f + y;
     }
 
-    public float RLayer1() {
+    // returns reward amount for layer 1
+    public float RewardLayer1() {
         // distance between agent and target (box)
         float distance = Vector3.Distance(target.transform.position, this.transform.position);
+        Debug.Log($"Distance to target: {distance}");
         // x: value of microreward, quadratic
         var x = 1/(distance*distance);
         //Debug.Log($"Reward for moving towards target:{x}");
@@ -184,72 +187,103 @@ public class PackerHand : Agent
         return x;
     }
 
-
-    public void SelectPosition() {
-
-        ///////////
-
-        ///////////////////////TBD////////////////////////
-
-
-        ///////////
-
-
-        pickupScript.DropoffBox(carriedObject);
-        
+    public override void Heuristic(in ActionBuffers actionsOut)
+    {
+        var discreteActionsOut = actionsOut.DiscreteActions;
+        //forward
+        if (Input.GetKey(KeyCode.W))
+        {
+            discreteActionsOut[1] = 1;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            discreteActionsOut[1] = 2;
+        }
+        //rotate
+        if (Input.GetKey(KeyCode.D))
+        {
+            discreteActionsOut[2] = 1;
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            discreteActionsOut[2] = 2;
+        }
+        //right
+        if (Input.GetKey(KeyCode.E))
+        {
+            discreteActionsOut[3] = 1;
+        }
+        if (Input.GetKey(KeyCode.Q))
+        {
+            discreteActionsOut[3] = 2;
+        }
     }
 
+    
 
-        /// <summary>
+    /// <summary>
     /// Moves the agent according to the selected action.
     /// </summary>
-    // public void MoveAgent(int action)
-    public void MoveAgent(ActionSegment<int> action)
+    // public void ActionMoveAgent(int action)
+    public void ActionMoveAgent(ActionSegment<int> action)
     {
+
         var dirToGo = Vector3.zero;
         var rotateDir = Vector3.zero;
 
-        var zBlueAxis = action[0];
-        var xRedAxis = action[1];
-        var xzRotateAxis = action[2];
+        // log the movement actions
+        Debug.Log("" + string.Join(",", action.Array[1..4]));
+        var zBlueAxis = action[1];
+        var xRedAxis = action[2];
+        var xzRotateAxis = action[3];
 
         switch(zBlueAxis){
             // forward
             case 1:
-                dirToGo = transform.forward * 1f;
+                dirToGo = transform.forward * 2f;
                 break;
             // backward
             case 2:
-                dirToGo = transform.forward * -1f;
+                dirToGo = transform.forward * -2f;
                 break;
         }
         switch(xRedAxis){
             // right
             case 1:
-                dirToGo = transform.right * 1f;
+                dirToGo = transform.right * 2f;
                 break;
             // left
             case 2:
-                dirToGo = transform.right * -1f;
+                dirToGo = transform.right * -2f;
                 break;
         }
         // refactor: rotational axis 
         switch(xzRotateAxis){
             // turn clockwise (right)
             case 1:
-                rotateDir = transform.up * 1f;
+                rotateDir = transform.up * 2f;
                 break;
             // turn counterclockwise (left)
             case 2:
-                rotateDir = transform.up * -1f;
+                rotateDir = transform.up * -2f;
                 break;
         }
 
-        transform.Rotate(rotateDir, Time.fixedDeltaTime * 100f);
-        m_Agent.AddForce(dirToGo, 
-            ForceMode.VelocityChange);
+        transform.Rotate(rotateDir, Time.fixedDeltaTime * 180f);
+        m_Agent.AddForce(dirToGo, ForceMode.VelocityChange);
     }
-    
+
+    public void SelectPosition() {
+
+        //////////////////////////////////////////////////
+        ///////////////////////TBD////////////////////////
+        //////////////////////////////////////////////////
+
+        pickupScript.DropoffBox(carriedObject);
+        
+    }
+
+    // action? ActionSelectTarget?
     public void SelectTarget(int x) {
         target = m_Box.boxPool[x].rb.transform;
    }
@@ -260,7 +294,7 @@ public class PackerHand : Agent
     ////Agent touched the target
     ///may need to change to when the distance is close enough so agent does not bump into it and fall down
     ///</summary>
-     public void TouchedTarget()
+     public void RewardTouchedTarget()
      {
          SetReward(2f);
          print($"Got to box!!!!! Total reward: {GetCumulativeReward()}");
@@ -272,7 +306,7 @@ public class PackerHand : Agent
     /// <summary>
     ////Box got dropped off
     ///</summary>
-    public void DroppedBox()
+    public void RewardDroppedBox()
     { 
         SetReward(5f);
         carriedObject = null;
@@ -285,7 +319,7 @@ public class PackerHand : Agent
     /// <summmary>
     ////Agent got to the bin
     /// </summary>
-    public void GotToBin() 
+    public void RewardGotToBin() 
     {
         if (carriedObject!=null) {
             SetReward(3f);

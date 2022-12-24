@@ -20,7 +20,7 @@ public class AgentDetect2 : MonoBehaviour
         // Touched goal.
         if (col.gameObject.CompareTag("goal"))
         {
-            agent.GotToBin();
+            // agent.GotToBin();
         }
     }
 }
