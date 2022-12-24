@@ -120,18 +120,8 @@ public class PackerHand : Agent
         SelectTarget(discreteActions[++j]); 
         MoveAgent(discreteActions[++j]);
 
-        float distance = Vector3.Distance(this.transform.position, target.transform.position);
-        Debug.Log($"DISTANCE IS {distance}");
-        if (distance < 1f) {
-            Debug.Log("AGENT ABOUT TO PICK UP BOX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            if (CheckTarget()) {
-                PickupBox();
-                RewardPickedupTarget();
-            }
-        }
 
-        ////////////////SelectPosition///////////////
-
+        //SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
 
 
 
@@ -190,18 +180,35 @@ public class PackerHand : Agent
         return x;
     }
 
+    void OnCollisionEnter(Collision col)
+    {
+        if (col.gameObject.CompareTag("box"))
+        {
+            if (CheckTarget()) {
+                PickupBox();
+                RewardPickedupTarget();
+            }
+        }
+
+        if (col.gameObject.CompareTag("goal"))
+        {
+            RewardGotToBin();
+        }
+        else {
+            return;
+        }
+
+    }
+
     /// <summary>
     /// Agent moves box to selected position in bin.
     /// </summary>
-    public void SelectPosition() {
+    public void SelectPosition(Vector3 position) {
 
-        ///////////
-        if (carriedObject!=null) {}
-        ///////////////////////TBD////////////////////////
+        if (carriedObject!=null) {
+            DropoffBox(position);
+        }
 
-        ///////////
-
-        DropoffBox();
     }
 
     /// <summary>
@@ -259,17 +266,20 @@ public class PackerHand : Agent
     /// </summary>
     public void PickupBox() {
         // Change carriedObject from null to target
-        carriedObject = Instantiate(target.transform, target.transform.position,Quaternion.identity);
+        carriedObject = target.transform;
 
         Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`Agent POSITION IS: {this.transform.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
         // Attach carriedObject to agent
-        carriedObject.SetParent(GameObject.Find("agent").transform, false);
+        carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
+        // Move carriedObject to the same position as the parent
+        carriedObject.localPosition=Vector3.zero;
 
-        Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`CARRIED OBJECT POSITION IS: {carriedObject.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+        Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`CARRIED OBJECT POSITION IS: {carriedObject.transform.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
         // Prevent carriedObject from falling to the ground
-        carriedObject.gameObject.GetComponent<Rigidbody>().useGravity = false;
+        //carriedObject.gameObject.GetComponent<Rigidbody>().useGravity = false;
 
         // Change box property to isHeld 
         PickupScript2 pickupScript = carriedObject.GetComponent<PickupScript2>();
@@ -282,21 +292,21 @@ public class PackerHand : Agent
     /// <summmary>
     //// Agent drops off the box
     /// </summary>
-    public void DropoffBox() {
+    public void DropoffBox(Vector3 position) {
 
-        // Detach carriedObject to agent
-        carriedObject.SetParent(null);
-            
-        // Set target position
-        carriedObject.position = transform.position + transform.forward * 0.5f; 
+        // Detach box from agent
+        //carriedObject.SetParent(null);
+
+        // Set box position
+        //carriedObject.position = position; 
 
         // Change box property to not held and organized
-        PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
-        pickupScript.isHeld = false;
-        pickupScript.isOrganized = true;
+        // PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
+        // pickupScript.isHeld = false;
+        // pickupScript.isOrganized = true;
 
         // Reset carriedObject to null
-        carriedObject = null;
+        //carriedObject = null;
 
     }
 

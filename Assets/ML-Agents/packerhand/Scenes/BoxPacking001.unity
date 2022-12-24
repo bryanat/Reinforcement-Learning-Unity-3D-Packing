@@ -512,7 +512,7 @@ Rigidbody:
   m_GameObject: {fileID: 1077347123}
   serializedVersion: 4
   m_Mass: 10
-  m_Drag: 4
+  m_Drag: 8
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -697,7 +697,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1564992652}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -49, y: 14.139999, z: -0.55999947}
+  m_LocalPosition: {x: -0.4, y: 14.139999, z: -0.55999947}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -803,7 +803,6 @@ GameObject:
   - component: {fileID: 1614004722}
   - component: {fileID: 1614004726}
   - component: {fileID: 1614004727}
-  - component: {fileID: 1614004728}
   m_Layer: 0
   m_Name: BinArea
   m_TagString: goal
@@ -928,20 +927,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1614004721}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d01aec4afd4a4008fa581b64b9168b72, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  agent: {fileID: 0}
---- !u!114 &1614004728
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1614004721}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7eca732d54bc50218e95f1a941acb5f, type: 3}
+  m_Script: {fileID: 11500000, guid: 7af51cde728f2032cabecc7214475bc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 0}

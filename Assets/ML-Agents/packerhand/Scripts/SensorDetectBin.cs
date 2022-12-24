@@ -16,10 +16,5 @@ public class SensorDetectBin : MonoBehaviour
             agent.RewardDroppedBox();
         }
 
-        if (col.gameObject.CompareTag("agent"))
-        {
-
-            agent.RewardGotToBin();
-        }
     }
 }
