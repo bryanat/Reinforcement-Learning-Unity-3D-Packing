@@ -185,14 +185,13 @@ public class PackerHand : Agent
     public void SelectPosition() {
 
         ///////////
-
+        if (carriedObject!=null) {}
         ///////////////////////TBD////////////////////////
 
 
         ///////////
 
         DropoffBox();
-        carriedObject = null;
     }
 
     /// <summary>
@@ -250,17 +249,17 @@ public class PackerHand : Agent
     /// </summary>
     public void Pickup() {
         Debug.Log("AGENT ABOUT TO PICK UP BOX!!!!!!!!!!!!!!");
-        // Changes carriedObject from null to target
+        // Change carriedObject from null to target
         carriedObject = target.transform;
 
         Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`Agent POSITION IS: {this.transform.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
-        // Attaches carriedObject to agent
+        // Attach carriedObject to agent
         carriedObject.SetParent(GameObject.Find("agent").transform, false);
 
         Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`TARGET BOX POSITION IS: {target.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
-        // Prevents carriedObject from falling to the ground
+        // Prevent carriedObject from falling to the ground
         carriedObject.gameObject.GetComponent<Rigidbody>().useGravity = false;
 
         // Change box property to isHeld 
@@ -274,15 +273,23 @@ public class PackerHand : Agent
     /// <summmary>
     //// Agent drops off the box
     /// </summary>
-    ///////FUTURE CONSIDERATION: CHECK THE PHYSICS AND CONTRAINTS WHEN STACKING BOXES, SET ROTATION OF BOX, ETC.////////
     public void DropoffBox() {
-        if (carriedObject!=null) {
-            PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
-            ///need to reset the parent, chance below////////
-            carriedObject.position = transform.position + transform.forward * 0.5f; 
-            pickupScript.isHeld = false;
-            pickupScript.isOrganized = true;
-        }
+
+        // Detach carriedObject to agent
+        carriedObject.SetParent(null);
+            
+        // Set target position
+        carriedObject.position = transform.position + transform.forward * 0.5f; 
+
+        // Change box property to not held and organized
+        PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
+        pickupScript.isHeld = false;
+        pickupScript.isOrganized = true;
+
+        // Reset carriedObject to null
+        carriedObject = null;
+
+        ////////TBD: HOW TO RESET TARGET  TO THE NETX BOX///////////////////////////
     }
 
 
@@ -295,9 +302,6 @@ public class PackerHand : Agent
         if (carriedObject!=null) {
             SetReward(2f);
             Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
-
-            // Set target to bin area
-            target = binArea.transform;
 
         }
         else { 
@@ -314,8 +318,6 @@ public class PackerHand : Agent
         SetReward(5f);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
 
-        //Reset carriedObject
-        //carriedObject = null;
     }
 
     /// <summmary>
