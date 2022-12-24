@@ -1,7 +1,7 @@
 using UnityEngine;
 using static PickupScript2;
 
-public class BoxDetectAgent : MonoBehaviour
+public class SensorDetectBox : MonoBehaviour
 {
     /// <summary>
     /// The associated agent.
@@ -18,9 +18,9 @@ public class BoxDetectAgent : MonoBehaviour
             // Agent checks if object is target box for pickup
             if (agent.CheckTarget()) {
                 // Agent picks up the box
-                agent.Pickup();
+                agent.PickupBox();
                 // Agent is rewarded
-                agent.PickedupTarget();
+                agent.RewardPickedupTarget();
             }
         }
     }

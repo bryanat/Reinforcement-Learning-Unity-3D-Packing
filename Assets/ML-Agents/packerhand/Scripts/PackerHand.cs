@@ -8,6 +8,8 @@ using Random = UnityEngine.Random;
 using Box = Boxes2.Box2;
 using Boxes2;
 using static PickupScript;
+using static SensorDetectBin;
+
 public class PackerHand : Agent
 
 {
@@ -65,15 +67,13 @@ public class PackerHand : Agent
 
         // Initialize agent for box's scripts
         foreach (var box in m_Box.boxPool) {
-            BoxDetectAgent boxDetectAgent = box.GetComponent<BoxDetectAgent>();
-            PickupScript2 pickupScript = box.GetComponent<PickupScript2>();
-            boxDetectAgent.agent = this;
-            pickupScript.agent = this;
+            box.sdb.agent = this;
+            box.ps.agent = this;
         }
 
-        // Initialize agent for bin's script
-        BinDetectAgent binDetectAgent= binArea.GetComponent<BinDetectAgent>();
-        binDetectAgent.agent = this; 
+        // Initialize agent for bin's scripts
+        SensorDetectBin binDetect= binArea.GetComponent<SensorDetectBin>();
+        binDetect.agent = this; 
 
         // Reset agent and rewards
         SetResetParameters();
@@ -154,6 +154,7 @@ public class PackerHand : Agent
             
             // // can also try this reward function
             // AddReward(-1f / MaxStep);
+
     }
 
         public float RLayer2() {
@@ -247,7 +248,7 @@ public class PackerHand : Agent
     /// <summmary>
     /// Agent picks up the box
     /// </summary>
-    public void Pickup() {
+    public void PickupBox() {
         Debug.Log("AGENT ABOUT TO PICK UP BOX!!!!!!!!!!!!!!");
         // Change carriedObject from null to target
         carriedObject = target.transform;
@@ -297,7 +298,7 @@ public class PackerHand : Agent
     /// <summary>
     /// Rewards agent for reaching target box
     ///</summary>
-     public void PickedupTarget()
+     public void RewardPickedupTarget()
      {  
         if (carriedObject!=null) {
             SetReward(2f);
@@ -306,14 +307,14 @@ public class PackerHand : Agent
         }
         else { 
             SetReward(-1f);
-            print($"Agent got to the wrong target!!! Total reward: {GetCumulativeReward()}");
+            Debug.Log($"Agent failed to pick up target!! Total reward: {GetCumulativeReward()}");
          }
 
      }
     /// <summary>
     //// Rewards agent for dropping off box
     ///</summary>
-    public void DroppedBox()
+    public void RewardDroppedBox()
     { 
         SetReward(5f);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
@@ -323,7 +324,7 @@ public class PackerHand : Agent
     /// <summmary>
     /// Rewards agent for getting to bin
     /// </summary>
-    public void GotToBin() 
+    public void RewardGotToBin() 
     {
         if (carriedObject!=null) {
             SetReward(3f);

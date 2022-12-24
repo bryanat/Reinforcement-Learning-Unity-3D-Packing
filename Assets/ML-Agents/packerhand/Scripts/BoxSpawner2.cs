@@ -4,7 +4,7 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using static PickupScript;
-using static BoxDetectAgent;
+using static SensorDetectBox;
 
 namespace Boxes2 {
 
@@ -14,7 +14,7 @@ public class Box2 : MonoBehaviour
 
     public PickupScript2 ps; 
 
-    public BoxDetectAgent bda;
+    public SensorDetectBox sdb;
     public Rigidbody rb;
 
     public Vector3 startingPos;
@@ -103,14 +103,14 @@ public class BoxSpawner2 : MonoBehaviour {
             box.transform.position = position;
             // Add compoments to GameObject box
             box.AddComponent<PickupScript2>();
-            box.AddComponent<BoxDetectAgent>();
+            box.AddComponent<SensorDetectBox>();
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
             box.tag = "box";
             // Transfer GameObject box properties to Box object 
             var newBox = new Box2{
                 rb = box.transform.GetComponent<Rigidbody>(), 
-                bda= box.transform.GetComponent<BoxDetectAgent>(),
+                sdb= box.transform.GetComponent<SensorDetectBox>(),
                 ps = box.transform.GetComponent<PickupScript2>(),
                 startingPos = box.transform.position,
                 boxSize = box.transform.localScale

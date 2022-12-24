@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class BinDetectBox : MonoBehaviour
+public class SensorDetectBin : MonoBehaviour
 {
     /// <summary>
     /// The associated agent.
@@ -14,7 +14,13 @@ public class BinDetectBox : MonoBehaviour
         // Touched goal.
         if (col.gameObject.CompareTag("box"))
         {
-            agent.DroppedBox();
+            agent.RewardDroppedBox();
+        }
+
+        else if (col.gameObject.CompareTag("agent"))
+        {
+
+            agent.RewardGotToBin();
         }
     }
 }

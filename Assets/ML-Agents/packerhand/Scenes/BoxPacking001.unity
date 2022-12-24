@@ -788,7 +788,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   boxPool: []
-  boxRef: {fileID: 0}
   ground: {fileID: 767763881}
 --- !u!1 &1614004721
 GameObject:
@@ -804,6 +803,7 @@ GameObject:
   - component: {fileID: 1614004722}
   - component: {fileID: 1614004726}
   - component: {fileID: 1614004727}
+  - component: {fileID: 1614004728}
   m_Layer: 0
   m_Name: BinArea
   m_TagString: goal
@@ -929,6 +929,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d01aec4afd4a4008fa581b64b9168b72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agent: {fileID: 0}
+--- !u!114 &1614004728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1614004721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7eca732d54bc50218e95f1a941acb5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 0}
