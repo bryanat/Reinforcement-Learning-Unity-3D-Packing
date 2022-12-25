@@ -50,8 +50,6 @@ public class PackerHand : Agent
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
-        // Reset agent and rewards
-        //SetResetParameters();
     }
 
 
@@ -180,6 +178,15 @@ public class PackerHand : Agent
         return x;
     }
 
+    void FixedUpdate() {
+        if (carriedObject!=null) {
+            // distance from agent is relative to the box size
+            carriedObject.localPosition = new Vector3(carriedObject.localScale.x+1, 0, carriedObject.localScale.z+1);
+        }
+        else {return;}
+    }
+
+
     void OnCollisionEnter(Collision col)
     {
         if (col.gameObject.CompareTag("box"))
@@ -269,16 +276,14 @@ public class PackerHand : Agent
         carriedObject = target.transform;
 
         Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`Agent POSITION IS: {this.transform.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-
+            
         // Attach carriedObject to agent
         carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
+        //carriedObject.parent = this.transform;
         // Move carriedObject to the same position as the parent
-        carriedObject.localPosition=Vector3.zero;
+        carriedObject.localPosition=new Vector3(carriedObject.localScale.x+1, 0, carriedObject.localScale.z+1);
         // Prevent carriedObject from falling to the ground
-        carriedObject.gameObject.GetComponent<Rigidbody>().useGravity = false;
-        carriedObject.gameObject.GetComponent<Rigidbody>().mass = 0;
-        carriedObject.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-        carriedObject.gameObject.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+        //carriedObject.gameObject.GetComponent<Rigidbody>().useGravity = false;
 
 
         Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`CARRIED OBJECT POSITION IS: {carriedObject.transform.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -296,19 +301,19 @@ public class PackerHand : Agent
     /// </summary>
     public void DropoffBox(Vector3 position) {
 
-        // Detach box from agent
-        //carriedObject.SetParent(null);
+        // // Detach box from agent
+        // carriedObject.SetParent(null);
 
-        // Set box position
-        //carriedObject.position = position; 
+        // // Set box position
+        // carriedObject.position = position; 
 
-        // Change box property to not held and organized
-        // PickupScript pickupScript = carriedObject.GetComponent<PickupScript>();
+        // // Change box property to not held and organized
+        // PickupScript2 pickupScript = carriedObject.GetComponent<PickupScript2>();
         // pickupScript.isHeld = false;
         // pickupScript.isOrganized = true;
 
-        // Reset carriedObject to null
-        //carriedObject = null;
+        // // Reset carriedObject to null
+        // carriedObject = null;
 
     }
 
