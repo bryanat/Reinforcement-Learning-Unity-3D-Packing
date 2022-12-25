@@ -7,15 +7,9 @@ using Unity.MLAgents.Sensors;
 using Random = UnityEngine.Random;
 using Box = Boxes2.Box2;
 using Boxes2;
-<<<<<<< HEAD
-using static AgentDetect2;
-using static BoxDetect2;
-using static BinDetect2;
-=======
 using static PickupScript;
 using static SensorDetectBin;
 
->>>>>>> devHand01
 public class PackerHand : Agent
 
 {
@@ -50,15 +44,7 @@ public class PackerHand : Agent
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
 
-<<<<<<< HEAD
-        // uncomment when pickupScript2 class is created
-        // // Initialize PickupScript
-        pickupScript = new PickupScript2();
-
-        //Create boxes
-=======
         // Create a box pool of boxes
->>>>>>> devHand01
         m_Box.SetUpBoxes();
         
         // Set environment parameters
@@ -195,12 +181,6 @@ public class PackerHand : Agent
         return x;
     }
 
-<<<<<<< HEAD
-
-    public void SelectPosition() {
-
-        ///////////
-=======
     void OnCollisionEnter(Collision col)
     {
         if (col.gameObject.CompareTag("box"))
@@ -210,7 +190,6 @@ public class PackerHand : Agent
                 RewardPickedupTarget();
             }
         }
->>>>>>> devHand01
 
         if (col.gameObject.CompareTag("goal"))
         {
