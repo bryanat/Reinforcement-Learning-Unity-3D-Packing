@@ -111,17 +111,17 @@ public class PackerHand : Agent
     {
 
         var j = -1;
-        //var i = -1;
+        var i = -1;
 
 
         var discreteActions = actionBuffers.DiscreteActions;
-        //var continuousActions = actionBuffers.ContinuousActions;
+        var continuousActions = actionBuffers.ContinuousActions;
     
         SelectTarget(discreteActions[++j]); 
         MoveAgent(discreteActions[++j]);
 
 
-        //SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
+        SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
 
 
 
@@ -274,12 +274,14 @@ public class PackerHand : Agent
         carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
         // Move carriedObject to the same position as the parent
         carriedObject.localPosition=Vector3.zero;
+        // Prevent carriedObject from falling to the ground
+        carriedObject.gameObject.GetComponent<Rigidbody>().useGravity = false;
+        carriedObject.gameObject.GetComponent<Rigidbody>().mass = 0;
+        carriedObject.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        carriedObject.gameObject.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
 
 
         Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`CARRIED OBJECT POSITION IS: {carriedObject.transform.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-
-        // Prevent carriedObject from falling to the ground
-        //carriedObject.gameObject.GetComponent<Rigidbody>().useGravity = false;
 
         // Change box property to isHeld 
         PickupScript2 pickupScript = carriedObject.GetComponent<PickupScript2>();
