@@ -7,7 +7,7 @@ using Unity.MLAgents.Sensors;
 using Random = UnityEngine.Random;
 using Box = Boxes2.Box2;
 using Boxes2;
-using static PickupScript;
+using static PickupScript2;
 using static SensorDetectBin;
 
 public class PackerHand : Agent
@@ -180,10 +180,19 @@ public class PackerHand : Agent
 
     void FixedUpdate() {
         if (carriedObject!=null) {
-            // distance from agent is relative to the box size
-            carriedObject.localPosition = new Vector3(carriedObject.localScale.x+1, 0, carriedObject.localScale.z+1);
+            UpdateAgentBoxDistance();
         }
         else {return;}
+    }
+
+    
+    public void UpdateAgentBoxDistance() {
+        var box_x_length = carriedObject.localScale.x;
+        var box_z_length = carriedObject.localScale.z;
+        var dist = 0.5f;
+         // distance from agent is relative to the box size
+        carriedObject.localPosition = new Vector3(box_x_length+dist, dist, box_z_length+dist);
+
     }
 
 
@@ -215,6 +224,7 @@ public class PackerHand : Agent
         if (carriedObject!=null) {
             DropoffBox(position);
         }
+        else {return;}
 
     }
 
@@ -280,10 +290,6 @@ public class PackerHand : Agent
         // Attach carriedObject to agent
         carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
         //carriedObject.parent = this.transform;
-        // Move carriedObject to the same position as the parent
-        carriedObject.localPosition=new Vector3(carriedObject.localScale.x+1, 0, carriedObject.localScale.z+1);
-        // Prevent carriedObject from falling to the ground
-        //carriedObject.gameObject.GetComponent<Rigidbody>().useGravity = false;
 
 
         Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`CARRIED OBJECT POSITION IS: {carriedObject.transform.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
