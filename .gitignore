@@ -16,6 +16,9 @@
 Project.sln.DotSettings
 /ProjectSettings/
 
+# models from temporary training
+results/
+
 # Environemnt logfile
 *Project.log
 
