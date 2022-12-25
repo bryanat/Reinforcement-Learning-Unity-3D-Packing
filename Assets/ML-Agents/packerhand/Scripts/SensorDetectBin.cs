@@ -13,7 +13,11 @@ public class SensorDetectBin : MonoBehaviour
     {
         if (col.gameObject.CompareTag("box"))
         {
+<<<<<<< HEAD:Assets/ML-Agents/packerhand/Scripts/SensorDetectBin.cs
             agent.RewardDroppedBox();
+=======
+            // agent.DroppedBox();
+>>>>>>> heuristicInput:Assets/ML-Agents/packerhand/Scripts/BinDetect2.cs
         }
 
     }
