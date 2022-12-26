@@ -6,7 +6,7 @@ using Unity.MLAgents.Actuators;
 
 namespace Boxes2 {
 
-public class Box2 : MonoBehaviour
+public class Box2 
 {
 
 
