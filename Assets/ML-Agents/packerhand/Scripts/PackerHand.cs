@@ -17,15 +17,15 @@ public class PackerHand : Agent
 
     public GameObject binArea;
 
-
-    //cache agent on initilization
-    Rigidbody m_Agent; 
+    Rigidbody m_Agent; //cache agent on initilization
 
     [HideInInspector]
     public Transform carriedObject;
 
     [HideInInspector]
     public Transform target; //Target the agent will walk towards during training.
+
+    public Vector3 position;  // Position of box inside bin
 
 
     EnvironmentParameters m_ResetParams;
@@ -87,10 +87,12 @@ public class PackerHand : Agent
         // Add Bin position
         sensor.AddObservation(binArea.transform.position); //(x, y, z)
 
-        // Add Box size and position
+
         foreach (var box in m_Box.boxPool) {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
             sensor.AddObservation(box.rb.transform.position); //add box position to sensor observations
+            sensor.AddObservation(float.Parse(box.rb.tag)); //add box tag to sensor observations
+            // might need to add box rotation for future
         }
 
         // Add Agent postiion
@@ -115,10 +117,8 @@ public class PackerHand : Agent
         var discreteActions = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
     
-        SelectTarget(discreteActions[++j]); 
+        SelectBox(discreteActions[++j]); 
         MoveAgent(discreteActions[++j]);
-
-
         SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
 
 
@@ -200,31 +200,25 @@ public class PackerHand : Agent
     {
         if (col.gameObject.CompareTag("box"))
         {
-            if (CheckTarget()) {
+            //if (CheckBox()) {
+            // check if box is not organized and agent is not carrying a box already
+            if (col.gameObject.tag=="0" && carriedObject==null) {
                 PickupBox();
                 RewardPickedupTarget();
             }
         }
 
         if (col.gameObject.CompareTag("goal"))
-        {
-            RewardGotToBin();
+        {   
+            // Check if drop off location is available
+            if (position!=Vector3.zero) {
+                DropoffBox();
+                RewardGotToBin();
+            }
         }
         else {
             return;
         }
-
-    }
-
-    /// <summary>
-    /// Agent moves box to selected position in bin.
-    /// </summary>
-    public void SelectPosition(Vector3 position) {
-
-        if (carriedObject!=null) {
-            DropoffBox(position);
-        }
-        else {return;}
 
     }
 
@@ -263,20 +257,38 @@ public class PackerHand : Agent
     }
 
     /// <summary>
-    /// Agent selects target box
+    /// Agent selects target box if not carrying a box
     ///</summary>
-    public void SelectTarget(int x) {
-        target = m_Box.boxPool[x].rb.transform;
+    public void SelectBox(int x) {
+        // Check if carrying box (prevents agent from selecting other boxes while carrying a box)
+        if (carriedObject==null) {
+            target = m_Box.boxPool[x].rb.transform;
+        }
    }
+
+    /// <summary>
+    /// Agent selects position to place the box if carrying a box
+    /// </summary>
+    public void SelectPosition(Vector3 pos) {
+        // Check if carrying a box (prevents agent from selecting a position before having a box)
+        if (carriedObject!=null) {
+            // Check if position inside bin (prevents agent from dropping box outside bin)
+            if (binArea.GetComponent<Collider>().bounds.Contains(carriedObject.position)) {
+                position = pos;
+            }
+
+        }
+
+    }
 
 
     /// <summmary>
     /// Agent checks if target is box, outside the bin, and not being held
     /// </summary>
-    public bool CheckTarget() {
-        PickupScript2 pickupScript = target.GetComponent<PickupScript2>();
-        return pickupScript!=null && !pickupScript.isHeld && !pickupScript.isOrganized;
-    }   
+    // public bool CheckBox() {
+    //     PickupScript2 pickupScript = target.GetComponent<PickupScript2>();
+    //     return pickupScript!=null && !pickupScript.isHeld && !pickupScript.isOrganized;
+    // }   
 
     /// <summmary>
     /// Agent picks up the box
@@ -295,8 +307,8 @@ public class PackerHand : Agent
         Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`CARRIED OBJECT POSITION IS: {carriedObject.transform.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
         // Change box property to isHeld 
-        PickupScript2 pickupScript = carriedObject.GetComponent<PickupScript2>();
-        pickupScript.isHeld = true;
+        // PickupScript2 pickupScript = carriedObject.GetComponent<PickupScript2>();
+        // pickupScript.isHeld = true;
 
         // Set target to bin
         target = binArea.transform;
@@ -305,21 +317,29 @@ public class PackerHand : Agent
     /// <summmary>
     //// Agent drops off the box
     /// </summary>
-    public void DropoffBox(Vector3 position) {
+    public void DropoffBox() {
 
-        // // Detach box from agent
-        // carriedObject.SetParent(null);
 
-        // // Set box position
-        // carriedObject.position = position; 
+        // Detach box from agent
+        carriedObject.SetParent(null);
 
-        // // Change box property to not held and organized
+        // Set box position
+        carriedObject.position = position; 
+
+        // Change box property to not held and organized
         // PickupScript2 pickupScript = carriedObject.GetComponent<PickupScript2>();
         // pickupScript.isHeld = false;
         // pickupScript.isOrganized = true;
 
-        // // Reset carriedObject to null
-        // carriedObject = null;
+        // Set box tag
+        carriedObject.tag = "1";
+
+        // Reset postition to "null"
+        position = Vector3.zero;
+
+        // Reset carriedObject to null
+        carriedObject = null;
+        
 
     }
 
@@ -330,17 +350,12 @@ public class PackerHand : Agent
     ///</summary>
      public void RewardPickedupTarget()
      {  
-        if (carriedObject!=null) {
-            SetReward(2f);
-            Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
+        SetReward(2f);
+        Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
 
-        }
-        else { 
-            SetReward(-1f);
-            Debug.Log($"Agent failed to pick up target!! Total reward: {GetCumulativeReward()}");
-         }
+    }
 
-     }
+    
     /// <summary>
     //// Rewards agent for dropping off box
     ///</summary>
@@ -356,17 +371,11 @@ public class PackerHand : Agent
     /// </summary>
     public void RewardGotToBin() 
     {
-        if (carriedObject!=null) {
-            SetReward(3f);
-            Debug.Log($"Agent got to bin with box!!!! Total reward: {GetCumulativeReward()}");
-
-        }
-        else {
-            SetReward(-1f);
-            Debug.Log($"Agent got to bin without box!!!! Total reward: {GetCumulativeReward()}");
-        }
+        SetReward(3f);
+        Debug.Log($"Agent got to bin with box!!!! Total reward: {GetCumulativeReward()}");
 
     }
+
     public void AgentReset() 
     {
         this.transform.position = new Vector3(5, 0, 5);
@@ -392,6 +401,9 @@ public class PackerHand : Agent
         foreach (var box in m_Box.boxPool) {
             box.ResetBoxes(box);
         }
+
+        //Reset position
+        position = Vector3.zero;
     }
 
     //EndEpisode() 

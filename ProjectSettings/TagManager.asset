@@ -32,6 +32,8 @@ TagManager:
   - tile
   - lookhere
   - box
+  - 0
+  - 1
   layers:
   - Default
   - TransparentFX
