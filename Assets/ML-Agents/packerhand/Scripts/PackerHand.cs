@@ -7,7 +7,6 @@ using Unity.MLAgents.Sensors;
 using Random = UnityEngine.Random;
 using Box = Boxes2.Box2;
 using Boxes2;
-using static PickupScript2;
 using static SensorDetectBin;
 
 public class PackerHand : Agent
@@ -62,12 +61,6 @@ public class PackerHand : Agent
 
         Debug.Log("++++++++++++++++++++BOX POOL COUNT++++++++++++++++++++++++++++++++++++++++++");
         Debug.Log(m_Box.boxPool.Count);
-
-        // Initialize agent for box's script
-        foreach (var box in m_Box.boxPool) {
-            box.ps.agent = this;
-        }
-
 
         // Initialize agent for bin's script
         SensorDetectBin binDetect= binArea.GetComponent<SensorDetectBin>();
@@ -198,7 +191,8 @@ public class PackerHand : Agent
 
     void OnCollisionEnter(Collision col)
     {
-        if (col.gameObject.CompareTag("box"))
+        // Check if agent gets to a box
+        if (col.gameObject.CompareTag("1") || col.gameObject.CompareTag("0"))
         {
             //if (CheckBox()) {
             // check if box is not organized and agent is not carrying a box already
@@ -207,7 +201,7 @@ public class PackerHand : Agent
                 RewardPickedupTarget();
             }
         }
-
+        // Check if agent goes into bin
         if (col.gameObject.CompareTag("goal"))
         {   
             // Check if drop off location is available
@@ -306,10 +300,6 @@ public class PackerHand : Agent
 
         Debug.Log($"~~~~~~~~~~~~~~~~~~~~~~~~~~~~`CARRIED OBJECT POSITION IS: {carriedObject.transform.position}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
-        // Change box property to isHeld 
-        // PickupScript2 pickupScript = carriedObject.GetComponent<PickupScript2>();
-        // pickupScript.isHeld = true;
-
         // Set target to bin
         target = binArea.transform;
     }
@@ -325,11 +315,6 @@ public class PackerHand : Agent
 
         // Set box position
         carriedObject.position = position; 
-
-        // Change box property to not held and organized
-        // PickupScript2 pickupScript = carriedObject.GetComponent<PickupScript2>();
-        // pickupScript.isHeld = false;
-        // pickupScript.isOrganized = true;
 
         // Set box tag
         carriedObject.tag = "1";

@@ -472,7 +472,7 @@ MonoBehaviour:
   binArea: {fileID: 1614004721}
   carriedObject: {fileID: 0}
   target: {fileID: 0}
-  positions: []
+  position: {x: 0, y: 0, z: 0}
 --- !u!114 &1077347130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -486,7 +486,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 26
+    VectorObservationSize: 29
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 6

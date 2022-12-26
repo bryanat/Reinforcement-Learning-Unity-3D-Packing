@@ -3,16 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
-using static PickupScript;
-//using static SensorDetectBox;
 
 namespace Boxes2 {
 
 public class Box2 : MonoBehaviour
 {
 
-
-    public PickupScript2 ps; 
 
     //public SensorDetectBox sdb;
     public Rigidbody rb;
@@ -33,10 +29,6 @@ public class Box2 : MonoBehaviour
     {
         //Reset box position
         box.rb.transform.position = new Vector3(0, 5, 0);//GetRandomSpawnPos();
-        
-        //Reset box's PickupScript
-        box.ps.isHeld = false;
-        box.ps.isOrganized = false;
 
 
     }
@@ -102,7 +94,6 @@ public class BoxSpawner2 : MonoBehaviour {
             var position = new Vector3(0, 5, 0); //GetRandomSpawnPos()
             box.transform.position = position;
             // Add compoments to GameObject box
-            box.AddComponent<PickupScript2>();
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
             // tag 0 signified disorganized outside the bin, 1 signifies organized inside the bin
@@ -110,7 +101,6 @@ public class BoxSpawner2 : MonoBehaviour {
             // Transfer GameObject box properties to Box object 
             var newBox = new Box2{
                 rb = box.transform.GetComponent<Rigidbody>(), 
-                ps = box.transform.GetComponent<PickupScript2>(),
                 startingPos = box.transform.position,
                 boxSize = box.transform.localScale
             };
