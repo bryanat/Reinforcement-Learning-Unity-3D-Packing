@@ -116,7 +116,7 @@ public class PackerHand : Agent
         SelectBox(discreteActions[++j]); 
         MoveAgent(discreteActions[++j]);
 
-        // Restrict the observation to a range so selected position is inside the bin 
+        // Restrict to a range so selected position is inside the bin 
         float xPosition = Mathf.Clamp(binArea.transform.position.x, -(binArea.transform.localScale.x)/2, (binArea.transform.localScale.x)/2);
         float yPosition = Mathf.Clamp(binArea.transform.position.y, -(binArea.transform.localScale.y)/2, (binArea.transform.localScale.y)/2);
         float zPosition = Mathf.Clamp(binArea.transform.position.z, -(binArea.transform.localScale.z)/2, (binArea.transform.localScale.z)/2);
@@ -327,6 +327,9 @@ public class PackerHand : Agent
 
         // Detach box from agent
         carriedObject.SetParent(null);
+
+        // stop box from floating away
+        carriedObject.GetComponent<Rigidbody>().useGravity = true;
 
         // Set box position
         carriedObject.position = position; 
