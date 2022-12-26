@@ -107,7 +107,7 @@ public class PackerHand : Agent
     {
 
         var j = -1;
-        var i = -1;
+        //var i = -1;
 
 
         var discreteActions = actionBuffers.DiscreteActions;
@@ -115,7 +115,15 @@ public class PackerHand : Agent
     
         SelectBox(discreteActions[++j]); 
         MoveAgent(discreteActions[++j]);
-        SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
+
+        // Restrict the observation to a range so selected position is inside the bin 
+        float xPosition = Mathf.Clamp(binArea.transform.position.x, -(binArea.transform.localScale.x)/2, (binArea.transform.localScale.x)/2);
+        float yPosition = Mathf.Clamp(binArea.transform.position.y, -(binArea.transform.localScale.y)/2, (binArea.transform.localScale.y)/2);
+        float zPosition = Mathf.Clamp(binArea.transform.position.z, -(binArea.transform.localScale.z)/2, (binArea.transform.localScale.z)/2);
+        SelectPosition(new Vector3(xPosition, yPosition, zPosition));
+
+
+        //SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
 
 
 
@@ -175,19 +183,24 @@ public class PackerHand : Agent
     }
 
     void FixedUpdate() {
-        if (carriedObject!=null) {
-            UpdateAgentBoxDistance();
+        //if agent has the box, update its local position relative to the agent
+        if (carriedObject!=null && carriedObject.parent!=null) {
+            UpdateCarriedObject();
         }
         else {return;}
     }
 
     
-    public void UpdateAgentBoxDistance() {
+    public void UpdateCarriedObject() {
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
         var dist = 0.5f;
          // distance from agent is relative to the box size
         carriedObject.localPosition = new Vector3(box_x_length+dist, dist, box_z_length+dist);
+        // stop box from rotating
+        carriedObject.rotation = Quaternion.identity;
+        // stop box from falling 
+        carriedObject.GetComponent<Rigidbody>().useGravity = false;
 
     }
 
@@ -269,8 +282,8 @@ public class PackerHand : Agent
     public void SelectPosition(Vector3 pos) {
         // Check if carrying a box (prevents agent from selecting a position before having a box)
         if (carriedObject!=null) {
-            // Check if position inside bin (prevents agent from dropping box outside bin)
-            //if (binArea.GetComponent<Collider>().bounds.Contains(carriedObject.position)) {
+            // Check if selected position inside bin (prevents agent from dropping box outside bin)
+            //if (binArea.GetComponent<Collider>().bounds.Contains(pos)) {
                 position = pos;
             //}
 
@@ -312,12 +325,13 @@ public class PackerHand : Agent
     /// </summary>
     public void DropoffBox() {
 
-
         // Detach box from agent
         carriedObject.SetParent(null);
 
         // Set box position
         carriedObject.position = position; 
+
+        ////////////// Need to consider box rotation///////////////////
 
         // Set box tag
         carriedObject.tag = "1";
