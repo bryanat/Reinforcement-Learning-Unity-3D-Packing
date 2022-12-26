@@ -267,9 +267,9 @@ public class PackerHand : Agent
         // Check if carrying a box (prevents agent from selecting a position before having a box)
         if (carriedObject!=null) {
             // Check if position inside bin (prevents agent from dropping box outside bin)
-            if (binArea.GetComponent<Collider>().bounds.Contains(carriedObject.position)) {
+            //if (binArea.GetComponent<Collider>().bounds.Contains(carriedObject.position)) {
                 position = pos;
-            }
+            //}
 
         }
 

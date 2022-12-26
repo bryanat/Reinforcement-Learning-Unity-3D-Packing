@@ -788,7 +788,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d217fa01a4ea6395aa12868f202a602, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boxPool: []
   ground: {fileID: 767763881}
 --- !u!1 &1614004721
 GameObject:
@@ -891,7 +890,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1614004721}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -10.6, y: 1, z: 15}
+  m_LocalPosition: {x: -10.6, y: 0.5, z: 15}
   m_LocalScale: {x: -1.4905915, y: 0.5, z: 2.3280513}
   m_ConstrainProportionsScale: 0
   m_Children: []
