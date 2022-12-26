@@ -80,12 +80,15 @@ public class PackerHand : Agent
         // Add Bin position
         sensor.AddObservation(binArea.transform.position); //(x, y, z)
 
+        // Add Bin size
+        sensor.AddObservation(binArea.transform.localScale);
+
 
         foreach (var box in m_Box.boxPool) {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
             sensor.AddObservation(box.rb.transform.position); //add box position to sensor observations
             sensor.AddObservation(float.Parse(box.rb.tag)); //add box tag to sensor observations
-            // might need to add box rotation for future
+            sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
         }
 
         // Add Agent postiion

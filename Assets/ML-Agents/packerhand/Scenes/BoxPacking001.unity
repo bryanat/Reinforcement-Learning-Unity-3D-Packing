@@ -467,7 +467,7 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 5000
+  MaxStep: 15000
   ground: {fileID: 767763881}
   binArea: {fileID: 1614004721}
   carriedObject: {fileID: 0}
@@ -486,7 +486,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 29
+    VectorObservationSize: 44
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 6
