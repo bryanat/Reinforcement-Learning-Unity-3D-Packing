@@ -974,6 +974,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Platform
       objectReference: {fileID: 0}
+    - target: {fileID: 6718526948895052366, guid: a973796b9ae0871a880370219cb0b8a4,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6718526948895052366, guid: a973796b9ae0871a880370219cb0b8a4,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -5
+      objectReference: {fileID: 0}
     - target: {fileID: 6718791046026642300, guid: a973796b9ae0871a880370219cb0b8a4,
         type: 3}
       propertyPath: m_RootOrder

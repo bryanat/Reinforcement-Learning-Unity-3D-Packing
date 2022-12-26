@@ -32,7 +32,7 @@ public class Box2 : MonoBehaviour
     public void ResetBoxes(Box2 box)
     {
         //Reset box position
-        box.rb.transform.position = new Vector3(0, 1, 0);//GetRandomSpawnPos();
+        box.rb.transform.position = new Vector3(0, 5, 0);//GetRandomSpawnPos();
         
         //Reset box's PickupScript
         box.ps.isHeld = false;
@@ -99,7 +99,7 @@ public class BoxSpawner2 : MonoBehaviour {
             // Create GameObject box
             GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             box.transform.localScale = new Vector3(size[0], size[1], size[2]); 
-            var position = new Vector3(0, 1, 0); //GetRandomSpawnPos()
+            var position = new Vector3(0, 5, 0); //GetRandomSpawnPos()
             box.transform.position = position;
             // Add compoments to GameObject box
             box.AddComponent<PickupScript2>();
