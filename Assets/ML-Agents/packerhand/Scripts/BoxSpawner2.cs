@@ -19,43 +19,29 @@ public class Box2
 
     public Quaternion StartingRot;
 
-
-    public Bounds areaBounds;
-
     public BoxSpawner2 boxSpawnerRef;
 
 
     public void ResetBoxes(Box2 box)
     {
-        //Reset box position
-        box.rb.transform.position = new Vector3(0, 5, 0);//GetRandomSpawnPos();
-
+        // Reset box position
+        // Should we reset position every episide?
+        box.rb.transform.position = GetRandomSpawnPos();
 
     }
 
     /// <summary>
-    /// Use the ground's bounds to pick a random spawn position.
-    /// Cannot overlap with the agent or overlap with the bin area
+    /// Place boxes in the box area at random postitions
     /// </summary>
     public Vector3 GetRandomSpawnPos()
     {
-        areaBounds = boxSpawnerRef.ground.GetComponent<Collider>().bounds;
-        var foundNewSpawnLocation = false;
+        var areaBounds = boxSpawnerRef.boxArea.GetComponent<Collider>().bounds;
         var randomSpawnPos = Vector3.zero;
-        while (foundNewSpawnLocation == false)
-        {
-            var randomPosX = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
-
-            var randomPosZ = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
-            randomSpawnPos = boxSpawnerRef.ground.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
-            if (Physics.CheckBox(randomSpawnPos, new Vector3(2.5f, 0.01f, 2.5f)) == false)
-            {
-                foundNewSpawnLocation = true;
-            }
-        }
+        var randomPosX = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
+        var randomPosZ = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
+        randomSpawnPos = boxSpawnerRef.boxArea.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
         return randomSpawnPos;
     }
-
 
 }
 
@@ -69,10 +55,13 @@ public class BoxSpawner2 : MonoBehaviour {
     public List<Box2> boxPool = new List<Box2>();
 
     /// <summary>
-    /// The ground.
-    /// This will be set manually here because Box2 class propoerties do not appear in Inspector
+    /// The box area.
+    /// This will be set manually in the Inspector
     /// </summary>
-    public GameObject ground;
+    public GameObject boxArea;
+
+    [HideInInspector]
+    public Box2 boxRef;
 
 
 
@@ -91,12 +80,13 @@ public class BoxSpawner2 : MonoBehaviour {
             // Create GameObject box
             GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             box.transform.localScale = new Vector3(size[0], size[1], size[2]); 
-            var position = new Vector3(0, 5, 0); //GetRandomSpawnPos()
+            var position = boxRef.GetRandomSpawnPos();
+            Debug.Log($"NEW BOX POSITION IS {position}");
             box.transform.position = position;
             // Add compoments to GameObject box
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
-            // tag 0 signified disorganized outside the bin, 1 signifies organized inside the bin
+            // Add tag: 0 signified disorganized outside the bin, 1 signifies organized inside the bin
             box.tag = "0";
             // Transfer GameObject box properties to Box object 
             var newBox = new Box2{
