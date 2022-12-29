@@ -64,11 +64,11 @@ public class BoxSpawner2 : MonoBehaviour {
             // Add compoments to GameObject box
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
-            box.AddComponent<Renderer>();
-            // Get a reference to the Renderer component attached to the GameObject
-            Renderer renderer = box.GetComponent<Renderer>();
-            // Set the color of the material to red
-            renderer.material.color = Color.red;
+            // box.AddComponent<Renderer>();
+            // // Get a reference to the Renderer component attached to the GameObject
+            // Renderer renderer = box.GetComponent<Renderer>();
+            // // Set the color of the material to red
+            // renderer.material.color = Color.red;
             // Add tag: 0 signified disorganized outside the bin, 1 signifies organized inside the bin
             box.tag = "0";
             // Transfer GameObject box properties to Box object 

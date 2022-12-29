@@ -130,13 +130,21 @@ public class PackerHand : Agent
         //MoveAgent(discreteActions[++j]);
 
         // Restrict to a range so selected position is inside the bin 
-        var areaBounds = binArea.GetComponent<Collider>().bounds;
+        Bounds areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
+
+        // Encapsulate the bounds of each additional object in the overall bounds
+        for (int i = 1; i < 5; i++)
+        {
+            areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
+        }
+
+        // var areaBounds = binArea.GetComponent<Collider>().bounds;
         float xPosition = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
         float yPosition = Random.Range(-areaBounds.extents.y, areaBounds.extents.y);
         float zPosition = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
         SelectPosition(new Vector3(binArea.transform.position.x+xPosition, binArea.transform.position.y+yPosition,binArea.transform.position.z+zPosition));
 
-        // Restrict rotation to 90 or 180 or else it'll be too much to learn
+        // Restrict rotation to 90 or 180 degree turns or else it'll be too much to learn
         SelectRotation(discreteActions[++j]);
 
 
@@ -221,12 +229,14 @@ public class PackerHand : Agent
         var current_agent_x = this.transform.position.x;
         var current_agent_y = this.transform.position.y;
         var current_agent_z = this.transform.position.z;
-        this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
-        current_agent_y + total_y_distance/100, current_agent_z+total_z_distance/100);    
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/1000, 
+        current_agent_y + total_y_distance/1000, current_agent_z+total_z_distance/1000);    
     }
 
     
     void UpdateCarriedObject() {
+         // make the box "non-physics"
+        carriedObject.gameObject.SetActive(false);
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
         var dist = 0.5f;
@@ -366,6 +376,8 @@ public class PackerHand : Agent
     /// </summary>
     public void DropoffBox() {
 
+        AgentReset();
+
         // Detach box from agent
         carriedObject.SetParent(null);
 
@@ -381,6 +393,9 @@ public class PackerHand : Agent
 
         // Set box rotation
         carriedObject.rotation = Quaternion.Euler(rotation);
+
+        // Set box "physics"
+        carriedObject.gameObject.SetActive(true);
 
         // Set box tag
         carriedObject.tag = "1";
