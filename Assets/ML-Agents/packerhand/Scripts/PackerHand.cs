@@ -139,6 +139,8 @@ public class PackerHand : Agent
         {
             areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
         }
+
+        //////  THIS IS CAUSING THE CURRENT BIN, BIN'S CENTER IS NOT CENTER IN THE X AND Z DIRECTION/////////////////////
         Debug.Log($"BIN BOUNDS: {areaBounds}");
 
         // var areaBounds = binArea.GetComponent<Collider>().bounds;
