@@ -37,7 +37,7 @@ public class PackerHand : Agent
 
     public float total_z_distance; //total z distance between agent and target
     
-    public List<int> organizedBoxes;
+    public Dictionary<int, Vector3> organizedBoxes = new Dictionary<int, Vector3>();
 
 
     //EnvironmentParameters m_ResetParams;
@@ -276,7 +276,7 @@ public class PackerHand : Agent
     public void SelectBox(int x) {
         // Check if a box has already been selected and if agent is carrying box 
         // this prevents agent from constantly selecting other boxes and selecting an organized box
-        if (carriedObject==null && target==null && !organizedBoxes.Contains(x)) {
+        if (carriedObject==null && target==null && !organizedBoxes.ContainsKey(x)) {
             target = m_Box.boxPool[x].rb.transform;
             Debug.Log($"SELECTED TARGET AS BOX {x}, TARGET BOX SIZE IS {target.transform.localScale}");
             // Calculate total distance to box
@@ -284,7 +284,7 @@ public class PackerHand : Agent
             total_y_distance = 0;
             total_z_distance = target.position.z-this.transform.position.z;
             // Add box to organized list so it won't be selected again
-            organizedBoxes.Add(x);
+            organizedBoxes.Add(x, position);
 
         }
    }
@@ -295,7 +295,8 @@ public class PackerHand : Agent
     public void SelectPosition(Vector3 pos) {
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
-        if (carriedObject!=null && position == Vector3.zero) {
+        ///////THIS POSITION CHECK PROBABLY SHOULD BE A RANGE WITH RESPECT TO BOX SIZE   /////////////////
+        if (carriedObject!=null && position == Vector3.zero && !organizedBoxes.ContainsValue(pos)) {
             position = pos;
             Debug.Log($"SELECTED TARGET POSITION AT: {position}");
             total_x_distance = position.x-this.transform.position.x;
