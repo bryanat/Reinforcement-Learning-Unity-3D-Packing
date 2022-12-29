@@ -136,7 +136,8 @@ public class PackerHand : Agent
         float zPosition = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
         SelectPosition(new Vector3(binArea.transform.position.x+xPosition, binArea.transform.position.y+yPosition,binArea.transform.position.z+zPosition));
 
-        //SelectRotation();
+        // Restrict rotation to 90 or 180 or else it'll be too much to learn
+        SelectRotation(new Vector3(90, 90, 90));
 
 
         //SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
@@ -255,8 +256,8 @@ public class PackerHand : Agent
         // Check if agent goes into bin
         if (col.gameObject.CompareTag("goal"))
         {   
-            // Check if drop off location is available
-            if (position!=Vector3.zero && target!=null) {
+            // Check if drop off information is available
+            if (position!=Vector3.zero && rotation!=Vector3.zero && target!=null) {
                 DropoffBox();
                 RewardGotToBin();
             }
@@ -305,6 +306,10 @@ public class PackerHand : Agent
     /// </summary>
 
     public void SelectRotation(Vector3 rot) {
+        if (carriedObject!=null && rotation == Vector3.zero) {
+            rotation = rot;
+            Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
+        }
 
     }
 
@@ -343,7 +348,7 @@ public class PackerHand : Agent
         carriedObject.position = position; 
 
         // Set box rotation
-        //carriedObject.rotation = rotation;
+        carriedObject.rotation = Quaternion.Euler(rotation);
 
         // Set box tag
         carriedObject.tag = "1";
@@ -421,6 +426,9 @@ public class PackerHand : Agent
 
         //Reset position
         position = Vector3.zero;
+
+        //Reset rotation
+        rotation = Vector3.zero;
     }
 
 }
