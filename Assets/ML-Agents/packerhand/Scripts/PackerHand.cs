@@ -76,8 +76,8 @@ public class PackerHand : Agent
         Debug.Log(m_Box.boxPool.Count);
 
         // Initialize agent for bin's script
-        SensorDetectBin binDetect= binArea.GetComponent<SensorDetectBin>();
-        binDetect.agent = this; 
+        // SensorDetectBin binDetect= binArea.GetComponent<SensorDetectBin>();
+        // binDetect.agent = this; 
 
         // Reset agent and rewards
         SetResetParameters();
