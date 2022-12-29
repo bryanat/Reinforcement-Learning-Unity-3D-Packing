@@ -245,7 +245,7 @@ Transform:
   m_GameObject: {fileID: 144363153}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 22.87, y: 0.16, z: 2.08}
-  m_LocalScale: {x: 2.2537482, y: 0.48845, z: 1.37985}
+  m_LocalScale: {x: 2.2537482, y: 5, z: 1.37985}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1813030857}
@@ -367,7 +367,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
@@ -1065,7 +1065,7 @@ Transform:
   m_GameObject: {fileID: 1614004721}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -10.6, y: 0.2, z: 15}
-  m_LocalScale: {x: -1.4905915, y: 2, z: 2.3280513}
+  m_LocalScale: {x: -1.4905915, y: 5, z: 2.3280513}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1813030857}
@@ -1107,7 +1107,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0

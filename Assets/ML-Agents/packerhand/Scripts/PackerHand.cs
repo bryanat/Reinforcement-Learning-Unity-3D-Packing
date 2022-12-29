@@ -29,11 +29,13 @@ public class PackerHand : Agent
     [HideInInspector]
     public Vector3 position;  // Position of box inside bin
 
-    public float total_x_distance;
+    public Vector3 rotation; // Rotation of box inside bin
 
-    public float total_y_distance;
+    public float total_x_distance; //total x distance between agent and target
 
-    public float total_z_distance;
+    public float total_y_distance; //total y distance between agent and target
+
+    public float total_z_distance; //total z distance between agent and target
     
     public int steps;
 
@@ -134,6 +136,8 @@ public class PackerHand : Agent
         float zPosition = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
         SelectPosition(new Vector3(binArea.transform.position.x+xPosition, binArea.transform.position.y+yPosition,binArea.transform.position.z+zPosition));
 
+        //SelectRotation();
+
 
         //SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
 
@@ -196,7 +200,7 @@ public class PackerHand : Agent
     }
 
     void FixedUpdate() {
-        //if agent selected a target box
+        //if agent selected a target box, it should move towards the box
         if (target!=null && carriedObject==null) {
             UpdateAgentPosition();
         }
@@ -209,6 +213,8 @@ public class PackerHand : Agent
         if (carriedObject==null && target==null) {
             AgentReset();
         }
+        ////// IF ALL THE BOXES HAVE BEEN PICKED, OR IF NO MORE SPACE, SHOULD END EPISODE
+        //if () {EndEpisode()}
         else {return;}
     }
 
@@ -238,66 +244,36 @@ public class PackerHand : Agent
     void OnCollisionEnter(Collision col)
     {
         // Check if agent gets to a box
-        // check if box is not organized and agent is not carrying a box already
-        if (col.gameObject.tag=="0" && carriedObject==null) {
+        if (col.gameObject.CompareTag("0") || col.gameObject.CompareTag("1")) {
+            // check if agent is not carrying a box already
+            if (carriedObject==null && target!=null) {
                 PickupBox();
                 RewardPickedupTarget();
+            }
     
         }
         // Check if agent goes into bin
         if (col.gameObject.CompareTag("goal"))
         {   
             // Check if drop off location is available
-            if (position!=Vector3.zero) {
+            if (position!=Vector3.zero && target!=null) {
                 DropoffBox();
                 RewardGotToBin();
             }
         }
         else {
+            // the agent bumps into something that's not a target
             return;
         }
 
     }
 
     /// <summary>
-    /// Agent moves according to selected action.
-    /// </summary>
-    public void MoveAgent(int action)
-    {
-        var dirToGo = Vector3.zero;
-        var rotateDir = Vector3.zero;
-
-        switch (action)
-        {
-            case 1:
-                dirToGo = transform.forward * 1f;
-                break;
-            case 2:
-                dirToGo = transform.forward * -1f;
-                break;
-            case 3:
-                rotateDir = transform.up * 1f;
-                break;
-            case 4:
-                rotateDir = transform.up * -1f;
-                break;
-            case 5:
-                dirToGo = transform.right * -0.75f;
-                break;
-            case 6:
-                dirToGo = transform.right * 0.75f;
-                break;
-        }
-        transform.Rotate(rotateDir, Time.fixedDeltaTime * 200f);
-        m_Agent.AddForce(dirToGo, 
-            ForceMode.VelocityChange);
-    }
-
-    /// <summary>
-    /// Agent selects target box if not carrying a box
+    /// Agent selects a target box
     ///</summary>
     public void SelectBox(int x) {
-        // Check if a box has already been selected and if carrying box (prevents agent from selecting other boxes while carrying a box)
+        // Check if a box has already been selected and if agent is carrying box 
+        // this prevents agent from constantly selecting other boxes while carrying a box
         if (carriedObject==null && target==null) {
             target = m_Box.boxPool[x].rb.transform;
             Debug.Log($"SELECTED TARGET AS BOX {x}, TARGET BOX SIZE IS {target.transform.localScale}");
@@ -309,17 +285,26 @@ public class PackerHand : Agent
    }
 
     /// <summary>
-    /// Agent selects position to place the box if carrying a box
+    /// Agent selects a position for the box
     /// </summary>
     public void SelectPosition(Vector3 pos) {
-        // Check if carrying a box (prevents agent from selecting a position before having a box)
-        if (carriedObject!=null) {
+        // Check if carrying a box and if position is unknown 
+        // this prevents agent from selecting a position before having a box and constantly selecting other positions
+        if (carriedObject!=null && position == Vector3.zero) {
             position = pos;
             Debug.Log($"SELECTED TARGET POSITION AT: {position}");
             total_x_distance = position.x-this.transform.position.x;
             total_y_distance = position.y-this.transform.position.y;
             total_z_distance = position.z-this.transform.position.z;
         }
+
+    }
+
+    /// <summary>
+    /// Agent selects rotation for the box
+    /// </summary>
+
+    public void SelectRotation(Vector3 rot) {
 
     }
 
@@ -336,7 +321,6 @@ public class PackerHand : Agent
 
         // Set target to bin
         target = binArea.transform;
-        Debug.Log($"AFTER AGENT PICKS UP BOX, TARGET BECOMES: {target}");
 
     }
 
@@ -348,13 +332,18 @@ public class PackerHand : Agent
         // Detach box from agent
         carriedObject.SetParent(null);
 
-        // stop box from floating away
-        carriedObject.GetComponent<Rigidbody>().useGravity = true;
+        var rb =  carriedObject.GetComponent<Rigidbody>();
+
+        // // stop box from floating away
+        rb.useGravity = true;
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
 
         // Set box position
         carriedObject.position = position; 
 
-        ////////////// Need to consider box rotation///////////////////
+        // Set box rotation
+        //carriedObject.rotation = rotation;
 
         // Set box tag
         carriedObject.tag = "1";
