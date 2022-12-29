@@ -40,7 +40,7 @@ public class PackerHand : Agent
     public Dictionary<int, Vector3> organizedBoxes = new Dictionary<int, Vector3>();
 
 
-    //EnvironmentParameters m_ResetParams;
+    EnvironmentParameters m_ResetParams;
     BoxSpawner2 m_Box;
 
     public override void Initialize()
@@ -60,7 +60,7 @@ public class PackerHand : Agent
         m_Box.SetUpBoxes();
         
         // Set environment parameters
-        //m_ResetParams = Academy.Instance.EnvironmentParameters;
+        m_ResetParams = Academy.Instance.EnvironmentParameters;
 
     }
 
@@ -210,12 +210,10 @@ public class PackerHand : Agent
             UpdateAgentPosition();
             UpdateCarriedObject();
         }
-        // if agent drops off the box, it should pick another one
+        //if agent drops off the box, it should pick another one
         if (carriedObject==null && target==null) {
             AgentReset();
         }
-        ////// IF ALL THE BOXES HAVE BEEN PICKED, OR IF NO MORE SPACE, SHOULD END EPISODE
-        //if () {EndEpisode()}
         else {return;}
     }
 
@@ -463,6 +461,10 @@ public class PackerHand : Agent
 
         //Reset rotation
         rotation = Vector3.zero;
+
+        //Reset organized Boxes dictionary
+        organizedBoxes.Clear();
+
     }
 
 }
