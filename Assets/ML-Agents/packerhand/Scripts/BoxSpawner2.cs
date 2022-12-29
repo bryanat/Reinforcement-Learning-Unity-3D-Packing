@@ -24,23 +24,11 @@ public class Box2
 
     public void ResetBoxes(Box2 box)
     {
-        // Reset box position
-        // Should we reset position every episide?
-        box.rb.transform.position = GetRandomSpawnPos();
+        //Reset box position
+        //Should we reset position every episide?
+        //box.rb.transform.position = new Vector3(22, 1, 2);
+        //box.rb.transform.position = boxSpawnerRef.GetRandomSpawnPos();
 
-    }
-
-    /// <summary>
-    /// Place boxes in the box area at random postitions
-    /// </summary>
-    public Vector3 GetRandomSpawnPos()
-    {
-        var areaBounds = boxSpawnerRef.boxArea.GetComponent<Collider>().bounds;
-        var randomSpawnPos = Vector3.zero;
-        var randomPosX = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
-        var randomPosZ = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
-        randomSpawnPos = boxSpawnerRef.boxArea.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
-        return randomSpawnPos;
     }
 
 }
@@ -60,10 +48,6 @@ public class BoxSpawner2 : MonoBehaviour {
     /// </summary>
     public GameObject boxArea;
 
-    [HideInInspector]
-    public Box2 boxRef;
-
-
 
     public void SetUpBoxes() {
 
@@ -80,8 +64,8 @@ public class BoxSpawner2 : MonoBehaviour {
             // Create GameObject box
             GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             box.transform.localScale = new Vector3(size[0], size[1], size[2]); 
-            var position = boxRef.GetRandomSpawnPos();
-            Debug.Log($"NEW BOX POSITION IS {position}");
+            //var position = new Vector3(22, 1, 2);//boxRef.GetRandomSpawnPos();
+            var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box
             box.AddComponent<Rigidbody>();
@@ -97,6 +81,14 @@ public class BoxSpawner2 : MonoBehaviour {
             // Add box to box pool
             boxPool.Add(newBox);          
         }
+    }
+    public Vector3 GetRandomSpawnPos()
+    {
+        var areaBounds = boxArea.GetComponent<Collider>().bounds;
+        var randomPosX = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
+        var randomPosZ = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
+        var randomSpawnPos = boxArea.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
+        return randomSpawnPos;
     }
  
 

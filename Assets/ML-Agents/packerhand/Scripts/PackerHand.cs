@@ -29,6 +29,14 @@ public class PackerHand : Agent
     [HideInInspector]
     public Vector3 position;  // Position of box inside bin
 
+    public float total_x_distance;
+
+    public float total_y_distance;
+
+    public float total_z_distance;
+    
+    public int steps;
+
 
     EnvironmentParameters m_ResetParams;
     BoxSpawner2 m_Box;
@@ -117,13 +125,14 @@ public class PackerHand : Agent
         var continuousActions = actionBuffers.ContinuousActions;
     
         SelectBox(discreteActions[++j]); 
-        MoveAgent(discreteActions[++j]);
+        //MoveAgent(discreteActions[++j]);
 
         // Restrict to a range so selected position is inside the bin 
-        float xPosition = Mathf.Clamp(binArea.transform.position.x, -(binArea.transform.localScale.x)/2, (binArea.transform.localScale.x)/2);
-        float yPosition = Mathf.Clamp(binArea.transform.position.y, -(binArea.transform.localScale.y)/2, (binArea.transform.localScale.y)/2);
-        float zPosition = Mathf.Clamp(binArea.transform.position.z, -(binArea.transform.localScale.z)/2, (binArea.transform.localScale.z)/2);
-        SelectPosition(new Vector3(xPosition, yPosition, zPosition));
+        var areaBounds = binArea.GetComponent<Collider>().bounds;
+        float xPosition = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
+        float yPosition = Random.Range(-areaBounds.extents.y, areaBounds.extents.y);
+        float zPosition = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
+        SelectPosition(new Vector3(binArea.transform.position.x+xPosition, binArea.transform.position.y+yPosition,binArea.transform.position.z+zPosition));
 
 
         //SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
@@ -145,24 +154,25 @@ public class PackerHand : Agent
 
         // Reward Layer 2: MacrostepSparseMilestoneCheckpointEvolution=dropoffbox() MicrostepDenseGradientPathguide=distancetobin
             // if agent has pickedup a box
-            // if (target) {
-                // SetReward(RLayer2()); // vs. refactor as RLayer2() containing SetReward(y)
-            // }
+            // this is where agent has selected an exact position, what is the best way to close the distance? 
+            //  if (carriedObject!=null && target!=null) {
+            //      SetReward(RLayer2()); // vs. refactor as RLayer2() containing SetReward(y)
+            //  }
         // Reward Layer 1: MacrostepSparseMilestoneCheckpointEvolution=pickupbox() MicrostepDenseGradientPathguide=distancetobox
             // if agents hasnt picked up a box
-            if (target!=null) {
-                // Assign Reward Layer 1
-                // AddReward(x);
-                // SetReward(x);
-                SetReward(RLayer1()); // vs. refactor as RLayer1() containing SetReward(x)
-            }
+            // if (carriedObject==null && target!=null) {
+            //     // Assign Reward Layer 1
+            //     // currently the Rlayer1 reward is not efficient
+            //     //SetReward(RLayer1()); // vs. refactor as RLayer1() containing SetReward(x)
+            //     SetReward(-1f/MaxStep);
+            // }
             
             // // can also try this reward function
             // AddReward(-1f / MaxStep);
 
     }
 
-        public float RLayer2() {
+    public float RLayer2() {
         // distance between target (box) and goalarea (bin)
         float distance = Vector3.Distance(target.transform.position, binArea.transform.position);
         // y: value of microreward
@@ -186,15 +196,32 @@ public class PackerHand : Agent
     }
 
     void FixedUpdate() {
-        //if agent has the box, update its local position relative to the agent
+        //if agent selected a target box
+        if (target!=null && carriedObject==null) {
+            UpdateAgentPosition();
+        }
+        //if agent selected a position, update box local position relative to the agent
         if (carriedObject!=null && carriedObject.parent!=null) {
+            UpdateAgentPosition();
             UpdateCarriedObject();
+        }
+        // if agent drops off the box, it should pick another one
+        if (carriedObject==null && target==null) {
+            AgentReset();
         }
         else {return;}
     }
 
+    void UpdateAgentPosition() {
+        var current_agent_x = this.transform.position.x;
+        var current_agent_y = this.transform.position.y;
+        var current_agent_z = this.transform.position.z;
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
+        current_agent_y + total_y_distance/100, current_agent_z+total_z_distance/100);    
+    }
+
     
-    public void UpdateCarriedObject() {
+    void UpdateCarriedObject() {
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
         var dist = 0.5f;
@@ -270,9 +297,14 @@ public class PackerHand : Agent
     /// Agent selects target box if not carrying a box
     ///</summary>
     public void SelectBox(int x) {
-        // Check if carrying box (prevents agent from selecting other boxes while carrying a box)
-        if (carriedObject==null) {
+        // Check if a box has already been selected and if carrying box (prevents agent from selecting other boxes while carrying a box)
+        if (carriedObject==null && target==null) {
             target = m_Box.boxPool[x].rb.transform;
+            Debug.Log($"SELECTED TARGET AS BOX {x}, TARGET BOX SIZE IS {target.transform.localScale}");
+            total_x_distance = target.position.x-this.transform.position.x;
+            total_y_distance = 0;
+            total_z_distance = target.position.z-this.transform.position.z;
+
         }
    }
 
@@ -283,6 +315,10 @@ public class PackerHand : Agent
         // Check if carrying a box (prevents agent from selecting a position before having a box)
         if (carriedObject!=null) {
             position = pos;
+            Debug.Log($"SELECTED TARGET POSITION AT: {position}");
+            total_x_distance = position.x-this.transform.position.x;
+            total_y_distance = position.y-this.transform.position.y;
+            total_z_distance = position.z-this.transform.position.z;
         }
 
     }
@@ -328,7 +364,9 @@ public class PackerHand : Agent
 
         // Reset carriedObject to null
         carriedObject = null;
-        Debug.Log($"DROPPED OFF BOX, Carrried object is: {carriedObject} ");
+
+        // Reset target
+        target = null;
         
 
     }
