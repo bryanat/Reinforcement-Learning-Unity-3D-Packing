@@ -17,19 +17,13 @@ public class Box2
 
     public Vector3 boxSize; 
 
-    public Quaternion StartingRot;
-
-    public BoxSpawner2 boxSpawnerRef;
-
-
     public void ResetBoxes(Box2 box)
     {
-        //Reset box position
-        //Should we reset position every episide?
-        //box.rb.transform.position = new Vector3(22, 1, 2);
-        //box.rb.transform.position = boxSpawnerRef.GetRandomSpawnPos();
+         // Reset box position
+        box.rb.transform.position = box.startingPos;
 
     }
+
 
 }
 
@@ -65,7 +59,6 @@ public class BoxSpawner2 : MonoBehaviour {
             // Create GameObject box
             GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             box.transform.localScale = new Vector3(size[0], size[1], size[2]); 
-            //var position = new Vector3(22, 1, 2);//boxRef.GetRandomSpawnPos();
             var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box
