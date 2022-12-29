@@ -37,10 +37,10 @@ public class PackerHand : Agent
 
     public float total_z_distance; //total z distance between agent and target
     
-    public int steps;
+    public List<int> organizedBoxes;
 
 
-    EnvironmentParameters m_ResetParams;
+    //EnvironmentParameters m_ResetParams;
     BoxSpawner2 m_Box;
 
     public override void Initialize()
@@ -60,7 +60,7 @@ public class PackerHand : Agent
         m_Box.SetUpBoxes();
         
         // Set environment parameters
-        m_ResetParams = Academy.Instance.EnvironmentParameters;
+        //m_ResetParams = Academy.Instance.EnvironmentParameters;
 
     }
 
@@ -99,7 +99,7 @@ public class PackerHand : Agent
 
         foreach (var box in m_Box.boxPool) {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
-            sensor.AddObservation(box.rb.transform.position); //add box position to sensor observations
+            sensor.AddObservation(box.rb.position); //add box position to sensor observations
             sensor.AddObservation(float.Parse(box.rb.tag)); //add box tag to sensor observations
             sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
         }
@@ -137,7 +137,7 @@ public class PackerHand : Agent
         SelectPosition(new Vector3(binArea.transform.position.x+xPosition, binArea.transform.position.y+yPosition,binArea.transform.position.z+zPosition));
 
         // Restrict rotation to 90 or 180 or else it'll be too much to learn
-        SelectRotation(new Vector3(90, 90, 90));
+        SelectRotation(discreteActions[++j]);
 
 
         //SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
@@ -260,6 +260,7 @@ public class PackerHand : Agent
             if (position!=Vector3.zero && rotation!=Vector3.zero && target!=null) {
                 DropoffBox();
                 RewardGotToBin();
+                
             }
         }
         else {
@@ -274,13 +275,16 @@ public class PackerHand : Agent
     ///</summary>
     public void SelectBox(int x) {
         // Check if a box has already been selected and if agent is carrying box 
-        // this prevents agent from constantly selecting other boxes while carrying a box
-        if (carriedObject==null && target==null) {
+        // this prevents agent from constantly selecting other boxes and selecting an organized box
+        if (carriedObject==null && target==null && !organizedBoxes.Contains(x)) {
             target = m_Box.boxPool[x].rb.transform;
             Debug.Log($"SELECTED TARGET AS BOX {x}, TARGET BOX SIZE IS {target.transform.localScale}");
+            // Calculate total distance to box
             total_x_distance = target.position.x-this.transform.position.x;
             total_y_distance = 0;
             total_z_distance = target.position.z-this.transform.position.z;
+            // Add box to organized list so it won't be selected again
+            organizedBoxes.Add(x);
 
         }
    }
@@ -289,7 +293,7 @@ public class PackerHand : Agent
     /// Agent selects a position for the box
     /// </summary>
     public void SelectPosition(Vector3 pos) {
-        // Check if carrying a box and if position is unknown 
+        // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
         if (carriedObject!=null && position == Vector3.zero) {
             position = pos;
@@ -305,10 +309,38 @@ public class PackerHand : Agent
     /// Agent selects rotation for the box
     /// </summary>
 
-    public void SelectRotation(Vector3 rot) {
+    public void SelectRotation(int action) {
+         // Check if carrying a box and if rotation is known 
+        // this prevents agent from selecting a rotation before having a box and constantly selecting other rotations
         if (carriedObject!=null && rotation == Vector3.zero) {
-            rotation = rot;
-            Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
+            switch (action) 
+            {
+                case 1:
+                    rotation = new Vector3(180, 180, 180);
+                    break;
+                case 2:
+                    rotation = new Vector3(0, 90, 90 );
+                    break;
+                case 3:
+                    rotation = new Vector3(90, 0, 90);
+                    break;
+                case 4:
+                    rotation = new Vector3(90, 90, 0);
+                    break;
+                case 5:
+                    rotation = new Vector3(90, 90, 90);
+                    break;
+                case 6:
+                    rotation = new Vector3(0, 0, 90);
+                    break;
+                case 7:
+                    rotation = new Vector3(90, 0, 0);
+                    break;
+                case 8:
+                    rotation = new Vector3(0, 90, 0);
+                    break;
+            }
+         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
         }
 
     }
@@ -326,6 +358,7 @@ public class PackerHand : Agent
 
         // Set target to bin
         target = binArea.transform;
+
 
     }
 

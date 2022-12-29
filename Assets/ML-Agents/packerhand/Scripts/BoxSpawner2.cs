@@ -35,7 +35,7 @@ public class BoxSpawner2 : MonoBehaviour {
 
     [HideInInspector]
     public List<Box2> boxPool = new List<Box2>();
-    public Dictionary<Box2, Vector3> map = new Dictionary<Box2, Vector3>();
+    public Dictionary<Box2, Vector3> boxMap = new Dictionary<Box2, Vector3>();
 
     /// <summary>
     /// The box area.
@@ -70,7 +70,7 @@ public class BoxSpawner2 : MonoBehaviour {
             var newBox = new Box2{
                 rb = box.transform.GetComponent<Rigidbody>(), 
                 startingPos = box.transform.position,
-                boxSize = box.transform.localScale
+                boxSize = box.transform.localScale,
             };
             // Add box to box pool
             boxPool.Add(newBox);          
