@@ -39,6 +39,8 @@ public class PackerHand : Agent
     
     public Dictionary<int, Vector3> organizedBoxes = new Dictionary<int, Vector3>();
 
+    public int boxIdx;
+
 
     EnvironmentParameters m_ResetParams;
     BoxSpawner2 m_Box;
@@ -137,11 +139,12 @@ public class PackerHand : Agent
         {
             areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
         }
+        Debug.Log($"BIN BOUNDS: {areaBounds}");
 
         // var areaBounds = binArea.GetComponent<Collider>().bounds;
-        float xPosition = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
-        float yPosition = Random.Range(-areaBounds.extents.y, areaBounds.extents.y);
-        float zPosition = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
+        float xPosition = Random.Range(-areaBounds.extents.x+1, areaBounds.extents.x-1);
+        float yPosition = Random.Range(-areaBounds.extents.y+1, areaBounds.extents.y-1);
+        float zPosition = Random.Range(-areaBounds.extents.z+1, areaBounds.extents.z-1);
         SelectPosition(new Vector3(binArea.transform.position.x+xPosition, binArea.transform.position.y+yPosition,binArea.transform.position.z+zPosition));
 
         // Restrict rotation to 90 or 180 degree turns or else it'll be too much to learn
@@ -229,19 +232,19 @@ public class PackerHand : Agent
         var current_agent_x = this.transform.position.x;
         var current_agent_y = this.transform.position.y;
         var current_agent_z = this.transform.position.z;
-        this.transform.position = new Vector3(current_agent_x + total_x_distance/1000, 
-        current_agent_y + total_y_distance/1000, current_agent_z+total_z_distance/1000);    
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
+        current_agent_y + total_y_distance/100, current_agent_z+total_z_distance/100);    
     }
 
     
     void UpdateCarriedObject() {
          // make the box "non-physics"
-        carriedObject.gameObject.SetActive(false);
+        //carriedObject.gameObject.SetActive(false);
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
         var dist = 0.5f;
          // distance from agent is relative to the box size
-        carriedObject.localPosition = new Vector3(box_x_length+dist, dist, box_z_length+dist);
+        carriedObject.localPosition = new Vector3(box_x_length, dist, box_z_length);
         // stop box from rotating
         carriedObject.rotation = Quaternion.identity;
         // stop box from falling 
@@ -282,17 +285,18 @@ public class PackerHand : Agent
     /// Agent selects a target box
     ///</summary>
     public void SelectBox(int x) {
+        boxIdx = x;
         // Check if a box has already been selected and if agent is carrying box 
         // this prevents agent from constantly selecting other boxes and selecting an organized box
-        if (carriedObject==null && target==null && !organizedBoxes.ContainsKey(x)) {
-            target = m_Box.boxPool[x].rb.transform;
-            Debug.Log($"SELECTED TARGET AS BOX {x}, TARGET BOX SIZE IS {target.transform.localScale}");
+        if (carriedObject==null && target==null && !organizedBoxes.ContainsKey(boxIdx)) {
+            target = m_Box.boxPool[boxIdx].rb.transform;
+            Debug.Log($"SELECTED TARGET AS BOX {boxIdx}, TARGET BOX SIZE IS {target.transform.localScale}");
             // Calculate total distance to box
             total_x_distance = target.position.x-this.transform.position.x;
             total_y_distance = 0;
             total_z_distance = target.position.z-this.transform.position.z;
             // Add box to organized list so it won't be selected again
-            organizedBoxes.Add(x, position);
+            organizedBoxes.Add(boxIdx, position);
 
         }
    }
@@ -306,10 +310,11 @@ public class PackerHand : Agent
         ///////THIS POSITION CHECK PROBABLY SHOULD BE A RANGE WITH RESPECT TO BOX SIZE   /////////////////
         if (carriedObject!=null && position == Vector3.zero && !organizedBoxes.ContainsValue(pos)) {
             position = pos;
-            Debug.Log($"SELECTED TARGET POSITION AT: {position}");
+            //Debug.Log($"SELECTED TARGET POSITION AT: {position}");
             total_x_distance = position.x-this.transform.position.x;
             total_y_distance = position.y-this.transform.position.y;
             total_z_distance = position.z-this.transform.position.z;
+            organizedBoxes[boxIdx] = position;
         }
 
     }
@@ -349,7 +354,7 @@ public class PackerHand : Agent
                     rotation = new Vector3(0, 90, 0);
                     break;
             }
-         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
+         //Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
         }
 
     }
@@ -376,8 +381,6 @@ public class PackerHand : Agent
     /// </summary>
     public void DropoffBox() {
 
-        AgentReset();
-
         // Detach box from agent
         carriedObject.SetParent(null);
 
@@ -395,7 +398,7 @@ public class PackerHand : Agent
         carriedObject.rotation = Quaternion.Euler(rotation);
 
         // Set box "physics"
-        carriedObject.gameObject.SetActive(true);
+       // carriedObject.gameObject.SetActive(true);
 
         // Set box tag
         carriedObject.tag = "1";
