@@ -293,9 +293,9 @@ public class PackerHand : Agent
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
         if (carriedObject!=null && position == Vector3.zero && !organizedBoxes.ContainsValue(new Vector3(x, y, z))) {
 
-            var x_position = Mathf.Lerp(-areaBounds.extents.x+3, areaBounds.extents.x-3, x);
-            var y_position = Mathf.Lerp(-areaBounds.extents.y+3, areaBounds.extents.y-3, y);
-            var z_position = Mathf.Lerp(-areaBounds.extents.z+3, areaBounds.extents.z-3, z);
+            var x_position = Mathf.Lerp(-areaBounds.extents.x+1, areaBounds.extents.x-1, x);
+            var y_position = Mathf.Lerp(-areaBounds.extents.y+1, areaBounds.extents.y-1, y);
+            var z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
 
             position = new Vector3(binArea.transform.position.x+x_position,
              binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
