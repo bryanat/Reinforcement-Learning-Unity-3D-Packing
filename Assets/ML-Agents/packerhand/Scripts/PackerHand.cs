@@ -308,9 +308,9 @@ public class PackerHand : Agent
         if (carriedObject!=null && position == Vector3.zero && !organizedBoxes.ContainsValue(pos)) {
             position = pos;
             //Debug.Log($"SELECTED TARGET POSITION AT: {position}");
-            total_x_distance = position.x-this.transform.position.x;
+            total_x_distance = binArea.transform.position.x-this.transform.position.x;
             total_y_distance = 0;
-            total_z_distance = position.z-this.transform.position.z;
+            total_z_distance = binArea.transform.position.z-this.transform.position.z;
             // Update box position
             organizedBoxes[boxIdx] = position;
         }
