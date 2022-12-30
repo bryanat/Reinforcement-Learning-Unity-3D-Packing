@@ -52,7 +52,12 @@ public class BoxSpawner2 : MonoBehaviour {
         float[][] sizes = new float[][] {
             new float[] { 1.0f, 2.0f, 3.0f },
             new float[] { 3.0f, 3.0f, 3.0f },
-            new float[] { 5.0f, 10.0f, 8.0f }};
+            new float[] { 2.0f, 2.0f, 3.5f },
+            new float[] { 2.0f, 2.0f, 2.0f },
+            new float[] { 1.0f, 1.0f, 2.0f },
+            new float[] { 3.0f, 4.0f, 4.0f },
+            new float[] { 1.0f, 2.0f, 3.5f }
+            };
         
         foreach(var size in sizes) {
             // Create GameObject box

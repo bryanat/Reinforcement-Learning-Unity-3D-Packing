@@ -89,6 +89,7 @@ public class PackerHand : Agent
         {
             areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
         }
+        Debug.Log($"AREABOUNDS IS {areaBounds}");
 
         // Reset agent and rewards
         SetResetParameters();
@@ -178,28 +179,28 @@ public class PackerHand : Agent
 
     }
 
-    public float RLayer2() {
-        // distance between target (box) and goalarea (bin)
-        float distance = Vector3.Distance(target.transform.position, binArea.transform.position);
-        // y: value of microreward
-        var y = 1/(distance*distance);
-        // Reward Layer 2 = RewardLayer1 + microstepRewardLayer2
-        return 1.618f + y;
-    }
+    // public float RLayer2() {
+    //     // distance between target (box) and goalarea (bin)
+    //     float distance = Vector3.Distance(target.transform.position, binArea.transform.position);
+    //     // y: value of microreward
+    //     var y = 1/(distance*distance);
+    //     // Reward Layer 2 = RewardLayer1 + microstepRewardLayer2
+    //     return 1.618f + y;
+    // }
 
-    public float RLayer1() {
-        // distance between agent and target (box)
-        float distance = Vector3.Distance(target.transform.position, this.transform.position);
-        // x: value of microreward, quadratic
-        var x = 1/(distance*distance);
-        //Debug.Log($"Reward for moving towards target:{x}");
-        // cap microstep reward as less than macrostep reward (1) (want to remove this in future to make more natural/automated)
-        if (x>1.618f) {
-            x=1.618f;
-        }
-        // return the value of the reward (dense reward acting as a pathguidestepwisegradient)
-        return x;
-    }
+    // public float RLayer1() {
+    //     // distance between agent and target (box)
+    //     float distance = Vector3.Distance(target.transform.position, this.transform.position);
+    //     // x: value of microreward, quadratic
+    //     var x = 1/(distance*distance);
+    //     //Debug.Log($"Reward for moving towards target:{x}");
+    //     // cap microstep reward as less than macrostep reward (1) (want to remove this in future to make more natural/automated)
+    //     if (x>1.618f) {
+    //         x=1.618f;
+    //     }
+    //     // return the value of the reward (dense reward acting as a pathguidestepwisegradient)
+    //     return x;
+    // }
 
     void FixedUpdate() {
         //if agent selected a target box, it should move towards the box
@@ -222,8 +223,8 @@ public class PackerHand : Agent
         var current_agent_x = this.transform.position.x;
         var current_agent_y = this.transform.position.y;
         var current_agent_z = this.transform.position.z;
-        this.transform.position = new Vector3(current_agent_x + total_x_distance/1000, 
-        current_agent_y + total_y_distance/1000, current_agent_z+total_z_distance/1000);    
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/500, 
+        current_agent_y + total_y_distance/500, current_agent_z+total_z_distance/500);    
     }
 
     
@@ -277,6 +278,7 @@ public class PackerHand : Agent
         // Check if a box has already been selected and if agent is carrying box 
         // this prevents agent from constantly selecting other boxes and selecting an organized box
         if (carriedObject==null && target==null && !organizedBoxes.ContainsKey(boxIdx)) {
+            Debug.Log($"SELECTED BOX: {boxIdx}");
             target = m_Box.boxPool[boxIdx].rb.transform;
             // Calculate total distance to box
             total_x_distance = target.position.x-this.transform.position.x;
@@ -300,7 +302,7 @@ public class PackerHand : Agent
             position = new Vector3(binArea.transform.position.x+x_position,
              binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
 
-            //Debug.Log($"SELECTED TARGET POSITION AT: {position}");
+            Debug.Log($"SELECTED TARGET POSITION INSIDE BIN: {areaBounds.Contains(position)}");
             total_x_distance = binArea.transform.position.x-this.transform.position.x;
             total_y_distance = 0;
             total_z_distance = binArea.transform.position.z-this.transform.position.z;
@@ -345,7 +347,7 @@ public class PackerHand : Agent
                     rotation = new Vector3(0, 90, 0);
                     break;
             }
-         //Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
+         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
         }
 
     }
@@ -381,6 +383,10 @@ public class PackerHand : Agent
         rb.useGravity = true;
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
+        //This locks the RigidBody so that it does not move or rotate in the x, y, z axis
+        // rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezeRotationX;
+        // rb.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
+        // rb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ;
 
         // Set box position
         carriedObject.position = position; 
@@ -413,7 +419,7 @@ public class PackerHand : Agent
     ///</summary>
      public void RewardPickedupTarget()
      {  
-        SetReward(2f);
+        SetReward(0.1f);
         Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
 
     }
@@ -424,7 +430,7 @@ public class PackerHand : Agent
     ///</summary>
     public void RewardDroppedBox()
     { 
-        SetReward(5f);
+        SetReward(0.5f);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
 
     }
@@ -434,14 +440,14 @@ public class PackerHand : Agent
     /// </summary>
     public void RewardGotToBin() 
     {
-        SetReward(3f);
+        SetReward(0.1f);
         Debug.Log($"Agent got to bin with box!!!! Total reward: {GetCumulativeReward()}");
 
     }
 
     public void AgentReset() 
     {
-        this.transform.position = new Vector3(0, 2, 0);
+        this.transform.position = new Vector3(10f, 1.2f, 10f);
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
     }
