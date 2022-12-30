@@ -383,6 +383,8 @@ public class PackerHand : Agent
         rb.useGravity = true;
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
+        // rb.mass = 0.5f;
+        // rb.drag = 1f;
         //This locks the RigidBody so that it does not move or rotate in the x, y, z axis
         // rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezeRotationX;
         // rb.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
