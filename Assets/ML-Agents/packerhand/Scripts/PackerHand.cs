@@ -140,13 +140,12 @@ public class PackerHand : Agent
             areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
         }
 
-        //////  THIS IS CAUSING THE CURRENT BIN, BIN'S CENTER IS NOT CENTER IN THE X AND Z DIRECTION/////////////////////
-        Debug.Log($"BIN BOUNDS: {areaBounds}");
+        //Debug.Log($"BIN BOUNDS: {areaBounds}");
 
         // var areaBounds = binArea.GetComponent<Collider>().bounds;
-        float xPosition = Random.Range(-areaBounds.extents.x+1, areaBounds.extents.x-1);
-        float yPosition = Random.Range(-areaBounds.extents.y+1, areaBounds.extents.y-1);
-        float zPosition = Random.Range(-areaBounds.extents.z+1, areaBounds.extents.z-1);
+        float xPosition = Random.Range(-areaBounds.extents.x+3, areaBounds.extents.x-3);
+        float yPosition = Random.Range(-areaBounds.extents.y+3, areaBounds.extents.y-3);
+        float zPosition = Random.Range(-areaBounds.extents.z+3, areaBounds.extents.z-3);
         SelectPosition(new Vector3(binArea.transform.position.x+xPosition, binArea.transform.position.y+yPosition,binArea.transform.position.z+zPosition));
 
         // Restrict rotation to 90 or 180 degree turns or else it'll be too much to learn
@@ -234,14 +233,12 @@ public class PackerHand : Agent
         var current_agent_x = this.transform.position.x;
         var current_agent_y = this.transform.position.y;
         var current_agent_z = this.transform.position.z;
-        this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
-        current_agent_y + total_y_distance/100, current_agent_z+total_z_distance/100);    
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/1000, 
+        current_agent_y + total_y_distance/1000, current_agent_z+total_z_distance/1000);    
     }
 
     
     void UpdateCarriedObject() {
-         // make the box "non-physics"
-        //carriedObject.gameObject.SetActive(false);
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
         var dist = 0.5f;
@@ -292,7 +289,6 @@ public class PackerHand : Agent
         // this prevents agent from constantly selecting other boxes and selecting an organized box
         if (carriedObject==null && target==null && !organizedBoxes.ContainsKey(boxIdx)) {
             target = m_Box.boxPool[boxIdx].rb.transform;
-            Debug.Log($"SELECTED TARGET AS BOX {boxIdx}, TARGET BOX SIZE IS {target.transform.localScale}");
             // Calculate total distance to box
             total_x_distance = target.position.x-this.transform.position.x;
             total_y_distance = 0;
@@ -309,13 +305,13 @@ public class PackerHand : Agent
     public void SelectPosition(Vector3 pos) {
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
-        ///////THIS POSITION CHECK PROBABLY SHOULD BE A RANGE WITH RESPECT TO BOX SIZE   /////////////////
         if (carriedObject!=null && position == Vector3.zero && !organizedBoxes.ContainsValue(pos)) {
             position = pos;
             //Debug.Log($"SELECTED TARGET POSITION AT: {position}");
             total_x_distance = position.x-this.transform.position.x;
-            total_y_distance = position.y-this.transform.position.y;
+            total_y_distance = 0;
             total_z_distance = position.z-this.transform.position.z;
+            // Update box position
             organizedBoxes[boxIdx] = position;
         }
 
@@ -388,7 +384,7 @@ public class PackerHand : Agent
 
         var rb =  carriedObject.GetComponent<Rigidbody>();
 
-        // // stop box from floating away
+        // stop box from floating away
         rb.useGravity = true;
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
@@ -399,14 +395,14 @@ public class PackerHand : Agent
         // Set box rotation
         carriedObject.rotation = Quaternion.Euler(rotation);
 
-        // Set box "physics"
-       // carriedObject.gameObject.SetActive(true);
-
         // Set box tag
         carriedObject.tag = "1";
 
-        // Reset postition to "null"
+        // Reset postition
         position = Vector3.zero;
+
+        // Reset rotation 
+        rotation = Vector3.zero;
 
         // Reset carriedObject to null
         carriedObject = null;
