@@ -41,6 +41,8 @@ public class PackerHand : Agent
 
     public int boxIdx;
 
+    public Bounds areaBounds;
+
 
     EnvironmentParameters m_ResetParams;
     BoxSpawner2 m_Box;
@@ -64,6 +66,7 @@ public class PackerHand : Agent
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
+
     }
 
 
@@ -77,9 +80,15 @@ public class PackerHand : Agent
         Debug.Log("++++++++++++++++++++BOX POOL COUNT++++++++++++++++++++++++++++++++++++++++++");
         Debug.Log(m_Box.boxPool.Count);
 
-        // Initialize agent for bin's script
-        // SensorDetectBin binDetect= binArea.GetComponent<SensorDetectBin>();
-        // binDetect.agent = this; 
+
+        // Gets bounds of bin
+        areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
+
+        // Encapsulate the bounds of each additional object in the overall bounds
+        for (int i = 1; i < 5; i++)
+        {
+            areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
+        }
 
         // Reset agent and rewards
         SetResetParameters();
@@ -122,37 +131,17 @@ public class PackerHand : Agent
     {
 
         var j = -1;
-        //var i = -1;
+        var i = -1;
 
 
         var discreteActions = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
     
         SelectBox(discreteActions[++j]); 
-        //MoveAgent(discreteActions[++j]);
 
-        // Restrict to a range so selected position is inside the bin 
-        Bounds areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
-
-        // Encapsulate the bounds of each additional object in the overall bounds
-        for (int i = 1; i < 5; i++)
-        {
-            areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
-        }
-
-        //Debug.Log($"BIN BOUNDS: {areaBounds}");
-
-        // var areaBounds = binArea.GetComponent<Collider>().bounds;
-        float xPosition = Random.Range(-areaBounds.extents.x+3, areaBounds.extents.x-3);
-        float yPosition = Random.Range(-areaBounds.extents.y+3, areaBounds.extents.y-3);
-        float zPosition = Random.Range(-areaBounds.extents.z+3, areaBounds.extents.z-3);
-        SelectPosition(new Vector3(binArea.transform.position.x+xPosition, binArea.transform.position.y+yPosition,binArea.transform.position.z+zPosition));
-
-        // Restrict rotation to 90 or 180 degree turns or else it'll be too much to learn
         SelectRotation(discreteActions[++j]);
 
-
-        //SelectPosition(new Vector3(continuousActions[++i], continuousActions[++i], continuousActions[++i]));
+        SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
 
 
 
@@ -299,20 +288,24 @@ public class PackerHand : Agent
         }
    }
 
-    /// <summary>
-    /// Agent selects a position for the box
-    /// </summary>
-    public void SelectPosition(Vector3 pos) {
+    public void SelectPosition(float x, float y, float z) {
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
-        if (carriedObject!=null && position == Vector3.zero && !organizedBoxes.ContainsValue(pos)) {
-            position = pos;
+        if (carriedObject!=null && position == Vector3.zero && !organizedBoxes.ContainsValue(new Vector3(x, y, z))) {
+
+            var x_position = Mathf.Lerp(-areaBounds.extents.x+3, areaBounds.extents.x-3, x);
+            var y_position = Mathf.Lerp(-areaBounds.extents.y+3, areaBounds.extents.y-3, y);
+            var z_position = Mathf.Lerp(-areaBounds.extents.z+3, areaBounds.extents.z-3, z);
+
+            position = new Vector3(binArea.transform.position.x+x_position,
+             binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
+
             //Debug.Log($"SELECTED TARGET POSITION AT: {position}");
             total_x_distance = binArea.transform.position.x-this.transform.position.x;
             total_y_distance = 0;
             total_z_distance = binArea.transform.position.z-this.transform.position.z;
             // Update box position
-            organizedBoxes[boxIdx] = position;
+            organizedBoxes[boxIdx] = new Vector3(x, y, z);
         }
 
     }

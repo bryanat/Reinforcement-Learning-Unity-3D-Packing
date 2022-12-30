@@ -35,7 +35,6 @@ public class BoxSpawner2 : MonoBehaviour {
 
     [HideInInspector]
     public List<Box2> boxPool = new List<Box2>();
-    public Dictionary<Box2, Vector3> boxMap = new Dictionary<Box2, Vector3>();
 
     /// <summary>
     /// The box area.
