@@ -945,6 +945,9 @@ MonoBehaviour:
   total_y_distance: 0
   total_z_distance: 0
   boxIdx: 0
+  areaBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
 --- !u!114 &1077347130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -958,14 +961,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 44
+    VectorObservationSize: 45
     NumStackedVectorObservations: 1
     m_ActionSpec:
-      m_NumContinuousActions: 6
+      m_NumContinuousActions: 3
       BranchSizes: 0300000008000000
     VectorActionSize: 
     VectorActionDescriptions: []
-    VectorActionSpaceType: 1
+    VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
