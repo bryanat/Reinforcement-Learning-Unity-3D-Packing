@@ -254,13 +254,11 @@ public class PackerHand : Agent
     
         }
         // Check if agent goes into bin
-        if (col.gameObject.CompareTag("goal"))
-        {   
+        if (col.gameObject.CompareTag("goal")) {   
             // Check if drop off information is available
-            if (position!=Vector3.zero && rotation!=Vector3.zero && target!=null) {
+            if (position!=Vector3.zero && target!=null) {
                 DropoffBox();
-                RewardGotToBin();
-                
+                RewardGotToBin();            
             }
         }
         else {
@@ -294,7 +292,11 @@ public class PackerHand : Agent
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
         if (carriedObject!=null && position == Vector3.zero && !organizedBoxes.ContainsValue(new Vector3(x, y, z))) {
-
+            // normalize x, y, z between 0 and 1 (passed in values are between -1 and 1)
+            x = (x + 1f) * 0.5f;
+            y = (y + 1f) * 0.5f;
+            z = (z + 1f) * 0.5f;
+            // interpolate position between x, y, z bounds of the bin
             var x_position = Mathf.Lerp(-areaBounds.extents.x+1, areaBounds.extents.x-1, x);
             var y_position = Mathf.Lerp(-areaBounds.extents.y+1, areaBounds.extents.y-1, y);
             var z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
@@ -377,18 +379,10 @@ public class PackerHand : Agent
         // Detach box from agent
         carriedObject.SetParent(null);
 
-        var rb =  carriedObject.GetComponent<Rigidbody>();
+        var m_rb =  carriedObject.GetComponent<Rigidbody>();
 
         // stop box from floating away
-        rb.useGravity = true;
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-        // rb.mass = 0.5f;
-        // rb.drag = 1f;
-        //This locks the RigidBody so that it does not move or rotate in the x, y, z axis
-        // rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezeRotationX;
-        // rb.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
-        // rb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ;
+        m_rb.useGravity = true;
 
         // Set box position
         carriedObject.position = position; 
@@ -421,7 +415,7 @@ public class PackerHand : Agent
     ///</summary>
      public void RewardPickedupTarget()
      {  
-        SetReward(0.1f);
+        AddReward(0.1f);
         Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
 
     }
@@ -432,7 +426,7 @@ public class PackerHand : Agent
     ///</summary>
     public void RewardDroppedBox()
     { 
-        SetReward(0.5f);
+        AddReward(0.5f);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
 
     }
@@ -442,7 +436,7 @@ public class PackerHand : Agent
     /// </summary>
     public void RewardGotToBin() 
     {
-        SetReward(0.1f);
+        AddReward(1f);
         Debug.Log($"Agent got to bin with box!!!! Total reward: {GetCumulativeReward()}");
 
     }

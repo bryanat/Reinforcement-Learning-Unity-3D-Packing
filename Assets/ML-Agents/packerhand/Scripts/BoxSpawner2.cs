@@ -68,13 +68,10 @@ public class BoxSpawner2 : MonoBehaviour {
             // Add compoments to GameObject box
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
-            // box.AddComponent<Renderer>();
-            // // Get a reference to the Renderer component attached to the GameObject
-            // Renderer renderer = box.GetComponent<Renderer>();
-            // // Set the color of the material to red
-            // renderer.material.color = Color.red;
-            // Add tag: 0 signified disorganized outside the bin, 1 signifies organized inside the bin
             box.tag = "0";
+            var m_rb = box.GetComponent<Rigidbody>();
+            // not be affected by forces or collisions, position and rotation will be controlled directly through script
+            m_rb.isKinematic = true;
             // Transfer GameObject box properties to Box object 
             var newBox = new Box2{
                 rb = box.transform.GetComponent<Rigidbody>(), 
