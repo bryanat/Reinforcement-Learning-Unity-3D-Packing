@@ -454,6 +454,94 @@ public class PackerHand : Agent
         //SetReward(-100f);
     }
 
+        /// <summary>
+    /// Agent moves according to selected action.
+    public override void Heuristic(in ActionBuffers actionsOut)
+    {
+        var discreteActionsOut = actionsOut.DiscreteActions;
+        //forward
+        if (Input.GetKey(KeyCode.W))
+        {
+            discreteActionsOut[1] = 1;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            discreteActionsOut[1] = 2;
+        }
+        //rotate
+        if (Input.GetKey(KeyCode.D))
+        {
+            discreteActionsOut[2] = 1;
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            discreteActionsOut[2] = 2;
+        }
+        //right
+        if (Input.GetKey(KeyCode.E))
+        {
+            discreteActionsOut[3] = 1;
+        }
+        if (Input.GetKey(KeyCode.Q))
+        {
+            discreteActionsOut[3] = 2;
+        }
+    }
+
+    
+
+    /// <summary>
+    /// Moves the agent according to the selected action.
+    /// </summary>
+    // public void ActionMoveAgent(int action)
+    public void ActionMoveAgent(ActionSegment<int> action)
+    {
+
+        var dirToGo = Vector3.zero;
+        var rotateDir = Vector3.zero;
+
+        // log the movement actions
+        Debug.Log("" + string.Join(",", action.Array[1..4]));
+        var zBlueAxis = action[1];
+        var xRedAxis = action[2];
+        var xzRotateAxis = action[3];
+
+        switch(zBlueAxis){
+            // forward
+            case 1:
+                dirToGo = transform.forward * 2f;
+                break;
+            // backward
+            case 2:
+                dirToGo = transform.forward * -2f;
+                break;
+        }
+        switch(xRedAxis){
+            // right
+            case 1:
+                dirToGo = transform.right * 2f;
+                break;
+            // left
+            case 2:
+                dirToGo = transform.right * -2f;
+                break;
+        }
+        // refactor: rotational axis 
+        switch(xzRotateAxis){
+            // turn clockwise (right)
+            case 1:
+                rotateDir = transform.up * 2f;
+                break;
+            // turn counterclockwise (left)
+            case 2:
+                rotateDir = transform.up * -2f;
+                break;
+        }
+
+        transform.Rotate(rotateDir, Time.fixedDeltaTime * 180f);
+        m_Agent.AddForce(dirToGo, ForceMode.VelocityChange);
+    }
+
 
     public void SetResetParameters()
     {
