@@ -56,7 +56,15 @@ public class BoxSpawner2 : MonoBehaviour {
             new float[] { 2.0f, 2.0f, 2.0f },
             new float[] { 1.0f, 1.0f, 2.0f },
             new float[] { 3.0f, 4.0f, 4.0f },
-            new float[] { 1.0f, 2.0f, 3.5f }
+            new float[] { 1.0f, 2.0f, 3.5f },
+            new float[] { 1.0f, 1.5f, 0,5f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 2.5f, 0.5f, 0.5f },
+            new float[] { 2.0f, 3.0f, 4.0f },
+            new float[] { 0.5f, 0.5f, 0.5f },
+            new float[] { 1.0f, 2.0f, 3.5f },
+            new float[] { 1.0f, 1.5f, 0,5f },
+            new float[] { 3.0f, 3.0f, 3.0f },
             };
         
         foreach(var size in sizes) {
@@ -71,7 +79,7 @@ public class BoxSpawner2 : MonoBehaviour {
             box.tag = "0";
             var m_rb = box.GetComponent<Rigidbody>();
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
-            m_rb.isKinematic = true;
+            //m_rb.isKinematic = true;
             // Transfer GameObject box properties to Box object 
             var newBox = new Box2{
                 rb = box.transform.GetComponent<Rigidbody>(), 

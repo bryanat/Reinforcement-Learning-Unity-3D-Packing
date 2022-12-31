@@ -43,6 +43,8 @@ public class PackerHand : Agent
 
     public Bounds areaBounds;
 
+    public float binVolume;
+
 
     EnvironmentParameters m_ResetParams;
     BoxSpawner2 m_Box;
@@ -90,6 +92,9 @@ public class PackerHand : Agent
             areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
         }
         Debug.Log($"AREABOUNDS IS {areaBounds}");
+
+        // Get total bin volumne
+        binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
 
         // Reset agent and rewards
         SetResetParameters();
@@ -203,11 +208,11 @@ public class PackerHand : Agent
     // }
 
     void FixedUpdate() {
-        //if agent selected a target box, it should move towards the box
+        //if agent selects a target box, it should move towards the box
         if (target!=null && carriedObject==null) {
             UpdateAgentPosition();
         }
-        //if agent selected a position, update box local position relative to the agent
+        //if agent selects a position, update box local position relative to the agent
         if (carriedObject!=null && carriedObject.parent!=null) {
             UpdateAgentPosition();
             UpdateCarriedObject();
@@ -249,7 +254,6 @@ public class PackerHand : Agent
             // check if agent is not carrying a box already
             if (carriedObject==null && target!=null) {
                 PickupBox();
-                RewardPickedupTarget();
             }
     
         }
@@ -257,8 +261,7 @@ public class PackerHand : Agent
         if (col.gameObject.CompareTag("goal")) {   
             // Check if drop off information is available
             if (position!=Vector3.zero && rotation!=Vector3.zero && carriedObject!=null) {
-                DropoffBox();
-                RewardGotToBin();            
+                DropoffBox();        
             }
         }
         else {
@@ -292,11 +295,11 @@ public class PackerHand : Agent
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
         if (carriedObject!=null && position == Vector3.zero) {
-            // normalize x, y, z between 0 and 1 (passed in values are between -1 and 1)
+            // Normalize x, y, z between 0 and 1 (passed in values are between -1 and 1)
             x = (x + 1f) * 0.5f;
             y = (y + 1f) * 0.5f;
             z = (z + 1f) * 0.5f;
-            // interpolate position between x, y, z bounds of the bin
+            // Interpolate position between x, y, z bounds of the bin
             var x_position = Mathf.Lerp(-areaBounds.extents.x+1, areaBounds.extents.x-1, x);
             var y_position = Mathf.Lerp(-areaBounds.extents.y+1, areaBounds.extents.y-1, y);
             var z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
@@ -361,7 +364,7 @@ public class PackerHand : Agent
     /// Agent picks up the box
     /// </summary>
     public void PickupBox() {
-        // Change carriedObject from null to target
+        // Change carriedObject to target
         carriedObject = target.transform;
             
         // Attach carriedObject to agent
@@ -370,6 +373,9 @@ public class PackerHand : Agent
 
         // Set target to bin
         target = binArea.transform;
+
+        // Reward agent for picking up box
+        RewardPickedupTarget();
 
 
     }
@@ -384,29 +390,32 @@ public class PackerHand : Agent
 
         var m_rb =  carriedObject.GetComponent<Rigidbody>();
 
-        // stop box from floating away
+        // Set box physics
         m_rb.useGravity = true;
-        m_rb.isKinematic = false;
+        //m_rb.isKinematic = false;
         m_rb.mass = 5f;
         m_rb.drag = 0.5f;
 
-        // Set box position
+        // Set box position and rotation
         carriedObject.position = position; 
-
-        // Set box rotation
         carriedObject.rotation = Quaternion.Euler(rotation);
 
-        // Set box tag
-        position = Vector3.zero;
+        // Update bin volume
+        binVolume = binVolume-carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
 
-        // Reset rotation 
+        // Set box tag
+        carriedObject.tag = "1";
+
+        // Reset position and rotation
+        position = Vector3.zero;
         rotation = Vector3.zero;
 
-        // Reset carriedObject to null
+        // Reset carriedObject and target
         carriedObject = null;
-
-        // Reset target
         target = null;
+
+        // Reward agent for dropping off box
+        RewardDroppedBox();
         
 
     }
@@ -429,7 +438,7 @@ public class PackerHand : Agent
     ///</summary>
     public void RewardDroppedBox()
     { 
-        AddReward(0.5f);
+        AddReward(1f/binVolume);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
 
     }
