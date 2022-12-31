@@ -37,7 +37,7 @@ public class PackerHand : Agent
 
     public float total_z_distance; //total z distance between agent and target
     
-    public Dictionary<int, Vector3> organizedBoxes = new Dictionary<int, Vector3>();
+    public Dictionary<int, Vector3> organizedBoxPositions = new Dictionary<int, Vector3>();
 
     public int boxIdx;
 
@@ -256,7 +256,7 @@ public class PackerHand : Agent
         // Check if agent goes into bin
         if (col.gameObject.CompareTag("goal")) {   
             // Check if drop off information is available
-            if (position!=Vector3.zero && target!=null) {
+            if (position!=Vector3.zero && rotation!=Vector3.zero && carriedObject!=null) {
                 DropoffBox();
                 RewardGotToBin();            
             }
@@ -275,15 +275,15 @@ public class PackerHand : Agent
         boxIdx = x;
         // Check if a box has already been selected and if agent is carrying box 
         // this prevents agent from constantly selecting other boxes and selecting an organized box
-        if (carriedObject==null && target==null && !organizedBoxes.ContainsKey(boxIdx)) {
+        if (carriedObject==null && target==null && !organizedBoxPositions.ContainsKey(boxIdx)) {
             Debug.Log($"SELECTED BOX: {boxIdx}");
             target = m_Box.boxPool[boxIdx].rb.transform;
             // Calculate total distance to box
             total_x_distance = target.position.x-this.transform.position.x;
             total_y_distance = 0;
             total_z_distance = target.position.z-this.transform.position.z;
-            // Add box to organized list so it won't be selected again
-            organizedBoxes.Add(boxIdx, position);
+            // Add box to dictionary so it won't be selected again
+            organizedBoxPositions.Add(boxIdx, position);
 
         }
    }
@@ -291,7 +291,7 @@ public class PackerHand : Agent
     public void SelectPosition(float x, float y, float z) {
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
-        if (carriedObject!=null && position == Vector3.zero && !organizedBoxes.ContainsValue(new Vector3(x, y, z))) {
+        if (carriedObject!=null && position == Vector3.zero) {
             // normalize x, y, z between 0 and 1 (passed in values are between -1 and 1)
             x = (x + 1f) * 0.5f;
             y = (y + 1f) * 0.5f;
@@ -300,16 +300,19 @@ public class PackerHand : Agent
             var x_position = Mathf.Lerp(-areaBounds.extents.x+1, areaBounds.extents.x-1, x);
             var y_position = Mathf.Lerp(-areaBounds.extents.y+1, areaBounds.extents.y-1, y);
             var z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
-
-            position = new Vector3(binArea.transform.position.x+x_position,
+            var testPosition = new Vector3(binArea.transform.position.x+x_position,
              binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
 
-            Debug.Log($"SELECTED TARGET POSITION INSIDE BIN: {areaBounds.Contains(position)}");
-            total_x_distance = binArea.transform.position.x-this.transform.position.x;
-            total_y_distance = 0;
-            total_z_distance = binArea.transform.position.z-this.transform.position.z;
-            // Update box position
-            organizedBoxes[boxIdx] = new Vector3(x, y, z);
+            if (!organizedBoxPositions.ContainsValue(testPosition) && areaBounds.Contains(testPosition)) {
+                Debug.Log($"SELECTED TARGET POSITION INSIDE BIN: {areaBounds.Contains(testPosition)}");
+                total_x_distance = binArea.transform.position.x-this.transform.position.x;
+                total_y_distance = 0;
+                total_z_distance = binArea.transform.position.z-this.transform.position.z;
+                // Update box position
+                position = testPosition;
+                // Add updated box position to dictionary
+                organizedBoxPositions[boxIdx] = position;
+            }
         }
 
     }
@@ -383,6 +386,9 @@ public class PackerHand : Agent
 
         // stop box from floating away
         m_rb.useGravity = true;
+        m_rb.isKinematic = false;
+        m_rb.mass = 5f;
+        m_rb.drag = 0.5f;
 
         // Set box position
         carriedObject.position = position; 
@@ -391,9 +397,6 @@ public class PackerHand : Agent
         carriedObject.rotation = Quaternion.Euler(rotation);
 
         // Set box tag
-        carriedObject.tag = "1";
-
-        // Reset postition
         position = Vector3.zero;
 
         // Reset rotation 
@@ -474,7 +477,7 @@ public class PackerHand : Agent
         rotation = Vector3.zero;
 
         //Reset organized Boxes dictionary
-        organizedBoxes.Clear();
+        organizedBoxPositions.Clear();
 
     }
 
