@@ -143,6 +143,7 @@ public class PackerHand : Agent
         SelectBox(discreteActions[++j]); 
 
         SelectRotation(discreteActions[++j]);
+
         //////////////////////////temporary work on selecting specific positions in bin for box///////////////////////////////////
         // // currently SelectPosition does not use any ActionBuffers from brain
         // // feed in SensorVector > ActionBuffer.SelectPosition
