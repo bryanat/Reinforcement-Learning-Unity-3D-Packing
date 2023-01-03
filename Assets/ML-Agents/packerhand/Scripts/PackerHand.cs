@@ -240,6 +240,9 @@ public class PackerHand : Agent
 
     void UpdateAgentPosition() 
     {
+        total_x_distance = target.position.x-this.transform.position.x;
+        total_y_distance = 0;
+        total_z_distance = target.position.z-this.transform.position.z;
         var current_agent_x = this.transform.position.x;
         var current_agent_y = this.transform.position.y;
         var current_agent_z = this.transform.position.z;
@@ -302,9 +305,9 @@ public class PackerHand : Agent
             target = m_Box.boxPool[boxIdx].rb.transform;
             // Calculate total distance to box
             // Move total distance calculation to FixedUpdate
-            total_x_distance = target.position.x-this.transform.position.x;
-            total_y_distance = 0;
-            total_z_distance = target.position.z-this.transform.position.z;
+            // total_x_distance = target.position.x-this.transform.position.x;
+            // total_y_distance = 0;
+            // total_z_distance = target.position.z-this.transform.position.z;
             // Add box to dictionary so it won't be selected again
             organizedBoxPositions.Add(boxIdx, position);
         }
@@ -332,9 +335,9 @@ public class PackerHand : Agent
             {
                 Debug.Log($"SELECTED TARGET POSITION INSIDE BIN: {areaBounds.Contains(testPosition)}");
                 // Move to FixedUpdate
-                total_x_distance = binArea.transform.position.x-this.transform.position.x;
-                total_y_distance = 0;
-                total_z_distance = binArea.transform.position.z-this.transform.position.z;
+                // total_x_distance = binArea.transform.position.x-this.transform.position.x;
+                // total_y_distance = 0;
+                // total_z_distance = binArea.transform.position.z-this.transform.position.z;
                 // Update box position
                 position = testPosition;
                 // Add updated box position to dictionary
