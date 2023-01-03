@@ -34,6 +34,8 @@ public class PackerHand : Agent {
     /// </summary>
     public GameObject binArea;
 
+    public GameObject binMini;
+
     Rigidbody m_Agent; //cache agent on initilization
 
     [HideInInspector]
@@ -59,7 +61,10 @@ public class PackerHand : Agent {
 
     public Bounds areaBounds;
 
+    public Bounds miniBounds;
+
     public float binVolume;
+    public float miniBinVolume;
 
 
     EnvironmentParameters m_ResetParams;
@@ -116,15 +121,21 @@ public class PackerHand : Agent {
         // Gets bounds of bin
         areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
 
+        // Gets bounds of mini bin
+        miniBounds = binMini.transform.GetChild(0).GetComponent<Collider>().bounds;
+
         // Encapsulate the bounds of each additional object in the overall bounds
         for (int i = 1; i < 5; i++)
         {
             areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
+            miniBounds.Encapsulate(binMini.transform.GetChild(i).GetComponent<Collider>().bounds);
         }
         Debug.Log($"AREABOUNDS IS {areaBounds}");
+        Debug.Log($"MINI BIN BOUNDS IS {miniBounds}");
 
         // Get total bin volumne
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
+        miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
 
         // Reset agent and rewards
         SetResetParameters();
@@ -137,11 +148,18 @@ public class PackerHand : Agent {
     /// </summary>
     public override void CollectObservations(VectorSensor sensor) {
     
-        // Add Bin position
-        sensor.AddObservation(binArea.transform.position); //(x, y, z)
-
-        // Add Bin size
-        sensor.AddObservation(binArea.transform.localScale);
+        if (m_Configuration==0) {
+              // Add Bin position
+            sensor.AddObservation(binMini.transform.position); //(x, y, z)
+            // Add Bin size
+            sensor.AddObservation(binMini.transform.localScale);
+        }
+        else {
+            // Add Bin position
+            sensor.AddObservation(binArea.transform.position); //(x, y, z)
+            // Add Bin size
+            sensor.AddObservation(binArea.transform.localScale);
+        }
 
 
         foreach (var box in m_Box.boxPool) {
@@ -368,20 +386,35 @@ public class PackerHand : Agent {
             x = (x + 1f) * 0.5f;
             y = (y + 1f) * 0.5f;
             z = (z + 1f) * 0.5f;
-            // Interpolate position between x, y, z bounds of the bin
-            var x_position = Mathf.Lerp(-areaBounds.extents.x+1, areaBounds.extents.x-1, x);
-            var y_position = Mathf.Lerp(-areaBounds.extents.y+1, areaBounds.extents.y-1, y);
-            var z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
-            var testPosition = new Vector3(binArea.transform.position.x+x_position,
-             binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
+            var x_position = 0f;
+            var y_position = 0f;
+            var z_position = 0f;
+            var test_position = Vector3.zero;
+            if (m_Configuration==0) {
+                // Interpolate position between x, y, z bounds of the mini bin
+                x_position = Mathf.Lerp(-miniBounds.extents.x+1, miniBounds.extents.x-1, x);
+                y_position = Mathf.Lerp(-miniBounds.extents.y+1, miniBounds.extents.y-1, y);
+                z_position = Mathf.Lerp(-miniBounds.extents.z+1, miniBounds.extents.z-1, z);
+                test_position = new Vector3(binMini.transform.position.x+x_position,
+                binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
 
-            if (!organizedBoxPositions.ContainsValue(testPosition) && areaBounds.Contains(testPosition)) {
-                Debug.Log($"SELECTED TARGET POSITION INSIDE BIN: {areaBounds.Contains(testPosition)}");
+            }
+            else {
+            // Interpolate position between x, y, z bounds of the bin
+                x_position = Mathf.Lerp(-areaBounds.extents.x+1, areaBounds.extents.x-1, x);
+                y_position = Mathf.Lerp(-areaBounds.extents.y+1, areaBounds.extents.y-1, y);
+                z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
+                test_position = new Vector3(binArea.transform.position.x+x_position,
+                binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
+            }
+
+            if (!organizedBoxPositions.ContainsValue(test_position) && areaBounds.Contains(test_position)) {
+                Debug.Log($"SELECTED TARGET POSITION INSIDE BIN: {areaBounds.Contains(test_position)}");
                 // total_x_distance = binArea.transform.position.x-this.transform.position.x;
                 // total_y_distance = 0;
                 // total_z_distance = binArea.transform.position.z-this.transform.position.z;
                 // Update box position
-                position = testPosition;
+                position = test_position;
                 // Add updated box position to dictionary
                 organizedBoxPositions[boxIdx] = position;
             }
@@ -441,7 +474,12 @@ public class PackerHand : Agent {
         //carriedObject.parent = this.transform;
 
         // Set target to bin
-        target = binArea.transform;
+        if (m_Configuration==0) {
+            target = binMini.transform;
+        }
+        else {
+            target = binArea.transform;
+        }
 
         // Reward agent for picking up box
         RewardPickedupTarget();
@@ -470,7 +508,12 @@ public class PackerHand : Agent {
         carriedObject.rotation = Quaternion.Euler(rotation);
 
         // Update bin volume
-        binVolume = binVolume-carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
+        if (m_Configuration==0) {
+            miniBinVolume = miniBinVolume - carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
+        }
+        else {
+            binVolume = binVolume-carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
+        }
 
         // Set box tag
         carriedObject.tag = "1";
