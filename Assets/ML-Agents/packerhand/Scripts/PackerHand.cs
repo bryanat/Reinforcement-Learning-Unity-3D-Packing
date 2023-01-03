@@ -44,10 +44,7 @@ public class PackerHand : Agent
 
 
     public override void Initialize()
-    {
-        // Initialize box spawner
-        // boxSpawner = GetComponentInChildren<BoxSpawner>();
-        
+    {   
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
 
