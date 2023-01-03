@@ -747,6 +747,7 @@ GameObject:
   - component: {fileID: 1077347132}
   - component: {fileID: 1077347133}
   - component: {fileID: 1077347134}
+  - component: {fileID: 1077347135}
   m_Layer: 0
   m_Name: Hand
   m_TagString: agent
@@ -873,6 +874,9 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 25000
+  unitBoxBrain: {fileID: 0}
+  similarBoxBrain: {fileID: 0}
+  regularBoxBrain: {fileID: 0}
   binArea: {fileID: 134186835}
   carriedObject: {fileID: 0}
   target: {fileID: 0}
@@ -899,11 +903,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 286
+    VectorObservationSize: 273
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
-      BranchSizes: 1900000008000000
+      BranchSizes: 1800000008000000
     VectorActionSize: 
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
@@ -911,7 +915,7 @@ MonoBehaviour:
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
-  m_BehaviorName: Hand
+  m_BehaviorName: UnitBox
   TeamId: 0
   m_UseChildSensors: 1
   m_UseChildActuators: 1
@@ -970,6 +974,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugCommandLineOverride: 
+--- !u!114 &1077347135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1077347123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d1c4e0b1822b495aa52bc52839ecb30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_BrainParameters:
+    VectorObservationSize: 286
+    NumStackedVectorObservations: 1
+    m_ActionSpec:
+      m_NumContinuousActions: 3
+      BranchSizes: 1900000008000000
+    VectorActionSize: 
+    VectorActionDescriptions: []
+    VectorActionSpaceType: 1
+    hasUpgradedBrainParametersWithActionSpec: 1
+  m_Model: {fileID: 0}
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
+  m_BehaviorName: RegularBox
+  TeamId: 0
+  m_UseChildSensors: 1
+  m_UseChildActuators: 1
+  m_DeterministicInference: 0
+  m_ObservableAttributeHandling: 0
 --- !u!1 &1091866443
 GameObject:
   m_ObjectHideFlags: 0

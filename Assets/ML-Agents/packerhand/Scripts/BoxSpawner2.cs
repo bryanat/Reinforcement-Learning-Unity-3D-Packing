@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
+using System;
+using System.Linq;
+
 
 namespace Boxes2 {
 
@@ -43,20 +46,43 @@ public class BoxSpawner2 : MonoBehaviour {
     public GameObject boxArea;
 
 
-    public void SetUpBoxes(int flag) {
+    public void SetUpBoxes(int flag, float size) {
 
         float[][] sizes = new float[][]{};
+        var n_boxes = (int)Math.Floor(8/size)*(int)Math.Floor(8.5/size)*(int)Math.Floor(19.88/size);
 
+        sizes = Enumerable.Repeat(Enumerable.Repeat(size, 3).ToArray(), n_boxes).ToArray();
+;
         //for each box in json, get a list of box sizes;
         //sizes = readJson(); 
         if (flag ==0) {
-            sizes = new float[][] {
-            new float[] { 5.0f, 5.0f, 5.0f },
-            new float[] { 5.0f, 5.0f, 5.0f },
-            new float[] { 5.0f, 5.0f, 5.0f },
-            new float[] { 5.0f, 5.0f, 5.0f },
-            new float[] { 5.0f, 5.0f, 5.0f },};
-        }
+            sizes = Enumerable.Repeat(Enumerable.Repeat(size, 3).ToArray(), n_boxes).ToArray();
+        //     sizes = new float[][] {
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size },
+        //     new float[] { size, size, size }};
+         }
         else {
         //temporary box sizes array (to be fed from json later)
             sizes = new float[][] {
@@ -87,10 +113,10 @@ public class BoxSpawner2 : MonoBehaviour {
             new float[] { 2.0f, 2.0f, 3.5f },
             };
         }
-        foreach(var size in sizes) {
+        foreach(var s in sizes) {
             // Create GameObject box
             GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            box.transform.localScale = new Vector3(size[0], size[1], size[2]); 
+            box.transform.localScale = new Vector3(s[0], s[1], s[2]); 
             var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box
@@ -113,8 +139,8 @@ public class BoxSpawner2 : MonoBehaviour {
     public Vector3 GetRandomSpawnPos()
     {
         var areaBounds = boxArea.GetComponent<Collider>().bounds;
-        var randomPosX = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
-        var randomPosZ = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
+        var randomPosX = UnityEngine.Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
+        var randomPosZ = UnityEngine.Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
         var randomSpawnPos = boxArea.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
         return randomSpawnPos;
     }
