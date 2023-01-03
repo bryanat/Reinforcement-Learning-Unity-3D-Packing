@@ -14,6 +14,8 @@ public class PackerHand : Agent
     /// </summary>
     public GameObject binArea;
 
+    public BoxSpawner boxSpawner;
+
     Rigidbody m_Agent; //cache agent on initilization
 
     [HideInInspector] public Transform carriedObject; 
@@ -39,19 +41,18 @@ public class PackerHand : Agent
     public float binVolume;
 
     EnvironmentParameters m_ResetParams;
-    BoxSpawner m_Box;
 
 
     public override void Initialize()
     {
         // Initialize box spawner
-        m_Box = GetComponentInChildren<BoxSpawner>();
+        // boxSpawner = GetComponentInChildren<BoxSpawner>();
         
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
 
         // Create a box pool of boxes
-        m_Box.SetUpBoxes();
+        boxSpawner.SetUpBoxes();
         
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
@@ -88,7 +89,7 @@ public class PackerHand : Agent
         // Add Bin size
         sensor.AddObservation(binArea.transform.localScale);
 
-        foreach (var box in m_Box.boxPool) 
+        foreach (var box in boxSpawner.boxPool) 
         {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
             sensor.AddObservation(box.rb.position); //add box position to sensor observations
@@ -302,7 +303,7 @@ public class PackerHand : Agent
         // this prevents agent from constantly selecting other boxes and selecting an organized box
         if (carriedObject==null && target==null && !organizedBoxPositions.ContainsKey(boxIdx)) 
         {
-            target = m_Box.boxPool[boxIdx].rb.transform;
+            target = boxSpawner.boxPool[boxIdx].rb.transform;
             // Calculate total distance to box
             // Move total distance calculation to FixedUpdate
             // total_x_distance = target.position.x-this.transform.position.x;
@@ -585,7 +586,7 @@ public class PackerHand : Agent
         TotalRewardReset();
 
         //Reset boxes
-        foreach (var box in m_Box.boxPool) 
+        foreach (var box in boxSpawner.boxPool) 
         {
             box.ResetBoxes(box);
         }
