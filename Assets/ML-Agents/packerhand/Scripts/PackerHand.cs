@@ -1,17 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
-using Random = UnityEngine.Random;
-using Box = Boxes2.Box2;
 using Boxes2;
-using static SensorDetectBin;
 
 public class PackerHand : Agent
-
 {
     /// <summary>
     /// The bin area.
@@ -21,14 +16,11 @@ public class PackerHand : Agent
 
     Rigidbody m_Agent; //cache agent on initilization
 
-    [HideInInspector]
-    public Transform carriedObject;
+    [HideInInspector] public Transform carriedObject; 
 
-    [HideInInspector]
-    public Transform target; //Target the agent will walk towards during training.
+    [HideInInspector] public Transform target; //Target the agent will walk towards during training.
 
-    [HideInInspector]
-    public Vector3 position;  // Position of box inside bin
+    [HideInInspector] public Vector3 position;  // Position of box inside bin
 
     public Vector3 rotation; // Rotation of box inside bin
 
@@ -46,19 +38,13 @@ public class PackerHand : Agent
 
     public float binVolume;
 
-
     EnvironmentParameters m_ResetParams;
     BoxSpawner2 m_Box;
 
     public override void Initialize()
     {
-
-        // Initialize box spawner
+        // Initialize box spawnerxx
         m_Box = GetComponentInChildren<BoxSpawner2>();
-
-        Debug.Log("++++++++++++++++++++BOX in INITIALIZE++++++++++++++++++++++++++++++");
-        Debug.Log(m_Box);
-
         
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
@@ -68,22 +54,11 @@ public class PackerHand : Agent
         
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
-
-
     }
 
 
     public override void OnEpisodeBegin()
     {
-
-        Debug.Log("++++++++++++++++++++BOX in ONEPISODEBEGIN++++++++++++++++++++++++++++++");
-        Debug.Log(m_Box);
-
-
-        Debug.Log("++++++++++++++++++++BOX POOL COUNT++++++++++++++++++++++++++++++++++++++++++");
-        Debug.Log(m_Box.boxPool.Count);
-
-
         // Gets bounds of bin
         areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
 
@@ -99,21 +74,19 @@ public class PackerHand : Agent
 
         // Reset agent and rewards
         SetResetParameters();
-
     }
 
 
     /// <summary>
     /// Agent adds environment observations 
     /// </summary>
-    public override void CollectObservations(VectorSensor sensor) {
-    
+    public override void CollectObservations(VectorSensor sensor) 
+    {
         // Add Bin position
         sensor.AddObservation(binArea.transform.position); //(x, y, z)
 
         // Add Bin size
         sensor.AddObservation(binArea.transform.localScale);
-
 
         foreach (var box in m_Box.boxPool) {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
@@ -128,7 +101,6 @@ public class PackerHand : Agent
         // Add Agent velocity
         sensor.AddObservation(m_Agent.velocity.x);
         sensor.AddObservation(m_Agent.velocity.z);
-
     }
 
     /// Agent learns which actions to take
@@ -138,7 +110,6 @@ public class PackerHand : Agent
     // dBranch4 = transform rotate: rotate agent branch
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
-
         var j = -1;
         var i = -1;
 
@@ -180,8 +151,6 @@ public class PackerHand : Agent
 
 
         SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
-
-
 
         //this.transform.position.Set(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]);
         ///m_Agent.AddForce(new Vector3(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]));
@@ -239,7 +208,8 @@ public class PackerHand : Agent
     //     return x;
     // }
 
-    void FixedUpdate() {
+    void FixedUpdate()
+    {
         //if agent selects a target box, it should move towards the box
         if (target!=null && carriedObject==null) {
             UpdateAgentPosition();
@@ -256,16 +226,18 @@ public class PackerHand : Agent
         else {return;}
     }
 
-    void UpdateAgentPosition() {
+    void UpdateAgentPosition() 
+    {
         var current_agent_x = this.transform.position.x;
         var current_agent_y = this.transform.position.y;
         var current_agent_z = this.transform.position.z;
-        this.transform.position = new Vector3(current_agent_x + total_x_distance/500, 
-        current_agent_y + total_y_distance/500, current_agent_z+total_z_distance/500);    
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
+        current_agent_y + total_y_distance/100, current_agent_z+total_z_distance/100);    
     }
 
     
-    void UpdateCarriedObject() {
+    void UpdateCarriedObject() 
+    {
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
         var dist = 0.5f;
@@ -287,7 +259,6 @@ public class PackerHand : Agent
             if (carriedObject==null && target!=null) {
                 PickupBox();
             }
-    
         }
         // Check if agent goes into bin
         if (col.gameObject.CompareTag("goal")) {   
@@ -300,17 +271,18 @@ public class PackerHand : Agent
             // the agent bumps into something that's not a target
             return;
         }
-
     }
 
     /// <summary>
     /// Agent selects a target box
     ///</summary>
-    public void SelectBox(int x) {
+    public void SelectBox(int x) 
+    {
         boxIdx = x;
         // Check if a box has already been selected and if agent is carrying box 
         // this prevents agent from constantly selecting other boxes and selecting an organized box
-        if (carriedObject==null && target==null && !organizedBoxPositions.ContainsKey(boxIdx)) {
+        if (carriedObject==null && target==null && !organizedBoxPositions.ContainsKey(boxIdx)) 
+        {
             Debug.Log($"SELECTED BOX: {boxIdx}");
             target = m_Box.boxPool[boxIdx].rb.transform;
             // Calculate total distance to box
@@ -319,14 +291,15 @@ public class PackerHand : Agent
             total_z_distance = target.position.z-this.transform.position.z;
             // Add box to dictionary so it won't be selected again
             organizedBoxPositions.Add(boxIdx, position);
-
         }
    }
 
-    public void SelectPosition(float x, float y, float z) {
+    public void SelectPosition(float x, float y, float z)
+    {
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
-        if (carriedObject!=null && position == Vector3.zero) {
+        if (carriedObject!=null && position == Vector3.zero)
+        {
             // Normalize x, y, z between 0 and 1 (passed in values are between -1 and 1)
             x = (x + 1f) * 0.5f;
             y = (y + 1f) * 0.5f;
@@ -336,9 +309,10 @@ public class PackerHand : Agent
             var y_position = Mathf.Lerp(-areaBounds.extents.y+1, areaBounds.extents.y-1, y);
             var z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
             var testPosition = new Vector3(binArea.transform.position.x+x_position,
-             binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
+            binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
 
-            if (!organizedBoxPositions.ContainsValue(testPosition) && areaBounds.Contains(testPosition)) {
+            if (!organizedBoxPositions.ContainsValue(testPosition) && areaBounds.Contains(testPosition)) 
+            {
                 Debug.Log($"SELECTED TARGET POSITION INSIDE BIN: {areaBounds.Contains(testPosition)}");
                 total_x_distance = binArea.transform.position.x-this.transform.position.x;
                 total_y_distance = 0;
@@ -356,10 +330,12 @@ public class PackerHand : Agent
     /// Agent selects rotation for the box
     /// </summary>
 
-    public void SelectRotation(int action) {
+    public void SelectRotation(int action) 
+    {
          // Check if carrying a box and if rotation is known 
         // this prevents agent from selecting a rotation before having a box and constantly selecting other rotations
-        if (carriedObject!=null && rotation == Vector3.zero) {
+        if (carriedObject!=null && rotation == Vector3.zero) 
+        {
             switch (action) 
             {
                 case 1:
@@ -387,15 +363,14 @@ public class PackerHand : Agent
                     rotation = new Vector3(0, 90, 0);
                     break;
             }
-         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
         }
-
     }
 
     /// <summmary>
     /// Agent picks up the box
     /// </summary>
-    public void PickupBox() {
+    public void PickupBox() 
+    {
         // Change carriedObject to target
         carriedObject = target.transform;
             
@@ -415,8 +390,8 @@ public class PackerHand : Agent
     /// <summmary>
     //// Agent drops off the box
     /// </summary>
-    public void DropoffBox() {
-
+    public void DropoffBox() 
+    {
         // Detach box from agent
         carriedObject.SetParent(null);
 
@@ -448,8 +423,6 @@ public class PackerHand : Agent
 
         // Reward agent for dropping off box
         RewardDroppedBox();
-        
-
     }
 
 
@@ -457,11 +430,10 @@ public class PackerHand : Agent
     /// <summary>
     /// Rewards agent for reaching target box
     ///</summary>
-     public void RewardPickedupTarget()
-     {  
+    public void RewardPickedupTarget()
+    {  
         AddReward(0.1f);
         Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
-
     }
 
     
@@ -472,7 +444,6 @@ public class PackerHand : Agent
     { 
         AddReward(1f/binVolume);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
-
     }
 
     /// <summmary>
@@ -482,7 +453,6 @@ public class PackerHand : Agent
     {
         AddReward(1f);
         Debug.Log($"Agent got to bin with box!!!! Total reward: {GetCumulativeReward()}");
-
     }
 
     public void AgentReset() 
@@ -531,15 +501,11 @@ public class PackerHand : Agent
         }
     }
 
-    
-
     /// <summary>
     /// Moves the agent according to the selected action.
     /// </summary>
-    // public void ActionMoveAgent(int action)
     public void ActionMoveAgent(ActionSegment<int> action)
     {
-
         var dirToGo = Vector3.zero;
         var rotateDir = Vector3.zero;
 
@@ -595,7 +561,8 @@ public class PackerHand : Agent
         TotalRewardReset();
 
         //Reset boxes
-        foreach (var box in m_Box.boxPool) {
+        foreach (var box in m_Box.boxPool) 
+        {
             box.ResetBoxes(box);
         }
 
@@ -607,14 +574,8 @@ public class PackerHand : Agent
 
         //Reset organized Boxes dictionary
         organizedBoxPositions.Clear();
-
     }
-
 }
-
-
-
-
 
 
 /////Rewarded: 
