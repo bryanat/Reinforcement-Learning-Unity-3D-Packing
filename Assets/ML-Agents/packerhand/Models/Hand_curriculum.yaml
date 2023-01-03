@@ -1,5 +1,5 @@
 behaviors:
-  Hand0:
+  UnitBox:
     trainer_type: ppo
     hyperparameters:
       batch_size: 2048
@@ -23,7 +23,7 @@ behaviors:
     max_steps: 30000000
     time_horizon: 1000
     summary_freq: 30000
-  Hand1:
+  RegularBox:
     trainer_type: ppo
     hyperparameters:
       batch_size: 2048
@@ -51,12 +51,12 @@ behaviors:
   
   # Add this section
 environment_parameters:
-  my_environment_parameter:
+  unit_box:
     curriculum:
       - name: MyFirstLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
-          behavior: Hand0
+          behavior: UnitBox
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.2
@@ -64,7 +64,32 @@ environment_parameters:
       - name: MySecondLesson # This is the start of the second lesson
         completion_criteria:
           measure: reward
-          behavior: Hand1
+          behavior: UnitBox
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.6
+          require_reset: true
+        value:
+          sampler_type: uniform
+          sampler_parameters:
+            min_value: 4.0
+            max_value: 7.0
+      - name: MyLastLesson
+        value: 8.0
+  regular_box:
+    curriculum:
+      - name: MyFirstLesson # The '-' is important as this is a list
+        completion_criteria:
+          measure: reward
+          behavior: RegularBox
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.2
+        value: 0.0
+      - name: MySecondLesson # This is the start of the second lesson
+        completion_criteria:
+          measure: reward
+          behavior: RegularBox
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.6

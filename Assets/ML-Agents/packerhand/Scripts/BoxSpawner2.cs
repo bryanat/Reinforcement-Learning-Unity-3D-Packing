@@ -43,13 +43,23 @@ public class BoxSpawner2 : MonoBehaviour {
     public GameObject boxArea;
 
 
-    public void SetUpBoxes() {
+    public void SetUpBoxes(int flag) {
+
+        float[][] sizes = new float[][]{};
 
         //for each box in json, get a list of box sizes;
         //sizes = readJson(); 
-
+        if (flag ==0) {
+            sizes = new float[][] {
+            new float[] { 5.0f, 5.0f, 5.0f },
+            new float[] { 5.0f, 5.0f, 5.0f },
+            new float[] { 5.0f, 5.0f, 5.0f },
+            new float[] { 5.0f, 5.0f, 5.0f },
+            new float[] { 5.0f, 5.0f, 5.0f },};
+        }
+        else {
         //temporary box sizes array (to be fed from json later)
-        float[][] sizes = new float[][] {
+            sizes = new float[][] {
             new float[] { 1.0f, 2.0f, 3.0f },
             new float[] { 3.0f, 3.0f, 3.0f },
             new float[] { 2.0f, 2.0f, 3.5f },
@@ -76,7 +86,7 @@ public class BoxSpawner2 : MonoBehaviour {
             new float[] { 3.0f, 3.0f, 3.0f },
             new float[] { 2.0f, 2.0f, 3.5f },
             };
-        
+        }
         foreach(var size in sizes) {
             // Create GameObject box
             GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);

@@ -22,11 +22,11 @@ public class PackerHand : Agent {
     // Brain to use when boxes are of similar sizes
     public NNModel similarBoxBrain;
     // Brain to use when boxes size vary
-    public NNModel differentBoxBrain;
+    public NNModel regularBoxBrain;
 
     string m_UnitBoxBehaviorName = "UnitBox";
     string m_SimilarBoxBehaviorName = "SimilarBox";
-    string m_DifferentBoxBehaviorName = "DifferentBox";
+    string m_RegularBoxBehaviorName = "RegularBox";
 
     /// <summary>
     /// The bin area.
@@ -79,7 +79,7 @@ public class PackerHand : Agent {
         m_Agent = GetComponent<Rigidbody>();
 
         // Create a box pool of boxes
-        m_Box.SetUpBoxes();
+        //m_Box.SetUpBoxes();
         
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
@@ -94,8 +94,8 @@ public class PackerHand : Agent {
             similarBoxBrain = modelOverrider.GetModelForBehaviorName(m_SimilarBoxBehaviorName);
             m_SimilarBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_SimilarBoxBehaviorName);
 
-            differentBoxBrain = modelOverrider.GetModelForBehaviorName(m_DifferentBoxBehaviorName);
-            m_DifferentBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_DifferentBoxBehaviorName);
+            regularBoxBrain = modelOverrider.GetModelForBehaviorName(m_RegularBoxBehaviorName);
+            m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
         }
 
 
@@ -111,6 +111,8 @@ public class PackerHand : Agent {
 
         Debug.Log("++++++++++++++++++++BOX POOL COUNT++++++++++++++++++++++++++++++++++++++++++");
         Debug.Log(m_Box.boxPool.Count);
+
+        m_Configuration = 0;
 
 
         // Gets bounds of bin
@@ -269,6 +271,11 @@ public class PackerHand : Agent {
     // }
 
     void FixedUpdate() {
+        if (m_Configuration != -1)
+        {
+            ConfigureAgent(m_Configuration);
+            m_Configuration = -1;
+        }
         //if agent selects a target box, it should move towards the box
         if (target!=null && carriedObject==null) {
             UpdateAgentPosition();
@@ -643,20 +650,19 @@ public class PackerHand : Agent {
     /// a different brain will be assigned to the agent.
     /// </summary>
     void ConfigureAgent(int n) {
-        foreach (var box in m_Box.boxPool) {
-            var box_size = box.boxSize;
         if (n==0) {
-            box_size = new Vector3(1, 1, 1);
+            m_Box.SetUpBoxes(m_Configuration);
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
         }
         if (n==1) {
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
         }
         else {
-            SetModel(m_DifferentBoxBehaviorName, differentBoxBrain);
+            m_Box.SetUpBoxes(m_Configuration);
+            SetModel(m_RegularBoxBehaviorName, regularBoxBrain);    
         }
     }
-    }
+    
 
 }
 
