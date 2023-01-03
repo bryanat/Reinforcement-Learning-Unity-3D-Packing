@@ -4,12 +4,12 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 
-namespace Boxes2 {
+namespace Boxes {
 
-public class Box2 
+
+
+public class Box 
 {
-
-
     //public SensorDetectBox sdb;
     public Rigidbody rb;
 
@@ -17,39 +17,33 @@ public class Box2
 
     public Vector3 boxSize; 
 
-    public void ResetBoxes(Box2 box)
+    public void ResetBoxes(Box box)
     {
-         // Reset box position
+        // Reset box position
         box.rb.transform.position = box.startingPos;
-
     }
-
-
 }
 
 
 
-public class BoxSpawner2 : MonoBehaviour {
-
-
-
-    [HideInInspector]
-    public List<Box2> boxPool = new List<Box2>();
+public class BoxSpawner : MonoBehaviour 
+{
+    [HideInInspector] public List<Box> boxPool = new List<Box>();
 
     /// <summary>
-    /// The box area.
-    /// This will be set manually in the Inspector
+    /// The box area, which will be set manually in the Inspector
     /// </summary>
     public GameObject boxArea;
 
 
-    public void SetUpBoxes() {
-
+    public void SetUpBoxes() 
+    {
         //for each box in json, get a list of box sizes;
         //sizes = readJson(); 
 
         //temporary box sizes array (to be fed from json later)
-        float[][] sizes = new float[][] {
+        float[][] sizes = new float[][] 
+        {
             new float[] { 1.0f, 2.0f, 3.0f },
             new float[] { 3.0f, 3.0f, 3.0f },
             new float[] { 2.0f, 2.0f, 3.5f },
@@ -65,9 +59,10 @@ public class BoxSpawner2 : MonoBehaviour {
             new float[] { 1.0f, 2.0f, 3.5f },
             new float[] { 1.0f, 1.5f, 0,5f },
             new float[] { 3.0f, 3.0f, 3.0f },
-            };
+        };
         
-        foreach(var size in sizes) {
+        foreach(var size in sizes) 
+        {
             // Create GameObject box
             GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             box.transform.localScale = new Vector3(size[0], size[1], size[2]); 
@@ -81,7 +76,8 @@ public class BoxSpawner2 : MonoBehaviour {
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             //m_rb.isKinematic = true;
             // Transfer GameObject box properties to Box object 
-            var newBox = new Box2{
+            var newBox = new Box
+            {
                 rb = box.transform.GetComponent<Rigidbody>(), 
                 startingPos = box.transform.position,
                 boxSize = box.transform.localScale,
@@ -90,6 +86,8 @@ public class BoxSpawner2 : MonoBehaviour {
             boxPool.Add(newBox);          
         }
     }
+
+
     public Vector3 GetRandomSpawnPos()
     {
         var areaBounds = boxArea.GetComponent<Collider>().bounds;
@@ -98,7 +96,8 @@ public class BoxSpawner2 : MonoBehaviour {
         var randomSpawnPos = boxArea.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
         return randomSpawnPos;
     }
- 
+}
 
-    }
+
+
 }

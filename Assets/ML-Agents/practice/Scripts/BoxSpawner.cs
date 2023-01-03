@@ -9,7 +9,7 @@ using static BoxDetect;
 
 namespace Boxes {
 
-public class Box : MonoBehaviour
+public class BoxOld : MonoBehaviour
 {
 
     public GameObject m_box;
@@ -31,10 +31,10 @@ public class Box : MonoBehaviour
 
     public Bounds areaBounds;
 
-    public BoxSpawner boxSpawnerRef;
+    public BoxSpawnerOld boxSpawnerRef;
 
 
-    public void ResetBoxes(Box box)
+    public void ResetBoxes(BoxOld box)
     {
         box.rb.transform.position = new Vector3(0, 1, 0);//GetRandomSpawnPos();
         box.rb.velocity = Vector3.zero;
@@ -70,15 +70,15 @@ public class Box : MonoBehaviour
 
 
 
-public class BoxSpawner : MonoBehaviour {
+public class BoxSpawnerOld : MonoBehaviour {
 
 
 
     [HideInInspector]
-    public List<Box> boxPool = new List<Box>();
+    public List<BoxOld> boxPool = new List<BoxOld>();
 
     [HideInInspector]
-    public Box boxRef; 
+    public BoxOld boxRef; 
 
     public PackerAgent agent;
 
@@ -110,7 +110,7 @@ public class BoxSpawner : MonoBehaviour {
             binDetect.agent = agent;
             boxDetect.agent = agent;
             //box.binDetect.agent = agent;
-            var box2 = new Box{
+            var box2 = new BoxOld{
                 rb = box.transform.GetComponent<Rigidbody>(), 
                 startingPos = box.transform.position,
                 boxSize = box.transform.localScale
