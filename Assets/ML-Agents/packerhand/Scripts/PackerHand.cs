@@ -10,6 +10,7 @@ using Box = Boxes2.Box2;
 using Boxes2;
 using static SensorDetectBin;
 using Unity.Barracuda;
+using Unity.MLAgentsExamples;
 
 public class PackerHand : Agent {
 
@@ -22,6 +23,10 @@ public class PackerHand : Agent {
     public NNModel similarBoxBrain;
     // Brain to use when boxes size vary
     public NNModel differentBoxBrain;
+
+    string m_UnitBoxBehaviorName = "UnitBox";
+    string m_SimilarBoxBehaviorName = "SimilarBox";
+    string m_DifferentBoxBehaviorName = "DifferentBox";
 
     /// <summary>
     /// The bin area.
@@ -83,14 +88,14 @@ public class PackerHand : Agent {
         var modelOverrider = GetComponent<ModelOverrider>();
         if (modelOverrider.HasOverrides)
         {
-            noWallBrain = modelOverrider.GetModelForBehaviorName(m_NoWallBehaviorName);
-            m_NoWallBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_NoWallBehaviorName);
+            unitBoxBrain = modelOverrider.GetModelForBehaviorName(m_UnitBoxBehaviorName);
+            m_UnitBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_UnitBoxBehaviorName);
 
-            smallWallBrain = modelOverrider.GetModelForBehaviorName(m_SmallWallBehaviorName);
-            m_SmallWallBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_SmallWallBehaviorName);
+            similarBoxBrain = modelOverrider.GetModelForBehaviorName(m_SimilarBoxBehaviorName);
+            m_SimilarBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_SimilarBoxBehaviorName);
 
-            bigWallBrain = modelOverrider.GetModelForBehaviorName(m_BigWallBehaviorName);
-            m_BigWallBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_BigWallBehaviorName);
+            differentBoxBrain = modelOverrider.GetModelForBehaviorName(m_DifferentBoxBehaviorName);
+            m_DifferentBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_DifferentBoxBehaviorName);
         }
 
 
@@ -631,6 +636,26 @@ public class PackerHand : Agent {
 
         //Reset organized Boxes dictionary
         organizedBoxPositions.Clear();
+    }
+
+     /// <summary>
+    /// Configures the agent. Given an integer config, box sizes will be different
+    /// a different brain will be assigned to the agent.
+    /// </summary>
+    void ConfigureAgent(int n) {
+        foreach (var box in m_Box.boxPool) {
+            var box_size = box.boxSize;
+        if (n==0) {
+            box_size = new Vector3(1, 1, 1);
+            SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
+        }
+        if (n==1) {
+            SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
+        }
+        else {
+            SetModel(m_DifferentBoxBehaviorName, differentBoxBrain);
+        }
+    }
     }
 
 }
