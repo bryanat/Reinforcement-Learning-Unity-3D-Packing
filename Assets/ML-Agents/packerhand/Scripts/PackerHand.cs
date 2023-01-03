@@ -69,6 +69,7 @@ public class PackerHand : Agent {
     public float miniBinVolume;
 
 
+
     EnvironmentParameters m_ResetParams;
     BoxSpawner2 m_Box;
 
@@ -152,7 +153,7 @@ public class PackerHand : Agent {
     public override void CollectObservations(VectorSensor sensor) {
     
         if (m_config==0) {
-              // Add Bin position
+            // Add Bin position
             sensor.AddObservation(binMini.transform.position); //(x, y, z)
             // Add Bin size
             sensor.AddObservation(binMini.transform.localScale);
@@ -419,6 +420,12 @@ public class PackerHand : Agent {
             }
             }
         }
+
+    }
+
+
+    void UpdateSearchSpace() {
+
 
     }
 
@@ -692,8 +699,8 @@ public class PackerHand : Agent {
     }
 
      /// <summary>
-    /// Configures the agent. Given an integer config, box sizes will be different
-    /// a different brain will be assigned to the agent.
+    /// Configures the agent. Given an integer config, difficulty level will be different and a different brain will be used.
+    /// A different reward system needs to be designed for each level
     /// </summary>
     void ConfigureAgent(int n) {
         if (n==0) {
