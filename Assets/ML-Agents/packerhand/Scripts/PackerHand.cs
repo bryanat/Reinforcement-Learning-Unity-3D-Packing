@@ -15,8 +15,10 @@ using Unity.MLAgentsExamples;
 public class PackerHand : Agent {
 
 
-    // Depending on this value, the wall will have different height
+    // Depending on this value, different curriculum will be picked
     int m_Configuration;
+
+    int m_config;
     // Brain to use when all boxes are 1 by 1 by 1
     public NNModel unitBoxBrain;
     // Brain to use when boxes are of similar sizes
@@ -85,6 +87,7 @@ public class PackerHand : Agent {
 
         // Picks which curriculum to train
         m_Configuration = 0;
+        m_config = 0;
         
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
@@ -148,7 +151,7 @@ public class PackerHand : Agent {
     /// </summary>
     public override void CollectObservations(VectorSensor sensor) {
     
-        if (m_Configuration==0) {
+        if (m_config==0) {
               // Add Bin position
             sensor.AddObservation(binMini.transform.position); //(x, y, z)
             // Add Bin size
@@ -345,7 +348,7 @@ public class PackerHand : Agent {
     
         }
         // Check if agent goes into bin
-        else if (col.gameObject.CompareTag("goal")) {   
+        else if (col.gameObject.CompareTag("bin") || col.gameObject.CompareTag("minibin")) {   
             // Check if drop off information is available
             if (position!=Vector3.zero && rotation!=Vector3.zero && carriedObject!=null) {
                 DropoffBox();        
@@ -368,10 +371,6 @@ public class PackerHand : Agent {
         if (carriedObject==null && target==null && !organizedBoxPositions.ContainsKey(boxIdx)) {
             Debug.Log($"SELECTED BOX: {boxIdx}");
             target = m_Box.boxPool[boxIdx].rb.transform;
-            // Calculate total distance to box
-            // total_x_distance = target.position.x-this.transform.position.x;
-            // total_y_distance = 0;
-            // total_z_distance = target.position.z-this.transform.position.z;
             // Add box to dictionary so it won't be selected again
             organizedBoxPositions.Add(boxIdx, position);
 
@@ -390,13 +389,19 @@ public class PackerHand : Agent {
             var y_position = 0f;
             var z_position = 0f;
             var test_position = Vector3.zero;
-            if (m_Configuration==0) {
+            if (m_config==0) {
                 // Interpolate position between x, y, z bounds of the mini bin
                 x_position = Mathf.Lerp(-miniBounds.extents.x+1, miniBounds.extents.x-1, x);
                 y_position = Mathf.Lerp(-miniBounds.extents.y+1, miniBounds.extents.y-1, y);
                 z_position = Mathf.Lerp(-miniBounds.extents.z+1, miniBounds.extents.z-1, z);
                 test_position = new Vector3(binMini.transform.position.x+x_position,
                 binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
+                if (!organizedBoxPositions.ContainsValue(test_position) && miniBounds.Contains(test_position)) {
+                    // Update box position
+                    position = test_position;
+                    // Add updated box position to dictionary
+                    organizedBoxPositions[boxIdx] = position;
+            }
 
             }
             else {
@@ -406,17 +411,12 @@ public class PackerHand : Agent {
                 z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
                 test_position = new Vector3(binArea.transform.position.x+x_position,
                 binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
+                if (!organizedBoxPositions.ContainsValue(test_position) && areaBounds.Contains(test_position)) {
+                    // Update box position
+                    position = test_position;
+                    // Add updated box position to dictionary
+                    organizedBoxPositions[boxIdx] = position;
             }
-
-            if (!organizedBoxPositions.ContainsValue(test_position) && areaBounds.Contains(test_position)) {
-                Debug.Log($"SELECTED TARGET POSITION INSIDE BIN: {areaBounds.Contains(test_position)}");
-                // total_x_distance = binArea.transform.position.x-this.transform.position.x;
-                // total_y_distance = 0;
-                // total_z_distance = binArea.transform.position.z-this.transform.position.z;
-                // Update box position
-                position = test_position;
-                // Add updated box position to dictionary
-                organizedBoxPositions[boxIdx] = position;
             }
         }
 
@@ -474,7 +474,7 @@ public class PackerHand : Agent {
         //carriedObject.parent = this.transform;
 
         // Set target to bin
-        if (m_Configuration==0) {
+        if (m_config==0) {
             target = binMini.transform;
         }
         else {
@@ -482,7 +482,7 @@ public class PackerHand : Agent {
         }
 
         // Reward agent for picking up box
-        RewardPickedupTarget();
+        //RewardPickedupTarget();
 
 
     }
@@ -507,8 +507,10 @@ public class PackerHand : Agent {
         carriedObject.position = position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
 
+        m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
+
         // Update bin volume
-        if (m_Configuration==0) {
+        if (m_config==0) {
             miniBinVolume = miniBinVolume - carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
         }
         else {
@@ -537,12 +539,12 @@ public class PackerHand : Agent {
     /// <summary>
     /// Rewards agent for reaching target box
     ///</summary>
-     public void RewardPickedupTarget()
-     {  
-        AddReward(0.01f);
-        Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
+    //  public void RewardPickedupTarget()
+    //  {  
+    //     AddReward(0.01f);
+    //     Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
 
-    }
+    // }
 
     
     /// <summary>
@@ -550,7 +552,7 @@ public class PackerHand : Agent {
     ///</summary>
     public void RewardDroppedBox()
     { 
-        AddReward(1f/binVolume);
+        AddReward(0.05f);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
 
     }
@@ -567,7 +569,7 @@ public class PackerHand : Agent {
 
     public void AgentReset() 
     {
-        this.transform.position = new Vector3(10f, 1.2f, 10f);
+        this.transform.position = new Vector3(10f, 0f, 10f);
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
     }
@@ -695,14 +697,14 @@ public class PackerHand : Agent {
     /// </summary>
     void ConfigureAgent(int n) {
         if (n==0) {
-            m_Box.SetUpBoxes(m_Configuration, m_ResetParams.GetWithDefault("unit_box", 1));
+            m_Box.SetUpBoxes(n, m_ResetParams.GetWithDefault("unit_box", 1));
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
         }
         if (n==1) {
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
         }
         else {
-            m_Box.SetUpBoxes(m_Configuration, 0);
+            m_Box.SetUpBoxes(n, 0);
             SetModel(m_RegularBoxBehaviorName, regularBoxBrain);    
         }
     }

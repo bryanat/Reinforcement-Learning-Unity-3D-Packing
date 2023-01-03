@@ -361,7 +361,7 @@ GameObject:
   - component: {fileID: 134186837}
   m_Layer: 0
   m_Name: BinGen20
-  m_TagString: goal
+  m_TagString: bin
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -736,7 +736,7 @@ GameObject:
   - component: {fileID: 584032813}
   m_Layer: 0
   m_Name: BinMini
-  m_TagString: goal
+  m_TagString: minibin
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -797,7 +797,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 584032812}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 34.3, y: 0, z: -18.5}
+  m_LocalPosition: {x: 34.3, y: 0, z: -28.9}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1230,7 +1230,6 @@ GameObject:
   - component: {fileID: 1077347129}
   - component: {fileID: 1077347128}
   - component: {fileID: 1077347132}
-  - component: {fileID: 1077347133}
   - component: {fileID: 1077347134}
   - component: {fileID: 1077347135}
   m_Layer: 0
@@ -1321,7 +1320,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1077347123}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 10, y: 1.2, z: 10}
+  m_LocalPosition: {x: 10, y: 0, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1393,11 +1392,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 273
+    VectorObservationSize: 231
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
-      BranchSizes: 1800000008000000
+      BranchSizes: 1400000008000000
     VectorActionSize: 
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
@@ -1438,21 +1437,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0
---- !u!114 &1077347133
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1077347123}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d217fa01a4ea6395aa12868f202a602, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  boxArea: {fileID: 144363153}
-  binArea: {fileID: 0}
-  binMini: {fileID: 0}
 --- !u!114 &1077347134
 MonoBehaviour:
   m_ObjectHideFlags: 0

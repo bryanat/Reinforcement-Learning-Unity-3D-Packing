@@ -51,21 +51,20 @@ public class BoxSpawner2 : MonoBehaviour {
     public void SetUpBoxes(int flag, float size) {
 
         float[][] sizes = new float[][]{};
-        //var n_boxes = (int)Math.Floor(8/size)*(int)Math.Floor(8.5/size)*(int)Math.Floor(19.88/size);
-
-        //sizes = Enumerable.Repeat(Enumerable.Repeat(size, 3).ToArray(), n_boxes).ToArray();
-;
         //for each box in json, get a list of box sizes;
         //sizes = readJson(); 
         if (flag ==0) {
+
             // Gets bounds of mini bin
             var miniBounds = binMini.transform.GetChild(0).GetComponent<Collider>().bounds;
+
             // Encapsulate the bounds of each additional object in the overall bounds
             for (int i = 1; i < 5; i++)
             {
                 miniBounds.Encapsulate(binMini.transform.GetChild(i).GetComponent<Collider>().bounds);
             }
-            var n_boxes = (int)Math.Floor(miniBounds.extents.x*2/size)*(int)Math.Floor(miniBounds.extents.y*2/size)*(int)Math.Floor(miniBounds.extents.z*2/size);
+            var n_boxes = (int)Math.Floor(miniBounds.extents.x*2/size) *
+                (int)Math.Floor(miniBounds.extents.y*2/size)*(int)Math.Floor(miniBounds.extents.z*2/size);
             sizes = Enumerable.Repeat(Enumerable.Repeat(size, 3).ToArray(), n_boxes).ToArray();
          }
         else {
