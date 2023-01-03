@@ -9,10 +9,20 @@ using Random = UnityEngine.Random;
 using Box = Boxes2.Box2;
 using Boxes2;
 using static SensorDetectBin;
+using Unity.Barracuda;
 
-public class PackerHand : Agent
+public class PackerHand : Agent {
 
-{
+
+    // Depending on this value, the wall will have different height
+    int m_Configuration;
+    // Brain to use when all boxes are 1 by 1 by 1
+    public NNModel unitBoxBrain;
+    // Brain to use when boxes are of similar sizes
+    public NNModel similarBoxBrain;
+    // Brain to use when boxes size vary
+    public NNModel differentBoxBrain;
+
     /// <summary>
     /// The bin area.
     /// This will be set manually in the Inspector
@@ -68,6 +78,20 @@ public class PackerHand : Agent
         
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
+
+        // Update model references if we're overriding
+        var modelOverrider = GetComponent<ModelOverrider>();
+        if (modelOverrider.HasOverrides)
+        {
+            noWallBrain = modelOverrider.GetModelForBehaviorName(m_NoWallBehaviorName);
+            m_NoWallBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_NoWallBehaviorName);
+
+            smallWallBrain = modelOverrider.GetModelForBehaviorName(m_SmallWallBehaviorName);
+            m_SmallWallBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_SmallWallBehaviorName);
+
+            bigWallBrain = modelOverrider.GetModelForBehaviorName(m_BigWallBehaviorName);
+            m_BigWallBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_BigWallBehaviorName);
+        }
 
 
     }
@@ -607,7 +631,6 @@ public class PackerHand : Agent
 
         //Reset organized Boxes dictionary
         organizedBoxPositions.Clear();
-
     }
 
 }
