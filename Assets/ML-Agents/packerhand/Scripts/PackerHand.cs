@@ -163,10 +163,14 @@ public class PackerHand : Agent
 
         var discreteActions = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
-    
+
+
         SelectBox(discreteActions[++j]); 
 
-        SelectRotation(discreteActions[++j]);
+
+        if (carriedObject!=null && rotation==Vector3.zero) {
+            SelectRotation(discreteActions[++j]);
+        }
 
         SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
 
@@ -202,11 +206,18 @@ public class PackerHand : Agent
         // float[] range = Enumerable.Range(0, (int)(13.0f - 1.0f) + 1).Select(i => (float)i).ToArray(); // returns ??
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        if (carriedObject!=null && position == Vector3.zero) {
+            SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        }
 
-        /// Reward Relativity
-            // current - past // Reward
-            // current - past // Reward
-            // current < past // bad -Reward
+
+
+        //this.transform.position.Set(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]);
+        ///m_Agent.AddForce(new Vector3(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]));
+        
+        // current - past // Reward
+        // current > past // good +Reward
+        // current < past // bad -Reward
 
         // Reward Layers
             // layerX = X + denseX
@@ -347,6 +358,9 @@ public class PackerHand : Agent
             {
                 DropoffBox();        
             }
+            else {
+
+            }
         }
         else 
         {
@@ -381,54 +395,46 @@ public class PackerHand : Agent
     {
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
-        if (carriedObject!=null && position == Vector3.zero)
-        {
-            // Normalize x, y, z between 0 and 1 (passed in values are between -1 and 1)
-            x = (x + 1f) * 0.5f;
-            y = (y + 1f) * 0.5f;
-            z = (z + 1f) * 0.5f;
-            var x_position = 0f;
-            var y_position = 0f;
-            var z_position = 0f;
-            var l = boxSpawner.boxPool[boxIdx].boxSize.x;
-            var w = boxSpawner.boxPool[boxIdx].boxSize.y;
-            var h = boxSpawner.boxPool[boxIdx].boxSize.z;
-            var test_position = Vector3.zero;
-            if (m_config==0) 
-            {
-                // Interpolate position between x, y, z bounds of the mini bin
-                x_position = Mathf.Lerp(-miniBounds.extents.x+1, miniBounds.extents.x-1, x);
-                y_position = Mathf.Lerp(-miniBounds.extents.y+1, miniBounds.extents.y-1, y);
-                z_position = Mathf.Lerp(-miniBounds.extents.z+1, miniBounds.extents.z-1, z);
-                test_position = new Vector3(binMini.transform.position.x+x_position,
-                binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
-                if (!organizedBoxPositions.ContainsValue(test_position) && !miniBounds.Contains(test_position)) 
-                {
-                    var overlap = false;
-                    if (x_space.Count>0) 
-                    {
-                        for (int i = 1; i < x_space.Count; i++) 
-                        {
-                            if (test_position[0]+l/2>x_space[i][0] && test_position[0]-l/2<x_space[i][1]) 
-                            {
-                                Debug.Log("x space overlap");
-                                overlap = true;
-                                break;
-                            }
-                            if (test_position[1]+w/2>y_space[i][0] && test_position[1]-w/2<y_space[i][1]) 
-                            {
-                                Debug.Log("y space overlap");
-                                overlap = true;
-                                break;
-                            }
-                            if (test_position[2]+h/2>z_space[i][0] && test_position[2]-h/2<z_space[i][1]) 
-                            {
-                                Debug.Log("z space overlap");
-                                overlap = true;
-                                break;
-                            }
+        // Normalize x, y, z between 0 and 1 (passed in values are between -1 and 1)
+        x = (x + 1f) * 0.5f;
+        y = (y + 1f) * 0.5f;
+        z = (z + 1f) * 0.5f;
+        var x_position = 0f;
+        var y_position = 0f;
+        var z_position = 0f;
+        var l = m_Box.boxPool[boxIdx].boxSize.x;
+        var w = m_Box.boxPool[boxIdx].boxSize.y;
+        var h = m_Box.boxPool[boxIdx].boxSize.z;
+        var test_position = Vector3.zero;
+        if (m_config==0) {
+            // Interpolate position between x, y, z bounds of the mini bin
+            x_position = Mathf.Lerp(-miniBounds.extents.x+1, miniBounds.extents.x-1, x);
+            y_position = Mathf.Lerp(-miniBounds.extents.y+1, miniBounds.extents.y-1, y);
+            z_position = Mathf.Lerp(-miniBounds.extents.z+1, miniBounds.extents.z-1, z);
+            test_position = new Vector3(binMini.transform.position.x+x_position, binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
+            // check if position inside bin bounds
+            if (miniBounds.Contains(test_position)) {
+                var overlap = false;
+                // check for overlap with preexisting boxes
+                //if (x_space.Count>0) {
+                    for (int i = 1; i < x_space.Count; i++) {
+                        if (test_position[0]+l/2>x_space[i][0] && test_position[0]-l/2<x_space[i][1]) {
+                            Debug.Log("x space overlap");
+                            overlap = true;
+                            break;
+                        }
+                        if (test_position[1]+w/2>y_space[i][0] && test_position[1]-w/2<y_space[i][1]) {
+                            Debug.Log("y space overlap");
+                            overlap = true;
+                            break;
+                        }
+                        if (test_position[2]+h/2>z_space[i][0] && test_position[2]-h/2<z_space[i][1]) {
+                            Debug.Log("z space overlap");
+                            overlap = true;
+                            break;
                         }
                     }
+                    //}
                     // Update box position
                     if (overlap==false) 
                     {
@@ -455,7 +461,7 @@ public class PackerHand : Agent
                     // Add updated box position to dictionary
                     organizedBoxPositions[boxIdx] = position;
                 }
-            }
+        
         }
     }
 
@@ -482,8 +488,6 @@ public class PackerHand : Agent
     {
          // Check if carrying a box and if rotation is known 
         // this prevents agent from selecting a rotation before having a box and constantly selecting other rotations
-        if (carriedObject!=null && rotation == Vector3.zero) 
-        {
             switch (action) 
             {
                 case 1:
@@ -511,7 +515,8 @@ public class PackerHand : Agent
                     rotation = new Vector3(0, 90, 0);
                     break;
             }
-        }
+         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
+
     }
 
 
