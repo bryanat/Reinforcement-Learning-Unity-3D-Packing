@@ -68,9 +68,9 @@ public class PackerHand : Agent {
     public float binVolume;
     public float miniBinVolume;
 
-    public List<List<float>> x_space;
-    public List<List<float>> y_space;
-    public List<List<float>> z_space;
+    public List<List<float>> x_space = new List<List<float>>();
+    public List<List<float>> y_space = new List<List<float>>();
+    public List<List<float>> z_space = new List<List<float>>();
 
 
     EnvironmentParameters m_ResetParams;
@@ -304,7 +304,7 @@ public class PackerHand : Agent {
             UpdateAgentPosition();
         }
         //if agent selects a position, update box local position relative to the agent
-        else if (carriedObject!=null && carriedObject.parent!=null) {
+        else if (carriedObject!=null && carriedObject.parent!=null && position!=Vector3.zero) {
             UpdateAgentPosition();
             UpdateCarriedObject();
         }
@@ -392,6 +392,9 @@ public class PackerHand : Agent {
             var x_position = 0f;
             var y_position = 0f;
             var z_position = 0f;
+            var l = m_Box.boxPool[boxIdx].boxSize.x;
+            var w = m_Box.boxPool[boxIdx].boxSize.y;
+            var h = m_Box.boxPool[boxIdx].boxSize.z;
             var test_position = Vector3.zero;
             if (m_config==0) {
                 // Interpolate position between x, y, z bounds of the mini bin
@@ -401,26 +404,35 @@ public class PackerHand : Agent {
                 test_position = new Vector3(binMini.transform.position.x+x_position,
                 binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
                 if (!organizedBoxPositions.ContainsValue(test_position)) {
-                    var isInside = false;
-                    for (int i = 1; i < x_space.Count; i++) {
-                        if (test_position[0]>x_space[i][0] && test_position[0]<x_space[i][1]) {
-                            isInside = true;
-                            break;
+                    var overlap = false;
+                    if (x_space.Count>0) {
+                        for (int i = 1; i < x_space.Count; i++) {
+                            if (test_position[0]+l/2>x_space[i][0] && test_position[0]-l/2<x_space[i][1]) {
+                                Debug.Log("x space overlap");
+                                overlap = true;
+                                break;
+                            }
+                            if (test_position[1]+w/2>y_space[i][0] && test_position[1]-w/2<y_space[i][1]) {
+                                Debug.Log("y space overlap");
+                                overlap = true;
+                                break;
+                            }
+                            if (test_position[2]+h/2>z_space[i][0] && test_position[2]-h/2<z_space[i][1]) {
+                                Debug.Log("z space overlap");
+                                overlap = true;
+                                break;
+                            }
                         }
-                        if (test_position[1]>y_space[i][0] && test_position[1]<y_space[i][1]) {
-                            isInside = true;
-                            break;
-                        }
-                        if (test_position[2]>z_space[i][0] && test_position[2]<z_space[i][1]) {
-                            isInside = true;
-                            break;
-                        }
+                    }
                     // Update box position
-                    if (isInside==false) {
+                    if (overlap==false) {
                         position = test_position;
                         // Add updated box position to dictionary
                         organizedBoxPositions[boxIdx] = position;
+                        // Update search space
+                        UpdateSearchSpace(l, w, h);
                     }
+
                 }
             }
             else {
@@ -438,16 +450,12 @@ public class PackerHand : Agent {
                 }
             }
         }
-
-    }
     }
 
 
-    void UpdateSearchSpace() {
-        // decrease search space as boxes get added
-        var l = m_Box.boxPool[boxIdx].boxSize.x;
-        var w = m_Box.boxPool[boxIdx].boxSize.y;
-        var h = m_Box.boxPool[boxIdx].boxSize.z;
+    void UpdateSearchSpace(float l, float w, float h) {
+        // Decrease search space as boxes get added
+        // this adds ranges of spaces boxes take
         var position = organizedBoxPositions[boxIdx];
         var x_range = new List<float> {position.x-l/2, position.x+l/2};
         var y_range = new List<float> {position.y-w/2, position.x+w/2};
