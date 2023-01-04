@@ -54,13 +54,13 @@ public class PackerHand : Agent
     public List<List<float>> z_space = new List<List<float>>(); // z-axis search space
 
     EnvironmentParameters m_ResetParams; // Environment parameters
-    BoxSpawner boxSpawner; // Box Spawner
+    public BoxSpawner boxSpawner; // Box Spawner
 
 
     public override void Initialize()
     {   
-        // Initialize the box spawner
-        boxSpawner = GetComponentInChildren<BoxSpawner>();
+
+        Debug.Log($"BOX SPAWNER IS {boxSpawner}");
 
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
@@ -89,23 +89,11 @@ public class PackerHand : Agent
 
 
     public override void OnEpisodeBegin()
-    {
-        // Gets bounds of bin
-        areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
+    {   
+        // Get bin bounds
+        UpdateBinBounds();
 
-        // Gets bounds of mini bin
-        miniBounds = binMini.transform.GetChild(0).GetComponent<Collider>().bounds;
-
-        // Encapsulate the bounds of each additional object in the overall bounds
-        for (int i = 1; i < 5; i++)
-        {
-            areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
-            miniBounds.Encapsulate(binMini.transform.GetChild(i).GetComponent<Collider>().bounds);
-        }
-        Debug.Log($"AREABOUNDS IS {areaBounds}");
-        Debug.Log($"MINI BIN BOUNDS IS {miniBounds}");
-
-        // Get total bin volumne
+        // Get total bin volume from onstart
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
         miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
 
@@ -164,15 +152,19 @@ public class PackerHand : Agent
         var discreteActions = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
 
-
-        SelectBox(discreteActions[++j]); 
+        if (carriedObject==null) {
+            SelectBox(discreteActions[++j]); 
+        }
 
 
         if (carriedObject!=null && rotation==Vector3.zero) {
             SelectRotation(discreteActions[++j]);
         }
 
-        SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        if (carriedObject!=null && position == Vector3.zero) {
+            SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        }
+
 
         //this.transform.position.Set(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]);
         ///m_Agent.AddForce(new Vector3(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]));
@@ -205,10 +197,6 @@ public class PackerHand : Agent
         // float[] xRange = Enumerable.Range(0, (int)(xRangeHigh - xRangeLow) + 1).Select(continuousActions[++i] => (float)continuousActions[++i]).ToArray(); // continuousActions[++i] within Select() => Select(i => (float)continuousActions[++i])
         // float[] range = Enumerable.Range(0, (int)(13.0f - 1.0f) + 1).Select(i => (float)i).ToArray(); // returns ??
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        if (carriedObject!=null && position == Vector3.zero) {
-            SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
-        }
 
 
 
@@ -340,6 +328,7 @@ public class PackerHand : Agent
     /// This function is called whenever agent collides into something
     ///</summary>
     void OnCollisionEnter(Collision col)
+
     {
         // Check if agent gets to a box
         if (col.gameObject.CompareTag("0") || col.gameObject.CompareTag("1")) 
@@ -348,18 +337,6 @@ public class PackerHand : Agent
             if (carriedObject==null && target!=null) 
             {
                 PickupBox();
-            }
-        }
-        // Check if agent goes into bin
-        else if (col.gameObject.CompareTag("bin") || col.gameObject.CompareTag("minibin")) 
-        {   
-            // Check if drop off information is available
-            if (position!=Vector3.zero && rotation!=Vector3.zero && carriedObject!=null) 
-            {
-                DropoffBox();        
-            }
-            else {
-
             }
         }
         else 
@@ -439,10 +416,12 @@ public class PackerHand : Agent
                     if (overlap==false) 
                     {
                         position = test_position;
+                        Debug.Log($"SELECTED POSITION IS {position}");
                         // Add updated box position to dictionary
                         organizedBoxPositions[boxIdx] = position;
+                        DropoffBox();
                         // Update search space
-                        UpdateSearchSpace(l, w, h);
+                        //UpdateSearchSpace(l, w, h);
                     }
 
                 }
@@ -480,6 +459,40 @@ public class PackerHand : Agent
         z_space.Add(z_range);
     }
 
+    void UpdateBinBounds() {
+        // Gets bounds of bin
+        areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
+
+        // Gets bounds of mini bin
+        miniBounds = binMini.transform.GetChild(0).GetComponent<Collider>().bounds;
+
+        var num_sides = 5;
+
+        // Encapsulate the bounds of each additional object in the overall bounds
+        for (int i = 1; i < num_sides; i++)
+        {
+            areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
+            miniBounds.Encapsulate(binMini.transform.GetChild(i).GetComponent<Collider>().bounds);
+        }
+        Debug.Log($"REGULAR BIN BOUNDS IS {areaBounds}");
+        Debug.Log($"MINI BIN BOUNDS IS {miniBounds}");
+    }
+
+    void UpdateBinVolume() {
+        // Update bin volume
+        if (m_config==0) 
+        {
+            miniBinVolume = miniBinVolume - carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
+        }
+        else 
+        {
+            binVolume = binVolume-carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
+        }
+        Debug.Log($"REGULAR BIN VOLUME IS {areaBounds}");
+        Debug.Log($"MINI BIN VOLUME IS {miniBounds}");
+    }
+
+
 
     /// <summary>
     /// Agent selects rotation for the box
@@ -488,35 +501,34 @@ public class PackerHand : Agent
     {
          // Check if carrying a box and if rotation is known 
         // this prevents agent from selecting a rotation before having a box and constantly selecting other rotations
-            switch (action) 
+        switch (action) 
             {
-                case 1:
-                    rotation = new Vector3(180, 180, 180);
-                    break;
-                case 2:
-                    rotation = new Vector3(0, 90, 90 );
-                    break;
-                case 3:
-                    rotation = new Vector3(90, 0, 90);
-                    break;
-                case 4:
-                    rotation = new Vector3(90, 90, 0);
-                    break;
-                case 5:
-                    rotation = new Vector3(90, 90, 90);
-                    break;
-                case 6:
-                    rotation = new Vector3(0, 0, 90);
-                    break;
-                case 7:
-                    rotation = new Vector3(90, 0, 0);
-                    break;
-                case 8:
-                    rotation = new Vector3(0, 90, 0);
-                    break;
+            case 1:
+                rotation = new Vector3(180, 180, 180);
+                break;
+            case 2:
+                rotation = new Vector3(0, 90, 90 );
+                break;
+            case 3:
+                rotation = new Vector3(90, 0, 90);
+                break;
+            case 4:
+                rotation = new Vector3(90, 90, 0);
+                break;
+            case 5:
+                rotation = new Vector3(90, 90, 90);
+                break;
+            case 6:
+                rotation = new Vector3(0, 0, 90);
+                break;
+            case 7:
+                rotation = new Vector3(90, 0, 0);
+                break;
+            case 8:
+                rotation = new Vector3(0, 90, 0);
+                break;
             }
          Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
-
     }
 
 
@@ -568,14 +580,7 @@ public class PackerHand : Agent
         // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
         // Update bin volume
-        if (m_config==0) 
-        {
-            miniBinVolume = miniBinVolume - carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
-        }
-        else 
-        {
-            binVolume = binVolume-carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
-        }
+        UpdateBinVolume();
 
         // Set box tag
         carriedObject.tag = "1";
@@ -588,8 +593,6 @@ public class PackerHand : Agent
         carriedObject = null;
         target = null;
 
-        // Reward agent for dropping off box
-        RewardDroppedBox();
     }
 
 
@@ -606,7 +609,7 @@ public class PackerHand : Agent
     /// <summary>
     //// Rewards agent for dropping off box
     ///</summary>
-    public void RewardDroppedBox()
+    public void RewardDroppedBox(float surface_area)
     { 
         AddReward(0.05f);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
@@ -758,6 +761,7 @@ public class PackerHand : Agent
         {
             boxSpawner.SetUpBoxes(n, m_ResetParams.GetWithDefault("unit_box", 1));
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
+            Debug.Log($"BOX POOL HAS {boxSpawner.boxPool.Count} BOXES");
         }
         if (n==1) 
         {
