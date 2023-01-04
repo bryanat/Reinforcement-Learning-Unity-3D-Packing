@@ -402,9 +402,9 @@ public class PackerHand : Agent
         var x_position = 0f;
         var y_position = 0f;
         var z_position = 0f;
-        var l = m_Box.boxPool[boxIdx].boxSize.x;
-        var w = m_Box.boxPool[boxIdx].boxSize.y;
-        var h = m_Box.boxPool[boxIdx].boxSize.z;
+        var l = boxSpawner.boxPool[boxIdx].boxSize.x;
+        var w = boxSpawner.boxPool[boxIdx].boxSize.y;
+        var h = boxSpawner.boxPool[boxIdx].boxSize.z;
         var test_position = Vector3.zero;
         if (m_config==0) {
             // Interpolate position between x, y, z bounds of the mini bin
