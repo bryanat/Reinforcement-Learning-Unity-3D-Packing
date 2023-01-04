@@ -68,6 +68,9 @@ public class PackerHand : Agent {
     public float binVolume;
     public float miniBinVolume;
 
+    public List<List<float>> x_space;
+    public List<List<float>> y_space;
+    public List<List<float>> z_space;
 
 
     EnvironmentParameters m_ResetParams;
@@ -397,13 +400,28 @@ public class PackerHand : Agent {
                 z_position = Mathf.Lerp(-miniBounds.extents.z+1, miniBounds.extents.z-1, z);
                 test_position = new Vector3(binMini.transform.position.x+x_position,
                 binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
-                if (!organizedBoxPositions.ContainsValue(test_position) && miniBounds.Contains(test_position)) {
+                if (!organizedBoxPositions.ContainsValue(test_position)) {
+                    var isInside = false;
+                    for (int i = 1; i < x_space.Count; i++) {
+                        if (test_position[0]>x_space[i][0] && test_position[0]<x_space[i][1]) {
+                            isInside = true;
+                            break;
+                        }
+                        if (test_position[1]>y_space[i][0] && test_position[1]<y_space[i][1]) {
+                            isInside = true;
+                            break;
+                        }
+                        if (test_position[2]>z_space[i][0] && test_position[2]<z_space[i][1]) {
+                            isInside = true;
+                            break;
+                        }
                     // Update box position
-                    position = test_position;
-                    // Add updated box position to dictionary
-                    organizedBoxPositions[boxIdx] = position;
-            }
-
+                    if (isInside==false) {
+                        position = test_position;
+                        // Add updated box position to dictionary
+                        organizedBoxPositions[boxIdx] = position;
+                    }
+                }
             }
             else {
             // Interpolate position between x, y, z bounds of the bin
@@ -417,16 +435,29 @@ public class PackerHand : Agent {
                     position = test_position;
                     // Add updated box position to dictionary
                     organizedBoxPositions[boxIdx] = position;
-            }
+                }
             }
         }
 
     }
+    }
 
 
     void UpdateSearchSpace() {
-
-
+        // decrease search space as boxes get added
+        var l = m_Box.boxPool[boxIdx].boxSize.x;
+        var w = m_Box.boxPool[boxIdx].boxSize.y;
+        var h = m_Box.boxPool[boxIdx].boxSize.z;
+        var position = organizedBoxPositions[boxIdx];
+        var x_range = new List<float> {position.x-l/2, position.x+l/2};
+        var y_range = new List<float> {position.y-w/2, position.x+w/2};
+        var z_range = new List<float> {position.z-h/2, position.x+h/2};
+        x_space.Add(x_range);
+        y_space.Add(y_range);
+        z_space.Add(z_range);
+        x_space = x_space.OrderBy(n=>n[0]).ToList();
+        y_space = y_space.OrderBy(n=>n[0]).ToList();
+        z_space = z_space.OrderBy(n=>n[0]).ToList();
     }
 
     /// <summary>
@@ -514,7 +545,7 @@ public class PackerHand : Agent {
         carriedObject.position = position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
 
-        m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
+        // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
         // Update bin volume
         if (m_config==0) {
