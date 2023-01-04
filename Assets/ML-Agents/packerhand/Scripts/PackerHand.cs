@@ -472,9 +472,6 @@ public class PackerHand : Agent
         x_space.Add(x_range);
         y_space.Add(y_range);
         z_space.Add(z_range);
-        x_space = x_space.OrderBy(n=>n[0]).ToList();
-        y_space = y_space.OrderBy(n=>n[0]).ToList();
-        z_space = z_space.OrderBy(n=>n[0]).ToList();
     }
 
 

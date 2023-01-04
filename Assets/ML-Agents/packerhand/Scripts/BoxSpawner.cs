@@ -7,17 +7,25 @@ using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 
 namespace Boxes {
+
+
+
+public class Box
+{
     public Rigidbody rb;
 
     public Vector3 startingPos;
 
     public Vector3 boxSize; 
 
+
     public void ResetBoxes(Box box)
     {
-        // Reset box position
-        box.rb.transform.position = box.startingPos;
+        box.rb.transform.position = box.startingPos; // Reset box position
     }
+}
+
+
 
 public class BoxSpawner : MonoBehaviour 
 {
@@ -118,8 +126,6 @@ public class BoxSpawner : MonoBehaviour
         var randomSpawnPos = boxArea.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
         return randomSpawnPos;
     }
-
-
 }
 
 
