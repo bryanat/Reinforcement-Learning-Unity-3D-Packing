@@ -54,14 +54,11 @@ public class PackerHand : Agent
     public List<List<float>> z_space = new List<List<float>>(); // z-axis search space
 
     EnvironmentParameters m_ResetParams; // Environment parameters
-    BoxSpawner boxSpawner; // Box Spawner
+    public BoxSpawner boxSpawner; // Box Spawner
 
 
     public override void Initialize()
     {   
-        // Initialize the box spawner
-        boxSpawner = GetComponentInChildren<BoxSpawner>();
-
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
 
@@ -168,11 +165,15 @@ public class PackerHand : Agent
         SelectBox(discreteActions[++j]); 
 
 
-        if (carriedObject!=null && rotation==Vector3.zero) {
+        if (carriedObject!=null && rotation==Vector3.zero) 
+        {
             SelectRotation(discreteActions[++j]);
         }
 
-        SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        if (carriedObject!=null && position == Vector3.zero) 
+        {
+            SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        }
 
         //this.transform.position.Set(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]);
         ///m_Agent.AddForce(new Vector3(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]));
@@ -206,9 +207,6 @@ public class PackerHand : Agent
         // float[] range = Enumerable.Range(0, (int)(13.0f - 1.0f) + 1).Select(i => (float)i).ToArray(); // returns ??
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        if (carriedObject!=null && position == Vector3.zero) {
-            SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
-        }
 
 
 
@@ -761,6 +759,7 @@ public class PackerHand : Agent
         }
         if (n==1) 
         {
+            // boxSpawner.SetUpBoxes(n, 1);
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
         }
         else 
