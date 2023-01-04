@@ -56,9 +56,13 @@ public class PackerHand : Agent
     EnvironmentParameters m_ResetParams; // Environment parameters
     public BoxSpawner boxSpawner; // Box Spawner
 
+    [HideInInspector] public Vector3 initialAgentPosition;
+
 
     public override void Initialize()
     {   
+
+        initialAgentPosition = this.transform.position;
 
         Debug.Log($"BOX SPAWNER IS {boxSpawner}");
 
@@ -628,7 +632,7 @@ public class PackerHand : Agent
 
     public void AgentReset() 
     {
-        this.transform.position = new Vector3(10f, 0f, 10f);
+        this.transform.position = initialAgentPosition; // Vector3 of agents initial transform.position
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
     }
