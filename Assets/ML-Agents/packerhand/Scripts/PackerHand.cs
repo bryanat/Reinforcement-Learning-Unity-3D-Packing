@@ -13,33 +13,30 @@ using Unity.MLAgentsExamples;
 
 public class PackerHand : Agent {
 
+    int m_Configuration;  // Depending on this value, different curriculum will be picked
 
-    // Depending on this value, different curriculum will be picked
-    int m_Configuration;
+    int m_config; // local reference of the above
 
-    int m_config;
-    // Brain to use when all boxes are 1 by 1 by 1
-    public NNModel unitBoxBrain;
-    // Brain to use when boxes are of similar sizes
-    public NNModel similarBoxBrain;
-    // Brain to use when boxes size vary
-    public NNModel regularBoxBrain;
+    public NNModel unitBoxBrain;   // Brain to use when all boxes are 1 by 1 by 1
+    public NNModel similarBoxBrain;     // Brain to use when boxes are of similar sizes
+    public NNModel regularBoxBrain;     // Brain to use when boxes size vary
 
-    string m_UnitBoxBehaviorName = "UnitBox";
+    string m_UnitBoxBehaviorName = "UnitBox"; // 
     string m_SimilarBoxBehaviorName = "SimilarBox";
     string m_RegularBoxBehaviorName = "RegularBox";
 
     /// <summary>
-    /// The bin area.
+    /// The bins.
     /// This will be set manually in the Inspector
     /// </summary>
     public GameObject binArea;
 
     public GameObject binMini;
 
-    Rigidbody m_Agent; //cache agent on initilization
+    Rigidbody m_Agent; //cache agent rigidbody on initilization
 
-    [HideInInspector] public Transform carriedObject; 
+    [HideInInspector]
+    public Transform carriedObject; // local reference to box picked up by agent
 
     [HideInInspector] public Transform target; //Target the agent will walk towards during training.
 
@@ -53,22 +50,30 @@ public class PackerHand : Agent {
 
     public float total_z_distance; //total z distance between agent and target
     
-    public Dictionary<int, Vector3> organizedBoxPositions = new Dictionary<int, Vector3>();
+    public Dictionary<int, Vector3> organizedBoxPositions = new Dictionary<int, Vector3>(); // dictionary of organzed boxes and their positions
 
-    public int boxIdx;
+    public int boxIdx; // box selected from box pool
 
-    public Bounds areaBounds;
+    public Bounds areaBounds; // regular bin's bounds
 
-    public Bounds miniBounds;
+    public Bounds miniBounds; // mini bin's bounds
 
-    public float binVolume;
-    public float miniBinVolume;
+    public float binVolume; // regular bin's volume
+    public float miniBinVolume; // mini bin's volume
 
-    public List<List<float>> x_space = new List<List<float>>();
-    public List<List<float>> y_space = new List<List<float>>();
-    public List<List<float>> z_space = new List<List<float>>();
+    public List<List<float>> x_space = new List<List<float>>(); // x-axix search space
+    public List<List<float>> y_space = new List<List<float>>(); // y-axis search space
+    public List<List<float>> z_space = new List<List<float>>(); // z-axis search space
 
-    EnvironmentParameters m_ResetParams;
+
+    EnvironmentParameters m_ResetParams; // Environment parameters
+    BoxSpawner2 m_Box; // Box Spawner
+
+    public override void Initialize()
+    {
+
+        // Initialize box spawner
+        m_Box = GetComponentInChildren<BoxSpawner2>();
 
 
     public override void Initialize()
@@ -134,13 +139,13 @@ public class PackerHand : Agent {
     
         if (m_config==0) {
             // Add Bin position
-            sensor.AddObservation(binMini.transform.position); //(x, y, z)
+            sensor.AddObservation(binMini.transform.position); 
             // Add Bin size
             sensor.AddObservation(binMini.transform.localScale);
         }
         else {
             // Add Bin position
-            sensor.AddObservation(binArea.transform.position); //(x, y, z)
+            sensor.AddObservation(binArea.transform.position);
             // Add Bin size
             sensor.AddObservation(binArea.transform.localScale);
         }
@@ -272,7 +277,14 @@ public class PackerHand : Agent {
     //     return x;
     // }
 
+
+
+    /// <summary>
+    /// This function is called at every time step
+    ///</summary>
     void FixedUpdate() {
+
+        // Initialize curriculum and brain
         if (m_Configuration != -1)
         {
             ConfigureAgent(m_Configuration);
@@ -294,7 +306,10 @@ public class PackerHand : Agent {
         }
         else {return;}
     }
-
+    
+    /// <summary>
+    /// Updates agent position relative to the target position
+    ///</summary>
     void UpdateAgentPosition() {
         total_x_distance = target.position.x-this.transform.position.x;
         total_y_distance = 0;
@@ -306,9 +321,10 @@ public class PackerHand : Agent {
         current_agent_y, current_agent_z+total_z_distance/100);    
     }
 
-    
-    void UpdateCarriedObject() 
-    {
+    /// <summary>
+    /// Update carried object position relative to the agent position
+    ///</summary>
+    void UpdateCarriedObject() {
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
         var dist = 0.5f;
@@ -321,6 +337,9 @@ public class PackerHand : Agent {
     }
 
 
+    /// <summary>
+    /// This function is called whenever agent collides into something
+    ///</summary>
     void OnCollisionEnter(Collision col)
     {
         // Check if agent gets to a box
@@ -364,8 +383,10 @@ public class PackerHand : Agent {
     }
 
 
-    public void SelectPosition(float x, float y, float z)
-    {
+    /// <summary>
+    /// Agent selects position for box
+    ///</summary>
+    public void SelectPosition(float x, float y, float z) {
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
         if (carriedObject!=null && position == Vector3.zero)
@@ -388,7 +409,7 @@ public class PackerHand : Agent {
                 z_position = Mathf.Lerp(-miniBounds.extents.z+1, miniBounds.extents.z-1, z);
                 test_position = new Vector3(binMini.transform.position.x+x_position,
                 binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
-                if (!organizedBoxPositions.ContainsValue(test_position)) {
+                if (!organizedBoxPositions.ContainsValue(test_position) && !miniBounds.Contains(test_position)) {
                     var overlap = false;
                     if (x_space.Count>0) {
                         for (int i = 1; i < x_space.Count; i++) {
@@ -437,10 +458,11 @@ public class PackerHand : Agent {
         }
     }
 
-
+    /// <summary>
+    /// Decrease search space as boxes get added
+    /// this adds x, y, z ranges of spaces boxes have taken up
+    ///</summary>
     void UpdateSearchSpace(float l, float w, float h) {
-        // Decrease search space as boxes get added
-        // this adds ranges of spaces boxes take
         var position = organizedBoxPositions[boxIdx];
         var x_range = new List<float> {position.x-l/2, position.x+l/2};
         var y_range = new List<float> {position.y-w/2, position.x+w/2};
@@ -457,8 +479,7 @@ public class PackerHand : Agent {
     /// <summary>
     /// Agent selects rotation for the box
     /// </summary>
-    public void SelectRotation(int action) 
-    {
+    public void SelectRotation(int action) {
          // Check if carrying a box and if rotation is known 
         // this prevents agent from selecting a rotation before having a box and constantly selecting other rotations
         if (carriedObject!=null && rotation == Vector3.zero) 
@@ -570,12 +591,12 @@ public class PackerHand : Agent {
     /// <summary>
     /// Rewards agent for reaching target box
     ///</summary>
-    //  public void RewardPickedupTarget()
-    //  {  
-    //     AddReward(0.01f);
-    //     Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
+     public void RewardPickedupTarget()
+     {  
+        AddReward(0.01f);
+        Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
 
-    // }
+    }
 
     
     /// <summary>
