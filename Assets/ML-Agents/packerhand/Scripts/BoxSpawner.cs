@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
+using System;
+using System.Linq;
+
 
 namespace Boxes {
 
 
-
-public class Box 
-{
-    //public SensorDetectBox sdb;
     public Rigidbody rb;
 
     public Vector3 startingPos;
@@ -35,15 +34,33 @@ public class BoxSpawner : MonoBehaviour
     /// </summary>
     public GameObject boxArea;
 
+    public GameObject binArea;
+    
+    public GameObject binMini;
 
-    public void SetUpBoxes() 
-    {
+
+    public void SetUpBoxes(int flag, float size) {
+
+        float[][] sizes = new float[][]{};
         //for each box in json, get a list of box sizes;
         //sizes = readJson(); 
+        if (flag ==0) {
 
+            // Gets bounds of mini bin
+            var miniBounds = binMini.transform.GetChild(0).GetComponent<Collider>().bounds;
+
+            // Encapsulate the bounds of each additional object in the overall bounds
+            for (int i = 1; i < 5; i++)
+            {
+                miniBounds.Encapsulate(binMini.transform.GetChild(i).GetComponent<Collider>().bounds);
+            }
+            var n_boxes = (int)Math.Floor(miniBounds.extents.x*2/size) *
+                (int)Math.Floor(miniBounds.extents.y*2/size)*(int)Math.Floor(miniBounds.extents.z*2/size);
+            sizes = Enumerable.Repeat(Enumerable.Repeat(size, 3).ToArray(), n_boxes).ToArray();
+         }
+        else {
         //temporary box sizes array (to be fed from json later)
-        float[][] sizes = new float[][] 
-        {
+            sizes = new float[][] {
             new float[] { 1.0f, 2.0f, 3.0f },
             new float[] { 3.0f, 3.0f, 3.0f },
             new float[] { 2.0f, 2.0f, 3.5f },
@@ -51,21 +68,30 @@ public class BoxSpawner : MonoBehaviour
             new float[] { 1.0f, 1.0f, 2.0f },
             new float[] { 3.0f, 4.0f, 4.0f },
             new float[] { 1.0f, 2.0f, 3.5f },
-            new float[] { 1.0f, 1.5f, 0,5f },
+            new float[] { 1.0f, 1.5f, 0.5f },
             new float[] { 3.0f, 3.0f, 3.0f },
             new float[] { 2.5f, 0.5f, 0.5f },
             new float[] { 2.0f, 3.0f, 4.0f },
             new float[] { 0.5f, 0.5f, 0.5f },
             new float[] { 1.0f, 2.0f, 3.5f },
-            new float[] { 1.0f, 1.5f, 0,5f },
+            new float[] { 1.0f, 1.5f, 0.5f },
             new float[] { 3.0f, 3.0f, 3.0f },
-        };
-        
-        foreach(var size in sizes) 
-        {
+            new float[] { 2.0f, 2.0f, 2.0f },
+            new float[] { 1.0f, 1.0f, 2.0f },
+            new float[] { 3.0f, 4.0f, 4.0f },
+            new float[] { 1.0f, 2.0f, 3.5f },
+            new float[] { 1.0f, 1.5f, 0.5f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 2.5f, 0.5f, 0.5f },
+            new float[] { 1.0f, 2.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 2.0f, 2.0f, 3.5f },
+            };
+        }
+        foreach(var s in sizes) {
             // Create GameObject box
             GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            box.transform.localScale = new Vector3(size[0], size[1], size[2]); 
+            box.transform.localScale = new Vector3(s[0], s[1], s[2]); 
             var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box
@@ -91,8 +117,8 @@ public class BoxSpawner : MonoBehaviour
     public Vector3 GetRandomSpawnPos()
     {
         var areaBounds = boxArea.GetComponent<Collider>().bounds;
-        var randomPosX = Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
-        var randomPosZ = Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
+        var randomPosX = UnityEngine.Random.Range(-areaBounds.extents.x, areaBounds.extents.x);
+        var randomPosZ = UnityEngine.Random.Range(-areaBounds.extents.z, areaBounds.extents.z);
         var randomSpawnPos = boxArea.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
         return randomSpawnPos;
     }
