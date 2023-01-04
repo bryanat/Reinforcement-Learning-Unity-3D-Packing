@@ -1,15 +1,12 @@
+using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
-using System;
-using System.Linq;
-
 
 namespace Boxes {
-
-
     public Rigidbody rb;
 
     public Vector3 startingPos;
@@ -21,9 +18,6 @@ namespace Boxes {
         // Reset box position
         box.rb.transform.position = box.startingPos;
     }
-}
-
-
 
 public class BoxSpawner : MonoBehaviour 
 {
@@ -39,13 +33,13 @@ public class BoxSpawner : MonoBehaviour
     public GameObject binMini;
 
 
-    public void SetUpBoxes(int flag, float size) {
-
+    public void SetUpBoxes(int flag, float size) 
+    {
         float[][] sizes = new float[][]{};
         //for each box in json, get a list of box sizes;
         //sizes = readJson(); 
-        if (flag ==0) {
-
+        if (flag ==0) 
+        {
             // Gets bounds of mini bin
             var miniBounds = binMini.transform.GetChild(0).GetComponent<Collider>().bounds;
 
@@ -60,35 +54,37 @@ public class BoxSpawner : MonoBehaviour
          }
         else {
         //temporary box sizes array (to be fed from json later)
-            sizes = new float[][] {
-            new float[] { 1.0f, 2.0f, 3.0f },
-            new float[] { 3.0f, 3.0f, 3.0f },
-            new float[] { 2.0f, 2.0f, 3.5f },
-            new float[] { 2.0f, 2.0f, 2.0f },
-            new float[] { 1.0f, 1.0f, 2.0f },
-            new float[] { 3.0f, 4.0f, 4.0f },
-            new float[] { 1.0f, 2.0f, 3.5f },
-            new float[] { 1.0f, 1.5f, 0.5f },
-            new float[] { 3.0f, 3.0f, 3.0f },
-            new float[] { 2.5f, 0.5f, 0.5f },
-            new float[] { 2.0f, 3.0f, 4.0f },
-            new float[] { 0.5f, 0.5f, 0.5f },
-            new float[] { 1.0f, 2.0f, 3.5f },
-            new float[] { 1.0f, 1.5f, 0.5f },
-            new float[] { 3.0f, 3.0f, 3.0f },
-            new float[] { 2.0f, 2.0f, 2.0f },
-            new float[] { 1.0f, 1.0f, 2.0f },
-            new float[] { 3.0f, 4.0f, 4.0f },
-            new float[] { 1.0f, 2.0f, 3.5f },
-            new float[] { 1.0f, 1.5f, 0.5f },
-            new float[] { 3.0f, 3.0f, 3.0f },
-            new float[] { 2.5f, 0.5f, 0.5f },
-            new float[] { 1.0f, 2.0f, 3.0f },
-            new float[] { 3.0f, 3.0f, 3.0f },
-            new float[] { 2.0f, 2.0f, 3.5f },
+            sizes = new float[][] 
+            {
+                new float[] { 1.0f, 2.0f, 3.0f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.0f, 2.0f, 3.5f },
+                new float[] { 2.0f, 2.0f, 2.0f },
+                new float[] { 1.0f, 1.0f, 2.0f },
+                new float[] { 3.0f, 4.0f, 4.0f },
+                new float[] { 1.0f, 2.0f, 3.5f },
+                new float[] { 1.0f, 1.5f, 0.5f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.5f, 0.5f, 0.5f },
+                new float[] { 2.0f, 3.0f, 4.0f },
+                new float[] { 0.5f, 0.5f, 0.5f },
+                new float[] { 1.0f, 2.0f, 3.5f },
+                new float[] { 1.0f, 1.5f, 0.5f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.0f, 2.0f, 2.0f },
+                new float[] { 1.0f, 1.0f, 2.0f },
+                new float[] { 3.0f, 4.0f, 4.0f },
+                new float[] { 1.0f, 2.0f, 3.5f },
+                new float[] { 1.0f, 1.5f, 0.5f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.5f, 0.5f, 0.5f },
+                new float[] { 1.0f, 2.0f, 3.0f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.0f, 2.0f, 3.5f },
             };
         }
-        foreach(var s in sizes) {
+        foreach(var s in sizes) 
+        {
             // Create GameObject box
             GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             box.transform.localScale = new Vector3(s[0], s[1], s[2]); 
@@ -122,6 +118,8 @@ public class BoxSpawner : MonoBehaviour
         var randomSpawnPos = boxArea.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
         return randomSpawnPos;
     }
+
+
 }
 
 

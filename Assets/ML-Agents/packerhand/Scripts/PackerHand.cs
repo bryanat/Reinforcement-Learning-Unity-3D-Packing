@@ -4,17 +4,13 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
-using Random = UnityEngine.Random;
-using Box = Boxes2.Box2;
-using Boxes2;
-using static SensorDetectBin;
 using Unity.Barracuda;
 using Unity.MLAgentsExamples;
+using Boxes;
 
-public class PackerHand : Agent {
-
+public class PackerHand : Agent 
+{
     int m_Configuration;  // Depending on this value, different curriculum will be picked
-
     int m_config; // local reference of the above
 
     public NNModel unitBoxBrain;   // Brain to use when all boxes are 1 by 1 by 1
@@ -25,18 +21,12 @@ public class PackerHand : Agent {
     string m_SimilarBoxBehaviorName = "SimilarBox";
     string m_RegularBoxBehaviorName = "RegularBox";
 
-    /// <summary>
-    /// The bins.
-    /// This will be set manually in the Inspector
-    /// </summary>
-    public GameObject binArea;
-
-    public GameObject binMini;
+    public GameObject binArea; // The bin container, which will be manually selected in the Inspector
+    public GameObject binMini; // The mini bin container, used for lower lessons of Curriculum learning
 
     Rigidbody m_Agent; //cache agent rigidbody on initilization
 
-    [HideInInspector]
-    public Transform carriedObject; // local reference to box picked up by agent
+    [HideInInspector] public Transform carriedObject; // local reference to box picked up by agent
 
     [HideInInspector] public Transform target; //Target the agent will walk towards during training.
 
@@ -45,9 +35,7 @@ public class PackerHand : Agent {
     public Vector3 rotation; // Rotation of box inside bin
 
     public float total_x_distance; //total x distance between agent and target
-
     public float total_y_distance; //total y distance between agent and target
-
     public float total_z_distance; //total z distance between agent and target
     
     public Dictionary<int, Vector3> organizedBoxPositions = new Dictionary<int, Vector3>(); // dictionary of organzed boxes and their positions
@@ -65,19 +53,15 @@ public class PackerHand : Agent {
     public List<List<float>> y_space = new List<List<float>>(); // y-axis search space
     public List<List<float>> z_space = new List<List<float>>(); // z-axis search space
 
-
     EnvironmentParameters m_ResetParams; // Environment parameters
-    BoxSpawner2 m_Box; // Box Spawner
-
-    public override void Initialize()
-    {
-
-        // Initialize box spawner
-        m_Box = GetComponentInChildren<BoxSpawner2>();
+    BoxSpawner boxSpawner; // Box Spawner
 
 
     public override void Initialize()
     {   
+        // Initialize the box spawner
+        boxSpawner = GetComponentInChildren<BoxSpawner>();
+
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
 
@@ -101,8 +85,6 @@ public class PackerHand : Agent {
             regularBoxBrain = modelOverrider.GetModelForBehaviorName(m_RegularBoxBehaviorName);
             m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
         }
-
-
     }
 
 
@@ -135,15 +117,17 @@ public class PackerHand : Agent {
     /// <summary>
     /// Agent adds environment observations 
     /// </summary>
-    public override void CollectObservations(VectorSensor sensor) {
-    
-        if (m_config==0) {
+    public override void CollectObservations(VectorSensor sensor) 
+    {
+        if (m_config==0) 
+        {
             // Add Bin position
             sensor.AddObservation(binMini.transform.position); 
             // Add Bin size
             sensor.AddObservation(binMini.transform.localScale);
         }
-        else {
+        else 
+        {
             // Add Bin position
             sensor.AddObservation(binArea.transform.position);
             // Add Bin size
@@ -282,8 +266,8 @@ public class PackerHand : Agent {
     /// <summary>
     /// This function is called at every time step
     ///</summary>
-    void FixedUpdate() {
-
+    void FixedUpdate() 
+    {
         // Initialize curriculum and brain
         if (m_Configuration != -1)
         {
@@ -296,12 +280,14 @@ public class PackerHand : Agent {
             UpdateAgentPosition();
         }
         //if agent selects a position, update box local position relative to the agent
-        else if (carriedObject!=null && carriedObject.parent!=null && position!=Vector3.zero) {
+        else if (carriedObject!=null && carriedObject.parent!=null && position!=Vector3.zero) 
+        {
             UpdateAgentPosition();
             UpdateCarriedObject();
         }
         //if agent drops off the box, it should pick another one
-        else if (carriedObject==null && target==null) {
+        else if (carriedObject==null && target==null) 
+        {
             AgentReset();
         }
         else {return;}
@@ -310,7 +296,8 @@ public class PackerHand : Agent {
     /// <summary>
     /// Updates agent position relative to the target position
     ///</summary>
-    void UpdateAgentPosition() {
+    void UpdateAgentPosition() 
+    {
         total_x_distance = target.position.x-this.transform.position.x;
         total_y_distance = 0;
         total_z_distance = target.position.z-this.transform.position.z;
@@ -324,7 +311,8 @@ public class PackerHand : Agent {
     /// <summary>
     /// Update carried object position relative to the agent position
     ///</summary>
-    void UpdateCarriedObject() {
+    void UpdateCarriedObject() 
+    {
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
         var dist = 0.5f;
@@ -352,14 +340,16 @@ public class PackerHand : Agent {
             }
         }
         // Check if agent goes into bin
-        else if (col.gameObject.CompareTag("bin") || col.gameObject.CompareTag("minibin")) {   
+        else if (col.gameObject.CompareTag("bin") || col.gameObject.CompareTag("minibin")) 
+        {   
             // Check if drop off information is available
             if (position!=Vector3.zero && rotation!=Vector3.zero && carriedObject!=null) 
             {
                 DropoffBox();        
             }
         }
-        else {
+        else 
+        {
             // the agent bumps into something that's not a target
             return;
         }
@@ -374,9 +364,10 @@ public class PackerHand : Agent {
         boxIdx = x;
         // Check if a box has already been selected and if agent is carrying box 
         // this prevents agent from constantly selecting other boxes and selecting an organized box
-        if (carriedObject==null && target==null && !organizedBoxPositions.ContainsKey(boxIdx)) {
+        if (carriedObject==null && target==null && !organizedBoxPositions.ContainsKey(boxIdx)) 
+        {
             Debug.Log($"SELECTED BOX: {boxIdx}");
-            target = m_Box.boxPool[boxIdx].rb.transform;
+            target = boxSpawner.boxPool[boxIdx].rb.transform;
             // Add box to dictionary so it won't be selected again
             organizedBoxPositions.Add(boxIdx, position);
         }
@@ -386,7 +377,8 @@ public class PackerHand : Agent {
     /// <summary>
     /// Agent selects position for box
     ///</summary>
-    public void SelectPosition(float x, float y, float z) {
+    public void SelectPosition(float x, float y, float z) 
+    {
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
         if (carriedObject!=null && position == Vector3.zero)
@@ -398,32 +390,39 @@ public class PackerHand : Agent {
             var x_position = 0f;
             var y_position = 0f;
             var z_position = 0f;
-            var l = m_Box.boxPool[boxIdx].boxSize.x;
-            var w = m_Box.boxPool[boxIdx].boxSize.y;
-            var h = m_Box.boxPool[boxIdx].boxSize.z;
+            var l = boxSpawner.boxPool[boxIdx].boxSize.x;
+            var w = boxSpawner.boxPool[boxIdx].boxSize.y;
+            var h = boxSpawner.boxPool[boxIdx].boxSize.z;
             var test_position = Vector3.zero;
-            if (m_config==0) {
+            if (m_config==0) 
+            {
                 // Interpolate position between x, y, z bounds of the mini bin
                 x_position = Mathf.Lerp(-miniBounds.extents.x+1, miniBounds.extents.x-1, x);
                 y_position = Mathf.Lerp(-miniBounds.extents.y+1, miniBounds.extents.y-1, y);
                 z_position = Mathf.Lerp(-miniBounds.extents.z+1, miniBounds.extents.z-1, z);
                 test_position = new Vector3(binMini.transform.position.x+x_position,
                 binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
-                if (!organizedBoxPositions.ContainsValue(test_position) && !miniBounds.Contains(test_position)) {
+                if (!organizedBoxPositions.ContainsValue(test_position) && !miniBounds.Contains(test_position)) 
+                {
                     var overlap = false;
-                    if (x_space.Count>0) {
-                        for (int i = 1; i < x_space.Count; i++) {
-                            if (test_position[0]+l/2>x_space[i][0] && test_position[0]-l/2<x_space[i][1]) {
+                    if (x_space.Count>0) 
+                    {
+                        for (int i = 1; i < x_space.Count; i++) 
+                        {
+                            if (test_position[0]+l/2>x_space[i][0] && test_position[0]-l/2<x_space[i][1]) 
+                            {
                                 Debug.Log("x space overlap");
                                 overlap = true;
                                 break;
                             }
-                            if (test_position[1]+w/2>y_space[i][0] && test_position[1]-w/2<y_space[i][1]) {
+                            if (test_position[1]+w/2>y_space[i][0] && test_position[1]-w/2<y_space[i][1]) 
+                            {
                                 Debug.Log("y space overlap");
                                 overlap = true;
                                 break;
                             }
-                            if (test_position[2]+h/2>z_space[i][0] && test_position[2]-h/2<z_space[i][1]) {
+                            if (test_position[2]+h/2>z_space[i][0] && test_position[2]-h/2<z_space[i][1]) 
+                            {
                                 Debug.Log("z space overlap");
                                 overlap = true;
                                 break;
@@ -431,7 +430,8 @@ public class PackerHand : Agent {
                         }
                     }
                     // Update box position
-                    if (overlap==false) {
+                    if (overlap==false) 
+                    {
                         position = test_position;
                         // Add updated box position to dictionary
                         organizedBoxPositions[boxIdx] = position;
@@ -448,7 +448,8 @@ public class PackerHand : Agent {
                 z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
                 test_position = new Vector3(binArea.transform.position.x+x_position,
                 binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
-                if (!organizedBoxPositions.ContainsValue(test_position) && areaBounds.Contains(test_position)) {
+                if (!organizedBoxPositions.ContainsValue(test_position) && areaBounds.Contains(test_position)) 
+                {
                     // Update box position
                     position = test_position;
                     // Add updated box position to dictionary
@@ -462,7 +463,8 @@ public class PackerHand : Agent {
     /// Decrease search space as boxes get added
     /// this adds x, y, z ranges of spaces boxes have taken up
     ///</summary>
-    void UpdateSearchSpace(float l, float w, float h) {
+    void UpdateSearchSpace(float l, float w, float h) 
+    {
         var position = organizedBoxPositions[boxIdx];
         var x_range = new List<float> {position.x-l/2, position.x+l/2};
         var y_range = new List<float> {position.y-w/2, position.x+w/2};
@@ -479,7 +481,8 @@ public class PackerHand : Agent {
     /// <summary>
     /// Agent selects rotation for the box
     /// </summary>
-    public void SelectRotation(int action) {
+    public void SelectRotation(int action) 
+    {
          // Check if carrying a box and if rotation is known 
         // this prevents agent from selecting a rotation before having a box and constantly selecting other rotations
         if (carriedObject!=null && rotation == Vector3.zero) 
@@ -528,17 +531,15 @@ public class PackerHand : Agent {
         //carriedObject.parent = this.transform;
 
         // Set target to bin
-        if (m_config==0) {
+        if (m_config==0) 
+        {
             target = binMini.transform;
         }
         else {
             target = binArea.transform;
         }
-
         // Reward agent for picking up box
         //RewardPickedupTarget();
-
-
     }
 
 
@@ -565,10 +566,12 @@ public class PackerHand : Agent {
         // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
         // Update bin volume
-        if (m_config==0) {
+        if (m_config==0) 
+        {
             miniBinVolume = miniBinVolume - carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
         }
-        else {
+        else 
+        {
             binVolume = binVolume-carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
         }
 
@@ -595,7 +598,6 @@ public class PackerHand : Agent {
      {  
         AddReward(0.01f);
         Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
-
     }
 
     
@@ -606,7 +608,6 @@ public class PackerHand : Agent {
     { 
         AddReward(0.05f);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
-
     }
 
 
@@ -744,27 +745,32 @@ public class PackerHand : Agent {
         organizedBoxPositions.Clear();
     }
 
-     /// <summary>
+
+    /// <summary>
     /// Configures the agent. Given an integer config, difficulty level will be different and a different brain will be used.
     /// A different reward system needs to be designed for each level
     /// </summary>
-    void ConfigureAgent(int n) {
-        if (n==0) {
-            m_Box.SetUpBoxes(n, m_ResetParams.GetWithDefault("unit_box", 1));
+    void ConfigureAgent(int n) 
+    {
+        if (n==0) 
+        {
+            boxSpawner.SetUpBoxes(n, m_ResetParams.GetWithDefault("unit_box", 1));
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
         }
-        if (n==1) {
+        if (n==1) 
+        {
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
         }
-        else {
-            m_Box.SetUpBoxes(n, 0);
+        else 
+        {
+            boxSpawner.SetUpBoxes(n, 0);
             SetModel(m_RegularBoxBehaviorName, regularBoxBrain);    
         }
     }
     
 
-
 }
+
 
 
 /////Rewarded: 
