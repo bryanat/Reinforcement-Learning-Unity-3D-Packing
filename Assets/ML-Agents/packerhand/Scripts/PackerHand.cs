@@ -32,8 +32,6 @@ public class PackerHand : Agent
 
     [HideInInspector] public Transform targetTransformPosition; //Target the agent will walk towards during training.
 
-    [HideInInspector] public Vector3 position;  // Position of box inside bin
-
     public Vector3 rotation; // Rotation of box inside bin
 
     public float total_x_distance; //total x distance between agent and target
@@ -61,13 +59,13 @@ public class PackerHand : Agent
     [HideInInspector] public Vector3 initialAgentPosition;
 
     [HideInInspector] public bool isPositionSelected;
+    [HideInInspector] public bool isRotationSelected;
 
 
     public override void Initialize()
     {   
 
         initialAgentPosition = this.transform.position;
-        isPositionSelected = false;
 
         Debug.Log($"BOX SPAWNER IS {boxSpawner}");
 
@@ -166,7 +164,7 @@ public class PackerHand : Agent
         }
 
 
-        if (carriedObject!=null && rotation==Vector3.zero) {
+        if (carriedObject!=null && isRotationSelected==false) {
             SelectRotation(discreteActions[++j]);
         }
 
@@ -308,7 +306,7 @@ public class PackerHand : Agent
     void UpdateAgentPosition() 
     {
         total_x_distance = target.position.x-this.transform.position.x;
-        total_y_distance = 0;
+        total_y_distance = target.position.y-this.transform.position.y;
         total_z_distance = target.position.z-this.transform.position.z;
         var current_agent_x = this.transform.position.x;
         var current_agent_y = this.transform.position.y;
@@ -370,7 +368,7 @@ public class PackerHand : Agent
             Debug.Log($"SELECTED BOX: {boxIdx}");
             target = boxSpawner.boxPool[boxIdx].rb.transform;
             // Add box to dictionary so it won't be selected again
-            organizedBoxPositions.Add(boxIdx, position);
+            organizedBoxPositions.Add(boxIdx, Vector3.zero);
         }
     }
 
@@ -434,13 +432,9 @@ public class PackerHand : Agent
                         organizedBoxPositions[boxIdx] = target.position;
                         isPositionSelected = true;
 
-
-                        // position = test_position;
-                        
-                        // DropoffBox();
-
                         // Update search space
-                        //UpdateSearchSpace(l, w, h);
+                        // UpdateSearchSpace(l, w, h);
+                        // UpdateBinBounds();
                     }
 
                 }
@@ -464,8 +458,6 @@ public class PackerHand : Agent
                     // Add updated box position to dictionary
                     organizedBoxPositions[boxIdx] = target.position;
                     isPositionSelected = true;
-                    
-                    // position = test_position;
 
                 }
         
@@ -532,7 +524,7 @@ public class PackerHand : Agent
         switch (action) 
             {
             case 1:
-                rotation = new Vector3(180, 180, 180);
+                rotation = new Vector3(0, 0, 0);
                 break;
             case 2:
                 rotation = new Vector3(0, 90, 90 );
@@ -572,16 +564,6 @@ public class PackerHand : Agent
         carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
         //carriedObject.parent = this.transform;
 
-        // Set target to bin
-        if (m_config==0) 
-        {
-            target = binMini.transform;
-        }
-        else {
-            target = binArea.transform;
-        }
-        // Reward agent for picking up box
-        //RewardPickedupTarget();
     }
 
 
@@ -613,16 +595,13 @@ public class PackerHand : Agent
         // Set box tag
         carriedObject.tag = "1";
 
-        // Reset position and rotation
-        position = Vector3.zero;
-        rotation = Vector3.zero;
-
         // Reset carriedObject and target
         carriedObject = null;
         target = null;
 
-        // Reset isPositionSelected to enable new position to be selected
+        // Enable new position and rotation to be selected
         isPositionSelected = false;
+        isRotationSelected = false;
 
     }
 
@@ -759,26 +738,24 @@ public class PackerHand : Agent
 
     public void SetResetParameters()
     {
-        ///Reset agent
+        // Reset agent
         AgentReset();
 
-        //Reset rewards
+        // Reset rewards
         TotalRewardReset();
 
-        //Reset boxes
+        // Reset boxes
         foreach (var box in boxSpawner.boxPool) 
         {
             box.ResetBoxes(box);
         }
 
-        //Reset position
-        position = Vector3.zero;
-
-        //Reset rotation
-        rotation = Vector3.zero;
-
-        //Reset organized Boxes dictionary
+        // Reset organized Boxes dictionary
         organizedBoxPositions.Clear();
+
+        // Reset position and rotation
+        isPositionSelected = false;
+        isRotationSelected = false;
     }
 
 
