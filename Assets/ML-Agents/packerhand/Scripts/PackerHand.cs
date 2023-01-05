@@ -62,6 +62,8 @@ public class PackerHand : Agent
     [HideInInspector] public bool isRotationSelected;
     [HideInInspector] public bool isDroppedoff;
     [HideInInspector] public bool isPickedup;
+    [HideInInspector] public bool isBoxSelected;
+
 
 
 
@@ -162,7 +164,7 @@ public class PackerHand : Agent
         var discreteActions = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
 
-        if (isPickedup==false) {
+        if (isBoxSelected==false) {
             SelectBox(discreteActions[++j]); 
         }
 
@@ -283,12 +285,12 @@ public class PackerHand : Agent
             m_Configuration = -1;
         }
         //if agent selects a target box, it should move towards the box
-        if (isPickedup == false) 
+        if (isBoxSelected && isPickedup == false) 
         {
             UpdateAgentPosition();
         }
         //if agent is carrying a target box, it should move towards the bin
-        else if (isPickedup && isDroppedoff==false) 
+        else if (isPickedup && isPositionSelected && isRotationSelected) 
         {
             UpdateAgentPosition();
             UpdateCarriedObject();
@@ -343,10 +345,10 @@ public class PackerHand : Agent
 
     {
         // Check if agent gets to a box outside the bin
-        if (col.gameObject.CompareTag("0"))// || col.gameObject.CompareTag("1")) 
+        if (col.gameObject.CompareTag("0") || col.gameObject.CompareTag("1")) 
         {
-            // check if agent is not carrying a box already
-            if (isPickedup==false && isPositionSelected) 
+            //check if agent is not carrying a box already
+            if (isPickedup==false && target!=null) 
             {
                 PickupBox();
             }
@@ -372,6 +374,8 @@ public class PackerHand : Agent
             target = boxSpawner.boxPool[boxIdx].rb.transform;
             // Add box to dictionary so it won't be selected again
             organizedBoxPositions.Add(boxIdx, Vector3.zero);
+            isBoxSelected = true;
+
         }
     }
 
@@ -380,7 +384,7 @@ public class PackerHand : Agent
     /// Agent selects position for box
     ///</summary>
     public void SelectPosition(float x, float y, float z) 
-    {
+    { 
         // Check if carrying a box and if position is known 
         // this prevents agent from selecting a position before having a box and constantly selecting other positions
         // Normalize x, y, z between 0 and 1 (passed in values are between -1 and 1)
@@ -549,6 +553,7 @@ public class PackerHand : Agent
                 break;
             }
          Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
+         isRotationSelected = true;
     }
 
 
@@ -559,6 +564,8 @@ public class PackerHand : Agent
     {
         // Change carriedObject to target
         carriedObject = target.transform;
+
+        Debug.Log($"CARRIED OBJECT IS {carriedObject}");
             
         // Attach carriedObject to agent
         carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
@@ -601,14 +608,15 @@ public class PackerHand : Agent
         carriedObject.tag = "1";
 
         // Reset carriedObject and target
-        carriedObject = null;
-        target = null;
+         carriedObject = null;
+         target = null;
 
         // Enable new position and rotation to be selected
+        isBoxSelected = false;
+        isPickedup = false;
         isPositionSelected = false;
         isRotationSelected = false;
-        isDroppedoff = true;
-
+        //isDroppedoff = true;
     }
 
 
@@ -760,10 +768,11 @@ public class PackerHand : Agent
         organizedBoxPositions.Clear();
 
         // Reset position and rotation
+        isBoxSelected = false;
         isPositionSelected = false;
         isRotationSelected = false;
-        isDroppedoff = false;
         isPickedup = false;
+        //isDroppedoff = false;
     }
 
 
