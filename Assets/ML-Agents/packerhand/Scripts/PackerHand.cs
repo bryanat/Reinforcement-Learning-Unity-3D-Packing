@@ -60,6 +60,9 @@ public class PackerHand : Agent
 
     [HideInInspector] public bool isPositionSelected;
     [HideInInspector] public bool isRotationSelected;
+    [HideInInspector] public bool isDroppedoff;
+    [HideInInspector] public bool isPickedup;
+
 
 
     public override void Initialize()
@@ -159,17 +162,15 @@ public class PackerHand : Agent
         var discreteActions = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
 
-        if (carriedObject==null) {
+        if (isPickedup==false) {
             SelectBox(discreteActions[++j]); 
         }
 
-
-        if (carriedObject!=null && isRotationSelected==false) {
+        if (isPickedup && isRotationSelected==false) {
             SelectRotation(discreteActions[++j]);
         }
 
-        // if (carriedObject!=null && position == Vector3.zero) {
-        if (carriedObject!=null && isPositionSelected==false) {
+        if (isPickedup && isPositionSelected==false) {
             SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         }
 
@@ -282,21 +283,24 @@ public class PackerHand : Agent
             m_Configuration = -1;
         }
         //if agent selects a target box, it should move towards the box
-        if (target!=null && carriedObject==null) 
+        if (isPickedup == false) 
         {
             UpdateAgentPosition();
         }
         //if agent is carrying a target box, it should move towards the bin
-        else if (target!=null && carriedObject!=null) 
+        else if (isPickedup && isDroppedoff==false) 
         {
             UpdateAgentPosition();
             UpdateCarriedObject();
+            if (total_x_distance<0.1f && total_z_distance<0.1f) {
+                DropoffBox();
+            }
         }
         //if agent drops off the box, it should pick another one
-        else if (carriedObject==null && target==null) 
-        {
-            AgentReset();
-        }
+        // else if (carriedObject==null && target==null) 
+        // {
+        //     AgentReset();
+        // }
         else {return;}
     }
     
@@ -338,19 +342,18 @@ public class PackerHand : Agent
     void OnCollisionEnter(Collision col)
 
     {
-        // Check if agent gets to a box
-        if (col.gameObject.CompareTag("0") || col.gameObject.CompareTag("1")) 
+        // Check if agent gets to a box outside the bin
+        if (col.gameObject.CompareTag("0"))// || col.gameObject.CompareTag("1")) 
         {
             // check if agent is not carrying a box already
-            if (carriedObject==null && target!=null) 
+            if (isPickedup==false && isPositionSelected) 
             {
                 PickupBox();
             }
         }
         else 
-        {
-            // the agent bumps into something that's not a target
-            return;
+        {        
+            return; // the agent bumps into something that's not a target
         }
     }
 
@@ -363,7 +366,7 @@ public class PackerHand : Agent
         boxIdx = x;
         // Check if a box has already been selected and if agent is carrying box 
         // this prevents agent from constantly selecting other boxes and selecting an organized box
-        if (carriedObject==null && target==null && !organizedBoxPositions.ContainsKey(boxIdx)) 
+        if (!organizedBoxPositions.ContainsKey(boxIdx)) 
         {
             Debug.Log($"SELECTED BOX: {boxIdx}");
             target = boxSpawner.boxPool[boxIdx].rb.transform;
@@ -387,9 +390,9 @@ public class PackerHand : Agent
         var x_position = 0f;
         var y_position = 0f;
         var z_position = 0f;
-        var l = boxSpawner.boxPool[boxIdx].boxSize.x;
-        var w = boxSpawner.boxPool[boxIdx].boxSize.y;
-        var h = boxSpawner.boxPool[boxIdx].boxSize.z;
+        // var l = boxSpawner.boxPool[boxIdx].boxSize.x;
+        // var w = boxSpawner.boxPool[boxIdx].boxSize.y;
+        // var h = boxSpawner.boxPool[boxIdx].boxSize.z;
         var test_position = Vector3.zero;
         if (m_config==0) {
             // Interpolate position between x, y, z bounds of the mini bin
@@ -398,31 +401,31 @@ public class PackerHand : Agent
             z_position = Mathf.Lerp(-miniBounds.extents.z+1, miniBounds.extents.z-1, z);
             test_position = new Vector3(binMini.transform.position.x+x_position, binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
             // check if position inside bin bounds
-            if (miniBounds.Contains(test_position)) {
-                var overlap = false;
-                // check for overlap with preexisting boxes
-                //if (x_space.Count>0) {
-                    for (int i = 1; i < x_space.Count; i++) {
-                        if (test_position[0]+l/2>x_space[i][0] && test_position[0]-l/2<x_space[i][1]) {
-                            Debug.Log("x space overlap");
-                            overlap = true;
-                            break;
-                        }
-                        if (test_position[1]+w/2>y_space[i][0] && test_position[1]-w/2<y_space[i][1]) {
-                            Debug.Log("y space overlap");
-                            overlap = true;
-                            break;
-                        }
-                        if (test_position[2]+h/2>z_space[i][0] && test_position[2]-h/2<z_space[i][1]) {
-                            Debug.Log("z space overlap");
-                            overlap = true;
-                            break;
-                        }
-                    }
-                    //}
-                    // Update box position
-                    if (overlap==false) 
-                    {
+            if (!organizedBoxPositions.ContainsValue(test_position) && miniBounds.Contains(test_position)) {
+                // var overlap = false;
+                // // check for overlap with preexisting boxes
+                // //if (x_space.Count>0) {
+                //     for (int i = 1; i < x_space.Count; i++) {
+                //         if (test_position[0]+l/2>x_space[i][0] && test_position[0]-l/2<x_space[i][1]) {
+                //             Debug.Log("x space overlap");
+                //             overlap = true;
+                //             break;
+                //         }
+                //         if (test_position[1]+w/2>y_space[i][0] && test_position[1]-w/2<y_space[i][1]) {
+                //             Debug.Log("y space overlap");
+                //             overlap = true;
+                //             break;
+                //         }
+                //         if (test_position[2]+h/2>z_space[i][0] && test_position[2]-h/2<z_space[i][1]) {
+                //             Debug.Log("z space overlap");
+                //             overlap = true;
+                //             break;
+                //         }
+                //     }
+                //     //}
+                //     // Update box position
+                //     if (overlap==false) 
+                //     {
                         var targetTransformPositionGameObject = new GameObject();
                         targetTransformPosition = targetTransformPositionGameObject.GetComponent<Transform>();
                         target = targetTransformPosition;
@@ -434,8 +437,7 @@ public class PackerHand : Agent
 
                         // Update search space
                         // UpdateSearchSpace(l, w, h);
-                        // UpdateBinBounds();
-                    }
+                   // }
 
                 }
             }
@@ -447,8 +449,7 @@ public class PackerHand : Agent
                 test_position = new Vector3(binArea.transform.position.x+x_position,
                 binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
                 if (!organizedBoxPositions.ContainsValue(test_position) && areaBounds.Contains(test_position)) 
-                {
-                    
+                {                 
                     var targetTransformPositionGameObject = new GameObject();
                     targetTransformPosition = targetTransformPositionGameObject.GetComponent<Transform>();
                     target = targetTransformPosition;
@@ -458,9 +459,7 @@ public class PackerHand : Agent
                     // Add updated box position to dictionary
                     organizedBoxPositions[boxIdx] = target.position;
                     isPositionSelected = true;
-
-                }
-        
+                }     
         }
     }
 
@@ -503,13 +502,14 @@ public class PackerHand : Agent
         if (m_config==0) 
         {
             miniBinVolume = miniBinVolume - carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
+             Debug.Log($"MINI BIN VOLUME IS {miniBinVolume}");
         }
         else 
         {
             binVolume = binVolume-carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
+            Debug.Log($"REGULAR BIN VOLUME IS {binVolume}");
         }
-        Debug.Log($"REGULAR BIN VOLUME IS {areaBounds}");
-        Debug.Log($"MINI BIN VOLUME IS {miniBounds}");
+        
     }
 
 
@@ -564,6 +564,8 @@ public class PackerHand : Agent
         carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
         //carriedObject.parent = this.transform;
 
+        isPickedup = true;
+
     }
 
 
@@ -580,8 +582,8 @@ public class PackerHand : Agent
         // Set box physics
         m_rb.useGravity = true;
         //m_rb.isKinematic = false;
-        m_rb.mass = 5f;
-        m_rb.drag = 0.5f;
+        // m_rb.mass = 1000f;
+        // m_rb.drag = 0.5f;
 
         // Set box position and rotation
         carriedObject.position = target.position; 
@@ -591,6 +593,9 @@ public class PackerHand : Agent
 
         // Update bin volume
         UpdateBinVolume();
+
+        // Update bin bounds
+        //UpdateBinBounds();
 
         // Set box tag
         carriedObject.tag = "1";
@@ -602,6 +607,7 @@ public class PackerHand : Agent
         // Enable new position and rotation to be selected
         isPositionSelected = false;
         isRotationSelected = false;
+        isDroppedoff = true;
 
     }
 
@@ -756,6 +762,8 @@ public class PackerHand : Agent
         // Reset position and rotation
         isPositionSelected = false;
         isRotationSelected = false;
+        isDroppedoff = false;
+        isPickedup = false;
     }
 
 
