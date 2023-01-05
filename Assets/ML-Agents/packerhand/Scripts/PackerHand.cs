@@ -289,17 +289,18 @@ public class PackerHand : Agent
         {
             UpdateAgentPosition();
         }
-        //if agent is carrying a target box, it should move towards the bin
+        //if agent is carrying a target boxhttps://ww1.gogoanime.re/watch/kara-no-kyoukai-the-garden-of-sinners-episode-3, it should move towards the bin
         else if (isPickedup && isPositionSelected && isRotationSelected) 
         {
             UpdateAgentPosition();
             UpdateCarriedObject();
-            if (total_x_distance<0.1f && total_z_distance<0.1f) {
+            if (total_x_distance < 0.1f && total_z_distance<0.1f) {
                 DropoffBox();
             }
+    
         }
         //if agent drops off the box, it should pick another one
-        else if (carriedObject==null && target==null) 
+        else if (isBoxSelected==false) 
         {
             AgentReset();
         }
@@ -345,7 +346,7 @@ public class PackerHand : Agent
 
     {
         // Check if agent gets to a box outside the bin
-        if (col.gameObject.CompareTag("0") || col.gameObject.CompareTag("1")) 
+        if (col.gameObject.CompareTag("0")) 
         {
             //check if agent is not carrying a box already
             if (isPickedup==false && target!=null) 
@@ -608,7 +609,7 @@ public class PackerHand : Agent
         carriedObject.tag = "1";
 
         // Reset carriedObject and target
-         carriedObject = null;
+        //  carriedObject = null;
          target = null;
 
         // Enable new position and rotation to be selected
