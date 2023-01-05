@@ -60,7 +60,6 @@ public class PackerHand : Agent
 
     [HideInInspector] public bool isPositionSelected;
     [HideInInspector] public bool isRotationSelected;
-    [HideInInspector] public bool isDroppedoff;
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isBoxSelected;
 
@@ -284,16 +283,17 @@ public class PackerHand : Agent
             ConfigureAgent(m_Configuration);
             m_Configuration = -1;
         }
-        //if agent selects a target box, it should move towards the box
+        //if agent selects a box, it should move towards the box
         if (isBoxSelected && isPickedup == false) 
         {
             UpdateAgentPosition();
         }
-        //if agent is carrying a target boxhttps://ww1.gogoanime.re/watch/kara-no-kyoukai-the-garden-of-sinners-episode-3, it should move towards the bin
+        //if agent is carrying a box it should move towards the selected position
         else if (isPickedup && isPositionSelected && isRotationSelected) 
         {
             UpdateAgentPosition();
             UpdateCarriedObject();
+            // if agent is close enough to the position, it should drop off the box
             if (total_x_distance < 0.1f && total_z_distance<0.1f) {
                 DropoffBox();
             }
@@ -356,7 +356,7 @@ public class PackerHand : Agent
         }
         else 
         {        
-            return; // the agent bumps into something that's not a target
+            return; // the agent bumps into something that's not a box ouside the bin
         }
     }
 
@@ -367,8 +367,7 @@ public class PackerHand : Agent
     public void SelectBox(int x) 
     {
         boxIdx = x;
-        // Check if a box has already been selected and if agent is carrying box 
-        // this prevents agent from constantly selecting other boxes and selecting an organized box
+        // Check if a box has already been selected
         if (!organizedBoxPositions.ContainsKey(boxIdx)) 
         {
             Debug.Log($"SELECTED BOX: {boxIdx}");
@@ -386,8 +385,6 @@ public class PackerHand : Agent
     ///</summary>
     public void SelectPosition(float x, float y, float z) 
     { 
-        // Check if carrying a box and if position is known 
-        // this prevents agent from selecting a position before having a box and constantly selecting other positions
         // Normalize x, y, z between 0 and 1 (passed in values are between -1 and 1)
         x = (x + 1f) * 0.5f;
         y = (y + 1f) * 0.5f;
@@ -524,8 +521,6 @@ public class PackerHand : Agent
     /// </summary>
     public void SelectRotation(int action) 
     {
-         // Check if carrying a box and if rotation is known 
-        // this prevents agent from selecting a rotation before having a box and constantly selecting other rotations
         switch (action) 
             {
             case 1:
@@ -565,12 +560,10 @@ public class PackerHand : Agent
     {
         // Change carriedObject to target
         carriedObject = target.transform;
-
-        Debug.Log($"CARRIED OBJECT IS {carriedObject}");
             
         // Attach carriedObject to agent
-        carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
-        //carriedObject.parent = this.transform;
+        //carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
+        carriedObject.parent = this.transform;
 
         isPickedup = true;
 
@@ -586,38 +579,23 @@ public class PackerHand : Agent
         carriedObject.SetParent(null);
 
         var m_rb =  carriedObject.GetComponent<Rigidbody>();
-
         // Set box physics
         m_rb.useGravity = true;
         //m_rb.isKinematic = false;
-        // m_rb.mass = 1000f;
-        // m_rb.drag = 0.5f;
-
         // Set box position and rotation
         carriedObject.position = target.position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
-
         // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
         // Update bin volume
         UpdateBinVolume();
-
         // Update bin bounds
         //UpdateBinBounds();
 
-        // Set box tag
+        // Reset states and properties to allow next round of box selection
         carriedObject.tag = "1";
-
-        // Reset carriedObject and target
-        //  carriedObject = null;
-         target = null;
-
-        // Enable new position and rotation to be selected
-        isBoxSelected = false;
-        isPickedup = false;
-        isPositionSelected = false;
-        isRotationSelected = false;
-        //isDroppedoff = true;
+        target = null;
+        StateReset();
     }
 
 
@@ -656,6 +634,14 @@ public class PackerHand : Agent
         this.transform.position = initialAgentPosition; // Vector3 of agents initial transform.position
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
+    }
+
+    void StateReset() 
+    {
+        isBoxSelected = false;
+        isPositionSelected = false;
+        isRotationSelected = false;
+        isPickedup = false;
     }
 
 
@@ -768,12 +754,9 @@ public class PackerHand : Agent
         // Reset organized Boxes dictionary
         organizedBoxPositions.Clear();
 
-        // Reset position and rotation
-        isBoxSelected = false;
-        isPositionSelected = false;
-        isRotationSelected = false;
-        isPickedup = false;
-        //isDroppedoff = false;
+        // Reset states;
+        StateReset();
+
     }
 
 
