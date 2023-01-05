@@ -25,9 +25,6 @@ public class Box
         box.rb.transform.position = box.startingPos; // Reset box position
     }
 
-    void FixedUpdate() {
-        Debug.Log("OF COURSE THIS WON'T WORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    }
 }
 
 

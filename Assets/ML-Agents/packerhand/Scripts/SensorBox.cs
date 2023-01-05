@@ -10,13 +10,19 @@ public class SensorBox : MonoBehaviour
     [HideInInspector]
     public GameObject bin;  
 
+    [HideInInspector]
     public GameObject minibin;
-
+    
+    [HideInInspector]
     public PackerHand agent;
+
+    /// Drop off (agent) -> collision (box) -> mesh combine (?) and contact SA calculation (box) 
+    /// Mesh combine (?) -> bin volume and bin bounds recalculation (agenet)
+    /// contact SA calculation (box) -> reward (agent)
 
     void OnCollisionEnter(Collision col)
     {
-        // Touched goal.
+        // needs to limit the reward to once per box, not on every collision
         if (col.gameObject.CompareTag("bin") || col.gameObject.CompareTag("minibin")) 
         {
             // Get the array of contact points from the collision

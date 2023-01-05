@@ -6,6 +6,7 @@ using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using Unity.Barracuda;
 using Unity.MLAgentsExamples;
+using Unity.MLAgents.Policies;
 using Boxes;
 
 public class PackerHand : Agent 
@@ -77,6 +78,7 @@ public class PackerHand : Agent
         m_Agent = GetComponent<Rigidbody>();
 
         // Picks which curriculum to train
+        // for now 1 is for unit boxes/mini bin, 2 is for similar sized boxes/regular bin, 3 is for regular boxes/regular bin
         m_Configuration = 0;
         m_config = 0;
         
@@ -392,9 +394,9 @@ public class PackerHand : Agent
         var x_position = 0f;
         var y_position = 0f;
         var z_position = 0f;
-        // var l = boxSpawner.boxPool[boxIdx].boxSize.x;
-        // var w = boxSpawner.boxPool[boxIdx].boxSize.y;
-        // var h = boxSpawner.boxPool[boxIdx].boxSize.z;
+        var l = boxSpawner.boxPool[boxIdx].boxSize.x;
+        var w = boxSpawner.boxPool[boxIdx].boxSize.y;
+        var h = boxSpawner.boxPool[boxIdx].boxSize.z;
         var test_position = Vector3.zero;
         if (m_config==0) {
             // Interpolate position between x, y, z bounds of the mini bin
@@ -404,42 +406,42 @@ public class PackerHand : Agent
             test_position = new Vector3(binMini.transform.position.x+x_position, binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
             // check if position inside bin bounds
             if (!organizedBoxPositions.ContainsValue(test_position) && miniBounds.Contains(test_position)) {
-                // var overlap = false;
-                // // check for overlap with preexisting boxes
-                // //if (x_space.Count>0) {
-                //     for (int i = 1; i < x_space.Count; i++) {
-                //         if (test_position[0]+l/2>x_space[i][0] && test_position[0]-l/2<x_space[i][1]) {
-                //             Debug.Log("x space overlap");
-                //             overlap = true;
-                //             break;
-                //         }
-                //         if (test_position[1]+w/2>y_space[i][0] && test_position[1]-w/2<y_space[i][1]) {
-                //             Debug.Log("y space overlap");
-                //             overlap = true;
-                //             break;
-                //         }
-                //         if (test_position[2]+h/2>z_space[i][0] && test_position[2]-h/2<z_space[i][1]) {
-                //             Debug.Log("z space overlap");
-                //             overlap = true;
-                //             break;
-                //         }
+                var overlap = false;
+                // check for overlap with preexisting boxes
+                //if (x_space.Count>0) {
+                // for (int i = 1; i < x_space.Count; i++) {
+                //     if (test_position[0]+l/2>x_space[i][0] && test_position[0]-l/2<x_space[i][1]) {
+                //         Debug.Log("x space overlap");
+                //         overlap = true;
+                //         break;
                 //     }
-                //     //}
-                //     // Update box position
-                //     if (overlap==false) 
-                //     {
-                        var targetTransformPositionGameObject = new GameObject();
-                        targetTransformPosition = targetTransformPositionGameObject.GetComponent<Transform>();
-                        target = targetTransformPosition;
-                        target.position = test_position; // teleport.
-                        Debug.Log($"SELECTED POSITION IS {target.position}");
-                        // Add updated box position to dictionary
-                        organizedBoxPositions[boxIdx] = target.position;
-                        isPositionSelected = true;
+                //     if (test_position[1]+w/2>y_space[i][0] && test_position[1]-w/2<y_space[i][1]) {
+                //         Debug.Log("y space overlap");
+                //         overlap = true;
+                //         break;
+                //     }
+                //     if (test_position[2]+h/2>z_space[i][0] && test_position[2]-h/2<z_space[i][1]) {
+                //         Debug.Log("z space overlap");
+                //         overlap = true;
+                //         break;
+                //     }
+                // }
+                    //}
+                    // Update box position
+                if (overlap==false) 
+                {
+                    var targetTransformPositionGameObject = new GameObject();
+                    targetTransformPosition = targetTransformPositionGameObject.GetComponent<Transform>();
+                    target = targetTransformPosition;
+                    target.position = test_position; // teleport.
+                    Debug.Log($"SELECTED POSITION IS {target.position}");
+                    // Add updated box position to dictionary
+                    organizedBoxPositions[boxIdx] = target.position;
+                    isPositionSelected = true;
 
-                        // Update search space
-                        // UpdateSearchSpace(l, w, h);
-                   // }
+                    // Update search space
+                    // UpdateSearchSpace(l, w, h);
+                }
 
                 }
             }
@@ -480,7 +482,7 @@ public class PackerHand : Agent
         z_space.Add(z_range);
     }
 
-    void UpdateBinBounds() {
+    public void UpdateBinBounds() {
         // Gets bounds of bin
         areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
 
@@ -499,7 +501,7 @@ public class PackerHand : Agent
         Debug.Log($"MINI BIN BOUNDS IS {miniBounds}");
     }
 
-    void UpdateBinVolume() {
+    public void UpdateBinVolume() {
         // Update bin volume
         if (m_config==0) 
         {
@@ -587,26 +589,12 @@ public class PackerHand : Agent
         carriedObject.rotation = Quaternion.Euler(rotation);
         // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
-        // Update bin volume
-        UpdateBinVolume();
-        // Update bin bounds
-        //UpdateBinBounds();
-
         // Reset states and properties to allow next round of box selection
         carriedObject.tag = "1";
         target = null;
         StateReset();
     }
 
-
-    /// <summary>
-    /// Rewards agent for reaching target box
-    ///</summary>
-     public void RewardPickedupTarget()
-     {  
-        AddReward(0.01f);
-        Debug.Log($"Got to target box!!!!! Total reward: {GetCumulativeReward()}");
-    }
 
     
     /// <summary>
@@ -616,16 +604,6 @@ public class PackerHand : Agent
     { 
         AddReward(0.05f);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
-    }
-
-
-    /// <summmary>
-    /// Rewards agent for getting to bin
-    /// </summary>
-    public void RewardGotToBin() 
-    {
-        AddReward(1f);
-        Debug.Log($"Agent got to bin with box! Total reward: {GetCumulativeReward()}");
     }
 
 
@@ -766,20 +744,25 @@ public class PackerHand : Agent
     /// </summary>
     void ConfigureAgent(int n) 
     {
+        /////////////CURRENTLY IT'S NOT POSSIBLE TO CHANGE THE VECTOR OBSERVATION SPACE SIZE AT RUNTIME/////////////////////
+        /////IMPLIES IF WE CHANGE NUMBER OF BOXES DURING EACH CURRICULUM LEARNING, OBSERVATION WILL EITHER BE PADDED OR TRUNCATED//////////////////
         if (n==0) 
         {
             boxSpawner.SetUpBoxes(n, m_ResetParams.GetWithDefault("unit_box", 1));
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
-            Debug.Log($"BOX POOL HAS {boxSpawner.boxPool.Count} BOXES");
+            Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
         }
         if (n==1) 
         {
+            boxSpawner.SetUpBoxes(n, 0);
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
+            Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
         }
         else 
         {
             boxSpawner.SetUpBoxes(n, 0);
             SetModel(m_RegularBoxBehaviorName, regularBoxBrain);    
+            Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
         }
     }
     
