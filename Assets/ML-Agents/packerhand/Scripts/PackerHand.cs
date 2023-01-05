@@ -79,8 +79,8 @@ public class PackerHand : Agent
 
         // Picks which curriculum to train
         // for now 1 is for unit boxes/mini bin, 2 is for similar sized boxes/regular bin, 3 is for regular boxes/regular bin
-        m_Configuration = 0;
-        m_config = 0;
+        m_Configuration = 2;
+        m_config = 2;
         
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
@@ -109,6 +109,9 @@ public class PackerHand : Agent
         // Get total bin volume from onstart
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
         miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
+
+        SensorBin sensorbin = binArea.GetComponent<SensorBin>();
+        sensorbin.agent = this;
 
         // Reset agent and rewards
         SetResetParameters();
