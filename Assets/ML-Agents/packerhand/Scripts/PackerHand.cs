@@ -30,6 +30,8 @@ public class PackerHand : Agent
 
     [HideInInspector] public Transform target; //Target the agent will walk towards during training.
 
+    [HideInInspector] public Transform targetTransformPosition; //Target the agent will walk towards during training.
+
     [HideInInspector] public Vector3 position;  // Position of box inside bin
 
     public Vector3 rotation; // Rotation of box inside bin
@@ -58,11 +60,14 @@ public class PackerHand : Agent
 
     [HideInInspector] public Vector3 initialAgentPosition;
 
+    [HideInInspector] public bool isPositionSelected;
+
 
     public override void Initialize()
     {   
 
         initialAgentPosition = this.transform.position;
+        isPositionSelected = false;
 
         Debug.Log($"BOX SPAWNER IS {boxSpawner}");
 
@@ -165,7 +170,8 @@ public class PackerHand : Agent
             SelectRotation(discreteActions[++j]);
         }
 
-        if (carriedObject!=null && position == Vector3.zero) {
+        // if (carriedObject!=null && position == Vector3.zero) {
+        if (carriedObject!=null && isPositionSelected==false) {
             SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         }
 
@@ -282,8 +288,8 @@ public class PackerHand : Agent
         {
             UpdateAgentPosition();
         }
-        //if agent selects a position, update box local position relative to the agent
-        else if (carriedObject!=null && carriedObject.parent!=null && position!=Vector3.zero) 
+        //if agent is carrying a target box, it should move towards the bin
+        else if (target!=null && carriedObject!=null) 
         {
             UpdateAgentPosition();
             UpdateCarriedObject();
@@ -419,11 +425,20 @@ public class PackerHand : Agent
                     // Update box position
                     if (overlap==false) 
                     {
-                        position = test_position;
-                        Debug.Log($"SELECTED POSITION IS {position}");
+                        var targetTransformPositionGameObject = new GameObject();
+                        targetTransformPosition = targetTransformPositionGameObject.GetComponent<Transform>();
+                        target = targetTransformPosition;
+                        target.position = test_position; // teleport.
+                        Debug.Log($"SELECTED POSITION IS {target.position}");
                         // Add updated box position to dictionary
-                        organizedBoxPositions[boxIdx] = position;
-                        DropoffBox();
+                        organizedBoxPositions[boxIdx] = target.position;
+                        isPositionSelected = true;
+
+
+                        // position = test_position;
+                        
+                        // DropoffBox();
+
                         // Update search space
                         //UpdateSearchSpace(l, w, h);
                     }
@@ -439,10 +454,19 @@ public class PackerHand : Agent
                 binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
                 if (!organizedBoxPositions.ContainsValue(test_position) && areaBounds.Contains(test_position)) 
                 {
+                    
+                    var targetTransformPositionGameObject = new GameObject();
+                    targetTransformPosition = targetTransformPositionGameObject.GetComponent<Transform>();
+                    target = targetTransformPosition;
                     // Update box position
-                    position = test_position;
+                    target.position = test_position; // teleport.
+                    Debug.Log($"SELECTED POSITION IS {target.position}");
                     // Add updated box position to dictionary
-                    organizedBoxPositions[boxIdx] = position;
+                    organizedBoxPositions[boxIdx] = target.position;
+                    isPositionSelected = true;
+                    
+                    // position = test_position;
+
                 }
         
         }
@@ -578,7 +602,7 @@ public class PackerHand : Agent
         m_rb.drag = 0.5f;
 
         // Set box position and rotation
-        carriedObject.position = position; 
+        carriedObject.position = target.position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
 
         // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
@@ -596,6 +620,9 @@ public class PackerHand : Agent
         // Reset carriedObject and target
         carriedObject = null;
         target = null;
+
+        // Reset isPositionSelected to enable new position to be selected
+        isPositionSelected = false;
 
     }
 
