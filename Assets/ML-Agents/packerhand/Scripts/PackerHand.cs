@@ -299,10 +299,10 @@ public class PackerHand : Agent
             }
         }
         //if agent drops off the box, it should pick another one
-        // else if (carriedObject==null && target==null) 
-        // {
-        //     AgentReset();
-        // }
+        else if (carriedObject==null && target==null) 
+        {
+            AgentReset();
+        }
         else {return;}
     }
     
