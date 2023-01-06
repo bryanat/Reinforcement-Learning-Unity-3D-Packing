@@ -79,8 +79,8 @@ public class PackerHand : Agent
 
         // Picks which curriculum to train
         // for now 1 is for unit boxes/mini bin, 2 is for similar sized boxes/regular bin, 3 is for regular boxes/regular bin
-        m_Configuration = 2;
-        m_config = 2;
+        m_Configuration = 0;
+        m_config = 0;
         
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
@@ -123,6 +123,7 @@ public class PackerHand : Agent
     /// </summary>
     public override void CollectObservations(VectorSensor sensor) 
     {
+        /////once the box combines with the bin, we should also add bin bounds and bin volumne to observation
         if (m_config==0) 
         {
             // Add Bin position
@@ -371,10 +372,10 @@ public class PackerHand : Agent
     ///</summary>
     public void SelectBox(int x) 
     {
-        boxIdx = x;
         // Check if a box has already been selected
-        if (!organizedBoxPositions.ContainsKey(boxIdx)) 
+        if (!organizedBoxPositions.ContainsKey(x)) 
         {
+            boxIdx = x;
             Debug.Log($"SELECTED BOX: {boxIdx}");
             target = boxSpawner.boxPool[boxIdx].rb.transform;
             // Add box to dictionary so it won't be selected again
@@ -398,41 +399,24 @@ public class PackerHand : Agent
         var y_position = 0f;
         var z_position = 0f;
         var l = boxSpawner.boxPool[boxIdx].boxSize.x;
-        var w = boxSpawner.boxPool[boxIdx].boxSize.y;
-        var h = boxSpawner.boxPool[boxIdx].boxSize.z;
+        var h = boxSpawner.boxPool[boxIdx].boxSize.y;
+        var w = boxSpawner.boxPool[boxIdx].boxSize.z;
         var test_position = Vector3.zero;
         if (m_config==0) {
             // Interpolate position between x, y, z bounds of the mini bin
-            x_position = Mathf.Lerp(-miniBounds.extents.x+1, miniBounds.extents.x-1, x);
-            y_position = Mathf.Lerp(-miniBounds.extents.y+1, miniBounds.extents.y-1, y);
-            z_position = Mathf.Lerp(-miniBounds.extents.z+1, miniBounds.extents.z-1, z);
-            test_position = new Vector3(binMini.transform.position.x+x_position, binMini.transform.position.y+y_position, binMini.transform.position.z+z_position);
+            x_position = Mathf.Lerp(binMini.transform.position.x-miniBounds.extents.x+1, binMini.transform.position.x+miniBounds.extents.x-1, x);
+            y_position = Mathf.Lerp(binMini.transform.position.y-miniBounds.extents.y+1, binMini.transform.position.y+miniBounds.extents.y-1, y);
+            z_position = Mathf.Lerp(binMini.transform.position.z-miniBounds.extents.z+1, binMini.transform.position.z+miniBounds.extents.z-1, z);
+            test_position = new Vector3(x_position,y_position,z_position);
+            Debug.Log($"TEST POSITION IS {test_position}");
             // check if position inside bin bounds
-            if (!organizedBoxPositions.ContainsValue(test_position) && miniBounds.Contains(test_position)) {
-                var overlap = false;
-                // check for overlap with preexisting boxes
-                //if (x_space.Count>0) {
-                // for (int i = 1; i < x_space.Count; i++) {
-                //     if (test_position[0]+l/2>x_space[i][0] && test_position[0]-l/2<x_space[i][1]) {
-                //         Debug.Log("x space overlap");
-                //         overlap = true;
-                //         break;
-                //     }
-                //     if (test_position[1]+w/2>y_space[i][0] && test_position[1]-w/2<y_space[i][1]) {
-                //         Debug.Log("y space overlap");
-                //         overlap = true;
-                //         break;
-                //     }
-                //     if (test_position[2]+h/2>z_space[i][0] && test_position[2]-h/2<z_space[i][1]) {
-                //         Debug.Log("z space overlap");
-                //         overlap = true;
-                //         break;
-                //     }
-                // }
-                    //}
-                    // Update box position
+            if (miniBounds.Contains(test_position)) {
+                // Check overlap between boxes
+                 var overlap = CheckOverlap(test_position, l, w, h);
+                // Update box position
                 if (overlap==false) 
                 {
+                    RewardSelectedPosition();
                     var targetTransformPositionGameObject = new GameObject();
                     targetTransformPosition = targetTransformPositionGameObject.GetComponent<Transform>();
                     target = targetTransformPosition;
@@ -441,22 +425,26 @@ public class PackerHand : Agent
                     // Add updated box position to dictionary
                     organizedBoxPositions[boxIdx] = target.position;
                     isPositionSelected = true;
-
                     // Update search space
-                    // UpdateSearchSpace(l, w, h);
+                     UpdateSearchSpace(l, w, h);
                 }
 
                 }
             }
             else {
-            // Interpolate position between x, y, z bounds of the bin
+                // Interpolate position between x, y, z bounds of the bin
                 x_position = Mathf.Lerp(-areaBounds.extents.x+1, areaBounds.extents.x-1, x);
                 y_position = Mathf.Lerp(-areaBounds.extents.y+1, areaBounds.extents.y-1, y);
                 z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
                 test_position = new Vector3(binArea.transform.position.x+x_position,
                 binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
-                if (!organizedBoxPositions.ContainsValue(test_position) && areaBounds.Contains(test_position)) 
-                {                 
+                if (areaBounds.Contains(test_position)) 
+                {   
+                    // Check overlap between boxes
+                    var overlap = CheckOverlap(test_position, l, w, h);
+                    // Update box position
+                    if (overlap==false) 
+                    {              
                     var targetTransformPositionGameObject = new GameObject();
                     targetTransformPosition = targetTransformPositionGameObject.GetComponent<Transform>();
                     target = targetTransformPosition;
@@ -466,7 +454,8 @@ public class PackerHand : Agent
                     // Add updated box position to dictionary
                     organizedBoxPositions[boxIdx] = target.position;
                     isPositionSelected = true;
-                }     
+                }  
+            }   
         }
     }
 
@@ -477,12 +466,39 @@ public class PackerHand : Agent
     void UpdateSearchSpace(float l, float w, float h) 
     {
         var position = organizedBoxPositions[boxIdx];
+        Debug.Log($"UPDATE SEARCH SPACE POSITION OF BOX IS {position}");
         var x_range = new List<float> {position.x-l/2, position.x+l/2};
-        var y_range = new List<float> {position.y-w/2, position.x+w/2};
-        var z_range = new List<float> {position.z-h/2, position.x+h/2};
+        var y_range = new List<float> {position.y-h/2, position.y+h/2};
+        var z_range = new List<float> {position.z-w/2, position.z+w/2};
         x_space.Add(x_range);
         y_space.Add(y_range);
         z_space.Add(z_range);
+    }
+
+    bool CheckOverlap(Vector3 test_position, float l, float w, float h) {  
+         //check for overlap with preexisting boxes
+        for (int i = 1; i < x_space.Count; i++) {
+            Debug.Log($"X SPACE RANGE IS : ({x_space[i][0]},  {x_space[i][1]})");
+            if (test_position[0]< x_space[i][0] && test_position[0]+l/2>x_space[i][0]
+            || test_position[0]> x_space[i][1] && test_position[0]-l/2<x_space[i][1]) {
+                Debug.Log("x space overlap");
+                AddReward(-0.01f);
+                return true;
+            }
+            if (test_position[1]<y_space[i][0] && test_position[1]+h/2>y_space[i][0]
+                || test_position[1]> y_space[i][1] && test_position[0]-h/2<y_space[i][1]) {
+                Debug.Log("y space overlap");
+                AddReward(-0.01f);
+                return true;
+            }
+            if (test_position[2]<z_space[i][0] && test_position[2]+w/2>z_space[i][0]
+                || test_position[2]> z_space[i][1] && test_position[2]-w/2<z_space[i][1]) {
+                Debug.Log("z space overlap");
+                AddReward(-0.01f);
+                return true;
+            }
+        }
+        return false;
     }
 
     public void UpdateBinBounds() {
@@ -590,7 +606,7 @@ public class PackerHand : Agent
         // Set box position and rotation
         carriedObject.position = target.position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
-        // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
+        //m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
         // Reset states and properties to allow next round of box selection
         carriedObject.tag = "1";
@@ -601,11 +617,20 @@ public class PackerHand : Agent
 
     
     /// <summary>
-    //// Rewards agent for dropping off box
+    //// Rewards agent for large contact surface area
     ///</summary>
-    public void RewardDroppedBox(float surface_area)
+    public void RewardSurfaceArea(float surface_area)
     { 
-        AddReward(0.05f);
+        AddReward(0.005f*surface_area);
+        Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
+    }
+
+    /// <summary>
+    //// Rewards agent for select a good position
+    ///</summary>
+    public void RewardSelectedPosition()
+    { 
+        SetReward(1f);
         Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
     }
 
@@ -734,6 +759,11 @@ public class PackerHand : Agent
 
         // Reset organized Boxes dictionary
         organizedBoxPositions.Clear();
+
+        // Reset search space
+        x_space.Clear();
+        y_space.Clear();
+        z_space.Clear();
 
         // Reset states;
         StateReset();

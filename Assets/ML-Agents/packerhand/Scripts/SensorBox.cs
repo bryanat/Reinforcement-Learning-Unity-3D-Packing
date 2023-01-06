@@ -36,7 +36,7 @@ public class SensorBox : MonoBehaviour
                 // Multiply the projection by the length of the normal vector to get the surface area
                 surfaceArea = surfaceArea +  projection * contact.normal.magnitude;
                 }
-            agent.RewardDroppedBox(surfaceArea);
+            agent.RewardSurfaceArea(surfaceArea);
         }
 
     }
