@@ -294,7 +294,7 @@ public class PackerHand : Agent
     ///</summary>
     public void SelectPosition(float x, float y, float z) 
     { 
-        // Normalize x, y, z between 0 and 1 (passed in values are between -1 and 1)
+        // Scale x, y, z between 0 and 1 (passed in values are between -1 and 1)
         x = (x + 1f) * 0.5f;
         y = (y + 1f) * 0.5f;
         z = (z + 1f) * 0.5f;
@@ -333,11 +333,10 @@ public class PackerHand : Agent
             }
             else {
                 // Interpolate position between x, y, z bounds of the bin
-                x_position = Mathf.Lerp(-areaBounds.extents.x+1, areaBounds.extents.x-1, x);
-                y_position = Mathf.Lerp(-areaBounds.extents.y+1, areaBounds.extents.y-1, y);
-                z_position = Mathf.Lerp(-areaBounds.extents.z+1, areaBounds.extents.z-1, z);
-                test_position = new Vector3(binArea.transform.position.x+x_position,
-                binArea.transform.position.y+y_position, binArea.transform.position.z+z_position);
+                x_position = Mathf.Lerp(binArea.transform.position.x-areaBounds.extents.x+1, binArea.transform.position.x+areaBounds.extents.x-1, x);
+                y_position = Mathf.Lerp(binArea.transform.position.y-areaBounds.extents.y+1, binArea.transform.position.y+areaBounds.extents.y-1, y);
+                z_position = Mathf.Lerp(binArea.transform.position.z-areaBounds.extents.z+1, binArea.transform.position.z+areaBounds.extents.z-1, z);
+                test_position = new Vector3(x_position, y_position,z_position);
                 if (areaBounds.Contains(test_position)) 
                 {   
                     // Check overlap between boxes
