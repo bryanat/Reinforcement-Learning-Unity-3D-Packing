@@ -337,7 +337,7 @@ public class PackerHand : Agent
         var current_agent_y = this.transform.position.y;
         var current_agent_z = this.transform.position.z;
         this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
-        current_agent_y, current_agent_z+total_z_distance/100);    
+        current_agent_y/100, current_agent_z+total_z_distance/100);    
     }
 
     /// <summary>
@@ -353,7 +353,7 @@ public class PackerHand : Agent
         // stop box from rotating
         carriedObject.rotation = Quaternion.identity;
         // stop box from falling 
-        carriedObject.GetComponent<Rigidbody>().useGravity = false;
+        //carriedObject.GetComponent<Rigidbody>().useGravity = false;
     }
 
 
@@ -452,7 +452,7 @@ public class PackerHand : Agent
                     Debug.Log($"SELECTED POSITION IS {targetBin.position}");
                     isPositionSelected = true;
                     // Update search space
-                     UpdateSearchSpace(l, w, h);
+                     //UpdateSearchSpace(l, w, h);
                 }
 
                 }
@@ -477,7 +477,7 @@ public class PackerHand : Agent
                     Debug.Log($"SELECTED POSITION IS {targetBin.position}");
                     isPositionSelected = true;  
                     // Update search space
-                    UpdateSearchSpace(l, w, h);
+                    //UpdateSearchSpace(l, w, h);
                 }  
             }   
         }
@@ -626,11 +626,11 @@ public class PackerHand : Agent
         var m_rb =  carriedObject.GetComponent<Rigidbody>();
         // Set box physics
         //m_rb.useGravity = true;
-        //m_rb.isKinematic = false;
+        m_rb.isKinematic = false;
         // Set box position and rotation
         carriedObject.position = targetBin.position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
-        m_rb.useGravity = true;
+        
         //m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
         // Reset states and properties to allow next round of box selection
