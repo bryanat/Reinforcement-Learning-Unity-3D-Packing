@@ -452,7 +452,7 @@ public class PackerHand : Agent
                     Debug.Log($"SELECTED POSITION IS {targetBin.position}");
                     isPositionSelected = true;
                     // Update search space
-                     //UpdateSearchSpace(l, w, h);
+                    UpdateSearchSpace(l, w, h);
                 }
 
                 }
@@ -477,7 +477,7 @@ public class PackerHand : Agent
                     Debug.Log($"SELECTED POSITION IS {targetBin.position}");
                     isPositionSelected = true;  
                     // Update search space
-                    //UpdateSearchSpace(l, w, h);
+                    UpdateSearchSpace(l, w, h);
                 }  
             }   
         }
@@ -502,26 +502,19 @@ public class PackerHand : Agent
     bool CheckOverlap(Vector3 test_position, float l, float w, float h) {  
          //check for overlap with preexisting boxes
         for (int i = 1; i < x_space.Count; i++) {
-            Debug.Log($"X SPACE RANGE FOR {i}th RANGE : ({x_space[i][0]},  {x_space[i][1]})");
-            if (test_position[0]< x_space[i][0] && test_position[0]+l/2>x_space[i][0]
-            || test_position[0]> x_space[i][1] && test_position[0]-l/2<x_space[i][1]) {
-                Debug.Log("x space overlap");
+            if ((test_position[0]< x_space[i][0] && test_position[0]+l/2>x_space[i][0]
+            || test_position[0]> x_space[i][1] && test_position[0]-l/2<x_space[i][1]) && 
+            (test_position[1]<y_space[i][0] && test_position[1]+h/2>y_space[i][0]
+                || test_position[1]> y_space[i][1] && test_position[0]-h/2<y_space[i][1]) &&
+            (test_position[2]<z_space[i][0] && test_position[2]+w/2>z_space[i][0]
+                || test_position[2]> z_space[i][1] && test_position[2]-w/2<z_space[i][1])) 
+                {
+                Debug.Log("space overlap");
                 AddReward(-0.01f);
                 return true;
+                }
+
             }
-            if (test_position[1]<y_space[i][0] && test_position[1]+h/2>y_space[i][0]
-                || test_position[1]> y_space[i][1] && test_position[0]-h/2<y_space[i][1]) {
-                Debug.Log("y space overlap");
-                AddReward(-0.01f);
-                return true;
-            }
-            if (test_position[2]<z_space[i][0] && test_position[2]+w/2>z_space[i][0]
-                || test_position[2]> z_space[i][1] && test_position[2]-w/2<z_space[i][1]) {
-                Debug.Log("z space overlap");
-                AddReward(-0.01f);
-                return true;
-            }
-        }
         return false;
     }
 
@@ -623,10 +616,10 @@ public class PackerHand : Agent
         // Detach box from agent
         carriedObject.SetParent(null);
 
-        var m_rb =  carriedObject.GetComponent<Rigidbody>();
+        //var m_rb =  carriedObject.GetComponent<Rigidbody>();
         // Set box physics
         //m_rb.useGravity = true;
-        m_rb.isKinematic = false;
+        //m_rb.isKinematic = true;
         // Set box position and rotation
         carriedObject.position = targetBin.position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
