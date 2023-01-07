@@ -116,7 +116,7 @@ public class BoxSpawner : MonoBehaviour
             box.tag = "0";
             var m_rb = box.GetComponent<Rigidbody>();
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
-            //m_rb.isKinematic = true;
+            m_rb.isKinematic = true;
             // Transfer GameObject box properties to Box object 
             var newBox = new Box
             {

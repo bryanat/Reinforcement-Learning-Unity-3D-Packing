@@ -559,7 +559,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: MaxStep
-      value: 10000
+      value: 20000
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -576,7 +576,8 @@ PrefabInstance:
       propertyPath: boxSpawner
       value: 
       objectReference: {fileID: 4405564776043660150}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2674329426616174709, guid: 2f2c1469c0f2c8453ab01d6d68f6526f, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:

@@ -28,8 +28,8 @@ public class PackerHand : Agent
     Rigidbody m_Agent; //cache agent rigidbody on initilization
 
     [HideInInspector] public Transform carriedObject; // local reference to box picked up by agent
-
-    [HideInInspector] public Transform target; //Target the agent will walk towards during training.
+    [HideInInspector] public Transform targetBox; // target box selected by agent
+    [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
     [HideInInspector] public Transform targetTransformPosition; //Target the agent will walk towards during training.
 
@@ -94,8 +94,9 @@ public class PackerHand : Agent
             m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
         }
 
-        
-        boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("unit_box", 1));
+        // Create boxes according to curriculum
+        //boxSpawner.SetUpBoxes(0, m_ResetParams.GetWithDefault("unit_box", 1));
+        boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
     }
 
 
@@ -106,6 +107,8 @@ public class PackerHand : Agent
 
        // Picks which curriculum to train
         // for now 1 is for unit boxes/mini bin, 2 is for similar sized boxes/regular bin, 3 is for regular boxes/regular bin
+        // m_Configuration = 0;
+        // m_config = 0;
         m_Configuration = 2;
         m_config = 2;
 
@@ -298,14 +301,17 @@ public class PackerHand : Agent
         //if agent selects a box, it should move towards the box
         if (isBoxSelected && isPickedup == false) 
         {
-            UpdateAgentPosition();
+            UpdateAgentPosition(targetBox);
+            if (total_x_distance < 0.1f && total_z_distance<0.1f) {
+                PickupBox();
+            }
         }
         //if agent is carrying a box it should move towards the selected position
         else if (isPickedup && isPositionSelected && isRotationSelected) 
         {
-            UpdateAgentPosition();
+            UpdateAgentPosition(targetBin);
             UpdateCarriedObject();
-            // if agent is close enough to the position, it should drop off the box
+            //if agent is close enough to the position, it should drop off the box
             if (total_x_distance < 0.1f && total_z_distance<0.1f) {
                 DropoffBox();
             }
@@ -322,7 +328,7 @@ public class PackerHand : Agent
     /// <summary>
     /// Updates agent position relative to the target position
     ///</summary>
-    void UpdateAgentPosition() 
+    void UpdateAgentPosition(Transform target) 
     {
         total_x_distance = target.position.x-this.transform.position.x;
         total_y_distance = target.position.y-this.transform.position.y;
@@ -353,25 +359,41 @@ public class PackerHand : Agent
 
     /// <summary>
     /// This function is called whenever agent collides into something
-    ///</summary>
-    void OnCollisionEnter(Collision col)
+    // ///</summary>
+    // void OnCollisionEnter(Collision col)
 
-    {
-        // Check if agent gets to a box outside the bin
-        // if collision.gameobject == target
-        if (col.gameObject.transform == target) 
-        {
-            //check if agent is not carrying a box already
-            if (isPickedup==false && target!=null) 
-            {
-                PickupBox();
-            }
-        }
-        else 
-        {        
-            return; // the agent bumps into something that's not a box ouside the bin
-        }
-    }
+    // {
+    //     // Check if agent gets to a box outside the bin
+    //     if (col.gameObject.transform == targetBox) 
+    //     {
+    //         //check if agent is not carrying a box already
+    //         if (isPickedup==false && isBoxSelected) 
+    //         {
+    //             PickupBox();
+    //         }
+    //         // else
+    //         // {
+    //         //     boxSpawner.boxPool[boxIdx].ResetBoxes(boxSpawner.boxPool[boxIdx]);
+    //         // }
+    //     }
+    //     if (col.gameObject.transform == targetBin) {
+    //          if (isPickedup && isPositionSelected && isRotationSelected)
+    //         {
+    //             DropoffBox();
+    //         }
+    //         // else 
+    //         // {
+    //         //     // Detach box from agent
+    //         //     carriedObject.SetParent(null);
+    //         //     StateReset();
+    //         //     boxSpawner.boxPool[boxIdx].ResetBoxes(boxSpawner.boxPool[boxIdx]);
+    //         // }
+    //     }
+    //     else 
+    //     {        
+    //         return; // the agent bumps into something that's not a box ouside the bin
+    //     }
+    // }
 
 
     /// <summary>
@@ -384,8 +406,8 @@ public class PackerHand : Agent
         {
             boxIdx = x;
             Debug.Log($"SELECTED BOX: {boxIdx}");
-            target = boxSpawner.boxPool[boxIdx].rb.transform;
-            // Add box to dictionary so it won't be selected again
+            targetBox = boxSpawner.boxPool[boxIdx].rb.transform;
+            // Add box to list so it won't be selected again
             organizedBoxes.Add(boxIdx);
             isBoxSelected = true;
 
@@ -425,11 +447,9 @@ public class PackerHand : Agent
                 if (overlap==false) 
                 {
                     RewardSelectedPosition();
-                    var targetTransformPositionGameObject = new GameObject();
-                    targetTransformPosition = targetTransformPositionGameObject.GetComponent<Transform>();
-                    target = targetTransformPosition;
-                    target.position = test_position; // teleport.
-                    Debug.Log($"SELECTED POSITION IS {target.position}");
+                    targetBin  = new GameObject().transform;
+                    targetBin.position = test_position; // teleport.
+                    Debug.Log($"SELECTED POSITION IS {targetBin.position}");
                     isPositionSelected = true;
                     // Update search space
                      UpdateSearchSpace(l, w, h);
@@ -451,13 +471,13 @@ public class PackerHand : Agent
                     // Update box position
                     if (overlap==false) 
                     {              
-                    var targetTransformPositionGameObject = new GameObject();
-                    targetTransformPosition = targetTransformPositionGameObject.GetComponent<Transform>();
-                    target = targetTransformPosition;
+                    targetBin  = new GameObject().transform;
                     // Update box position
-                    target.position = test_position; // teleport.
-                    Debug.Log($"SELECTED POSITION IS {target.position}");
-                    isPositionSelected = true;
+                    targetBin.position = test_position; // teleport.
+                    Debug.Log($"SELECTED POSITION IS {targetBin.position}");
+                    isPositionSelected = true;  
+                    // Update search space
+                    UpdateSearchSpace(l, w, h);
                 }  
             }   
         }
@@ -469,7 +489,7 @@ public class PackerHand : Agent
     ///</summary>
     void UpdateSearchSpace(float l, float w, float h) 
     {
-        var position = target.position;
+        var position = targetBin.position;
         Debug.Log($"UPDATE SEARCH SPACE POSITION OF BOX IS {position}");
         var x_range = new List<float> {position.x-l/2, position.x+l/2};
         var y_range = new List<float> {position.y-h/2, position.y+h/2};
@@ -584,7 +604,7 @@ public class PackerHand : Agent
     public void PickupBox() 
     {
         // Change carriedObject to target
-        carriedObject = target.transform;
+        carriedObject = targetBox.transform;
             
         // Attach carriedObject to agent
         //carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
@@ -605,16 +625,16 @@ public class PackerHand : Agent
 
         var m_rb =  carriedObject.GetComponent<Rigidbody>();
         // Set box physics
-        m_rb.useGravity = true;
+        //m_rb.useGravity = true;
         //m_rb.isKinematic = false;
         // Set box position and rotation
-        carriedObject.position = target.position; 
+        carriedObject.position = targetBin.position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
+        m_rb.useGravity = true;
         //m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
         // Reset states and properties to allow next round of box selection
         carriedObject.tag = "1";
-        target = null;
         StateReset();
     }
 
@@ -653,7 +673,8 @@ public class PackerHand : Agent
         isRotationSelected = false;
         isPickedup = false;
         carriedObject = null;
-        target = null;
+        targetBin = null;
+        targetBox = null;
     }
 
 
@@ -787,19 +808,16 @@ public class PackerHand : Agent
         /////IMPLIES IF WE CHANGE NUMBER OF BOXES DURING EACH CURRICULUM LEARNING, OBSERVATION WILL EITHER BE PADDED OR TRUNCATED//////////////////
         if (n==0) 
         {
-            //boxSpawner.SetUpBoxes(n, m_ResetParams.GetWithDefault("unit_box", 1));
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
             Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
         }
         if (n==1) 
         {
-            //boxSpawner.SetUpBoxes(n, 0);
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
             Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
         }
         else 
         {
-            //boxSpawner.SetUpBoxes(n, 0);
             SetModel(m_RegularBoxBehaviorName, regularBoxBrain);    
             Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
         }
