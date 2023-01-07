@@ -164,12 +164,6 @@ public class PackerHand : Agent
         sensor.AddObservation(m_Agent.velocity.z); // !! does agent need to know his velocity?
     }
 
-
-    /// Agent learns which actions to take
-    // discreteBranch1 = target: select target branch
-    // discreteBranch2 = transform z-axis: move agent z-axis branch
-    // discreteBranch3 = transform x-axis: move agent x-axis branch
-    // discreteBranch4 = transform rotate: rotate agent branch
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
         var j = -1;
@@ -189,44 +183,9 @@ public class PackerHand : Agent
         if (isPickedup && isPositionSelected==false) {
             SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         }
+    } 
 
 
-        //this.transform.position.Set(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]);
-        ///m_Agent.AddForce(new Vector3(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]));
-
-        //////////////////////////temporary work on selecting specific positions in bin for box///////////////////////////////////
-        // // currently SelectPosition does not use any ActionBuffers from brain
-        // // feed in SensorVector > ActionBuffer.SelectPosition
-        // // Restrict to a range so selected position is inside the bin 
-        // float xPosition = Mathf.Clamp(binArea.transform.position.x, -(binArea.transform.localScale.x)/2, (binArea.transform.localScale.x)/2); // range > select from range in line: 129
-        // float yPosition = Mathf.Clamp(binArea.transform.position.y, -(binArea.transform.localScale.y)/2, (binArea.transform.localScale.y)/2);
-        // float zPosition = Mathf.Clamp(binArea.transform.position.z, -(binArea.transform.localScale.z)/2, (binArea.transform.localScale.z)/2);
-        // SelectPosition(new Vector3(xPosition, yPosition, zPosition));
-
-        // // Range(start, end)
-        // // Range(leftedge, rightedge)
-        // var xRange = new Range((binArea.transform.position.x-((binArea.transform.localScale.x)/2)), (binArea.transform.position.x+((binArea.transform.localScale.x)/2))) // return Range(start,end);
-        // continuousActions[++i] // to select from Range(start,end)
-
-        // var xRangeLow = binArea.transform.position.x-((binArea.transform.localScale.x)/2); // return Range(start,end);
-        // var xRangeHigh = binArea.transform.position.x+((binArea.transform.localScale.x)/2); // return Range(start,end);
-
-        // var yRangeLow = binArea.transform.position.y-((binArea.transform.localScale.y)/2); // return Range(start,end);
-        // var yRangeHigh = binArea.transform.position.y+((binArea.transform.localScale.y)/2); // return Range(start,end);
-
-        // var zRangeLow = binArea.transform.position.z-((binArea.transform.localScale.z)/2); // return Range(start,end);
-        // var zRangeHigh = binArea.transform.position.z+((binArea.transform.localScale.z)/2); // return Range(start,end);
-
-        // // float[] range = Enumerable.Range(0, (int)(end - start) + 1).Select(i => (float)i).ToArray();
-        // float[] xRange = Enumerable.Range(0, (int)(xRangeHigh - xRangeLow) + continuousActions[++i] ).Select(i => (float)i).ToArray(); // continuousActions[++i] within Select() => Select(i => (float)continuousActions[++i])
-        // float[] xRange = Enumerable.Range(0, (int)(xRangeHigh - xRangeLow) + 1).Select(continuousActions[++i] => (float)continuousActions[++i]).ToArray(); // continuousActions[++i] within Select() => Select(i => (float)continuousActions[++i])
-        // float[] range = Enumerable.Range(0, (int)(13.0f - 1.0f) + 1).Select(i => (float)i).ToArray(); // returns ??
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-        //this.transform.position.Set(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]);
-        ///m_Agent.AddForce(new Vector3(this.transform.position.x+continuousActions[++i], 0, this.transform.position.z+continuousActions[++i]));
         
         // current - past // Reward
         // current > past // good +Reward
@@ -237,53 +196,6 @@ public class PackerHand : Agent
             // layer1 = 0 + dense1   0.1   0.08  0.14 0.43    1
             // layer2 = 1 + dense2   1.1   1.08  1.14 1.43  >  2
             // layer3 = 2 + dense3   2.1   2.08  2.14 2.43  >  3 
-
-        // Reward Layer 2: MacrostepSparseMilestoneCheckpointEvolution=dropoffbox() MicrostepDenseGradientPathguide=distancetobin
-            // if agent has pickedup a box
-            // this is where agent has selected an exact position, what is the best way to close the distance? 
-            //  if (carriedObject!=null && target!=null) 
-            //  {
-            //      SetReward(RLayer2()); // vs. refactor as RLayer2() containing SetReward(y)
-            //  }
-        // Reward Layer 1: MacrostepSparseMilestoneCheckpointEvolution=pickupbox() MicrostepDenseGradientPathguide=distancetobox
-            // if agents hasnt picked up a box
-            // if (carriedObject==null && target!=null) 
-            // {
-            //     // Assign Reward Layer 1
-            //     // currently the Rlayer1 reward is not efficient
-            //     //SetReward(RLayer1()); // vs. refactor as RLayer1() containing SetReward(x)
-            //     SetReward(-1f/MaxStep);
-            // }
-            // // can also try this reward function
-            // AddReward(-1f / MaxStep);
-    }
-
-
-    // public float RLayer2() 
-    // {
-    //     // distance between target (box) and goalarea (bin)
-    //     float distance = Vector3.Distance(target.transform.position, binArea.transform.position);
-    //     // y: value of microreward
-    //     var y = 1/(distance*distance);
-    //     // Reward Layer 2 = RewardLayer1 + microstepRewardLayer2
-    //     return 1.618f + y;
-    // }
-
-
-    // public float RLayer1() 
-    // {
-    //     // distance between agent and target (box)
-    //     float distance = Vector3.Distance(target.transform.position, this.transform.position);
-    //     // x: value of microreward, quadratic
-    //     var x = 1/(distance*distance);
-    //     // cap microstep reward as less than macrostep reward (1) (want to remove this in future to make more natural/automated)
-    //     if (x>1.618f) 
-    //     {
-    //         x=1.618f;
-    //     }
-    //     // return the value of the reward (dense reward acting as a pathguidestepwisegradient)
-    //     return x;
-    // }
 
 
 
@@ -356,44 +268,6 @@ public class PackerHand : Agent
         //carriedObject.GetComponent<Rigidbody>().useGravity = false;
     }
 
-
-    /// <summary>
-    /// This function is called whenever agent collides into something
-    // ///</summary>
-    // void OnCollisionEnter(Collision col)
-
-    // {
-    //     // Check if agent gets to a box outside the bin
-    //     if (col.gameObject.transform == targetBox) 
-    //     {
-    //         //check if agent is not carrying a box already
-    //         if (isPickedup==false && isBoxSelected) 
-    //         {
-    //             PickupBox();
-    //         }
-    //         // else
-    //         // {
-    //         //     boxSpawner.boxPool[boxIdx].ResetBoxes(boxSpawner.boxPool[boxIdx]);
-    //         // }
-    //     }
-    //     if (col.gameObject.transform == targetBin) {
-    //          if (isPickedup && isPositionSelected && isRotationSelected)
-    //         {
-    //             DropoffBox();
-    //         }
-    //         // else 
-    //         // {
-    //         //     // Detach box from agent
-    //         //     carriedObject.SetParent(null);
-    //         //     StateReset();
-    //         //     boxSpawner.boxPool[boxIdx].ResetBoxes(boxSpawner.boxPool[boxIdx]);
-    //         // }
-    //     }
-    //     else 
-    //     {        
-    //         return; // the agent bumps into something that's not a box ouside the bin
-    //     }
-    // }
 
 
     /// <summary>
