@@ -39,7 +39,7 @@ public class PackerHand : Agent
     public float total_y_distance; //total y distance between agent and target
     public float total_z_distance; //total z distance between agent and target
     
-    public Dictionary<int, Vector3> organizedBoxPositions = new Dictionary<int, Vector3>(); // dictionary of organzed boxes and their positions
+    public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
 
     public int boxIdx; // box selected from box pool
 
@@ -75,12 +75,7 @@ public class PackerHand : Agent
         Debug.Log($"BOX SPAWNER IS {boxSpawner}");
 
         // Cache the agent rigidbody
-        m_Agent = GetComponent<Rigidbody>();
-
-        // Picks which curriculum to train
-        // for now 1 is for unit boxes/mini bin, 2 is for similar sized boxes/regular bin, 3 is for regular boxes/regular bin
-        m_Configuration = 0;
-        m_config = 0;
+        m_Agent = GetComponent<Rigidbody>(); 
         
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
@@ -98,11 +93,22 @@ public class PackerHand : Agent
             regularBoxBrain = modelOverrider.GetModelForBehaviorName(m_RegularBoxBehaviorName);
             m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
         }
+
+        
+        boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("unit_box", 1));
     }
 
 
     public override void OnEpisodeBegin()
     {   
+
+        Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
+
+       // Picks which curriculum to train
+        // for now 1 is for unit boxes/mini bin, 2 is for similar sized boxes/regular bin, 3 is for regular boxes/regular bin
+        m_Configuration = 2;
+        m_config = 2;
+
         // Get bin bounds
         UpdateBinBounds();
 
@@ -352,7 +358,8 @@ public class PackerHand : Agent
 
     {
         // Check if agent gets to a box outside the bin
-        if (col.gameObject.CompareTag("0")) 
+        // if collision.gameobject == target
+        if (col.gameObject.transform == target) 
         {
             //check if agent is not carrying a box already
             if (isPickedup==false && target!=null) 
@@ -373,13 +380,13 @@ public class PackerHand : Agent
     public void SelectBox(int x) 
     {
         // Check if a box has already been selected
-        if (!organizedBoxPositions.ContainsKey(x)) 
+        if (!organizedBoxes.Contains(x)) 
         {
             boxIdx = x;
             Debug.Log($"SELECTED BOX: {boxIdx}");
             target = boxSpawner.boxPool[boxIdx].rb.transform;
             // Add box to dictionary so it won't be selected again
-            organizedBoxPositions.Add(boxIdx, Vector3.zero);
+            organizedBoxes.Add(boxIdx);
             isBoxSelected = true;
 
         }
@@ -408,7 +415,8 @@ public class PackerHand : Agent
             y_position = Mathf.Lerp(binMini.transform.position.y-miniBounds.extents.y+1, binMini.transform.position.y+miniBounds.extents.y-1, y);
             z_position = Mathf.Lerp(binMini.transform.position.z-miniBounds.extents.z+1, binMini.transform.position.z+miniBounds.extents.z-1, z);
             test_position = new Vector3(x_position,y_position,z_position);
-            Debug.Log($"TEST POSITION IS {test_position}");
+            ////////WHY DOESN'T THE ABOVE GIVE US A POSITION INSIDE BIN?????????????///////////
+            Debug.Log($"TEST POSITION IS INSIDE BIN: {miniBounds.Contains(test_position)}");
             // check if position inside bin bounds
             if (miniBounds.Contains(test_position)) {
                 // Check overlap between boxes
@@ -422,8 +430,6 @@ public class PackerHand : Agent
                     target = targetTransformPosition;
                     target.position = test_position; // teleport.
                     Debug.Log($"SELECTED POSITION IS {target.position}");
-                    // Add updated box position to dictionary
-                    organizedBoxPositions[boxIdx] = target.position;
                     isPositionSelected = true;
                     // Update search space
                      UpdateSearchSpace(l, w, h);
@@ -451,8 +457,6 @@ public class PackerHand : Agent
                     // Update box position
                     target.position = test_position; // teleport.
                     Debug.Log($"SELECTED POSITION IS {target.position}");
-                    // Add updated box position to dictionary
-                    organizedBoxPositions[boxIdx] = target.position;
                     isPositionSelected = true;
                 }  
             }   
@@ -465,7 +469,7 @@ public class PackerHand : Agent
     ///</summary>
     void UpdateSearchSpace(float l, float w, float h) 
     {
-        var position = organizedBoxPositions[boxIdx];
+        var position = target.position;
         Debug.Log($"UPDATE SEARCH SPACE POSITION OF BOX IS {position}");
         var x_range = new List<float> {position.x-l/2, position.x+l/2};
         var y_range = new List<float> {position.y-h/2, position.y+h/2};
@@ -478,7 +482,7 @@ public class PackerHand : Agent
     bool CheckOverlap(Vector3 test_position, float l, float w, float h) {  
          //check for overlap with preexisting boxes
         for (int i = 1; i < x_space.Count; i++) {
-            Debug.Log($"X SPACE RANGE IS : ({x_space[i][0]},  {x_space[i][1]})");
+            Debug.Log($"X SPACE RANGE FOR {i}th RANGE : ({x_space[i][0]},  {x_space[i][1]})");
             if (test_position[0]< x_space[i][0] && test_position[0]+l/2>x_space[i][0]
             || test_position[0]> x_space[i][1] && test_position[0]-l/2<x_space[i][1]) {
                 Debug.Log("x space overlap");
@@ -648,6 +652,8 @@ public class PackerHand : Agent
         isPositionSelected = false;
         isRotationSelected = false;
         isPickedup = false;
+        carriedObject = null;
+        target = null;
     }
 
 
@@ -758,7 +764,7 @@ public class PackerHand : Agent
         }
 
         // Reset organized Boxes dictionary
-        organizedBoxPositions.Clear();
+        organizedBoxes.Clear();
 
         // Reset search space
         x_space.Clear();
@@ -781,19 +787,19 @@ public class PackerHand : Agent
         /////IMPLIES IF WE CHANGE NUMBER OF BOXES DURING EACH CURRICULUM LEARNING, OBSERVATION WILL EITHER BE PADDED OR TRUNCATED//////////////////
         if (n==0) 
         {
-            boxSpawner.SetUpBoxes(n, m_ResetParams.GetWithDefault("unit_box", 1));
+            //boxSpawner.SetUpBoxes(n, m_ResetParams.GetWithDefault("unit_box", 1));
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
             Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
         }
         if (n==1) 
         {
-            boxSpawner.SetUpBoxes(n, 0);
+            //boxSpawner.SetUpBoxes(n, 0);
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
             Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
         }
         else 
         {
-            boxSpawner.SetUpBoxes(n, 0);
+            //boxSpawner.SetUpBoxes(n, 0);
             SetModel(m_RegularBoxBehaviorName, regularBoxBrain);    
             Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
         }
