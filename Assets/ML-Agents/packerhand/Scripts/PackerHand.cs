@@ -316,18 +316,18 @@ public class PackerHand : Agent
             // check if position inside bin bounds
             if (miniBounds.Contains(test_position)) {
                 // Check overlap between boxes
-                 var overlap = CheckOverlap(test_position, l, w, h);
-                // Update box position
-                if (overlap==false) 
-                {
+                //  var overlap = CheckOverlap(test_position, l, w, h);
+                // // Update box position
+                // if (overlap==false) 
+                // {
                     RewardSelectedPosition();
                     targetBin  = new GameObject().transform;
                     targetBin.position = test_position; // teleport.
                     Debug.Log($"SELECTED POSITION IS {targetBin.position}");
                     isPositionSelected = true;
-                    // Update search space
-                    UpdateSearchSpace(l, w, h);
-                }
+                //     // Update search space
+                //     UpdateSearchSpace(l, w, h);
+                // }
 
                 }
             }
@@ -339,19 +339,19 @@ public class PackerHand : Agent
                 test_position = new Vector3(x_position, y_position,z_position);
                 if (areaBounds.Contains(test_position)) 
                 {   
-                    // Check overlap between boxes
-                    var overlap = CheckOverlap(test_position, l, w, h);
-                    // Update box position
-                    if (overlap==false) 
-                    {              
+                    // // Check overlap between boxes
+                    // var overlap = CheckOverlap(test_position, l, w, h);
+                    // // Update box position
+                    // if (overlap==false) 
+                    // {              
                     targetBin  = new GameObject().transform;
                     // Update box position
                     targetBin.position = test_position; // teleport.
                     Debug.Log($"SELECTED POSITION IS {targetBin.position}");
                     isPositionSelected = true;  
-                    // Update search space
-                    UpdateSearchSpace(l, w, h);
-                }  
+                //     // Update search space
+                //     UpdateSearchSpace(l, w, h);
+                // }  
             }   
         }
     }
@@ -360,36 +360,36 @@ public class PackerHand : Agent
     /// Decrease search space as boxes get added
     /// this adds x, y, z ranges of spaces boxes have taken up
     ///</summary>
-    void UpdateSearchSpace(float l, float w, float h) 
-    {
-        var position = targetBin.position;
-        Debug.Log($"UPDATE SEARCH SPACE POSITION OF BOX IS {position}");
-        var x_range = new List<float> {position.x-l/2, position.x+l/2};
-        var y_range = new List<float> {position.y-h/2, position.y+h/2};
-        var z_range = new List<float> {position.z-w/2, position.z+w/2};
-        x_space.Add(x_range);
-        y_space.Add(y_range);
-        z_space.Add(z_range);
-    }
+    // void UpdateSearchSpace(float l, float w, float h) 
+    // {
+    //     var position = targetBin.position;
+    //     Debug.Log($"UPDATE SEARCH SPACE POSITION OF BOX IS {position}");
+    //     var x_range = new List<float> {position.x-l/2, position.x+l/2};
+    //     var y_range = new List<float> {position.y-h/2, position.y+h/2};
+    //     var z_range = new List<float> {position.z-w/2, position.z+w/2};
+    //     x_space.Add(x_range);
+    //     y_space.Add(y_range);
+    //     z_space.Add(z_range);
+    // }
 
-    bool CheckOverlap(Vector3 test_position, float l, float w, float h) {  
-         //check for overlap with preexisting boxes
-        for (int i = 1; i < x_space.Count; i++) {
-            if ((test_position[0]< x_space[i][0] && test_position[0]+l/2>x_space[i][0]
-            || test_position[0]> x_space[i][1] && test_position[0]-l/2<x_space[i][1]) && 
-            (test_position[1]<y_space[i][0] && test_position[1]+h/2>y_space[i][0]
-                || test_position[1]> y_space[i][1] && test_position[0]-h/2<y_space[i][1]) &&
-            (test_position[2]<z_space[i][0] && test_position[2]+w/2>z_space[i][0]
-                || test_position[2]> z_space[i][1] && test_position[2]-w/2<z_space[i][1])) 
-                {
-                Debug.Log("space overlap");
-                AddReward(-0.01f);
-                return true;
-                }
+    // bool CheckOverlap(Vector3 test_position, float l, float w, float h) {  
+    //      //check for overlap with preexisting boxes
+    //     for (int i = 1; i < x_space.Count; i++) {
+    //         if ((test_position[0]< x_space[i][0] && test_position[0]+l/2>x_space[i][0]
+    //         || test_position[0]> x_space[i][1] && test_position[0]-l/2<x_space[i][1]) && 
+    //         (test_position[1]<y_space[i][0] && test_position[1]+h/2>y_space[i][0]
+    //             || test_position[1]> y_space[i][1] && test_position[0]-h/2<y_space[i][1]) &&
+    //         (test_position[2]<z_space[i][0] && test_position[2]+w/2>z_space[i][0]
+    //             || test_position[2]> z_space[i][1] && test_position[2]-w/2<z_space[i][1])) 
+    //             {
+    //             Debug.Log("space overlap");
+    //             AddReward(-0.01f);
+    //             return true;
+    //             }
 
-            }
-        return false;
-    }
+    //         }
+    //     return false;
+    // }
 
     public void UpdateBinBounds() {
         // Gets bounds of bin
