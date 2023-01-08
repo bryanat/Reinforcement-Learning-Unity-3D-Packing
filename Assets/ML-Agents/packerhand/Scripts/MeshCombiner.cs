@@ -16,7 +16,8 @@ public class MeshCombiner : MonoBehaviour
         // Create a list of CombineInstance structures
         List<CombineInstance> combine = new List<CombineInstance>();
 
-        // Loop through all the meshes in the list
+        // MeshFilter[] meshList = GetComponentsInChildren<MeshFilter>(); 
+
         for (int i = 0; i < meshList.Count; i++)
         {
 
@@ -36,8 +37,8 @@ public class MeshCombiner : MonoBehaviour
         }
 
         // Create a new mesh on the GameObject
-        MeshFilter mf = this.GetComponent<MeshFilter>();
-        MeshRenderer mr = this.GetComponent<MeshRenderer>();
+        MeshFilter mf = gameObject.GetComponent<MeshFilter>();
+        MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
 
         // // Set the materials of the new mesh to the materials of the original meshes
         // Material[] materials = new Material[meshList.Count];
@@ -47,12 +48,8 @@ public class MeshCombiner : MonoBehaviour
         // }
         // mr.materials = materials;
 
-        // mf       --> original object
-        // meshList --> StopAllCoroutines the objects to be combined into the mf
-
         // Combine the meshes
         mf.mesh.CombineMeshes(combine.ToArray(), true, true);
-        Debug.Log($"mf position === {mf.transform.position}");
 
     Debug.Log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   MESH IS COMBINED   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
