@@ -665,6 +665,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: BinGen20
       objectReference: {fileID: 0}
+    - target: {fileID: 3859897800474219754, guid: 0a2b7417f99f40533918dfb91b5e1c3b,
+        type: 3}
+      propertyPath: m_TagString
+      value: bin
+      objectReference: {fileID: 0}
     - target: {fileID: 7115458822026379422, guid: 0a2b7417f99f40533918dfb91b5e1c3b,
         type: 3}
       propertyPath: m_RootOrder

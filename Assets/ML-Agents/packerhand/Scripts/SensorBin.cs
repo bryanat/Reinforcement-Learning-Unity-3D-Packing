@@ -8,7 +8,6 @@ public class SensorBin : MonoBehaviour
     /// Don't need to manually set.
     /// </summary>
     [HideInInspector]
-
     public PackerHand agent;
 
     /// Drop off (agent) -> collision (box) -> mesh combine (?) and contact SA calculation (box) 

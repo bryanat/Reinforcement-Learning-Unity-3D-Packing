@@ -265,7 +265,7 @@ public class PackerHand : Agent
         // stop box from rotating
         carriedObject.rotation = Quaternion.identity;
         // stop box from falling 
-        //carriedObject.GetComponent<Rigidbody>().useGravity = false;
+        carriedObject.GetComponent<Rigidbody>().useGravity = false;
     }
 
 
@@ -489,18 +489,18 @@ public class PackerHand : Agent
         // Detach box from agent
         carriedObject.SetParent(null);
 
-        //var m_rb =  carriedObject.GetComponent<Rigidbody>();
+        var m_rb =  carriedObject.GetComponent<Rigidbody>();
         // Set box physics
         //m_rb.useGravity = true;
-        //m_rb.isKinematic = true;
+        m_rb.isKinematic = false;
         // Set box position and rotation
         carriedObject.position = targetBin.position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
         
-        //m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
+        m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
         // Reset states and properties to allow next round of box selection
-        carriedObject.tag = "1";
+        //carriedObject.tag = "1";
         StateReset();
     }
 
@@ -538,7 +538,6 @@ public class PackerHand : Agent
         isPositionSelected = false;
         isRotationSelected = false;
         isPickedup = false;
-        carriedObject = null;
         targetBin = null;
         targetBox = null;
     }

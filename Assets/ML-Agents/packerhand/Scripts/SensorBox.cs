@@ -23,7 +23,7 @@ public class SensorBox : MonoBehaviour
     void OnCollisionEnter(Collision col)
     {
         // needs to limit the reward to once per box, not on every collision
-        if (col.gameObject.CompareTag("bin") || col.gameObject.CompareTag("minibin")) 
+        if (col.gameObject.CompareTag("bin") || col.gameObject.CompareTag("minibin")||col.gameObject.CompareTag("0")) 
         {
             // Get the array of contact points from the collision
             ContactPoint[] contacts = col.contacts;
