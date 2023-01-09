@@ -59,7 +59,7 @@ environment_parameters:
           behavior: UnitBox
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 1.0
+          threshold: 100.0
         value: 1.0
       - name: MySecondLesson # This is the start of the second lesson
         completion_criteria:

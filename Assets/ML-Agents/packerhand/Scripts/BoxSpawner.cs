@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
+using static SensorBox;
 
 namespace Boxes {
 
@@ -23,6 +24,7 @@ public class Box
     {
         box.rb.transform.position = box.startingPos; // Reset box position
     }
+
 }
 
 
@@ -39,6 +41,10 @@ public class BoxSpawner : MonoBehaviour
     public GameObject binArea;
     
     public GameObject binMini;
+
+    //public SensorBox sensorBox;
+
+    public PackerHand hand;
 
 
     public void SetUpBoxes(int flag, float size) 
@@ -101,10 +107,16 @@ public class BoxSpawner : MonoBehaviour
             // Add compoments to GameObject box
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
+            box.AddComponent<SensorBox>();
+            SensorBox sensor = box.GetComponent<SensorBox>();
+            sensor.agent = hand;
+            sensor.bin = binArea;
+            sensor.minibin = binMini;
+            var collider = box.GetComponent<BoxCollider>();
             box.tag = "0";
             var m_rb = box.GetComponent<Rigidbody>();
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
-            //m_rb.isKinematic = true;
+            m_rb.isKinematic = true;
             // Transfer GameObject box properties to Box object 
             var newBox = new Box
             {
