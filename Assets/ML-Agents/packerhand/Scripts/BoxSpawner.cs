@@ -107,7 +107,7 @@ public class BoxSpawner : MonoBehaviour
             // Add compoments to GameObject box
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
-            box.AddComponent<MeshRenderer>();
+            // box.AddComponent<MeshRenderer>();
             //box.AddComponent<SensorBox>();
             //SensorBox sensor = box.GetComponent<SensorBox>();
             // sensor.agent = hand;

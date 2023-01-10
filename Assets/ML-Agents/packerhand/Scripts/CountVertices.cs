@@ -5,16 +5,20 @@ using UnityEngine;
 public class VertexCounter : MonoBehaviour
 {
     int vertexCount;
+
+    Mesh mesh;
+
+    MeshFilter meshFilter;
+
     // Start is called before the first frame update
     void Start()
     {
-        MeshFilter meshFilter = GetComponent<MeshFilter>();
-        Mesh mesh = meshFilter.mesh;
-        int vertexCount = mesh.vertices.Length;
-
-        Debug.Log($"********************************************** Original  {gameObject.name}: Vertex count=== " + vertexCount);
+        
     }
     void Update(){
-        Debug.Log($"*************************************** Updated {gameObject.name}: Vertex count=== " + vertexCount );
+        meshFilter = GetComponent<MeshFilter>();
+        mesh = meshFilter.mesh;
+        vertexCount = mesh.vertices.Length;
+        Debug.Log($"********************************************** Original  {gameObject.name}: Vertex count=== " + vertexCount);
     }
 }

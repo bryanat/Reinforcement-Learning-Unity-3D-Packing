@@ -20,6 +20,60 @@ public class CollideAndCombineMesh : MonoBehaviour
         // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
         // instantiate the MeshCollider component from Collider component
         // MeshCollider mc = c.GetComponent<MeshCollider>();
+
+        // // Create parent mesh from all children mesh on start
+        // MeshFilter[] parentMeshFilters = GetComponentsInChildren<MeshFilter>();
+        // CombineInstance[] parentci = new CombineInstance[parentMeshFilters.Length];
+
+        // for (int i=0; i<parentMeshFilters.Length; i++){
+        //   parentci[i].mesh = parentMeshFilters[i].sharedMesh;
+        //   parentci[i].transform = parentMeshFilters[i].transform.localToWorldMatrix;
+        //   parentMeshFilters[i].gameObject.active = false;
+
+        // }
+        // transform.GetComponent<MeshFilter>().mesh = new Mesh();
+        // transform.GetComponent<MeshFilter>().mesh.CombineMeshes(parentci);
+        // transform.gameObject.active = true;
+
+
+        // Create a list of CombineInstance structures
+        List<CombineInstance> combine = new List<CombineInstance>();
+
+        MeshFilter[] meshList = GetComponentsInChildren<MeshFilter>(); 
+
+        for (int i = 0; i < meshList.Length; i++)
+        {
+
+            Debug.Log($" Listed object name ==== {meshList[i].name}");
+
+            // Get the mesh and its transform component
+            Mesh mesh = meshList[i].GetComponent<MeshFilter>().mesh;
+            Transform transform = meshList[i].transform;
+
+            // Create a new CombineInstance and set its properties
+            CombineInstance ci = new CombineInstance();
+            ci.mesh = mesh;
+            ci.transform = transform.localToWorldMatrix;
+
+            // Add the CombineInstance to the list
+            combine.Add(ci);
+        }
+
+        // Create a new mesh on the GameObject
+        MeshFilter mf = gameObject.AddComponent<MeshFilter>();
+
+        // MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
+        // // Set the materials of the new mesh to the materials of the original meshes
+        // Material[] materials = new Material[meshList.Count];
+        // for (int i = 0; i < meshList.Count; i++)
+        // {
+        //     materials[i] = meshList[i].GetComponent<Renderer>().sharedMaterial;
+        // }
+        // mr.materials = materials;
+
+        // Combine the meshes
+        mf.mesh.CombineMeshes(combine.ToArray(), true, true);
+
     }
 
 
@@ -73,7 +127,7 @@ public class CollideAndCombineMesh : MonoBehaviour
     void meshCombiner(GameObject collisionObject)
     {
         Debug.Log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   START MESH COMBINING   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-        Debug.Log($" GameObject name ==== {gameObject.name}");
+        Debug.Log($"*@@@@@ Collision of {collisionObject.name} inside meshCombiner @@@@@");
 
         // Create a list of CombineInstance structures
         List<CombineInstance> ciList = new List<CombineInstance>();
@@ -93,14 +147,14 @@ public class CollideAndCombineMesh : MonoBehaviour
         // Get the mesh filter on the GameObject
         MeshFilter mf = gameObject.GetComponent<MeshFilter>();
 
-        MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
+        // MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
         // // Set the materials of the new mesh to the materials of the original meshes
-        Material[] materials = new Material[1];
-        // for (int i = 0; i < meshList.Count; i++)
-        // {
-        materials[0] = collisionObject.GetComponent<Renderer>().sharedMaterial;
-        // }
-        mr.materials = materials;
+        // Material[] materials = new Material[1];
+        // // for (int i = 0; i < meshList.Count; i++)
+        // // {
+        // materials[0] = collisionObject.GetComponent<Renderer>().sharedMaterial;
+        // // }
+        // mr.materials = materials;
 
         // Combine the meshes
         mf.mesh.CombineMeshes(ciList.ToArray(), true, true);
