@@ -125,7 +125,7 @@ public class CollideAndCombineMesh : MonoBehaviour
 
 
     void Update() {
-        
+
     }
 
 
@@ -136,7 +136,7 @@ public class CollideAndCombineMesh : MonoBehaviour
 
         if (collision.gameObject.name != "Ground")
         {
-            Debug.Log($"*@@@@@ Collision of {collision.gameObject.name} and {collision.gameObject.name} @@@@@");
+            Debug.Log($"*@@@@@ Collision of {gameObject.name} and {collision.gameObject.name} @@@@@");
         }
 
         // if collision object is an unorganized box (tag "0")
@@ -147,9 +147,6 @@ public class CollideAndCombineMesh : MonoBehaviour
             
             // Combine meshes of bin and box
             meshCombiner(collision.gameObject);
-
-            // Update parent mesh
-            //UpdateMesh();
 
             // Get the array of contact points from the collision
             ContactPoint[] contacts = collision.contacts;
@@ -188,7 +185,8 @@ public class CollideAndCombineMesh : MonoBehaviour
         // Create a new CombineInstance and set its properties
         CombineInstance ci = new CombineInstance();
         ci.mesh = mesh;
-        ci.transform = transform.localToWorldMatrix;
+        //ci.transform = transform.localToWorldMatrix;
+        ci.transform = Matrix4x4.TRS(collisionObject.transform.localPosition, collisionObject.transform.localRotation, collisionObject.transform.localScale);
 
         // Add the CombineInstance to the list
         ciList.Add(ci);
@@ -196,14 +194,11 @@ public class CollideAndCombineMesh : MonoBehaviour
         // Get the mesh filter on the GameObject
         MeshFilter mf = gameObject.GetComponent<MeshFilter>();
 
-        // MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
-        // // Set the materials of the new mesh to the materials of the original meshes
-        // Material[] materials = new Material[1];
-        // // for (int i = 0; i < meshList.Count; i++)
-        // // {
-        // materials[0] = collisionObject.GetComponent<Renderer>().sharedMaterial;
-        // // }
-        // mr.materials = materials;
+        MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
+        // Set the materials of the new mesh to the materials of the original meshes
+        Material[] materials = new Material[1];
+        materials[0] = collisionObject.GetComponent<Renderer>().sharedMaterial;
+        mr.materials = materials;
 
         // Combine the meshes
         mf.mesh.CombineMeshes(ciList.ToArray(), true, true);

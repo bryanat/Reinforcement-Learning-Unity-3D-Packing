@@ -105,15 +105,8 @@ public class BoxSpawner : MonoBehaviour
             var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box
+            // automatically comes with boxCollider and mesh renderer
             box.AddComponent<Rigidbody>();
-            box.AddComponent<BoxCollider>();
-            // box.AddComponent<MeshRenderer>();
-            //box.AddComponent<SensorBox>();
-            //SensorBox sensor = box.GetComponent<SensorBox>();
-            // sensor.agent = hand;
-            // sensor.bin = binArea;
-            // sensor.minibin = binMini;
-            var collider = box.GetComponent<BoxCollider>();
             box.tag = "0";
             var m_rb = box.GetComponent<Rigidbody>();
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
