@@ -124,88 +124,90 @@ public class CollideAndCombineMesh : MonoBehaviour
     }
 
 
-    void Update()
-    {
-
+    void Update() {
+        
     }
 
 
     void OnCollisionEnter(Collision collision)
     {
-    //     // if collision is with anything other than the ground 
-    //     // - note: future optimization via turn off collisions with ground for optimization? turn off by turning on kinematics for ground?
+        // if collision is with anything other than the ground 
+        // - note: future optimization via turn off collisions with ground for optimization? turn off by turning on kinematics for ground?
 
-    //     if (collision.gameObject.name != "Ground")
-    //     {
-    //         Debug.Log($"*@@@@@ Collision of {c.gameObject.name} and {collision.gameObject.name} @@@@@");
-    //     }
+        if (collision.gameObject.name != "Ground")
+        {
+            Debug.Log($"*@@@@@ Collision of {collision.gameObject.name} and {collision.gameObject.name} @@@@@");
+        }
 
-    //     // if collision object is an unorganized box (tag "0")
-    //     if (collision.gameObject.CompareTag("0"))
-    //     {
+        // if collision object is an unorganized box (tag "0")
+        if (collision.gameObject.CompareTag("0"))
+        {
+            // Make box child of bin
+            collision.transform.parent = transform;
+            
+            // Combine meshes of bin and box
+            meshCombiner(collision.gameObject);
 
-    //         // meshCombiner(collision.gameObject);
-        
-    //         // needs to limit the reward to once per box, not on every collision
-    //         // if collision object is an unorganized box (tag "0")
+            // Update parent mesh
+            //UpdateMesh();
 
-    //         // Get the array of contact points from the collision
-    //         ContactPoint[] contacts = collision.contacts;
-    //         float surfaceArea = 0;
-    //         // Loop through each contact point
-    //         foreach (ContactPoint contact in contacts)
-    //         {
-    //             // Calculate the projection of the surface area onto the normal vector
-    //             float projection = -Vector3.Dot(contact.normal, contact.point);
+            // Get the array of contact points from the collision
+            ContactPoint[] contacts = collision.contacts;
+            float surfaceArea = 0;
+            // Loop through each contact point
+            foreach (ContactPoint contact in contacts)
+            {
+                // Calculate the projection of the surface area onto the normal vector
+                float projection = -Vector3.Dot(contact.normal, contact.point);
 
-    //             // Multiply the projection by the length of the normal vector to get the surface area
-    //             surfaceArea = surfaceArea + projection * contact.normal.magnitude;
-    //         }
-    //         agent.RewardSurfaceArea(surfaceArea);
-    //         // Update bin volume
-    //         agent.UpdateBinVolume();
-    //         // Update bin bounds
-    //         //agent.UpdateMeshBounds();
-    //   }
+                // Multiply the projection by the length of the normal vector to get the surface area
+                surfaceArea = surfaceArea + projection * contact.normal.magnitude;
+            }
+            agent.RewardSurfaceArea(surfaceArea);
+            // Update bin volume
+            agent.UpdateBinVolume();
+            // Update bin bounds
+            agent.UpdateBinBounds();
+      }
 
     }
 
 
-    // void meshCombiner(GameObject collisionObject)
-    // {
-    //     Debug.Log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   START MESH COMBINING   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-    //     Debug.Log($"*@@@@@ Collision of {collisionObject.name} inside meshCombiner @@@@@");
+    void meshCombiner(GameObject collisionObject)
+    {
+        Debug.Log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   START MESH COMBINING   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        Debug.Log($"*@@@@@ Collision of {collisionObject.name} inside meshCombiner @@@@@");
 
-    //     // Create a list of CombineInstance structures
-    //     List<CombineInstance> ciList = new List<CombineInstance>();
+        // Create a list of CombineInstance structures
+        List<CombineInstance> ciList = new List<CombineInstance>();
 
-    //     // Get mesh from the collision object's mesh filter component
-    //     Mesh mesh = collisionObject.GetComponent<MeshFilter>().mesh;
-    //     Transform transform = collisionObject.transform;
+        // Get mesh from the collision object's mesh filter component
+        Mesh mesh = collisionObject.GetComponent<MeshFilter>().mesh;
+        Transform transform = collisionObject.transform;
 
-    //     // Create a new CombineInstance and set its properties
-    //     CombineInstance ci = new CombineInstance();
-    //     ci.mesh = mesh;
-    //     ci.transform = transform.localToWorldMatrix;
+        // Create a new CombineInstance and set its properties
+        CombineInstance ci = new CombineInstance();
+        ci.mesh = mesh;
+        ci.transform = transform.localToWorldMatrix;
 
-    //     // Add the CombineInstance to the list
-    //     ciList.Add(ci);
+        // Add the CombineInstance to the list
+        ciList.Add(ci);
 
-    //     // Get the mesh filter on the GameObject
-    //     MeshFilter mf = gameObject.GetComponent<MeshFilter>();
+        // Get the mesh filter on the GameObject
+        MeshFilter mf = gameObject.GetComponent<MeshFilter>();
 
-    //     // MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
-    //     // // Set the materials of the new mesh to the materials of the original meshes
-    //     // Material[] materials = new Material[1];
-    //     // // for (int i = 0; i < meshList.Count; i++)
-    //     // // {
-    //     // materials[0] = collisionObject.GetComponent<Renderer>().sharedMaterial;
-    //     // // }
-    //     // mr.materials = materials;
+        // MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
+        // // Set the materials of the new mesh to the materials of the original meshes
+        // Material[] materials = new Material[1];
+        // // for (int i = 0; i < meshList.Count; i++)
+        // // {
+        // materials[0] = collisionObject.GetComponent<Renderer>().sharedMaterial;
+        // // }
+        // mr.materials = materials;
 
-    //     // Combine the meshes
-    //     mf.mesh.CombineMeshes(ciList.ToArray(), true, true);
+        // Combine the meshes
+        mf.mesh.CombineMeshes(ciList.ToArray(), true, true);
 
-    //     Debug.Log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   MESH IS COMBINED   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-    // }
+        Debug.Log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   MESH IS COMBINED   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+    }
 }

@@ -112,15 +112,23 @@ public class PackerHand : Agent
         m_Configuration = 2;
         m_config = 2;
 
-        // Get bin bounds
-        UpdateBinBounds();
+        // Get bin's bounds from onstart
+        Collider m_Collider = binArea.GetComponent<Collider>();
+        areaBounds = m_Collider.bounds;
+
+        Debug.Log($"REGULAR BIN COLLIDER BOUNDS IS {areaBounds}");
+
 
         // Get total bin volume from onstart
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
         miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
 
-        // CollideAndCombineMesh sensorbin = binArea.GetComponent<CollideAndCombineMesh>();
-        // sensorbin.agent = this;
+        Debug.Log($"ONSTART BIN VOLUME USING REGULAR VOLUME CALCULATING METHOD: {binVolume}");
+
+
+        // Initialize agent for collision detection and mesh combiner 
+        CollideAndCombineMesh sensorbin = binArea.GetComponent<CollideAndCombineMesh>();
+        sensorbin.agent = this;
 
         // Reset agent and rewards
         SetResetParameters();
@@ -320,7 +328,7 @@ public class PackerHand : Agent
                 // // Update box position
                 // if (overlap==false) 
                 // {
-                    RewardSelectedPosition();
+                    //RewardSelectedPosition();
                     targetBin  = new GameObject().transform;
                     targetBin.position = test_position; // teleport.
                     Debug.Log($"SELECTED POSITION IS {targetBin.position}");
@@ -339,124 +347,85 @@ public class PackerHand : Agent
                 test_position = new Vector3(x_position, y_position,z_position);
                 if (areaBounds.Contains(test_position)) 
                 {   
-                    // // Check overlap between boxes
-                    // var overlap = CheckOverlap(test_position, l, w, h);
-                    // // Update box position
-                    // if (overlap==false) 
-                    // {              
+                //Collider[] m_Collider = binArea.GetComponentsInChildren<Collider>();
+                // var overlap = false;
+                // foreach(Collider objCollider in m_Collider) {
+                //     if (objCollider.bounds.Contains(test_position))
+                //     {
+                //         overlap = true;
+                //     }
+                //     if (overlap==false) 
+                //     {              
                     targetBin  = new GameObject().transform;
                     // Update box position
                     targetBin.position = test_position; // teleport.
                     Debug.Log($"SELECTED POSITION IS {targetBin.position}");
-                    isPositionSelected = true;  
-                //     // Update search space
-                //     UpdateSearchSpace(l, w, h);
-                // }  
-            }   
+                    isPositionSelected = true;   
+               // }  
+            //} 
         }
     }
-
-    /// <summary>
-    /// Decrease search space as boxes get added
-    /// this adds x, y, z ranges of spaces boxes have taken up
-    ///</summary>
-    // void UpdateSearchSpace(float l, float w, float h) 
-    // {
-    //     var position = targetBin.position;
-    //     Debug.Log($"UPDATE SEARCH SPACE POSITION OF BOX IS {position}");
-    //     var x_range = new List<float> {position.x-l/2, position.x+l/2};
-    //     var y_range = new List<float> {position.y-h/2, position.y+h/2};
-    //     var z_range = new List<float> {position.z-w/2, position.z+w/2};
-    //     x_space.Add(x_range);
-    //     y_space.Add(y_range);
-    //     z_space.Add(z_range);
-    // }
-
-    // bool CheckOverlap(Vector3 test_position, float l, float w, float h) {  
-    //      //check for overlap with preexisting boxes
-    //     for (int i = 1; i < x_space.Count; i++) {
-    //         if ((test_position[0]< x_space[i][0] && test_position[0]+l/2>x_space[i][0]
-    //         || test_position[0]> x_space[i][1] && test_position[0]-l/2<x_space[i][1]) && 
-    //         (test_position[1]<y_space[i][0] && test_position[1]+h/2>y_space[i][0]
-    //             || test_position[1]> y_space[i][1] && test_position[0]-h/2<y_space[i][1]) &&
-    //         (test_position[2]<z_space[i][0] && test_position[2]+w/2>z_space[i][0]
-    //             || test_position[2]> z_space[i][1] && test_position[2]-w/2<z_space[i][1])) 
-    //             {
-    //             Debug.Log("space overlap");
-    //             AddReward(-0.01f);
-    //             return true;
-    //             }
-
-    //         }
-    //     return false;
-    // }
-
-//     public void UpdateMeshBounds() 
-//     {
-//         // Generates planar UV coordinates independent of mesh size
-// // by scaling vertices by the bounding box size
-
-//         // Mesh mesh = binArea.GetComponent<MeshFilter>().mesh;
-//         // Vector3[] vertices = mesh.vertices;
-//         // Vector2[] uvs = new Vector2[vertices.Length];
-//         // Bounds bounds = mesh.bounds;
-//         // int i = 0;
-//         // while (i < uvs.Length)
-//         // {
-//         //     uvs[i] = new Vector2(vertices[i].x / bounds.size.x, vertices[i].z / bounds.size.x);
-//         //     i++;
-//         // }
-//         // mesh.uv = uvs;
-//         var r = GetComponent<Renderer>();
-//         areaBounds = r.localBounds;
-//         Debug.Log($"REGULAR BIN BOUNDS IS {areaBounds}");
-//     }
-    public void UpdateMeshVolume() {
-        float volume = 0;
-        Mesh mesh =  binArea.GetComponent<MeshFilter>().sharedMesh;
-        Vector3[] vertices = mesh.vertices;
-        int[] triangles = mesh.triangles;
-        for (int i = 0; i < mesh.triangles.Length; i += 3)
-        {
-            Vector3 p1 = vertices[triangles[i + 0]];
-            Vector3 p2 = vertices[triangles[i + 1]];
-            Vector3 p3 = vertices[triangles[i + 2]];
-            volume += SignedVolumeOfTriangle(p1, p2, p3);
-        }
-        binVolume= Mathf.Abs(volume);
     }
 
-    float SignedVolumeOfTriangle(Vector3 p1, Vector3 p2, Vector3 p3)
+
+    public void UpdateBinBounds() 
     {
-        float v321 = p3.x * p2.y * p1.z;
-        float v231 = p2.x * p3.y * p1.z;
-        float v312 = p3.x * p1.y * p2.z;
-        float v132 = p1.x * p3.y * p2.z;
-        float v213 = p2.x * p1.y * p3.z;
-        float v123 = p1.x * p2.y * p3.z;
-        return (1.0f / 6.0f) * (-v321 + v231 + v312 - v132 - v213 + v123);
+        // Generates planar UV coordinates independent of mesh size
+// by scaling vertices by the bounding box size
+
+        //Mesh mesh = binArea.GetComponent<MeshFilter>().mesh;
+        // Vector3[] vertices = mesh.vertices;
+        // Vector2[] uvs = new Vector2[vertices.Length];
+        // Bounds bounds = mesh.bounds;
+        // int i = 0;
+        // while (i < uvs.Length)
+        // {
+        //     uvs[i] = new Vector2(vertices[i].x / bounds.size.x, vertices[i].z / bounds.size.x);
+        //     i++;
+        // }
+        // mesh.uv = uvs;
+        // var r = GetComponent<Renderer>();
+        // areaBounds = r.localBounds;
+    //     Collider[] m_Collider = binArea.GetComponentsInChildren<Collider>();
+    //     foreach(Collider objCollider in m_Collider) {
+    //         if (objCollider.bounds.Intersects(m_Collider2.bounds))
+    //         {
+    //     Debug.Log("Bounds intersecting");
+    //     break;
+    // }
+
+        // Collider m_Collider = binArea.GetComponent<Collider>();
+        // areaBounds = m_Collider.bounds;
+
+        // Debug.Log($"REGULAR BIN COLLIDER BOUNDS IS {areaBounds}");
     }
+    // public void UpdateMeshVolume() {
+    //     float volume = 0;
+    //     Mesh mesh =  binArea.GetComponent<MeshFilter>().sharedMesh;
+    //     Vector3[] vertices = mesh.vertices;
+    //     int[] triangles = mesh.triangles;
+    //     for (int i = 0; i < mesh.triangles.Length; i += 3)
+    //     {
+    //         Vector3 p1 = vertices[triangles[i + 0]];
+    //         Vector3 p2 = vertices[triangles[i + 1]];
+    //         Vector3 p3 = vertices[triangles[i + 2]];
+    //         volume += SignedVolumeOfTriangle(p1, p2, p3);
+    //     }
+    //     binVolume= Mathf.Abs(volume);
+    // }
+
+    // float SignedVolumeOfTriangle(Vector3 p1, Vector3 p2, Vector3 p3)
+    // {
+    //     float v321 = p3.x * p2.y * p1.z;
+    //     float v231 = p2.x * p3.y * p1.z;
+    //     float v312 = p3.x * p1.y * p2.z;
+    //     float v132 = p1.x * p3.y * p2.z;
+    //     float v213 = p2.x * p1.y * p3.z;
+    //     float v123 = p1.x * p2.y * p3.z;
+    //     return (1.0f / 6.0f) * (-v321 + v231 + v312 - v132 - v213 + v123);
+    // }
 
 
-
-    public void UpdateBinBounds() {
-        // Gets bounds of bin
-        areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
-
-        // Gets bounds of mini bin
-        miniBounds = binMini.transform.GetChild(0).GetComponent<Collider>().bounds;
-
-        var num_sides = 5;
-
-        // Encapsulate the bounds of each additional object in the overall bounds
-        for (int i = 1; i < num_sides; i++)
-        {
-            areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
-            miniBounds.Encapsulate(binMini.transform.GetChild(i).GetComponent<Collider>().bounds);
-        }
-        Debug.Log($"REGULAR BIN BOUNDS IS {areaBounds}");
-        Debug.Log($"MINI BIN BOUNDS IS {miniBounds}");
-    }
 
     public void UpdateBinVolume() {
         // Update bin volume
