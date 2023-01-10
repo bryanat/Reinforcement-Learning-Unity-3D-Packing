@@ -20,9 +20,6 @@ public class MeshCombiner : MonoBehaviour
 
         for (int i = 0; i < meshList.Count; i++)
         {
-
-            Debug.Log($" Listed object name ==== {meshList[i].name}");
-
             // Get the mesh and its transform component
             Mesh mesh = meshList[i].GetComponent<MeshFilter>().mesh;
             Transform transform = meshList[i].transform;

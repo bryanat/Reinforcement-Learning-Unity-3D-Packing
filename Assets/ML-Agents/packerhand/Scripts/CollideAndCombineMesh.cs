@@ -21,58 +21,41 @@ public class CollideAndCombineMesh : MonoBehaviour
         // instantiate the MeshCollider component from Collider component
         // MeshCollider mc = c.GetComponent<MeshCollider>();
 
-        // // Create parent mesh from all children mesh on start
-        // MeshFilter[] parentMeshFilters = GetComponentsInChildren<MeshFilter>();
-        // CombineInstance[] parentci = new CombineInstance[parentMeshFilters.Length];
 
-        // for (int i=0; i<parentMeshFilters.Length; i++){
-        //   parentci[i].mesh = parentMeshFilters[i].sharedMesh;
-        //   parentci[i].transform = parentMeshFilters[i].transform.localToWorldMatrix;
-        //   parentMeshFilters[i].gameObject.active = false;
-
-        // }
-        // transform.GetComponent<MeshFilter>().mesh = new Mesh();
-        // transform.GetComponent<MeshFilter>().mesh.CombineMeshes(parentci);
-        // transform.gameObject.active = true;
-
-
-        // Create a list of CombineInstance structures
+        // Create a single parent mesh from all children meshes
         List<CombineInstance> combine = new List<CombineInstance>();
-
         MeshFilter[] meshList = GetComponentsInChildren<MeshFilter>(); 
-
         for (int i = 0; i < meshList.Length; i++)
         {
-
-            Debug.Log($" Listed object name ==== {meshList[i].name}");
-
             // Get the mesh and its transform component
             Mesh mesh = meshList[i].GetComponent<MeshFilter>().mesh;
             Transform transform = meshList[i].transform;
-
             // Create a new CombineInstance and set its properties
             CombineInstance ci = new CombineInstance();
             ci.mesh = mesh;
             ci.transform = transform.localToWorldMatrix;
-
             // Add the CombineInstance to the list
             combine.Add(ci);
         }
-
         // Create a new mesh on the GameObject
-        MeshFilter mf = gameObject.AddComponent<MeshFilter>();
+        MeshFilter parent_mf = gameObject.AddComponent<MeshFilter>();
 
-        // MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
-        // // Set the materials of the new mesh to the materials of the original meshes
-        // Material[] materials = new Material[meshList.Count];
-        // for (int i = 0; i < meshList.Count; i++)
-        // {
-        //     materials[i] = meshList[i].GetComponent<Renderer>().sharedMaterial;
-        // }
-        // mr.materials = materials;
+        MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
+        // Set the materials of the new mesh to the materials of the original meshes
+        Material[] materials = new Material[meshList.Length];
+        for (int i = 0; i < meshList.Length; i++)
+        {
+            materials[i] = meshList[i].GetComponent<Renderer>().sharedMaterial;
+        }
+        mr.materials = materials;
 
         // Combine the meshes
-        mf.mesh.CombineMeshes(combine.ToArray(), true, true);
+        parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
+
+        // Create a mesh collider from the parent mesh
+        Mesh parent_m = GetComponent<MeshFilter>().mesh; // reference parent_mf mesh filter to create parent mesh
+        MeshCollider parent_mc = gameObject.AddComponent<MeshCollider>(); // create parent_mc mesh collider 
+        parent_mc.sharedMesh = parent_m; // add the mesh shape (from the parent mesh) to the mesh collider
 
     }
 
