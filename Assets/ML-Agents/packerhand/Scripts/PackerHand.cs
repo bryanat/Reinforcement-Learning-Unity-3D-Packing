@@ -119,7 +119,7 @@ public class PackerHand : Agent
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
         miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
 
-        SensorBin sensorbin = binArea.GetComponent<SensorBin>();
+        CollideAndCombineMesh sensorbin = binArea.GetComponent<CollideAndCombineMesh>();
         sensorbin.agent = this;
 
         // Reset agent and rewards
@@ -391,6 +391,54 @@ public class PackerHand : Agent
     //     return false;
     // }
 
+//     public void UpdateMeshBounds() 
+//     {
+//         // Generates planar UV coordinates independent of mesh size
+// // by scaling vertices by the bounding box size
+
+//         // Mesh mesh = binArea.GetComponent<MeshFilter>().mesh;
+//         // Vector3[] vertices = mesh.vertices;
+//         // Vector2[] uvs = new Vector2[vertices.Length];
+//         // Bounds bounds = mesh.bounds;
+//         // int i = 0;
+//         // while (i < uvs.Length)
+//         // {
+//         //     uvs[i] = new Vector2(vertices[i].x / bounds.size.x, vertices[i].z / bounds.size.x);
+//         //     i++;
+//         // }
+//         // mesh.uv = uvs;
+//         var r = GetComponent<Renderer>();
+//         areaBounds = r.localBounds;
+//         Debug.Log($"REGULAR BIN BOUNDS IS {areaBounds}");
+//     }
+    public void UpdateMeshVolume() {
+        float volume = 0;
+        Mesh mesh =  binArea.GetComponent<MeshFilter>().sharedMesh;
+        Vector3[] vertices = mesh.vertices;
+        int[] triangles = mesh.triangles;
+        for (int i = 0; i < mesh.triangles.Length; i += 3)
+        {
+            Vector3 p1 = vertices[triangles[i + 0]];
+            Vector3 p2 = vertices[triangles[i + 1]];
+            Vector3 p3 = vertices[triangles[i + 2]];
+            volume += SignedVolumeOfTriangle(p1, p2, p3);
+        }
+        binVolume= Mathf.Abs(volume);
+    }
+
+    float SignedVolumeOfTriangle(Vector3 p1, Vector3 p2, Vector3 p3)
+    {
+        float v321 = p3.x * p2.y * p1.z;
+        float v231 = p2.x * p3.y * p1.z;
+        float v312 = p3.x * p1.y * p2.z;
+        float v132 = p1.x * p3.y * p2.z;
+        float v213 = p2.x * p1.y * p3.z;
+        float v123 = p1.x * p2.y * p3.z;
+        return (1.0f / 6.0f) * (-v321 + v231 + v312 - v132 - v213 + v123);
+    }
+
+
+
     public void UpdateBinBounds() {
         // Gets bounds of bin
         areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
@@ -512,7 +560,7 @@ public class PackerHand : Agent
     public void RewardSurfaceArea(float surface_area)
     { 
         AddReward(0.005f*surface_area);
-        Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
+        Debug.Log($"SurfaceArea is {surface_area} Dropped in bin!!!Total reward: {GetCumulativeReward()}");
     }
 
     /// <summary>
