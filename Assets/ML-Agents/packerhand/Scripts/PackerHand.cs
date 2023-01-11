@@ -63,6 +63,10 @@ public class PackerHand : Agent
     [HideInInspector] public bool isRotationSelected;
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isBoxSelected;
+    [HideInInspector] public bool hasCollided;
+
+    [HideInInspector] public bool isDroppedoff; 
+
 
 
 
@@ -205,6 +209,11 @@ public class PackerHand : Agent
             // layer2 = 1 + dense2   1.1   1.08  1.14 1.43  >  2
             // layer3 = 2 + dense3   2.1   2.08  2.14 2.43  >  3 
 
+////////surface area and volume should be implemented in the reward but not necessarily fed into the agent observations////////
+////////spatial learning of topology probably should be learned by the agent////////////////////
+
+///////Why is this problem hard in the first place? our spatial information is approximated based on our sensory information, so what if we give the agent 
+//////more accurate spatial information? 
 
 
     /// <summary>
@@ -217,6 +226,17 @@ public class PackerHand : Agent
         {
             ConfigureAgent(m_Configuration);
             m_Configuration = -1;
+        }
+        if (isDroppedoff && hasCollided) {
+            Debug.Log("BOX HAS COLLIDED INTO BIN!!!");
+            StateReset();
+        }
+
+        if (isDroppedoff && hasCollided==false) {
+            Debug.Log("BOX DID NOT COLLIDE INTO BIN!!!!!");
+            boxSpawner.boxPool[boxIdx].rb.transform.position = boxSpawner.boxPool[boxIdx].startingPos; // Reset box position if it doesn't collide into bin
+            organizedBoxes.Remove(boxIdx); 
+            StateReset();     
         }
         //if agent selects a box, it should move towards the box
         if (isBoxSelected && isPickedup == false) 
@@ -347,24 +367,24 @@ public class PackerHand : Agent
                 test_position = new Vector3(x_position, y_position,z_position);
                 if (areaBounds.Contains(test_position)) 
                 {   
-                //Collider[] m_Collider = binArea.GetComponentsInChildren<Collider>();
+                // Collider[] m_Collider = binArea.GetComponentsInChildren<Collider>();
                 // var overlap = false;
                 // foreach(Collider objCollider in m_Collider) {
-                //     if (objCollider.bounds.Contains(test_position))
+                //      if (objCollider.bounds.Contains(test_position))
                 //     {
                 //         overlap = true;
                 //     }
-                //     if (overlap==false) 
-                //     {              
-                    targetBin  = new GameObject().transform;
-                    // Update box position
-                    targetBin.position = test_position; // teleport.
-                    Debug.Log($"SELECTED POSITION IS {targetBin.position}");
-                    isPositionSelected = true;   
-               // }  
-            //} 
+                // }
+                // if (overlap==false) 
+                // {              
+                targetBin  = new GameObject().transform;
+                // Update box position
+                targetBin.position = test_position; // teleport.
+                Debug.Log($"SELECTED POSITION IS {targetBin.position}");
+                isPositionSelected = true;   
+            //    }  
+             } 
         }
-    }
     }
 
 
@@ -518,7 +538,8 @@ public class PackerHand : Agent
 
         // Reset states and properties to allow next round of box selection
         //carriedObject.tag = "1";
-        StateReset();
+        isDroppedoff = true;
+        //StateReset();
     }
 
 
@@ -555,8 +576,10 @@ public class PackerHand : Agent
         isPositionSelected = false;
         isRotationSelected = false;
         isPickedup = false;
+        isDroppedoff = false;
         targetBin = null;
         targetBox = null;
+        hasCollided = false;
     }
 
 

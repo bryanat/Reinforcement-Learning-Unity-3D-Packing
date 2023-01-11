@@ -142,6 +142,7 @@ public class CollideAndCombineMesh : MonoBehaviour
         // if collision object is an unorganized box (tag "0")
         if (collision.gameObject.CompareTag("0"))
         {
+            agent.hasCollided = true;
             // Make box child of bin
             collision.transform.parent = transform;
             
@@ -164,7 +165,7 @@ public class CollideAndCombineMesh : MonoBehaviour
             // Update bin volume
             agent.UpdateBinVolume();
             // Update bin bounds
-            agent.UpdateBinBounds();
+            //agent.UpdateBinBounds();
       }
 
     }
@@ -185,7 +186,7 @@ public class CollideAndCombineMesh : MonoBehaviour
         // Create a new CombineInstance and set its properties
         CombineInstance ci = new CombineInstance();
         ci.mesh = mesh;
-        //ci.transform = transform.localToWorldMatrix;
+        //ci.transform = transform.localToWorldMatrix;  ci.transform = Matrix4x4.TRS(transform.localPosition, transform.localRotation, transform.localScale); 
         ci.transform = Matrix4x4.TRS(collisionObject.transform.localPosition, collisionObject.transform.localRotation, collisionObject.transform.localScale);
 
         // Add the CombineInstance to the list
