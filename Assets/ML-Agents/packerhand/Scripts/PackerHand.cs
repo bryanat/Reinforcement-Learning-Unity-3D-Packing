@@ -234,7 +234,7 @@ public class PackerHand : Agent
 
         if (isDroppedoff && hasCollided==false) {
             Debug.Log("BOX DID NOT COLLIDE INTO BIN!!!!!");
-            boxSpawner.boxPool[boxIdx].rb.transform.position = boxSpawner.boxPool[boxIdx].startingPos; // Reset box position if it doesn't collide into bin
+            carriedObject.position = boxSpawner.boxPool[boxIdx].startingPos; // Reset box position if it doesn't collide into bin
             organizedBoxes.Remove(boxIdx); 
             StateReset();     
         }
