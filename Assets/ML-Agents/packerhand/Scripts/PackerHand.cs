@@ -434,12 +434,16 @@ public class PackerHand : Agent
         carriedObject.SetParent(null);
 
         var m_rb =  carriedObject.GetComponent<Rigidbody>();
-        // Set box position and rotation
-        m_rb.isKinematic = false;
+        var m_c = carriedObject.GetComponent<Collider>();
+        //m_rb.isKinematic = false;
+
+        // Lock box position and location
         carriedObject.position = targetBin.position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
-        
         m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
+
+        // Enbles OnTriggerEnter in CollideAndCombineMesh 
+        m_c.isTrigger = true;
 
         StartCoroutine(IsColliding());
     }
@@ -497,6 +501,7 @@ public class PackerHand : Agent
         isPositionSelected = false;
         isRotationSelected = false;
         isPickedup = false;
+        isDroppedoff = false;
         targetBin = null;
         targetBox = null;
     }

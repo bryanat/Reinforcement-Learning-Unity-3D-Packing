@@ -81,15 +81,13 @@ public class CollideAndCombineMesh : MonoBehaviour
         int layerMask = 1<<5;
         if(Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, layerMask))
         {
+            Debug.Log("INSIDE RAYCAST");
             hitObject = hit.transform;
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward)*10, Color.red ,10.0f);
             var parent_mc =  GetComponent<Collider>();
             var box_mc = hit.transform.GetComponent<Collider>();
             Vector3 otherPosition = hit.transform.position;
             Quaternion otherRotation = hit.transform.rotation;
-
-            Vector3 direction;
-            float distance;
 
             overlapped = Physics.ComputePenetration(
                 parent_mc, transform.position, transform.rotation,
@@ -98,20 +96,33 @@ public class CollideAndCombineMesh : MonoBehaviour
             );
         }
     }
-
-
-    void OnCollisionStay() {
-
-        hitObject.position -= direction * (distance);
-        Debug.Log($"BOX FINAL POSITION BECOMES: {hitObject.position}");
-        hitObject.parent = transform;
-        meshCombiner(hitObject.gameObject);
-        agent.isDroppedoff = true;
-        hitObject = null;
-        ////get surface area of contact 
-        ////punish agent for the amouont of adjustment
-        ///reward the agent for surface area contact if adjustment is small enough
+    void OnTriggerEnter() {
+        Debug.Log("TRIGER OCCURRED INSIDE BIN");
+        Debug.Log($"OVERLAPPED IS : {overlapped}");
+        if (overlapped==true) {
+            hitObject.position -= direction * (distance);
+            Debug.Log($"BOX FINAL POSITION BECOMES: {hitObject.position}");
+            hitObject.parent = transform;
+            meshCombiner(hitObject.gameObject);
+            agent.isDroppedoff = true;
+        }
+        
     }
+    // void OnCollisionStay() {
+
+    //     Debug.Log("Collision occured inside bin");
+
+    //     // Debug.Log($"OVERLAPPED IS : {overlapped}");
+    //     // hitObject.position -= direction * (distance);
+    //     // Debug.Log($"BOX FINAL POSITION BECOMES: {hitObject.position}");
+    //     // hitObject.parent = transform;
+    //     // meshCombiner(hitObject.gameObject);
+    //     // agent.isDroppedoff = true;
+    //     // hitObject = null;
+    //     ////get surface area of contact 
+    //     ////punish agent for the amouont of adjustment
+    //     ///reward the agent for surface area contact if adjustment is small enough
+    // }
  
 
 
