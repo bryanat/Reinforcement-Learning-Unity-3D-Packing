@@ -456,7 +456,7 @@ public class PackerHand : Agent
         //Print the time of when the function is first called.
         Debug.Log("Started Coroutine at timestamp : " + Time.time);
 
-        yield return new WaitForSeconds(5);
+        yield return new WaitForSecondsRealtime(1);
         if (isDroppedoff == false) {
             carriedObject.position = boxSpawner.boxPool[boxIdx].startingPos;
             organizedBoxes.Remove(boxIdx); 

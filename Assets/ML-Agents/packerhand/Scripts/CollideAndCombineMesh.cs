@@ -73,13 +73,13 @@ public class CollideAndCombineMesh : MonoBehaviour
 
 
     /// <summary>
-    //// Use raycast to detect incoming boxes and check for overlapping
+    //// Use raycast and computer penetration to detect incoming boxes and check for overlapping
     ///</summary>
     void Update() {
 
         RaycastHit hit;
         int layerMask = 1<<5;
-        if(Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, layerMask))
+        if(Physics.SphereCast(transform.position, transform.localScale.z, transform.forward, out hit, Mathf.Infinity, layerMask))
         {
             Debug.Log("INSIDE RAYCAST");
             hitObject = hit.transform;
@@ -94,16 +94,23 @@ public class CollideAndCombineMesh : MonoBehaviour
                 box_mc, otherPosition, otherRotation,
                 out direction, out distance
             );
+            Debug.Log($"OVERLAPPED IS: {overlapped}");
         }
     }
+
+
+    /// <summary>
+    //// Adjust position of box and calls mesh combiner
+    //// happens when the selected position is good enough
+    ///</summary>
     void OnTriggerEnter() {
         Debug.Log("TRIGER OCCURRED INSIDE BIN");
-        Debug.Log($"OVERLAPPED IS : {overlapped}");
         if (overlapped==true) {
             hitObject.position -= direction * (distance);
             Debug.Log($"BOX FINAL POSITION BECOMES: {hitObject.position}");
             hitObject.parent = transform;
             meshCombiner(hitObject.gameObject);
+            overlapped = false;
             agent.isDroppedoff = true;
         }
         
