@@ -108,6 +108,7 @@ public class BoxSpawner : MonoBehaviour
             // automatically comes with boxCollider and mesh renderer
             box.AddComponent<Rigidbody>();
             box.tag = "0";
+            box.layer = 5;
             var m_rb = box.GetComponent<Rigidbody>();
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             m_rb.isKinematic = true;

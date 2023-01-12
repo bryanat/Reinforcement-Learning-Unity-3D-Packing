@@ -198,24 +198,6 @@ public class PackerHand : Agent
     } 
 
 
-        
-        // current - past // Reward
-        // current > past // good +Reward
-        // current < past // bad -Reward
-
-        // Reward Layers
-            // layerX = X + denseX
-            // layer1 = 0 + dense1   0.1   0.08  0.14 0.43    1
-            // layer2 = 1 + dense2   1.1   1.08  1.14 1.43  >  2
-            // layer3 = 2 + dense3   2.1   2.08  2.14 2.43  >  3 
-
-////////surface area and volume should be implemented in the reward but not necessarily fed into the agent observations////////
-////////spatial learning of topology probably should be learned by the agent////////////////////
-
-///////Why is this problem hard in the first place? our spatial information is approximated based on our sensory information, so what if we give the agent 
-//////more accurate spatial information? 
-
-
     /// <summary>
     /// This function is called at every time step
     ///</summary>
@@ -227,17 +209,15 @@ public class PackerHand : Agent
             ConfigureAgent(m_Configuration);
             m_Configuration = -1;
         }
-        if (isDroppedoff && hasCollided) {
-            Debug.Log("BOX HAS COLLIDED INTO BIN!!!");
+        if (isDroppedoff) {
             StateReset();
         }
 
-        if (isDroppedoff && hasCollided==false) {
-            Debug.Log("BOX DID NOT COLLIDE INTO BIN!!!!!");
-            carriedObject.position = boxSpawner.boxPool[boxIdx].startingPos; // Reset box position if it doesn't collide into bin
-            organizedBoxes.Remove(boxIdx); 
-            StateReset();     
-        }
+        // if (isDistanceTooFar) {
+        //     carriedObject.position = boxSpawner.boxPool[boxIdx].startingPos; // Reset box position if it doesn't collide into bin
+        //     organizedBoxes.Remove(boxIdx); 
+        //     StateReset();     
+        // }
         //if agent selects a box, it should move towards the box
         if (isBoxSelected && isPickedup == false) 
         {
@@ -301,12 +281,12 @@ public class PackerHand : Agent
     /// <summary>
     /// Agent selects a target box
     ///</summary>
-    public void SelectBox(int x) 
+    public void SelectBox(int n) 
     {
         // Check if a box has already been selected
-        if (!organizedBoxes.Contains(x)) 
+        if (!organizedBoxes.Contains(n)) 
         {
-            boxIdx = x;
+            boxIdx = n;
             Debug.Log($"SELECTED BOX: {boxIdx}");
             targetBox = boxSpawner.boxPool[boxIdx].rb.transform;
             // Add box to list so it won't be selected again
@@ -314,6 +294,16 @@ public class PackerHand : Agent
             isBoxSelected = true;
 
         }
+    }
+
+
+
+    /// <summary>
+    /// Agent selects position for box
+    ///</summary>
+
+    public void SelectSpace() {
+
     }
 
 
@@ -343,12 +333,6 @@ public class PackerHand : Agent
             Debug.Log($"TEST POSITION IS INSIDE BIN: {miniBounds.Contains(test_position)}");
             // check if position inside bin bounds
             if (miniBounds.Contains(test_position)) {
-                // Check overlap between boxes
-                //  var overlap = CheckOverlap(test_position, l, w, h);
-                // // Update box position
-                // if (overlap==false) 
-                // {
-                    //RewardSelectedPosition();
                     targetBin  = new GameObject().transform;
                     targetBin.position = test_position; // teleport.
                     Debug.Log($"SELECTED POSITION IS {targetBin.position}");
@@ -366,84 +350,17 @@ public class PackerHand : Agent
                 z_position = Mathf.Lerp(binArea.transform.position.z-areaBounds.extents.z+1, binArea.transform.position.z+areaBounds.extents.z-1, z);
                 test_position = new Vector3(x_position, y_position,z_position);
                 if (areaBounds.Contains(test_position)) 
-                {   
-                // Collider[] m_Collider = binArea.GetComponentsInChildren<Collider>();
-                // var overlap = false;
-                // foreach(Collider objCollider in m_Collider) {
-                //      if (objCollider.bounds.Contains(test_position))
-                //     {
-                //         overlap = true;
-                //     }
-                // }
-                // if (overlap==false) 
-                // {              
-                targetBin  = new GameObject().transform;
-                // Update box position
-                targetBin.position = test_position; // teleport.
-                Debug.Log($"SELECTED POSITION IS {targetBin.position}");
-                isPositionSelected = true;   
+                {              
+                    targetBin  = new GameObject().transform;
+                    // Update box position
+                    targetBin.position = test_position; // teleport.
+                    Debug.Log($"SELECTED POSITION IS {targetBin.position}");
+                    isPositionSelected = true;   
             //    }  
              } 
         }
     }
 
-
-    public void UpdateBinBounds() 
-    {
-        // Generates planar UV coordinates independent of mesh size
-// by scaling vertices by the bounding box size
-
-        //Mesh mesh = binArea.GetComponent<MeshFilter>().mesh;
-        // Vector3[] vertices = mesh.vertices;
-        // Vector2[] uvs = new Vector2[vertices.Length];
-        // Bounds bounds = mesh.bounds;
-        // int i = 0;
-        // while (i < uvs.Length)
-        // {
-        //     uvs[i] = new Vector2(vertices[i].x / bounds.size.x, vertices[i].z / bounds.size.x);
-        //     i++;
-        // }
-        // mesh.uv = uvs;
-        // var r = GetComponent<Renderer>();
-        // areaBounds = r.localBounds;
-    //     Collider[] m_Collider = binArea.GetComponentsInChildren<Collider>();
-    //     foreach(Collider objCollider in m_Collider) {
-    //         if (objCollider.bounds.Intersects(m_Collider2.bounds))
-    //         {
-    //     Debug.Log("Bounds intersecting");
-    //     break;
-    // }
-
-        // Collider m_Collider = binArea.GetComponent<Collider>();
-        // areaBounds = m_Collider.bounds;
-
-        // Debug.Log($"REGULAR BIN COLLIDER BOUNDS IS {areaBounds}");
-    }
-    // public void UpdateMeshVolume() {
-    //     float volume = 0;
-    //     Mesh mesh =  binArea.GetComponent<MeshFilter>().sharedMesh;
-    //     Vector3[] vertices = mesh.vertices;
-    //     int[] triangles = mesh.triangles;
-    //     for (int i = 0; i < mesh.triangles.Length; i += 3)
-    //     {
-    //         Vector3 p1 = vertices[triangles[i + 0]];
-    //         Vector3 p2 = vertices[triangles[i + 1]];
-    //         Vector3 p3 = vertices[triangles[i + 2]];
-    //         volume += SignedVolumeOfTriangle(p1, p2, p3);
-    //     }
-    //     binVolume= Mathf.Abs(volume);
-    // }
-
-    // float SignedVolumeOfTriangle(Vector3 p1, Vector3 p2, Vector3 p3)
-    // {
-    //     float v321 = p3.x * p2.y * p1.z;
-    //     float v231 = p2.x * p3.y * p1.z;
-    //     float v312 = p3.x * p1.y * p2.z;
-    //     float v132 = p1.x * p3.y * p2.z;
-    //     float v213 = p2.x * p1.y * p3.z;
-    //     float v123 = p1.x * p2.y * p3.z;
-    //     return (1.0f / 6.0f) * (-v321 + v231 + v312 - v132 - v213 + v123);
-    // }
 
 
 
@@ -527,19 +444,12 @@ public class PackerHand : Agent
         carriedObject.SetParent(null);
 
         var m_rb =  carriedObject.GetComponent<Rigidbody>();
-        // Set box physics
-        //m_rb.useGravity = true;
-        m_rb.isKinematic = false;
         // Set box position and rotation
+        m_rb.isKinematic = false;
         carriedObject.position = targetBin.position; 
         carriedObject.rotation = Quaternion.Euler(rotation);
         
         m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
-
-        // Reset states and properties to allow next round of box selection
-        //carriedObject.tag = "1";
-        isDroppedoff = true;
-        //StateReset();
     }
 
 
@@ -732,9 +642,3 @@ public class PackerHand : Agent
 
 }
 
-
-
-/////Rewarded: 
-///on episode begin: negative reward proportional to the volumne inside the bin area 
-///small rewards: walking towards the target box, picking up the target box, getting to the bin, putting bin inside bin area
-///addreward vs setrewaard: add reward for getting to the next stage of actions, set reward at the beginning of each stage of actions, setreward > accumulated rewarded from previous stage
