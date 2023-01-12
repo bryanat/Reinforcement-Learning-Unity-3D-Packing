@@ -205,9 +205,9 @@ public class PackerHand : Agent
             ConfigureAgent(m_Configuration);
             m_Configuration = -1;
         }
-        if (isDroppedoff) {
-            StateReset();
-        }
+        // if (isDroppedoff) {
+        //     StateReset();
+        // }
         // if agent selects a box, it should move towards the box
         else if (isBoxSelected && isPickedup == false) 
         {
@@ -456,11 +456,14 @@ public class PackerHand : Agent
         //Print the time of when the function is first called.
         Debug.Log("Started Coroutine at timestamp : " + Time.time);
 
-        yield return new WaitForSecondsRealtime(1);
+        yield return new WaitForSecondsRealtime(5);
         if (isDroppedoff == false) {
             carriedObject.position = boxSpawner.boxPool[boxIdx].startingPos;
             organizedBoxes.Remove(boxIdx); 
             StateReset();     
+        }
+        else {
+            StateReset();
         }
 
         //After we have waited 5 seconds print the time again.

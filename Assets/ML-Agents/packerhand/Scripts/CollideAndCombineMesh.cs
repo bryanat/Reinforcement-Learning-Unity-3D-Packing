@@ -94,7 +94,7 @@ public class CollideAndCombineMesh : MonoBehaviour
                 box_mc, otherPosition, otherRotation,
                 out direction, out distance
             );
-            Debug.Log($"OVERLAPPED IS: {overlapped}");
+            Debug.Log($"OVERLAPPED IS: {overlapped} for BOX {hit.transform.name}");
         }
     }
 
@@ -103,14 +103,18 @@ public class CollideAndCombineMesh : MonoBehaviour
     //// Adjust position of box and calls mesh combiner
     //// happens when the selected position is good enough
     ///</summary>
-    void OnTriggerEnter() {
+    void OnTriggerStay() {
         Debug.Log("TRIGER OCCURRED INSIDE BIN");
         if (overlapped==true) {
+            // Adjust box position
             hitObject.position -= direction * (distance);
-            Debug.Log($"BOX FINAL POSITION BECOMES: {hitObject.position}");
+            Debug.Log($"BOX {hitObject.name} FINAL POSITION BECOMES: {hitObject.position}");
+            // Make box child of bin
             hitObject.parent = transform;
+            // Combine bin and box meshes
             meshCombiner(hitObject.gameObject);
             overlapped = false;
+            // Trigger the next round of picking
             agent.isDroppedoff = true;
         }
         
