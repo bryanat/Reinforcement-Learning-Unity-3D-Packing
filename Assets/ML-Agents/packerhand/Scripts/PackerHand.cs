@@ -8,6 +8,7 @@ using Unity.Barracuda;
 using Unity.MLAgentsExamples;
 using Unity.MLAgents.Policies;
 using Boxes;
+using System.Collections;
 
 public class PackerHand : Agent 
 {
@@ -50,10 +51,6 @@ public class PackerHand : Agent
     public float binVolume; // regular bin's volume
     public float miniBinVolume; // mini bin's volume
 
-    public List<List<float>> x_space = new List<List<float>>(); // x-axix search space
-    public List<List<float>> y_space = new List<List<float>>(); // y-axis search space
-    public List<List<float>> z_space = new List<List<float>>(); // z-axis search space
-
     EnvironmentParameters m_ResetParams; // Environment parameters
     public BoxSpawner boxSpawner; // Box Spawner
 
@@ -63,9 +60,8 @@ public class PackerHand : Agent
     [HideInInspector] public bool isRotationSelected;
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isBoxSelected;
-    [HideInInspector] public bool hasCollided;
 
-    [HideInInspector] public bool isDroppedoff; 
+    [HideInInspector] public bool isDroppedoff;
 
 
 
@@ -212,14 +208,8 @@ public class PackerHand : Agent
         if (isDroppedoff) {
             StateReset();
         }
-
-        // if (isDistanceTooFar) {
-        //     carriedObject.position = boxSpawner.boxPool[boxIdx].startingPos; // Reset box position if it doesn't collide into bin
-        //     organizedBoxes.Remove(boxIdx); 
-        //     StateReset();     
-        // }
-        //if agent selects a box, it should move towards the box
-        if (isBoxSelected && isPickedup == false) 
+        // if agent selects a box, it should move towards the box
+        else if (isBoxSelected && isPickedup == false) 
         {
             UpdateAgentPosition(targetBox);
             if (total_x_distance < 0.1f && total_z_distance<0.1f) {
@@ -450,6 +440,27 @@ public class PackerHand : Agent
         carriedObject.rotation = Quaternion.Euler(rotation);
         
         m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
+
+        StartCoroutine(IsColliding());
+    }
+
+    /// <summary>
+    //// Wait for 5 sec to see if collision occurs upon drop off
+    //// if no collision, box will be sent back to spawning area
+    ///</summary>
+    IEnumerator IsColliding() {
+        //Print the time of when the function is first called.
+        Debug.Log("Started Coroutine at timestamp : " + Time.time);
+
+        yield return new WaitForSeconds(5);
+        if (isDroppedoff == false) {
+            carriedObject.position = boxSpawner.boxPool[boxIdx].startingPos;
+            organizedBoxes.Remove(boxIdx); 
+            StateReset();     
+        }
+
+        //After we have waited 5 seconds print the time again.
+        Debug.Log("Finished Coroutine at timestamp : " + Time.time);
     }
 
 
@@ -480,16 +491,14 @@ public class PackerHand : Agent
         m_Agent.angularVelocity = Vector3.zero;
     }
 
-    void StateReset() 
+    public void StateReset() 
     {
         isBoxSelected = false;
         isPositionSelected = false;
         isRotationSelected = false;
         isPickedup = false;
-        isDroppedoff = false;
         targetBin = null;
         targetBox = null;
-        hasCollided = false;
     }
 
 
@@ -601,11 +610,6 @@ public class PackerHand : Agent
 
         // Reset organized Boxes dictionary
         organizedBoxes.Clear();
-
-        // Reset search space
-        x_space.Clear();
-        y_space.Clear();
-        z_space.Clear();
 
         // Reset states;
         StateReset();

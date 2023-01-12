@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
+
 
 // SensorCollision component to work requires:
 // - Collider component (needed for a Collision)
@@ -11,6 +13,13 @@ public class CollideAndCombineMesh : MonoBehaviour
     public Collider c; // note: don't need to drag and drop in inspector, will instantiate on line 17: c = GetComponent<Collider>();
     // public Rigidbody rb;
     public PackerHand agent;
+
+    public bool overlapped;
+
+    public Vector3 direction;
+    public float distance;
+
+    public Transform hitObject;
 
 
 
@@ -59,16 +68,21 @@ public class CollideAndCombineMesh : MonoBehaviour
         Mesh parent_m = GetComponent<MeshFilter>().mesh; // reference parent_mf mesh filter to create parent mesh
         MeshCollider parent_mc = gameObject.AddComponent<MeshCollider>(); // create parent_mc mesh collider 
         parent_mc.sharedMesh = parent_m; // add the mesh shape (from the parent mesh) to the mesh collider
+
     }
 
 
+    /// <summary>
+    //// Use raycast to detect incoming boxes and check for overlapping
+    ///</summary>
     void Update() {
 
         RaycastHit hit;
         int layerMask = 1<<5;
         if(Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, layerMask))
         {
-            Debug.Log($"RAYCAST HIT OBJECT: {hit.transform.name}");
+            hitObject = hit.transform;
+            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward)*10, Color.red ,10.0f);
             var parent_mc =  GetComponent<Collider>();
             var box_mc = hit.transform.GetComponent<Collider>();
             Vector3 otherPosition = hit.transform.position;
@@ -77,26 +91,26 @@ public class CollideAndCombineMesh : MonoBehaviour
             Vector3 direction;
             float distance;
 
-
-            bool overlapped = Physics.ComputePenetration(
+            overlapped = Physics.ComputePenetration(
                 parent_mc, transform.position, transform.rotation,
                 box_mc, otherPosition, otherRotation,
                 out direction, out distance
             );
-            if (overlapped) {
-                Debug.Log($"OVERLAP OF BOX AND BIN WITH DIRECTION: {direction}, {distance}");
-                hit.transform.position += direction * distance;
-                meshCombiner(hit.transform.gameObject);
-                agent.isDroppedoff = true;
-                ////punish agent for the amouont of adjustment
-                ///reward the agent for surface area contact if adjustment is small enough
-            }
         }
     }
 
-    void OnTriggerEnter() {
 
+    void OnCollisionStay() {
 
+        hitObject.position -= direction * (distance);
+        Debug.Log($"BOX FINAL POSITION BECOMES: {hitObject.position}");
+        hitObject.parent = transform;
+        meshCombiner(hitObject.gameObject);
+        agent.isDroppedoff = true;
+        hitObject = null;
+        ////get surface area of contact 
+        ////punish agent for the amouont of adjustment
+        ///reward the agent for surface area contact if adjustment is small enough
     }
  
 
@@ -104,39 +118,37 @@ public class CollideAndCombineMesh : MonoBehaviour
     // void OnCollisionEnter(Collision collision)
     // {
 
-    //     // if collision object is an unorganized box (tag "0")
-    //     if (collision.gameObject.CompareTag("0"))
+    //     agent.hasCollided = true;
+    //     // Make box child of bin
+    //     collision.transform.parent = transform;
+        
+    //     // Combine meshes of bin and box
+    //     meshCombiner(collision.gameObject);
+
+    //     // Get the array of contact points from the collision
+    //     ContactPoint[] contacts = collision.contacts;
+    //     float surfaceArea = 0;
+    //     // Loop through each contact point
+    //     foreach (ContactPoint contact in contacts)
     //     {
+    //         // Calculate the projection of the surface area onto the normal vector
+    //         float projection = -Vector3.Dot(contact.normal, contact.point);
 
-    //             agent.hasCollided = true;
-    //             // Make box child of bin
-    //             collision.transform.parent = transform;
-                
-    //             // Combine meshes of bin and box
-    //             meshCombiner(collision.gameObject);
+    //         // Multiply the projection by the length of the normal vector to get the surface area
+    //         surfaceArea = surfaceArea + projection * contact.normal.magnitude;
+    //     }
+    //     agent.RewardSurfaceArea(surfaceArea);
+    //     // Update bin volume
+    //     agent.UpdateBinVolume();
+    //     // Update bin bounds
+    //     //agent.UpdateBinBounds();
 
-    //             // Get the array of contact points from the collision
-    //             ContactPoint[] contacts = collision.contacts;
-    //             float surfaceArea = 0;
-    //             // Loop through each contact point
-    //             foreach (ContactPoint contact in contacts)
-    //             {
-    //                 // Calculate the projection of the surface area onto the normal vector
-    //                 float projection = -Vector3.Dot(contact.normal, contact.point);
-
-    //                 // Multiply the projection by the length of the normal vector to get the surface area
-    //                 surfaceArea = surfaceArea + projection * contact.normal.magnitude;
-    //             }
-    //             agent.RewardSurfaceArea(surfaceArea);
-    //             // Update bin volume
-    //             agent.UpdateBinVolume();
-    //             // Update bin bounds
-    //             //agent.UpdateBinBounds();
-
-    //         }
-    //   }
 
     // }
+
+    void updateSurfaceArea() {
+
+    }
 
 
     void meshCombiner(GameObject collisionObject)

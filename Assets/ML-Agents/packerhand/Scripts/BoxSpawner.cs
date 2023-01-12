@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
-using static SensorBox;
 
 namespace Boxes {
 
@@ -97,6 +96,7 @@ public class BoxSpawner : MonoBehaviour
                 new float[] { 2.0f, 2.0f, 3.5f },
             };
         }
+        var idx = 0;
         foreach(var s in sizes) 
         {
             // Create GameObject box
@@ -109,6 +109,7 @@ public class BoxSpawner : MonoBehaviour
             box.AddComponent<Rigidbody>();
             box.tag = "0";
             box.layer = 5;
+            box.name = idx.ToString();
             var m_rb = box.GetComponent<Rigidbody>();
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             m_rb.isKinematic = true;
@@ -120,7 +121,8 @@ public class BoxSpawner : MonoBehaviour
                 boxSize = box.transform.localScale,
             };
             // Add box to box pool
-            boxPool.Add(newBox);          
+            boxPool.Add(newBox);  
+            idx+=1;     
         }
     }
 
