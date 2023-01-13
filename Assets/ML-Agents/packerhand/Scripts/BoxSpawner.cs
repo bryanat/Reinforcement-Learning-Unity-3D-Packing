@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using static SensorBox;
@@ -100,13 +101,23 @@ public class BoxSpawner : MonoBehaviour
         foreach(var s in sizes) 
         {
             // Create GameObject box
-            GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube); 
             box.transform.localScale = new Vector3(s[0], s[1], s[2]); 
             var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
+
+            box.AddComponent<NavMeshAgent>();
+            NavMeshAgent nma = box.GetComponent<NavMeshAgent>();
+            nma.radius = 0.1f; // Math.Max(box.transform.localScale.x || box.transform.localScale.z)
+            nma.height = box.transform.localScale.y;
+            nma.name = "DCLXVI";
+
+            // create NavMeshAgent type
+            // AddComponent.NavMeshAgent(agent1);
+
             // box.AddComponent<MeshRenderer>();
             //box.AddComponent<SensorBox>();
             //SensorBox sensor = box.GetComponent<SensorBox>();

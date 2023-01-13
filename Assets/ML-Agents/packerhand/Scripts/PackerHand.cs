@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -438,25 +439,35 @@ public class PackerHand : Agent
     }
 
 
+    public void UpdateBinBounds() 
+    {
+        //////////////BINBOUNDS is now from single BinGen20 combined mesh, no longer need to loop through children////////////
 
-    public void UpdateBinBounds() {
         // Gets bounds of bin
-        areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
+        areaBounds = binArea.transform.GetComponent<Collider>().bounds;
 
         // Gets bounds of mini bin
-        miniBounds = binMini.transform.GetChild(0).GetComponent<Collider>().bounds;
+        miniBounds = binMini.transform.GetComponent<Collider>().bounds;
 
-        var num_sides = 5;
 
-        // Encapsulate the bounds of each additional object in the overall bounds
-        for (int i = 1; i < num_sides; i++)
-        {
-            areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
-            miniBounds.Encapsulate(binMini.transform.GetChild(i).GetComponent<Collider>().bounds);
-        }
+        // // Gets bounds of bin
+        // areaBounds = binArea.transform.GetChild(0).GetComponent<Collider>().bounds;
+
+        // // Gets bounds of mini bin
+        // miniBounds = binMini.transform.GetChild(0).GetComponent<Collider>().bounds;
+
+        // var num_sides = 5;
+
+        // // Encapsulate the bounds of each additional object in the overall bounds
+        // for (int i = 1; i < num_sides; i++)
+        // {
+        //     areaBounds.Encapsulate(binArea.transform.GetChild(i).GetComponent<Collider>().bounds);
+        //     miniBounds.Encapsulate(binMini.transform.GetChild(i).GetComponent<Collider>().bounds);
+        // }
         Debug.Log($"REGULAR BIN BOUNDS IS {areaBounds}");
         Debug.Log($"MINI BIN BOUNDS IS {miniBounds}");
     }
+
 
     public void UpdateBinVolume() {
         // Update bin volume
@@ -469,10 +480,8 @@ public class PackerHand : Agent
         {
             binVolume = binVolume-carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
             Debug.Log($"REGULAR BIN VOLUME IS {binVolume}");
-        }
-        
+        }   
     }
-
 
 
     /// <summary>
@@ -526,6 +535,76 @@ public class PackerHand : Agent
 
         isPickedup = true;
 
+        ////////NAVMESH////////
+        BuildThatNavMesh();
+        ///////////////////////
+    }
+
+    public void BuildThatNavMesh()
+    {
+    ////////////////NAVMESH////////////////////
+    // define navMeshBuildSettings from box dimension (targetBox.transform.scale) on pickup
+
+
+
+
+        ////////////// FIX BELOW/////////////////
+        GameObject targetBoxObject = targetBox.gameObject; //spawning an object
+        ////////////// FIX ABOVE/////////////////
+
+
+
+        targetBoxObject.AddComponent<NavMeshAgent>();
+        // navMeshBuildSettings.agentHeight
+        NavMeshAgent nma = targetBoxObject.GetComponent<NavMeshAgent>();
+        nma.radius = 1f * UnityEngine.Random.value; // Math.Max(box.transform.localScale.x || box.transform.localScale.z)
+        nma.height = targetBox.localScale.y;
+
+        NavMeshBuildSettings navMeshBuildSettings = new NavMeshBuildSettings();
+        navMeshBuildSettings.agentRadius = nma.radius;
+        navMeshBuildSettings.agentHeight = nma.height;
+        navMeshBuildSettings.agentClimb = 2f;
+        navMeshBuildSettings.agentSlope = 0f;
+
+        // sources stored in a results list (parameter 6)
+        List<NavMeshBuildSource> sources = new List<NavMeshBuildSource>();
+        // BinGen20.Mesh.bounds;
+        Bounds localBounds = GameObject.Find("BinGen20").GetComponent<MeshFilter>().mesh.bounds; 
+        Vector3 position = targetBox.localPosition;
+        Quaternion rotation = targetBox.localRotation;
+
+
+        var binNavMesh1 = GameObject.Find("BinGen20").GetComponent<NavMeshAgent>();
+        var binNavMesh2 = GameObject.Find("BinGen20").GetComponent<NavMeshAgent>();
+        // var binNavMesh6 = GameObject.Find("BinGen20").GetComponent<NavMeshQueryFilter>();
+        // var binNavMesh3 = GameObject.Find("BinGen20").GetComponent<NavMeshLinkInstance>();
+        // var binNavMesh4 = GameObject.Find("BinGen20").GetComponent<NavMeshObstacle>();
+        // var binNavMesh5 = GameObject.Find("BinGen20").GetComponent<NavMeshPath>();
+        // var binNavMesh7 = GameObject.Find("BinGen20").GetComponent<NavMeshTriangulation>(); 
+        // var binNavMesh8 = GameObject.Find("BinGen20").GetComponent<NavMesh>();
+        // var binNavMesh9 = GameObject.Find("BinGen20").GetComponent<NavMeshHit>(); //hit last
+        //NavMeshBuilder.BuildNavMeshData
+        Debug.Log($"@@@@@ NavMeshData1: {binNavMesh1}");
+        Debug.Log($"@@@@@ NavMeshData2: {binNavMesh2}");
+        // Debug.Log($"@@@@@ NavMeshData3: {binNavMesh6}");
+        // Debug.Log($"@@@@@ NavMeshData4: {binNavMesh4}");
+        // Debug.Log($"@@@@@ NavMeshData5: {binNavMesh5}");
+        // Debug.Log($"@@@@@ NavMeshData6: {binNavMesh6}");
+        // Debug.Log($"@@@@@ NavMeshData7: {binNavMesh7}");
+        // Debug.Log($"@@@@@ NavMeshData8: {binNavMesh8}");
+        // Debug.Log($"@@@@@ NavMeshData9: {binNavMesh9}");
+
+
+        Debug.Log($"@@@@@ NavMesh.CreateSettings: {NavMesh.CreateSettings()}"); // returning
+
+
+        Debug.Log($"@@@@@ BEFORE BAKE");
+        // BAKE
+        // NavMeshData BuildNavMeshData
+        NavMeshBuilder.BuildNavMeshData(navMeshBuildSettings, sources, localBounds, position, rotation);
+        Debug.Log($"@@@@@ AFTER BAKE");
+    
+    ///////////////////////////////////////////
     }
 
 

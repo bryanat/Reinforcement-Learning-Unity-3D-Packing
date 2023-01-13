@@ -4,6 +4,8 @@ using UnityEngine.AI;
 
 public class Example : MonoBehaviour
 {
+    // public NavMeshBuildSettings navMeshBuildSettings;
+
     public List<NavMeshBuildSource> sources;
     public List<NavMeshBuildMarkup> markups;
     
