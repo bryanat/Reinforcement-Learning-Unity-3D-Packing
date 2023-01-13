@@ -7,6 +7,7 @@ using Unity.MLAgents.Sensors;
 using Unity.Barracuda;
 using Unity.MLAgentsExamples;
 using Unity.MLAgents.Policies;
+using Box = Boxes.Box;
 using Boxes;
 using System.Collections;
 
@@ -40,9 +41,9 @@ public class PackerHand : Agent
     public float total_y_distance; //total y distance between agent and target
     public float total_z_distance; //total z distance between agent and target
     
-    public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
+    // public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
 
-    public int boxIdx; // box selected from box pool
+    // public int boxIdx; // box selected from box pool
 
     public Bounds areaBounds; // regular bin's bounds
 
@@ -60,9 +61,10 @@ public class PackerHand : Agent
     [HideInInspector] public bool isRotationSelected;
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isBoxSelected;
-
     [HideInInspector] public bool isDroppedoff;
+    public int nbox;
 
+    public List<Box> boxPool;
 
 
 
@@ -97,6 +99,7 @@ public class PackerHand : Agent
         // Create boxes according to curriculum
         //boxSpawner.SetUpBoxes(0, m_ResetParams.GetWithDefault("unit_box", 1));
         boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
+        boxPool = Box.GetBoxPool();
     }
 
 
@@ -156,7 +159,7 @@ public class PackerHand : Agent
             sensor.AddObservation(binArea.transform.localScale);
         }
 
-        foreach (var box in boxSpawner.boxPool) 
+        foreach (var box in boxPool) 
         {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
             sensor.AddObservation(box.rb.position); //add box position to sensor observations
@@ -274,13 +277,13 @@ public class PackerHand : Agent
     public void SelectBox(int n) 
     {
         // Check if a box has already been selected
-        if (!organizedBoxes.Contains(n)) 
+        if (!Box.organizedBoxes.Contains(n)) 
         {
-            boxIdx = n;
-            Debug.Log($"SELECTED BOX: {boxIdx}");
-            targetBox = boxSpawner.boxPool[boxIdx].rb.transform;
+            Box.boxIdx = n;
+            Debug.Log($"SELECTED BOX: {Box.boxIdx}");
+            targetBox = boxPool[Box.boxIdx].rb.transform;
             // Add box to list so it won't be selected again
-            organizedBoxes.Add(boxIdx);
+            Box.organizedBoxes.Add(Box.boxIdx);
             isBoxSelected = true;
 
         }
@@ -309,9 +312,9 @@ public class PackerHand : Agent
         var x_position = 0f;
         var y_position = 0f;
         var z_position = 0f;
-        var l = boxSpawner.boxPool[boxIdx].boxSize.x;
-        var h = boxSpawner.boxPool[boxIdx].boxSize.y;
-        var w = boxSpawner.boxPool[boxIdx].boxSize.z;
+        var l = boxPool[Box.boxIdx].boxSize.x;
+        var h = boxPool[Box.boxIdx].boxSize.y;
+        var w = boxPool[Box.boxIdx].boxSize.z;
         var test_position = Vector3.zero;
         if (m_config==0) {
             // Interpolate position between x, y, z bounds of the mini bin
@@ -445,30 +448,29 @@ public class PackerHand : Agent
         // Enbles OnTriggerEnter in CollideAndCombineMesh 
         m_c.isTrigger = true;
 
-        StartCoroutine(IsColliding());
+        //StartCoroutine(IsFinal());
     }
 
     /// <summary>
-    //// Wait for 5 sec to see if collision occurs upon drop off
-    //// if no collision, box will be sent back to spawning area
+    // Wait for 5 sec to see if collision occurs upon drop off
+    // if no collision, box will be sent back to spawning area
     ///</summary>
-    IEnumerator IsColliding() {
-        //Print the time of when the function is first called.
-        Debug.Log("Started Coroutine at timestamp : " + Time.time);
+    // IEnumerator IsFinal() {
 
-        yield return new WaitForSecondsRealtime(5);
-        if (isDroppedoff == false) {
-            carriedObject.position = boxSpawner.boxPool[boxIdx].startingPos;
-            organizedBoxes.Remove(boxIdx); 
-            StateReset();     
-        }
-        else {
-            StateReset();
-        }
+    //     yield return new WaitForSecondsRealtime(5);
+    //     if (isDroppedoff == false) {
+    //         carriedObject.position = boxPool[Box.boxIdx].startingPos;
+    //         Box.organizedBoxes.Remove(Box.boxIdx); 
+    //         StateReset();     
+    //     }
+    //     else {
+    //         nbox+=1;
+    //         Debug.Log($"NUMBER OF BOXES PACKED:{nbox}");
+    //         StateReset();
+    //     }
 
-        //After we have waited 5 seconds print the time again.
-        Debug.Log("Finished Coroutine at timestamp : " + Time.time);
-    }
+    // }
+
 
 
     
@@ -611,13 +613,13 @@ public class PackerHand : Agent
         TotalRewardReset();
 
         // Reset boxes
-        foreach (var box in boxSpawner.boxPool) 
+        foreach (var box in boxPool) 
         {
-            box.ResetBoxes(box);
+            Box.ResetBoxes(box);
         }
 
         // Reset organized Boxes dictionary
-        organizedBoxes.Clear();
+        Box.organizedBoxes.Clear();
 
         // Reset states;
         StateReset();
@@ -636,18 +638,18 @@ public class PackerHand : Agent
         if (n==0) 
         {
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
-            Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
+            Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
         if (n==1) 
         {
             // boxSpawner.SetUpBoxes(n, 1);
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
-            Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
+            Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
         else 
         {
             SetModel(m_RegularBoxBehaviorName, regularBoxBrain);    
-            Debug.Log($"BOX POOL SIZE: {boxSpawner.boxPool.Count}");
+            Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
     }
     

@@ -19,10 +19,20 @@ public class Box
     public Vector3 boxSize; 
 
 
-    public void ResetBoxes(Box box)
+    public static List<int> organizedBoxes = new List<int>(); // list of organzed box indices
+
+    public static int boxIdx; // box selected from box pool
+
+
+    public static void ResetBoxes(Box box)
     {
         box.rb.transform.position = box.startingPos; // Reset box position
     }
+
+    public static List<Box> GetBoxPool() {
+        return BoxSpawner.boxPool;
+    }
+
 
 }
 
@@ -30,7 +40,7 @@ public class Box
 
 public class BoxSpawner : MonoBehaviour 
 {
-    [HideInInspector] public List<Box> boxPool = new List<Box>();
+    [HideInInspector] public static List<Box> boxPool = new List<Box>();
 
     /// <summary>
     /// The box area, which will be set manually in the Inspector

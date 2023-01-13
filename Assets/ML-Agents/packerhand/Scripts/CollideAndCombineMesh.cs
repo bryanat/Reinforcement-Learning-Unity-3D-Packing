@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using Box = Boxes.Box;
 
 
 // SensorCollision component to work requires:
@@ -21,6 +22,8 @@ public class CollideAndCombineMesh : MonoBehaviour
 
     public Transform hitObject;
 
+
+    public Box box; // Box Spawner
 
 
 
@@ -79,11 +82,11 @@ public class CollideAndCombineMesh : MonoBehaviour
 
         RaycastHit hit;
         int layerMask = 1<<5;
-        if(Physics.SphereCast(transform.position, transform.localScale.z, transform.forward, out hit, Mathf.Infinity, layerMask))
+        if(Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity, layerMask))
         {
             Debug.Log("INSIDE RAYCAST");
             hitObject = hit.transform;
-            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward)*10, Color.red ,10.0f);
+            Debug.DrawRay(transform.position, transform.forward*20f, Color.red ,10.0f);
             var parent_mc =  GetComponent<Collider>();
             var box_mc = hit.transform.GetComponent<Collider>();
             Vector3 otherPosition = hit.transform.position;
@@ -103,22 +106,31 @@ public class CollideAndCombineMesh : MonoBehaviour
     //// Adjust position of box and calls mesh combiner
     //// happens when the selected position is good enough
     ///</summary>
-    void OnTriggerStay() {
-        Debug.Log("TRIGER OCCURRED INSIDE BIN");
+    void OnTriggerEnter() {
+        Debug.Log("TRIGGER OCCURRED INSIDE BIN");
         if (overlapped==true) {
             // Adjust box position
             hitObject.position -= direction * (distance);
-            Debug.Log($"BOX {hitObject.name} FINAL POSITION BECOMES: {hitObject.position}");
+            Debug.Log($"BOX {hitObject.name} FINAL POSITION IS {hitObject.position}");
             // Make box child of bin
             hitObject.parent = transform;
             // Combine bin and box meshes
             meshCombiner(hitObject.gameObject);
             overlapped = false;
             // Trigger the next round of picking
-            agent.isDroppedoff = true;
+            agent.StateReset();
         }
+        else {
+            // Reset to starting position and remove box from organizedBoxes list
+            var boxPool = Box.GetBoxPool();
+            Box.ResetBoxes(boxPool[Box.boxIdx]);
+            Box.organizedBoxes.Remove(Box.boxIdx);
+            // Trigger the next round of picking
+            agent.StateReset();
         
+        }
     }
+
     // void OnCollisionStay() {
 
     //     Debug.Log("Collision occured inside bin");
