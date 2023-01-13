@@ -119,14 +119,14 @@ public class PackerHand : Agent
         Collider m_Collider = binArea.GetComponent<Collider>();
         areaBounds = m_Collider.bounds;
 
-        Debug.Log($"REGULAR BIN COLLIDER BOUNDS IS {areaBounds}");
+        Debug.Log($"BIN BOUNDS: {areaBounds}");
 
 
         // Get total bin volume from onstart
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
         miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
 
-        Debug.Log($"ONSTART BIN VOLUME USING REGULAR VOLUME CALCULATING METHOD: {binVolume}");
+        Debug.Log($" BIN VOLUME: {binVolume}");
 
 
         // Initialize agent for collision detection and mesh combiner 
