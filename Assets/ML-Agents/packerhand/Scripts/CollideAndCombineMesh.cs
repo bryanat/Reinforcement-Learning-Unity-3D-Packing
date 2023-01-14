@@ -99,7 +99,8 @@ public class CollideAndCombineMesh : MonoBehaviour
             // Make box child of bin
             box.parent = transform;
             // Combine bin and box meshes
-            meshList = GetComponentsInChildren<MeshFilter>(); 
+            //meshList = GetComponentsInChildren<MeshFilter>(); 
+            MeshFilter [] meshList = new [] {box.GetComponent<MeshFilter>()};
             MeshCombiner(meshList);
             overlapped = false;
             // Trigger the next round of picking
@@ -143,9 +144,18 @@ public class CollideAndCombineMesh : MonoBehaviour
         mr.materials = materials;
         
          // Create a new mesh on bin
-        //MeshFilter parent_mf = gameObject.GetComponent<MeshFilter>();
+        MeshFilter parent_mf = gameObject.GetComponent<MeshFilter>();
+        if (!parent_mf)  {
+            parent_mf = gameObject.AddComponent<MeshFilter>();
+        }
+        //MeshFilter parent_mf = gameObject.AddComponent<MeshFilter>();
+        if (!parent_mf.mesh) {
+            var topLevelMesh = new Mesh();
+             Debug.Log($"VERTICES IN TOPLEVELMESH {topLevelMesh.vertices}");
+            parent_mf.mesh = topLevelMesh;
+        }
         //parent_mf.mesh = new Mesh();
-        MeshFilter parent_mf = gameObject.AddComponent<MeshFilter>();
+        //MeshFilter parent_mf = gameObject.AddComponent<MeshFilter>();
         // Combine the meshes
         // Debug.Log($"PARENT_MESH IN MESH COMBINER IS: {parent_mf}");
         // Debug.Log($"COMBINE IN MESH COMBINER IS {combine}");
@@ -153,7 +163,10 @@ public class CollideAndCombineMesh : MonoBehaviour
 
         // Create a mesh collider from the parent mesh
         Mesh parent_m = GetComponent<MeshFilter>().mesh; // reference parent_mf mesh filter to create parent mesh
-        MeshCollider parent_mc = gameObject.AddComponent<MeshCollider>(); // create parent_mc mesh collider 
+        MeshCollider parent_mc = gameObject.GetComponent<MeshCollider>(); // create parent_mc mesh collider 
+        if (!parent_mc) {
+            parent_mc = gameObject.AddComponent<MeshCollider>();
+        }
         parent_mc.convex = true;
         parent_mc.sharedMesh = parent_m; // add the mesh shape (from the parent mesh) to the mesh collider
 
