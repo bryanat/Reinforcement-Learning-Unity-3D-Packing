@@ -24,7 +24,7 @@ public class CollideAndCombineMesh : MonoBehaviour
 
     public Box box; // Box Spawner
 
-    public MeshFilter parent_mf;
+    public MeshFilter[] meshList;
 
 
 
@@ -34,10 +34,10 @@ public class CollideAndCombineMesh : MonoBehaviour
         //c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
         // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
 
-        MeshFilter[] meshList = GetComponentsInChildren<MeshFilter>(); 
+        meshList = GetComponentsInChildren<MeshFilter>(); 
         
         // Combine meshes
-        MeshCombiner(meshList, true);
+        MeshCombiner(meshList);
 
 
     }
@@ -99,8 +99,8 @@ public class CollideAndCombineMesh : MonoBehaviour
             // Make box child of bin
             box.parent = transform;
             // Combine bin and box meshes
-            MeshFilter[] mesh = new [] {box.GetComponent<MeshFilter>()};
-            MeshCombiner(mesh, false);
+            meshList = GetComponentsInChildren<MeshFilter>(); 
+            MeshCombiner(meshList);
             overlapped = false;
             // Trigger the next round of picking
             agent.StateReset();
@@ -111,7 +111,7 @@ public class CollideAndCombineMesh : MonoBehaviour
  
 
 
-    void MeshCombiner(MeshFilter[] meshList, bool start) {
+    void MeshCombiner(MeshFilter[] meshList) {
         Debug.Log("++++++++++++START OF MESHCOMBINER++++++++++++");
         List<CombineInstance> combine = new List<CombineInstance>();
 
@@ -143,26 +143,20 @@ public class CollideAndCombineMesh : MonoBehaviour
         mr.materials = materials;
         
          // Create a new mesh on bin
-         if (start) {
-            parent_mf = gameObject.AddComponent<MeshFilter>();
-            // Combine the meshes
-            // Debug.Log($"PARENT_MESH IN MESH COMBINER IS: {parent_mf}");
-            // Debug.Log($"COMBINE IN MESH COMBINER IS {combine}");
-            parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
+        //MeshFilter parent_mf = gameObject.GetComponent<MeshFilter>();
+        //parent_mf.mesh = new Mesh();
+        MeshFilter parent_mf = gameObject.AddComponent<MeshFilter>();
+        // Combine the meshes
+        // Debug.Log($"PARENT_MESH IN MESH COMBINER IS: {parent_mf}");
+        // Debug.Log($"COMBINE IN MESH COMBINER IS {combine}");
+        parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
 
-            // Create a mesh collider from the parent mesh
-            Mesh parent_m = GetComponent<MeshFilter>().mesh; // reference parent_mf mesh filter to create parent mesh
-            MeshCollider parent_mc = gameObject.AddComponent<MeshCollider>(); // create parent_mc mesh collider 
-            parent_mc.convex = true;
-            parent_mc.sharedMesh = parent_m; // add the mesh shape (from the parent mesh) to the mesh collider
-         }
-         else {
-            parent_mf = gameObject.AddComponent<MeshFilter>();
-            // Combine the meshes
-            Debug.Log($"PARENT_MESH IN MESH COMBINER IS: {parent_mf}");
-            Debug.Log($"COMBINE IN MESH COMBINER IS {combine}");
-            parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
-         }
+        // Create a mesh collider from the parent mesh
+        Mesh parent_m = GetComponent<MeshFilter>().mesh; // reference parent_mf mesh filter to create parent mesh
+        MeshCollider parent_mc = gameObject.AddComponent<MeshCollider>(); // create parent_mc mesh collider 
+        parent_mc.convex = true;
+        parent_mc.sharedMesh = parent_m; // add the mesh shape (from the parent mesh) to the mesh collider
+
 
 
         Debug.Log("+++++++++++END OF MESH COMBINER+++++++++++++");
