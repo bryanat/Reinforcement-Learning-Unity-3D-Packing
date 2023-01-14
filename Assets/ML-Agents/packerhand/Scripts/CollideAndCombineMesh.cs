@@ -30,6 +30,7 @@ public class CollideAndCombineMesh : MonoBehaviour
 
 
 
+
     void Start()
     {
         // instantiate the Collider component
@@ -118,7 +119,14 @@ public class CollideAndCombineMesh : MonoBehaviour
     void MeshCombiner(MeshFilter[] meshList) {
         Debug.Log("++++++++++++START OF MESHCOMBINER++++++++++++");
         List<CombineInstance> combine = new List<CombineInstance>();
-         //CombineInstance[] combine = new CombineInstance[meshList.Length];
+
+        // save the parent pos+rot
+        Vector3 position = transform.position;
+        Quaternion rotation = transform.rotation;
+
+        // move to the origin for combining
+        transform.position = Vector3.zero;
+        transform.rotation = Quaternion.identity;
 
          for (int i = 0; i < meshList.Length; i++)
         {
@@ -133,23 +141,19 @@ public class CollideAndCombineMesh : MonoBehaviour
              // Matrix4x4, position is off as it needs to be 0,0,0
             ci.transform = Matrix4x4.TRS(transform.localPosition, transform.localRotation, transform.localScale); 
 
-            // combine[i].mesh = meshList[i].sharedMesh;
-            // combine[i].transform = Matrix4x4.TRS(transform.localPosition, transform.localRotation, transform.localScale); 
-            //meshList[i].gameObject.SetActive(false);
-
             // Add the CombineInstance to the list
             combine.Add(ci);
 
         }
 
-        MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
+        MeshRenderer parent_mr = gameObject.GetComponent<MeshRenderer>();
         // Set the materials of the new mesh to the materials of the original meshes
         Material[] materials = new Material[meshList.Length];
         for (int i = 0; i < meshList.Length; i++)
         {
             materials[i] = meshList[i].GetComponent<Renderer>().sharedMaterial;
         }
-        mr.materials = materials;
+        parent_mr.materials = materials;
 
         
          // Create a new mesh on bin
@@ -175,13 +179,18 @@ public class CollideAndCombineMesh : MonoBehaviour
         // Debug.Log($"COMBINE IN MESH COMBINER IS {combine}");
         parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
 
+        // restore the parent pos+rot
+        transform.position = position;
+        transform.rotation = rotation;
+
         // Create a mesh collider from the parent mesh
-        //Mesh parent_m = GetComponent<MeshFilter>().mesh; // reference parent_mf mesh filter to create parent mesh
+        Mesh parent_m = GetComponent<MeshFilter>().mesh; // reference parent_mf mesh filter to create parent mesh
         MeshCollider parent_mc = gameObject.GetComponent<MeshCollider>(); // create parent_mc mesh collider 
         if (!parent_mc) {
             parent_mc = gameObject.AddComponent<MeshCollider>();
         }
         parent_mc.convex = true;
+        //MeshCollider parent_mc = gameObject.AddComponent<MeshCollider>(); 
         parent_mc.sharedMesh = parent_mf.mesh; // add the mesh shape (from the parent mesh) to the mesh collider
 
         Debug.Log("+++++++++++END OF MESH COMBINER+++++++++++++");
