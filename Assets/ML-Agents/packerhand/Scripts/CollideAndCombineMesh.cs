@@ -24,6 +24,8 @@ public class CollideAndCombineMesh : MonoBehaviour
 
     public Box box; // Box Spawner
 
+    public MeshFilter parent_mf;
+
 
 
     void Start()
@@ -33,8 +35,10 @@ public class CollideAndCombineMesh : MonoBehaviour
         // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
 
         MeshFilter[] meshList = GetComponentsInChildren<MeshFilter>(); 
+        
+        // Combine meshes
+        MeshCombiner(meshList, true);
 
-        MeshCombiner(meshList);
 
     }
 
@@ -42,28 +46,28 @@ public class CollideAndCombineMesh : MonoBehaviour
     /// <summary>
     //// Use raycast and computer penetration to detect incoming boxes and check for overlapping
     ///</summary>
-    void Update() {
+    // void Update() {
 
-        RaycastHit hit;
-        int layerMask = 1<<5;
-        if(Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity, layerMask))
-        {
-            Debug.Log("INSIDE RAYCAST");
-            hitObject = hit.transform;
-            Debug.DrawRay(transform.position, transform.forward*20f, Color.red ,10.0f);
-            var parent_mc =  GetComponent<Collider>();
-            var box_mc = hit.transform.GetComponent<Collider>();
-            Vector3 otherPosition = hit.transform.position;
-            Quaternion otherRotation = hit.transform.rotation;
+    //     RaycastHit hit;
+    //     int layerMask = 1<<5;
+    //     if(Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity, layerMask))
+    //     {
+    //         Debug.Log("INSIDE RAYCAST");
+    //         hitObject = hit.transform;
+    //         Debug.DrawRay(transform.position, transform.forward*20f, Color.red ,10.0f);
+    //         var parent_mc =  GetComponent<Collider>();
+    //         var box_mc = hit.transform.GetComponent<Collider>();
+    //         Vector3 otherPosition = hit.transform.position;
+    //         Quaternion otherRotation = hit.transform.rotation;
 
-            overlapped = Physics.ComputePenetration(
-                parent_mc, transform.position, transform.rotation,
-                box_mc, otherPosition, otherRotation,
-                out direction, out distance
-            );
-            Debug.Log($"OVERLAPPED IS: {overlapped} for BOX {hit.transform.name}");
-        }
-    }
+    //         overlapped = Physics.ComputePenetration(
+    //             parent_mc, transform.position, transform.rotation,
+    //             box_mc, otherPosition, otherRotation,
+    //             out direction, out distance
+    //         );
+    //         Debug.Log($"OVERLAPPED IS: {overlapped} for BOX {hit.transform.name}");
+    //     }
+    // }
 
 
     /// <summary>
@@ -71,39 +75,45 @@ public class CollideAndCombineMesh : MonoBehaviour
     //// happens when the selected position is good enough
     ///</summary>
     void OnTriggerEnter() {
-        Debug.Log("TRIGGER OCCURRED INSIDE BIN");
+
+        Transform box = agent.carriedObject;
+        Debug.Log($"HIT OBJECT INSIDE TRIGGER IS {box}");
+        var parent_mc =  GetComponent<Collider>();
+        var box_mc = box.GetComponent<Collider>();
+        Vector3 boxPosition = box.position;
+        Quaternion boxRotation = box.rotation;
+
+        overlapped = Physics.ComputePenetration(
+        parent_mc, transform.position, transform.rotation,
+        box_mc, boxPosition, boxRotation,
+        out direction, out distance
+        );
+
+        Debug.Log($"OVERLAPPED IS: {overlapped} for BOX {box.name}");
+
         if (overlapped==true) {
             // Adjust box position 
-            hitObject.position -= direction * (distance);
-            Debug.Log($"BOX {hitObject.name} FINAL POSITION IS {hitObject.position}");
+            Debug.Log($"BOX {box.name} START POSITION IS {box.position}");
+            box.position += direction * (distance);
+            Debug.Log($"BOX {box.name} FINAL POSITION IS {box.position}");
             // Make box child of bin
-            hitObject.parent = transform;
+            box.parent = transform;
             // Combine bin and box meshes
-            MeshFilter[] mesh = new [] {hitObject.GetComponent<MeshFilter>()};
-            MeshCombiner(mesh);
+            MeshFilter[] mesh = new [] {box.GetComponent<MeshFilter>()};
+            MeshCombiner(mesh, false);
             overlapped = false;
             // Trigger the next round of picking
             agent.StateReset();
-        }
-        else {
-            // Reset to starting position and remove box from organizedBoxes list
-            var boxPool = Box.GetBoxPool();
-            Box.ResetBoxes(boxPool[Box.boxIdx]);
-            Box.organizedBoxes.Remove(Box.boxIdx);
-            // Trigger the next round of picking
-            agent.StateReset();
-        
+            //agent.isDroppedoff = true;
         }
     }
     
  
 
 
-    void MeshCombiner(MeshFilter[] meshList) {
+    void MeshCombiner(MeshFilter[] meshList, bool start) {
         Debug.Log("++++++++++++START OF MESHCOMBINER++++++++++++");
         List<CombineInstance> combine = new List<CombineInstance>();
-        MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
-        Material[] materials = new Material[meshList.Length];
 
          for (int i = 0; i < meshList.Length; i++)
         {
@@ -121,23 +131,40 @@ public class CollideAndCombineMesh : MonoBehaviour
             // Add the CombineInstance to the list
             combine.Add(ci);
 
-            // Get the materials of the new mesh 
-            materials[i] = meshList[i].GetComponent<Renderer>().sharedMaterial;
-
-
         }
-         // Set the materials of the new mesh to the materials of the original meshes
-        mr.materials = materials; 
+
+        MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
+        // Set the materials of the new mesh to the materials of the original meshes
+        Material[] materials = new Material[meshList.Length];
+        for (int i = 0; i < meshList.Length; i++)
+        {
+            materials[i] = meshList[i].GetComponent<Renderer>().sharedMaterial;
+        }
+        mr.materials = materials;
         
          // Create a new mesh on bin
-        MeshFilter parent_mf = gameObject.AddComponent<MeshFilter>();
-        // Combine the meshes
-        parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
+         if (start) {
+            parent_mf = gameObject.AddComponent<MeshFilter>();
+            // Combine the meshes
+            // Debug.Log($"PARENT_MESH IN MESH COMBINER IS: {parent_mf}");
+            // Debug.Log($"COMBINE IN MESH COMBINER IS {combine}");
+            parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
 
-         // Create a mesh collider from the parent mesh
-        Mesh parent_m = GetComponent<MeshFilter>().mesh; // reference parent_mf mesh filter to create parent mesh
-        MeshCollider parent_mc = gameObject.AddComponent<MeshCollider>(); // create parent_mc mesh collider 
-        parent_mc.sharedMesh = parent_m; // add the mesh shape (from the parent mesh) to the mesh collider
+            // Create a mesh collider from the parent mesh
+            Mesh parent_m = GetComponent<MeshFilter>().mesh; // reference parent_mf mesh filter to create parent mesh
+            MeshCollider parent_mc = gameObject.AddComponent<MeshCollider>(); // create parent_mc mesh collider 
+            parent_mc.convex = true;
+            parent_mc.sharedMesh = parent_m; // add the mesh shape (from the parent mesh) to the mesh collider
+         }
+         else {
+            parent_mf = gameObject.AddComponent<MeshFilter>();
+            // Combine the meshes
+            Debug.Log($"PARENT_MESH IN MESH COMBINER IS: {parent_mf}");
+            Debug.Log($"COMBINE IN MESH COMBINER IS {combine}");
+            parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
+         }
+
+
         Debug.Log("+++++++++++END OF MESH COMBINER+++++++++++++");
 
     }

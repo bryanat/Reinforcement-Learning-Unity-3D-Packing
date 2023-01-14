@@ -62,7 +62,6 @@ public class PackerHand : Agent
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isBoxSelected;
     [HideInInspector] public bool isDroppedoff;
-    public int nbox;
 
     public List<Box> boxPool;
 
@@ -448,28 +447,8 @@ public class PackerHand : Agent
         // Enbles OnTriggerEnter in CollideAndCombineMesh 
         m_c.isTrigger = true;
 
-        //StartCoroutine(IsFinal());
     }
 
-    /// <summary>
-    // Wait for 5 sec to see if collision occurs upon drop off
-    // if no collision, box will be sent back to spawning area
-    ///</summary>
-    // IEnumerator IsFinal() {
-
-    //     yield return new WaitForSecondsRealtime(5);
-    //     if (isDroppedoff == false) {
-    //         carriedObject.position = boxPool[Box.boxIdx].startingPos;
-    //         Box.organizedBoxes.Remove(Box.boxIdx); 
-    //         StateReset();     
-    //     }
-    //     else {
-    //         nbox+=1;
-    //         Debug.Log($"NUMBER OF BOXES PACKED:{nbox}");
-    //         StateReset();
-    //     }
-
-    // }
 
 
 
