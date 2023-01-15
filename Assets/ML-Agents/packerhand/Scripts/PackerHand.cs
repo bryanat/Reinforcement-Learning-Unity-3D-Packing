@@ -207,6 +207,7 @@ public class PackerHand : Agent
             ConfigureAgent(m_Configuration);
             m_Configuration = -1;
         }
+        // if box is dropped off, go for next round of box selection
         // if (isDroppedoff) {
         //     StateReset();
         // }
@@ -440,7 +441,7 @@ public class PackerHand : Agent
         //m_rb.isKinematic = false;
 
         // Lock box position and location
-        carriedObject.position = targetBin.position; 
+        carriedObject.position = targetBin.position;
         carriedObject.rotation = Quaternion.Euler(rotation);
         m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 

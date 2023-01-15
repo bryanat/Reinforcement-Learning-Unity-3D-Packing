@@ -79,38 +79,111 @@ public class CollideAndCombineMesh : MonoBehaviour
     ///</summary>
     void OnTriggerEnter() {
 
-        Transform box = agent.carriedObject;
-        Debug.Log($"HIT OBJECT INSIDE TRIGGER IS {box}");
-        var parent_mc =  GetComponent<Collider>();
-        var box_mc = box.GetComponent<Collider>();
-        Vector3 boxPosition = box.position;
-        Quaternion boxRotation = box.rotation;
+        // Get pos, rot, and colliders of box and bin
+         Transform box = agent.carriedObject;
+        // Debug.Log($"HIT OBJECT INSIDE TRIGGER IS {box}");
+        // var parent_mc =  GetComponent<Collider>();
+         var box_mc = box.GetComponent<Collider>();
+        // Vector3 boxPosition = box.position;
+        // Quaternion boxRotation = box.rotation;
 
-        overlapped = Physics.ComputePenetration(
-        parent_mc, transform.position, transform.rotation,
-        box_mc, boxPosition, boxRotation,
-        out direction, out distance
-        );
+        // // Calculate overlapping distance and direction
+        // overlapped = Physics.ComputePenetration(
+        // parent_mc, transform.position, transform.rotation,
+        // box_mc, boxPosition, boxRotation,
+        // out direction, out distance
+        // );
 
+        // Debug.Log($"DIRECTION AND DISTANCE OF PENETRATION ARE: {direction}, {distance}");
+
+        // Set trigger to false so bin won't be triggered by this box anymore
         box_mc.isTrigger = false;
 
-        Debug.Log($"OVERLAPPED IS: {overlapped} for BOX {box.name}");
+        // Adjust box position 
+        // Debug.Log($"BOX {box.name} START POSITION IS {box.position}");
+        // box.position += direction * (distance);
+        // Debug.Log($"BOX {box.name} FINAL POSITION IS {box.position}");
+        // // Make box child of bin
+        box.parent = transform;
+        // Combine bin and box meshes
+        meshList = GetComponentsInChildren<MeshFilter>(); 
+        //MeshFilter [] meshList = new [] {box.GetComponent<MeshFilter>()};
+        MeshCombiner(meshList);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        GetVertices();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////        
+        // Trigger the next round of picking
+        agent.StateReset();
+    }
 
-        if (overlapped==true) {
-            // Adjust box position 
-            Debug.Log($"BOX {box.name} START POSITION IS {box.position}");
-            box.position += direction * (distance);
-            Debug.Log($"BOX {box.name} FINAL POSITION IS {box.position}");
-            // Make box child of bin
-            box.parent = transform;
-            // Combine bin and box meshes
-            meshList = GetComponentsInChildren<MeshFilter>(); 
-            //MeshFilter [] meshList = new [] {box.GetComponent<MeshFilter>()};
-            MeshCombiner(meshList);
-            // Trigger the next round of picking
-            agent.StateReset();
-            //agent.isDroppedoff = true;
+    void GetContactSA() {
+
+    }
+
+    void OnDrawGizmos() {
+        var mesh = GetComponent<MeshFilter>().mesh;
+        Vector3[] vertices = mesh.vertices;
+        int[] triangles = mesh.triangles;
+
+
+        Matrix4x4 localToWorld = transform.localToWorldMatrix;
+ 
+        for(int i = 0; i<mesh.vertices.Length; ++i){
+            Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
+            Debug.Log($"Vertex position is {world_v}");
+            Gizmos.color = Color.blue;
+            Gizmos.DrawSphere(world_v, 0.1f);
         }
+
+    }
+
+
+    void GetVertices() {
+        var mesh = GetComponent<MeshFilter>().mesh;
+        Vector3[] vertices = mesh.vertices;
+        int[] triangles = mesh.triangles;
+
+
+        Matrix4x4 localToWorld = transform.localToWorldMatrix;
+ 
+        for(int i = 0; i<mesh.vertices.Length; ++i){
+            Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
+            Debug.Log($"Vertex position is {world_v}");
+            //Gizmos.DrawIcon(world_v, "Light tebsandtig.tiff", true);
+        }
+
+        // // Iterate over the triangles in sets of 3
+        // for(var i = 0; i < triangles.Length; i += 3)
+        // {
+        //     // Get the 3 consequent int values
+        //     var aIndex = triangles[i];
+        //     var bIndex = triangles[i + 1];
+        //     var cIndex = triangles[i + 2];
+
+        //     // Get the 3 according vertices
+        //     var a = vertices[aIndex];
+        //     var b = vertices[bIndex];
+        //     var c = vertices[cIndex];
+
+        //     // Convert them into world space
+        //     // up to you if you want to do this before or after getting the distances
+        //     a = transform.TransformPoint(a);
+        //     b = transform.TransformPoint(b);
+        //     c = transform.TransformPoint(c);
+
+        //     // Get the 3 distances between those vertices
+        //     var distAB = Vector3.Distance(a, b);
+        //     var distAC = Vector3.Distance(a, c);
+        //     var distBC = Vector3.Distance(b, c);
+
+        //     Debug.Log($"INSIDE GETVERTICES: a is {a}, b is {b}, c is {c} ");
+
+        //     // Now according to the distances draw your lines between "a", "b" and "c" e.g.
+        //     Debug.DrawLine(transform.TransformPoint(a), transform.TransformPoint(b), Color.red);
+        //     Debug.DrawLine(transform.TransformPoint(a), transform.TransformPoint(c), Color.red);
+        //     Debug.DrawLine(transform.TransformPoint(b), transform.TransformPoint(c), Color.red);
+        // }
+
     }
     
  
