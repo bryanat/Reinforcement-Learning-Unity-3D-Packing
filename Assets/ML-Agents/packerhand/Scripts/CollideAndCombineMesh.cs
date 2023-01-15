@@ -77,10 +77,10 @@ public class CollideAndCombineMesh : MonoBehaviour
     //// Adjust position of box and calls mesh combiner
     //// happens when the selected position is good enough
     ///</summary>
-    void OnTriggerEnter() {
+    void OnTriggerEnter(Collider box) {
 
         // Get pos, rot, and colliders of box and bin
-         Transform box = agent.carriedObject;
+         //Transform box = agent.carriedObject;
         // Debug.Log($"HIT OBJECT INSIDE TRIGGER IS {box}");
         // var parent_mc =  GetComponent<Collider>();
          var box_mc = box.GetComponent<Collider>();
@@ -104,7 +104,7 @@ public class CollideAndCombineMesh : MonoBehaviour
         // box.position += direction * (distance);
         // Debug.Log($"BOX {box.name} FINAL POSITION IS {box.position}");
         // // Make box child of bin
-        box.parent = transform;
+        box.transform.parent = transform;
         // Combine bin and box meshes
         meshList = GetComponentsInChildren<MeshFilter>(); 
         //MeshFilter [] meshList = new [] {box.GetComponent<MeshFilter>()};
