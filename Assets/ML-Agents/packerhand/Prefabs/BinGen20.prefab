@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7511180491535345431}
   - component: {fileID: 4609237670239678329}
   - component: {fileID: 276802224177794842}
+  - component: {fileID: 8806586284240334188}
   - component: {fileID: 17156946454480063}
   - component: {fileID: 6523280348957316031}
   m_Layer: 0
@@ -85,6 +86,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &8806586284240334188
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 65816493713298024}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 0.99999994, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!65 &17156946454480063
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -144,7 +166,6 @@ GameObject:
   - component: {fileID: 5254446884636596179}
   - component: {fileID: 9010143478637944015}
   - component: {fileID: 2244940505263927238}
-  - component: {fileID: 6930670110535705936}
   - component: {fileID: 7740422511591721399}
   m_Layer: 0
   m_Name: binright
@@ -218,27 +239,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &6930670110535705936
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 439459821755549281}
-  m_Material: {fileID: 13400000, guid: 54ed79b9254e1456587c8cf3849f6dc1, type: 2}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &7740422511591721399
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -409,7 +409,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7115458822026379422}
   - component: {fileID: 5838332295030588932}
-  - component: {fileID: 493568957233953711}
   m_Layer: 0
   m_Name: BinGen20
   m_TagString: goal
@@ -435,7 +434,7 @@ Transform:
   - {fileID: 4820500487014347645}
   - {fileID: 2545198344545347332}
   m_Father: {fileID: 0}
-  m_RootOrder: -1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &5838332295030588932
 Rigidbody:
@@ -464,27 +463,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 3
---- !u!65 &493568957233953711
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3859897800474219754}
-  m_Material: {fileID: 13400000, guid: 54ed79b9254e1456587c8cf3849f6dc1, type: 2}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6055518303293011885
 GameObject:
   m_ObjectHideFlags: 0
@@ -629,7 +607,6 @@ GameObject:
   - component: {fileID: 4878538411570912396}
   - component: {fileID: 8341273123931684850}
   - component: {fileID: 3874392373179878750}
-  - component: {fileID: 7044726047894412449}
   - component: {fileID: 702327118242833118}
   m_Layer: 0
   m_Name: binbottom
@@ -703,27 +680,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &7044726047894412449
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9119543345825551592}
-  m_Material: {fileID: 13400000, guid: 54ed79b9254e1456587c8cf3849f6dc1, type: 2}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &702327118242833118
 Rigidbody:
   m_ObjectHideFlags: 0
