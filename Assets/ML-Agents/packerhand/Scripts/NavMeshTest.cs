@@ -7,6 +7,8 @@ using UnityEngine.SceneManagement;
 public class NavMeshTest : MonoBehaviour
 {
     // Start is called before the first frame update
+
+    float range = 2.0f;
     void Start()
     {
         GameObject objectToMove = GameObject.Find("Cube");
@@ -22,14 +24,13 @@ public class NavMeshTest : MonoBehaviour
 
         // Debug.Log($" NavMeshBuildSourceShape === {NavMeshBuildSourceShape.Box}");
         // Debug.Log($" NavMeshBuildSourceShape === {NavMeshBuildSourceShape.Capsule}");
-
     }
 
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
     {
         for (int i = 0; i < 3; i++)
         {
-            range = range + 0.5f;
+            range = range + 2.0f;
             Vector3 randomPoint = center + Random.insideUnitSphere * range;
             NavMeshHit hit;
             if (NavMesh.SamplePosition(randomPoint, out hit, 1.0f, NavMesh.AllAreas))
@@ -53,7 +54,6 @@ public class NavMeshTest : MonoBehaviour
         // Sample next random point & cast ray to display it
         Vector3 point;
         GameObject objectToMove = GameObject.Find("Cube");
-        float range=2.0f;
         if (RandomPoint(objectToMove.transform.position, range, out point))
         {
             Debug.DrawRay(point, Vector3.up, Color.blue, 1.0f);
