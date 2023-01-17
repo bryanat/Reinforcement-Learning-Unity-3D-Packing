@@ -51,9 +51,7 @@ public class BoxSpawner : MonoBehaviour
     
     public GameObject binMini;
 
-    //public SensorBox sensorBox;
-
-    public PackerHand hand;
+    public GameObject unitBox; 
 
 
     public void SetUpBoxes(int flag, float size) 
@@ -110,15 +108,17 @@ public class BoxSpawner : MonoBehaviour
         foreach(var s in sizes) 
         {
             // Create GameObject box
-            GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            //GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            GameObject box = Instantiate(unitBox);
             box.transform.localScale = new Vector3(s[0], s[1], s[2]); 
             var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box
             // automatically comes with boxCollider and mesh renderer
             box.AddComponent<Rigidbody>();
-            box.tag = "0";
-            box.layer = 5;
+            box.AddComponent<BoxCollider>();
+            //box.tag = "box";
+            //box.layer = 5;
             box.name = idx.ToString();
             var m_rb = box.GetComponent<Rigidbody>();
             // not be affected by forces or collisions, position and rotation will be controlled directly through script

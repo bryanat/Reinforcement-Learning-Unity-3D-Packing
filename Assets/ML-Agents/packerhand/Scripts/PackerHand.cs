@@ -146,14 +146,14 @@ public class PackerHand : Agent
         if (m_config==0) 
         {
             // Add Bin position
-            sensor.AddObservation(binMini.transform.position); 
+            //sensor.AddObservation(binMini.transform.position); 
             // Add Bin size
-            sensor.AddObservation(binMini.transform.localScale);
+            //sensor.AddObservation(binArea.transform.localScale);
         }
         else 
         {
             // Add Bin position
-            sensor.AddObservation(binArea.transform.position);
+            //sensor.AddObservation(binArea.transform.position);
             // Add Bin size
             sensor.AddObservation(binArea.transform.localScale);
         }
@@ -163,15 +163,14 @@ public class PackerHand : Agent
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
             sensor.AddObservation(box.rb.position); //add box position to sensor observations
             sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
-            sensor.AddObservation(float.Parse(box.rb.tag)); //add box tag to sensor observations
         }
 
-        // Add Agent postiion
-        sensor.AddObservation(this.transform.position);
+        // // Add Agent postiion
+        // sensor.AddObservation(this.transform.position);
 
-        // Add Agent velocity
-        sensor.AddObservation(m_Agent.velocity.x); // !! does agent need to know his velocity? 
-        sensor.AddObservation(m_Agent.velocity.z); // !! does agent need to know his velocity?
+        // // Add Agent velocity
+        // sensor.AddObservation(m_Agent.velocity.x); // !! does agent need to know his velocity? 
+        // sensor.AddObservation(m_Agent.velocity.z); // !! does agent need to know his velocity?
     }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
@@ -294,15 +293,6 @@ public class PackerHand : Agent
     /// <summary>
     /// Agent selects position for box
     ///</summary>
-
-    public void SelectSpace() {
-
-    }
-
-
-    /// <summary>
-    /// Agent selects position for box
-    ///</summary>
     public void SelectPosition(float x, float y, float z) 
     { 
         // Scale x, y, z between 0 and 1 (passed in values are between -1 and 1)
@@ -317,24 +307,24 @@ public class PackerHand : Agent
         var w = boxPool[Box.boxIdx].boxSize.z;
         var test_position = Vector3.zero;
         if (m_config==0) {
-            // Interpolate position between x, y, z bounds of the mini bin
-            x_position = Mathf.Lerp(binMini.transform.position.x-miniBounds.extents.x+1, binMini.transform.position.x+miniBounds.extents.x-1, x);
-            y_position = Mathf.Lerp(binMini.transform.position.y-miniBounds.extents.y+1, binMini.transform.position.y+miniBounds.extents.y-1, y);
-            z_position = Mathf.Lerp(binMini.transform.position.z-miniBounds.extents.z+1, binMini.transform.position.z+miniBounds.extents.z-1, z);
-            test_position = new Vector3(x_position,y_position,z_position);
-            ////////WHY DOESN'T THE ABOVE GIVE US A POSITION INSIDE BIN?????????????///////////
-            Debug.Log($"TEST POSITION IS INSIDE BIN: {miniBounds.Contains(test_position)}");
-            // check if position inside bin bounds
-            if (miniBounds.Contains(test_position)) {
-                    targetBin  = new GameObject().transform;
-                    targetBin.position = test_position; // teleport.
-                    Debug.Log($"SELECTED POSITION IS {targetBin.position}");
-                    isPositionSelected = true;
-                //     // Update search space
-                //     UpdateSearchSpace(l, w, h);
-                // }
+            // // Interpolate position between x, y, z bounds of the mini bin
+            // x_position = Mathf.Lerp(binMini.transform.position.x-miniBounds.extents.x+1, binMini.transform.position.x+miniBounds.extents.x-1, x);
+            // y_position = Mathf.Lerp(binMini.transform.position.y-miniBounds.extents.y+1, binMini.transform.position.y+miniBounds.extents.y-1, y);
+            // z_position = Mathf.Lerp(binMini.transform.position.z-miniBounds.extents.z+1, binMini.transform.position.z+miniBounds.extents.z-1, z);
+            // test_position = new Vector3(x_position,y_position,z_position);
+            // ////////WHY DOESN'T THE ABOVE GIVE US A POSITION INSIDE BIN?????????????///////////
+            // Debug.Log($"TEST POSITION IS INSIDE BIN: {miniBounds.Contains(test_position)}");
+            // // check if position inside bin bounds
+            // if (miniBounds.Contains(test_position)) {
+            //         targetBin  = new GameObject().transform;
+            //         targetBin.position = test_position; // teleport.
+            //         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
+            //         isPositionSelected = true;
+            //     //     // Update search space
+            //     //     UpdateSearchSpace(l, w, h);
+            //     // }
 
-                }
+            //     }
             }
             else {
                 // Interpolate position between x, y, z bounds of the bin
@@ -361,8 +351,8 @@ public class PackerHand : Agent
         // Update bin volume
         if (m_config==0) 
         {
-            miniBinVolume = miniBinVolume - carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
-             Debug.Log($"MINI BIN VOLUME IS {miniBinVolume}");
+            // miniBinVolume = miniBinVolume - carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
+            //  Debug.Log($"MINI BIN VOLUME IS {miniBinVolume}");
         }
         else 
         {
