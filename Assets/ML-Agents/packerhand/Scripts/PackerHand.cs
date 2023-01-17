@@ -433,6 +433,21 @@ public class PackerHand : Agent
     /// </summary>
     public void DropoffBox() 
     {
+
+      //A: select vertex from heuristic
+        // selected vertex = same vertex present in all three meshes 
+      //B: select blackbox vertices 
+      //C: select box from NN/blue/brain
+      //D: select position from A+B
+        // 1: rotate (reduce to 6) => carriedObject.transform.localRotation => Vector3(x,y,z)
+        // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
+        // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
+        // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
+
+
+        //blackbox volume/dimensions will have to be coded
+
+
         // Detach box from agent
         carriedObject.SetParent(null);
 

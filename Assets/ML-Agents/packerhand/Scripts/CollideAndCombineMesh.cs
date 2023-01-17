@@ -39,7 +39,7 @@ public class CollideAndCombineMesh : MonoBehaviour
 
         meshList = GetComponentsInChildren<MeshFilter>(); 
         
-        // Combine meshes
+        // Combine children meshes into single parent mesh on start  
         MeshCombiner(meshList);
 
 
@@ -108,7 +108,15 @@ public class CollideAndCombineMesh : MonoBehaviour
         // Combine bin and box meshes
         meshList = GetComponentsInChildren<MeshFilter>(); 
         //MeshFilter [] meshList = new [] {box.GetComponent<MeshFilter>()};
-        MeshCombiner(meshList);
+        
+        // Combine colliding box into mesh on collision if in correct position
+        // Combine colliding box into mesh on collision if a vertex on box matches selected position vertex
+        // if (correct position) {
+        // if (box.vertex = targetPosition.vertex) {
+        // if (box.vertex = targetPosition.vertex) {
+            MeshCombiner(meshList);
+        // }
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         GetVertices();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////        
@@ -120,22 +128,23 @@ public class CollideAndCombineMesh : MonoBehaviour
 
     }
 
-    void OnDrawGizmos() {
-        var mesh = GetComponent<MeshFilter>().mesh;
-        Vector3[] vertices = mesh.vertices;
-        int[] triangles = mesh.triangles;
+    // causes lag
+    // void OnDrawGizmos() {
+    //     var mesh = GetComponent<MeshFilter>().mesh;
+    //     Vector3[] vertices = mesh.vertices;
+    //     int[] triangles = mesh.triangles;
 
 
-        Matrix4x4 localToWorld = transform.localToWorldMatrix;
+    //     Matrix4x4 localToWorld = transform.localToWorldMatrix;
  
-        for(int i = 0; i<mesh.vertices.Length; ++i){
-            Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
-            Debug.Log($"Vertex position is {world_v}");
-            Gizmos.color = Color.blue;
-            Gizmos.DrawSphere(world_v, 0.1f);
-        }
+    //     for(int i = 0; i<mesh.vertices.Length; ++i){
+    //         Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
+    //         Debug.Log($"Vertex position is {world_v}");
+    //         Gizmos.color = Color.blue;
+    //         Gizmos.DrawSphere(world_v, 0.1f);
+    //     }
 
-    }
+    // }
 
 
     void GetVertices() {
@@ -160,7 +169,7 @@ public class CollideAndCombineMesh : MonoBehaviour
         //     var bIndex = triangles[i + 1];
         //     var cIndex = triangles[i + 2];
 
-        //     // Get the 3 according vertices
+        //     // Get the 3 acscording vertices
         //     var a = vertices[aIndex];
         //     var b = vertices[bIndex];
         //     var c = vertices[cIndex];
