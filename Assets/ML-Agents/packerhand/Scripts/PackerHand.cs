@@ -25,6 +25,7 @@ public class PackerHand : Agent
     string m_RegularBoxBehaviorName = "RegularBox";
 
     public GameObject binArea; // The bin container, which will be manually selected in the Inspector
+
     public GameObject binMini; // The mini bin container, used for lower lessons of Curriculum learning
 
     Rigidbody m_Agent; //cache agent rigidbody on initilization
@@ -115,8 +116,12 @@ public class PackerHand : Agent
         m_config = 2;
 
         // Get bin's bounds from onstart
-        Collider m_Collider = binArea.GetComponent<Collider>();
-        areaBounds = m_Collider.bounds;
+        // Collider m_Collider = binArea.GetComponent<Collider>();
+        // areaBounds = m_Collider.bounds;
+        var renderers = binArea.GetComponentsInChildren<Renderer>();
+        var areaBounds = renderers[0].bounds;
+        for (var i = 1; i < renderers.Length; ++i)
+            areaBounds.Encapsulate(renderers[i].bounds);
 
         Debug.Log($"BIN BOUNDS: {areaBounds}");
 
@@ -129,8 +134,13 @@ public class PackerHand : Agent
 
 
         // Initialize agent for collision detection and mesh combiner 
-        CombineMesh sensorbin = binArea.GetComponent<CombineMesh>();
-        sensorbin.agent = this;
+        // CombineMesh sensorbin = binArea.GetComponent<CombineMesh>();
+        // sensorbin.agent = this;
+
+        CombineMesh [] sensors = binArea.GetComponentsInChildren<CombineMesh>();
+        foreach (var sensor in sensors) {
+            sensor.agent = this;
+        }
 
         // Reset agent and rewards
         SetResetParameters();
@@ -289,60 +299,70 @@ public class PackerHand : Agent
     }
 
 
+    public void SelectPosition(float x, float y, float z) {
+         targetBin  = new GameObject().transform;
+        // Update box position
+        targetBin.position = new Vector3(8.25f, 0.50f, 79.50f); // teleport.
+        //vertex: (8.25, 0.50, 79.50)
+        Debug.Log($"SELECTED POSITION IS {targetBin.position}");
+        isPositionSelected = true;   
+
+    }
+
 
     /// <summary>
     /// Agent selects position for box
-    ///</summary>
-    public void SelectPosition(float x, float y, float z) 
-    { 
-        // Scale x, y, z between 0 and 1 (passed in values are between -1 and 1)
-        x = (x + 1f) * 0.5f;
-        y = (y + 1f) * 0.5f;
-        z = (z + 1f) * 0.5f;
-        var x_position = 0f;
-        var y_position = 0f;
-        var z_position = 0f;
-        var l = boxPool[Box.boxIdx].boxSize.x;
-        var h = boxPool[Box.boxIdx].boxSize.y;
-        var w = boxPool[Box.boxIdx].boxSize.z;
-        var test_position = Vector3.zero;
-        if (m_config==0) {
-            // // Interpolate position between x, y, z bounds of the mini bin
-            // x_position = Mathf.Lerp(binMini.transform.position.x-miniBounds.extents.x+1, binMini.transform.position.x+miniBounds.extents.x-1, x);
-            // y_position = Mathf.Lerp(binMini.transform.position.y-miniBounds.extents.y+1, binMini.transform.position.y+miniBounds.extents.y-1, y);
-            // z_position = Mathf.Lerp(binMini.transform.position.z-miniBounds.extents.z+1, binMini.transform.position.z+miniBounds.extents.z-1, z);
-            // test_position = new Vector3(x_position,y_position,z_position);
-            // ////////WHY DOESN'T THE ABOVE GIVE US A POSITION INSIDE BIN?????????????///////////
-            // Debug.Log($"TEST POSITION IS INSIDE BIN: {miniBounds.Contains(test_position)}");
-            // // check if position inside bin bounds
-            // if (miniBounds.Contains(test_position)) {
-            //         targetBin  = new GameObject().transform;
-            //         targetBin.position = test_position; // teleport.
-            //         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
-            //         isPositionSelected = true;
-            //     //     // Update search space
-            //     //     UpdateSearchSpace(l, w, h);
-            //     // }
+    // ///</summary>
+    // public void SelectPosition(float x, float y, float z) 
+    // { 
+    //     // Scale x, y, z between 0 and 1 (passed in values are between -1 and 1)
+    //     x = (x + 1f) * 0.5f;
+    //     y = (y + 1f) * 0.5f;
+    //     z = (z + 1f) * 0.5f;
+    //     var x_position = 0f;
+    //     var y_position = 0f;
+    //     var z_position = 0f;
+    //     var l = boxPool[Box.boxIdx].boxSize.x;
+    //     var h = boxPool[Box.boxIdx].boxSize.y;
+    //     var w = boxPool[Box.boxIdx].boxSize.z;
+    //     var test_position = Vector3.zero;
+    //     if (m_config==0) {
+    //         // // Interpolate position between x, y, z bounds of the mini bin
+    //         // x_position = Mathf.Lerp(binMini.transform.position.x-miniBounds.extents.x+1, binMini.transform.position.x+miniBounds.extents.x-1, x);
+    //         // y_position = Mathf.Lerp(binMini.transform.position.y-miniBounds.extents.y+1, binMini.transform.position.y+miniBounds.extents.y-1, y);
+    //         // z_position = Mathf.Lerp(binMini.transform.position.z-miniBounds.extents.z+1, binMini.transform.position.z+miniBounds.extents.z-1, z);
+    //         // test_position = new Vector3(x_position,y_position,z_position);
+    //         // ////////WHY DOESN'T THE ABOVE GIVE US A POSITION INSIDE BIN?????????????///////////
+    //         // Debug.Log($"TEST POSITION IS INSIDE BIN: {miniBounds.Contains(test_position)}");
+    //         // // check if position inside bin bounds
+    //         // if (miniBounds.Contains(test_position)) {
+    //         //         targetBin  = new GameObject().transform;
+    //         //         targetBin.position = test_position; // teleport.
+    //         //         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
+    //         //         isPositionSelected = true;
+    //         //     //     // Update search space
+    //         //     //     UpdateSearchSpace(l, w, h);
+    //         //     // }
 
-            //     }
-            }
-            else {
-                // Interpolate position between x, y, z bounds of the bin
-                x_position = Mathf.Lerp(binArea.transform.position.x-areaBounds.extents.x+1, binArea.transform.position.x+areaBounds.extents.x-1, x);
-                y_position = Mathf.Lerp(binArea.transform.position.y-areaBounds.extents.y+1, binArea.transform.position.y+areaBounds.extents.y-1, y);
-                z_position = Mathf.Lerp(binArea.transform.position.z-areaBounds.extents.z+1, binArea.transform.position.z+areaBounds.extents.z-1, z);
-                test_position = new Vector3(x_position, y_position,z_position);
-                if (areaBounds.Contains(test_position)) 
-                {              
-                    targetBin  = new GameObject().transform;
-                    // Update box position
-                    targetBin.position = test_position; // teleport.
-                    Debug.Log($"SELECTED POSITION IS {targetBin.position}");
-                    isPositionSelected = true;   
-            //    }  
-             } 
-        }
-    }
+    //         //     }
+    //         }
+    //         else {
+    //             // Interpolate position between x, y, z bounds of the bin
+    //             x_position = Mathf.Lerp(binArea.transform.position.x-areaBounds.extents.x+1, binArea.transform.position.x+areaBounds.extents.x-1, x);
+    //             y_position = Mathf.Lerp(binArea.transform.position.y-areaBounds.extents.y+1, binArea.transform.position.y+areaBounds.extents.y-1, y);
+    //             z_position = Mathf.Lerp(binArea.transform.position.z-areaBounds.extents.z+1, binArea.transform.position.z+areaBounds.extents.z-1, z);
+    //             test_position = new Vector3(x_position, y_position,z_position);
+    //             if (areaBounds.Contains(test_position)) 
+    //             {              
+    //                 targetBin  = new GameObject().transform;
+    //                 // Update box position
+    //                 targetBin.position = test_position; // teleport.
+    //                 Debug.Log($"SELECTED POSITION IS {targetBin.position}");
+    //                 isPositionSelected = true;   
+    //         //    }  
+    //          } 
+    //     }
+    // }
 
 
 
@@ -414,7 +434,6 @@ public class PackerHand : Agent
         carriedObject.parent = this.transform;
 
         isPickedup = true;
-
     }
 
 
