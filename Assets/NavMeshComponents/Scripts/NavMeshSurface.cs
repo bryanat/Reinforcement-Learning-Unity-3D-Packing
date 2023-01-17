@@ -108,7 +108,6 @@ namespace UnityEngine.AI
         public void AddData()
         {
 #if UNITY_EDITOR
-            Debug.Log("UNITY EDITOR preview");
             var isInPreviewScene = EditorSceneManager.IsPreviewSceneObject(this);
             var isPrefab = isInPreviewScene || EditorUtility.IsPersistent(this);
             if (isPrefab)
@@ -118,15 +117,13 @@ namespace UnityEngine.AI
                 return;
             }
 #endif
-            Debug.Log($"NavMeshDataInstance.valid =============== {m_NavMeshDataInstance.valid}");
             if (m_NavMeshDataInstance.valid)
                 return;
 
-            Debug.Log($"m_NavMeshData =============== {m_NavMeshData}");
             if (m_NavMeshData != null)
             {
-                Debug.Log("Adding NavMeshData");
                 m_NavMeshDataInstance = NavMesh.AddNavMeshData(m_NavMeshData, transform.position, transform.rotation);
+                UpdateNavMesh(m_NavMeshData); 
                 m_NavMeshDataInstance.owner = this;
             }
 
