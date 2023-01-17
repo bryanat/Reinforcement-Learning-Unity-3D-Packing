@@ -38,7 +38,7 @@ public class SensorCollision : MonoBehaviour
         }
 
         // if collision object is an unorganized box (tag "0")
-        if (collision.gameObject.CompareTag("0"))
+        if (collision.gameObject.CompareTag("box"))
         {
             Debug.Log($"*@@@@@ Collision of with a box (tag 0)  @@@@@");
         }

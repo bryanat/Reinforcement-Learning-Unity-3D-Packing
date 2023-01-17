@@ -123,13 +123,13 @@ public class PackerHand : Agent
 
         // Get total bin volume from onstart
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
-        miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
+        //miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
 
         Debug.Log($" BIN VOLUME: {binVolume}");
 
 
         // Initialize agent for collision detection and mesh combiner 
-        CollideAndCombineMesh sensorbin = binArea.GetComponent<CollideAndCombineMesh>();
+        CombineMesh sensorbin = binArea.GetComponent<CombineMesh>();
         sensorbin.agent = this;
 
         // Reset agent and rewards
