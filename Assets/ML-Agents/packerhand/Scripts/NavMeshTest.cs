@@ -8,23 +8,13 @@ public class NavMeshTest : MonoBehaviour
 {
     // Start is called before the first frame update
 
-    float range = 2.0f;
-    void Start()
-    {
-        GameObject objectToMove = GameObject.Find("Cube");
-        Debug.Log($"%%%%%%%%%%%%%%%%% object to move name  ===== {objectToMove.name}");
-        // Debug.Log($"%%%%%%%%%%%%%%%%% agenttype ===== {nv1.agentTypeID}");
-        Rigidbody rb = objectToMove.GetComponent<Rigidbody>();
-        Vector3 targetPosition = objectToMove.transform.position;
-        // Debug.Log($"old box position =========== {objectToMove.transform.position}");
-        targetPosition = targetPosition + new Vector3(10,0,0);
-        // Debug.Log($"target position =========== {targetPosition}");
-        rb.MovePosition(targetPosition);
-        // Debug.Log($"new box position =========== {objectToMove.transform.position}");
-
-        // Debug.Log($" NavMeshBuildSourceShape === {NavMeshBuildSourceShape.Box}");
-        // Debug.Log($" NavMeshBuildSourceShape === {NavMeshBuildSourceShape.Capsule}");
-    }
+    private float range=2.0f;
+    private Vector3 movePos;
+    private int cC;
+    private bool updateNM;
+    private NavMeshSurface nv1;
+    private Vector3 point;
+    private GameObject objectToMove;
 
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
     {
@@ -43,35 +33,39 @@ public class NavMeshTest : MonoBehaviour
         return false;
     }
 
-    void FixedUpdate(){
-
-        Debug.Log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FIXED UPDATE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-
-        //  Remove & Rebuild the NavMesh
-        NavMesh.RemoveAllNavMeshData();
-        NavMeshSurface nv1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshSurface>();
-        nv1.BuildNavMesh();
-        // Sample next random point & cast ray to display it
-        Vector3 point;
-        GameObject objectToMove = GameObject.Find("Cube");
-        if (RandomPoint(objectToMove.transform.position, range, out point))
-        {
-            Debug.DrawRay(point, Vector3.up, Color.blue, 1.0f);
-        }
+    void Awake(){
+        movePos = new Vector3(10,0.5f,0);
+        cC = 1;
+        updateNM = false;
+        objectToMove = GameObject.Find("Cube");
+        nv1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshSurface>();
     }
 
-    // void Update(){
-    //  //  Remove & Rebuild the NavMesh
-    //     NavMesh.RemoveAllNavMeshData();
-    //     nv1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshSurface>();
-    //     nv1.BuildNavMesh();
-    //     // Sample next random point & cast ray to display it
-    //     Vector3 point;
-    //     GameObject objectToMove = GameObject.Find("Cube");
-    //     if (RandomPoint(objectToMove.transform.position, range, out point))
-    //     {
-    //         Debug.DrawRay(point, Vector3.up, Color.blue, 1.0f);
-    //     }
-    // }
+    void Start(){
+        Rigidbody rb = objectToMove.GetComponent<Rigidbody>();
+        Vector3 targetPosition = objectToMove.transform.position;
+        targetPosition = targetPosition + movePos;
+        rb.MovePosition(targetPosition);
+        updateNM = true;
+        // Sample next random point & cast ray to display it
+        if (RandomPoint(objectToMove.transform.position, range, out point))
+        {
+            Debug.DrawRay(point, Vector3.up, Color.blue, 5.0f);
+            Debug.Log($" random point === {point}");
+        }
+        GameObject cube1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cube1.AddComponent<Rigidbody>();
+        cube1.transform.position = movePos;
+        cube1.name = "cube" + cC.ToString();
+    }
 
+    void FixedUpdate(){
+        if ( updateNM == true ){
+            Debug.Log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FIXED UPDATE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+            //  Remove & Rebuild the NavMesh
+            NavMesh.RemoveAllNavMeshData();
+            nv1.BuildNavMesh();
+            updateNM = false;
+        }
+    }
 }
