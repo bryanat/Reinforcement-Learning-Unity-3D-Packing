@@ -75,34 +75,39 @@ public class BoxSpawner : MonoBehaviour
          }
         else {
         //temporary box sizes array (to be fed from json later)
-            sizes = new float[][] 
-            {
-                new float[] { 1.0f, 2.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 2.0f, 2.0f, 3.5f },
-                new float[] { 2.0f, 2.0f, 2.0f },
-                new float[] { 1.0f, 1.0f, 2.0f },
-                new float[] { 3.0f, 4.0f, 4.0f },
-                new float[] { 1.0f, 2.0f, 3.5f },
-                new float[] { 1.0f, 1.5f, 0.5f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 2.5f, 0.5f, 0.5f },
-                new float[] { 2.0f, 3.0f, 4.0f },
-                new float[] { 0.5f, 0.5f, 0.5f },
-                new float[] { 1.0f, 2.0f, 3.5f },
-                new float[] { 1.0f, 1.5f, 0.5f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 2.0f, 2.0f, 2.0f },
-                new float[] { 1.0f, 1.0f, 2.0f },
-                new float[] { 3.0f, 4.0f, 4.0f },
-                new float[] { 1.0f, 2.0f, 3.5f },
-                new float[] { 1.0f, 1.5f, 0.5f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 2.5f, 0.5f, 0.5f },
-                new float[] { 1.0f, 2.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 2.0f, 2.0f, 3.5f },
+            sizes = new float[][] {
+                new float[] {1f, 1f, 1f},
+                new float[] {1f, 1f, 1f},
+                new float[] {1f, 1f, 1f}
             };
+        //     sizes = new float[][] 
+        //     {
+        //         new float[] { 1.0f, 2.0f, 3.0f },
+        //         new float[] { 3.0f, 3.0f, 3.0f },
+        //         new float[] { 2.0f, 2.0f, 3.5f },
+        //         new float[] { 2.0f, 2.0f, 2.0f },
+        //         new float[] { 1.0f, 1.0f, 2.0f },
+        //         new float[] { 3.0f, 4.0f, 4.0f },
+        //         new float[] { 1.0f, 2.0f, 3.5f },
+        //         new float[] { 1.0f, 1.5f, 0.5f },
+        //         new float[] { 3.0f, 3.0f, 3.0f },
+        //         new float[] { 2.5f, 0.5f, 0.5f },
+        //         new float[] { 2.0f, 3.0f, 4.0f },
+        //         new float[] { 0.5f, 0.5f, 0.5f },
+        //         new float[] { 1.0f, 2.0f, 3.5f },
+        //         new float[] { 1.0f, 1.5f, 0.5f },
+        //         new float[] { 3.0f, 3.0f, 3.0f },
+        //         new float[] { 2.0f, 2.0f, 2.0f },
+        //         new float[] { 1.0f, 1.0f, 2.0f },
+        //         new float[] { 3.0f, 4.0f, 4.0f },
+        //         new float[] { 1.0f, 2.0f, 3.5f },
+        //         new float[] { 1.0f, 1.5f, 0.5f },
+        //         new float[] { 3.0f, 3.0f, 3.0f },
+        //         new float[] { 2.5f, 0.5f, 0.5f },
+        //         new float[] { 1.0f, 2.0f, 3.0f },
+        //         new float[] { 3.0f, 3.0f, 3.0f },
+        //         new float[] { 2.0f, 2.0f, 3.5f },
+        //     };
         }
         var idx = 0;
         foreach(var s in sizes) 

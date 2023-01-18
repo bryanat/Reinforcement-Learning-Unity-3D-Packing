@@ -66,6 +66,11 @@ public class PackerHand : Agent
 
     public List<Box> boxPool;
 
+    public List<Vector3 []> backVertices;
+    public List<Vector3 []> bottomVertices;
+    public List<Vector3 []> sideVertices;
+
+
 
 
 
@@ -279,6 +284,27 @@ public class PackerHand : Agent
     }
 
 
+    public void GetVertex() {
+        Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
+
+        foreach(Transform binObject in binObjects) {
+            if (binObject.name == "BinIso20Back") {
+                MeshFilter mf_back = binObject.GetComponent<MeshFilter>();
+                backVertices.Add(mf_back.mesh.vertices);
+            }
+            else if (binObject.name == "BinIso20Bottom") {
+                MeshFilter mf_bottom = binObject.GetComponent<MeshFilter>();
+                bottomVertices.Add(mf_bottom.mesh.vertices);
+            }
+            else if (binObject.name == "BinIso20Side") {
+                MeshFilter mf_side = binObject.GetComponent<MeshFilter>();
+                sideVertices.Add(mf_side.mesh.vertices);         
+            }
+        }
+
+    }
+
+
 
     /// <summary>
     /// Agent selects a target box
@@ -302,11 +328,10 @@ public class PackerHand : Agent
     public void SelectPosition(float x, float y, float z) {
          targetBin  = new GameObject().transform;
         // Update box position
-        targetBin.position = new Vector3(8.25f, 0.50f, 79.50f); // teleport.
+        targetBin.position = new Vector3(8.75f, 1.00f, 79.00f); // teleport.
         //vertex: (8.25, 0.50, 79.50)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
         isPositionSelected = true;   
-
     }
 
 
