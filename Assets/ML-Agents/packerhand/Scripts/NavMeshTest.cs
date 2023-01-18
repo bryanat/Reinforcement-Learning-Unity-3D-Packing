@@ -8,13 +8,16 @@ public class NavMeshTest : MonoBehaviour
 {
     // Start is called before the first frame update
 
-    private float range=2.0f;
+    private float range;
     private Vector3 movePos;
-    private int cC;
-    private bool updateNM;
+    private Vector3 spawnPos;
     private NavMeshSurface nv1;
     private Vector3 point;
     private GameObject objectToMove;
+    private int num_boxes;
+    private int inum;
+    private GameObject cube1;
+    private Rigidbody rb;
 
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
     {
@@ -33,39 +36,44 @@ public class NavMeshTest : MonoBehaviour
         return false;
     }
 
+    // void Delay(){Debug.Log("delay.....");}
+
     void Awake(){
-        movePos = new Vector3(10,0.5f,0);
-        cC = 1;
-        updateNM = false;
+        // interval = 3.0f;
+        spawnPos = new Vector3(10,0.5f,0);
+        movePos = new Vector3(1,0,0);
+        num_boxes = 5;
         objectToMove = GameObject.Find("Cube");
         nv1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshSurface>();
     }
 
     void Start(){
         Rigidbody rb = objectToMove.GetComponent<Rigidbody>();
-        Vector3 targetPosition = objectToMove.transform.position;
-        targetPosition = targetPosition + movePos;
-        rb.MovePosition(targetPosition);
-        updateNM = true;
-        // Sample next random point & cast ray to display it
-        if (RandomPoint(objectToMove.transform.position, range, out point))
-        {
-            Debug.DrawRay(point, Vector3.up, Color.blue, 5.0f);
-            Debug.Log($" random point === {point}");
-        }
-        GameObject cube1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube1.AddComponent<Rigidbody>();
-        cube1.transform.position = movePos;
-        cube1.name = "cube" + cC.ToString();
+        rb.MovePosition(objectToMove.transform.position + movePos);
+        // if (RandomPoint(objectToMove.transform.position, range, out point))
+        // {
+        //     Debug.DrawRay(point, Vector3.up, Color.blue, 5.0f);
+        //     Debug.Log($" random point === {point}");
+        // }
     }
 
-    void FixedUpdate(){
-        if ( updateNM == true ){
-            Debug.Log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FIXED UPDATE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-            //  Remove & Rebuild the NavMesh
-            NavMesh.RemoveAllNavMeshData();
-            nv1.BuildNavMesh();
-            updateNM = false;
+    void spawnAndMove(){
+        for (inum = 1; inum < num_boxes; inum++){
+            Invoke("Delay",1f);
+            cube1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube1.transform.position = spawnPos;
+            cube1.name = "cube" + inum.ToString();
+            cube1.AddComponent<Rigidbody>();
+            rb = cube1.GetComponent<Rigidbody>();
+            rb.MovePosition(spawnPos + movePos * (float)inum);
         }
+    }
+    
+    void FixedUpdate(){
+        spawnAndMove();
+    }
+
+    void Update(){
+        nv1.BuildNavMesh();
     }
 }
