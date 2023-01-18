@@ -70,6 +70,13 @@ public class PackerHand : Agent
     public List<Vector3> bottomVertices;
     public List<Vector3> sideVertices;
 
+    // public Vector3 [] backVertices1;
+    // public Vector3 []bottomVertices1;
+    // public Vector3 [] sideVertices1;
+    public MeshFilter mf_back;
+    public MeshFilter mf_bottom;
+    public MeshFilter mf_side;
+
 
 
 
@@ -290,15 +297,16 @@ public class PackerHand : Agent
 
         foreach(Transform binObject in binObjects) {
             if (binObject.name == "BinIso20Back") {
-                MeshFilter mf_back = binObject.GetComponent<MeshFilter>();
+                mf_back = binObject.GetComponent<MeshFilter>();
                 backVertices.AddRange(mf_back.mesh.vertices);
+
             }
             else if (binObject.name == "BinIso20Bottom") {
-                MeshFilter mf_bottom = binObject.GetComponent<MeshFilter>();
+                mf_bottom = binObject.GetComponent<MeshFilter>();
                 bottomVertices.AddRange(mf_bottom.mesh.vertices);
             }
             else if (binObject.name == "BinIso20Side") {
-                MeshFilter mf_side = binObject.GetComponent<MeshFilter>();
+                mf_side = binObject.GetComponent<MeshFilter>();
                 sideVertices.AddRange(mf_side.mesh.vertices);         
             }
         }

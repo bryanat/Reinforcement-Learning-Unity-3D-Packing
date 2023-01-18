@@ -82,22 +82,26 @@ public class CombineMesh : MonoBehaviour
 
     void OnTriggerEnter(Collider box) {
 
-        Debug.Log("ENTERED TRIGGER");
+        Debug.Log($"ENTERED TRIGGER: {box.name}");
 
 
          var box_mc = box.GetComponent<Collider>();
 
         // Set trigger to false so bin won't be triggered by this box anymore
-        //box_mc.isTrigger = false;
+        box_mc.isTrigger = false;
 
 
         // // Make box child of bin
         Transform boxObject = box.transform;
-        Transform [] allSides = boxObject.GetComponentsInChildren<Transform>();
+        Transform [] allSides = box.GetComponentsInChildren<Transform>();
+        allSides = allSides.Skip(1).ToArray();
+        Debug.Log($"ALL SIDES COUNT IS : {allSides[0].name}");
+        Debug.Log($"ALL SIDES COUNT IS : {allSides[1].name}");
+        Debug.Log($"ALL SIDES COUNT IS : {allSides[2].name}");
 
 
         // Select a child to combine the mesh
-        foreach(Transform side in boxObject) 
+        foreach(Transform side in allSides) 
         {
             Debug.Log($"COLLIDING SIDE IS {side.name}");
             //check which side collided with this mesh
@@ -115,7 +119,7 @@ public class CombineMesh : MonoBehaviour
                     MeshCombiner(meshList);
                 }
                 //agent.StateReset();
-                break;
+                //break;
                 
             }
         }
