@@ -82,7 +82,7 @@ public class CombineMesh : MonoBehaviour
 
     void OnTriggerEnter(Collider box) {
 
-        Debug.Log($"ENTERED TRIGGER: {box.name}");
+        Debug.Log($"ENTERED TRIGGER for BOX {box.name} AND MESH {meshname}");
 
 
          var box_mc = box.GetComponent<Collider>();
