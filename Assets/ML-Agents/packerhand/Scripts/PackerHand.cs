@@ -66,9 +66,9 @@ public class PackerHand : Agent
 
     public List<Box> boxPool;
 
-    public List<Vector3 []> backVertices;
-    public List<Vector3 []> bottomVertices;
-    public List<Vector3 []> sideVertices;
+    public List<Vector3> backVertices;
+    public List<Vector3> bottomVertices;
+    public List<Vector3> sideVertices;
 
 
 
@@ -222,9 +222,10 @@ public class PackerHand : Agent
             m_Configuration = -1;
         }
         // if box is dropped off, go for next round of box selection
-        // if (isDroppedoff) {
-        //     StateReset();
-        // }
+        if (isDroppedoff) {
+            UpdateVertices();
+            StateReset();
+        }
         // if agent selects a box, it should move towards the box
         else if (isBoxSelected && isPickedup == false) 
         {
@@ -284,24 +285,41 @@ public class PackerHand : Agent
     }
 
 
-    public void GetVertex() {
+    public void UpdateVertices() {
         Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
 
         foreach(Transform binObject in binObjects) {
             if (binObject.name == "BinIso20Back") {
                 MeshFilter mf_back = binObject.GetComponent<MeshFilter>();
-                backVertices.Add(mf_back.mesh.vertices);
+                backVertices.AddRange(mf_back.mesh.vertices);
             }
             else if (binObject.name == "BinIso20Bottom") {
                 MeshFilter mf_bottom = binObject.GetComponent<MeshFilter>();
-                bottomVertices.Add(mf_bottom.mesh.vertices);
+                bottomVertices.AddRange(mf_bottom.mesh.vertices);
             }
             else if (binObject.name == "BinIso20Side") {
                 MeshFilter mf_side = binObject.GetComponent<MeshFilter>();
-                sideVertices.Add(mf_side.mesh.vertices);         
+                sideVertices.AddRange(mf_side.mesh.vertices);         
             }
         }
 
+    }
+
+
+    public Vector3 SelectVertex() {
+        for (int i=0; i<backVertices.Count;i++) {
+            for (int j =0; j<sideVertices.Count;j++) {
+                for (int k=0; k<=bottomVertices.Count;k++) {
+                    if (backVertices[i]==sideVertices[j] 
+                    && backVertices[i]==bottomVertices[k]
+                    && sideVertices[j]==bottomVertices[k]) {
+                        return backVertices[i];
+                    }
+                }
+            }
+
+        }
+        return Vector3.zero;
     }
 
 
