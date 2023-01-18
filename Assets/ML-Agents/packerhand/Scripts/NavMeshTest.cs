@@ -14,10 +14,9 @@ public class NavMeshTest : MonoBehaviour
     private NavMeshSurface nv1;
     private Vector3 point;
     private GameObject objectToMove;
-    private int num_boxes;
-    private int inum;
     private GameObject cube1;
     private Rigidbody rb;
+    private bool spawnModifier;
 
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
     {
@@ -36,13 +35,15 @@ public class NavMeshTest : MonoBehaviour
         return false;
     }
 
-    // void Delay(){Debug.Log("delay.....");}
+    IEnumerator Delay(){
+        yield return new WaitForSeconds(3);
+        spawnModifier = true;
+    }
 
     void Awake(){
-        // interval = 3.0f;
+        spawnModifier = true;
         spawnPos = new Vector3(10,0.5f,0);
-        movePos = new Vector3(1,0,0);
-        num_boxes = 5;
+        movePos = new Vector3(20,0,0);
         objectToMove = GameObject.Find("Cube");
         nv1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshSurface>();
     }
@@ -57,23 +58,36 @@ public class NavMeshTest : MonoBehaviour
         // }
     }
 
-    void spawnAndMove(){
-        for (inum = 1; inum < num_boxes; inum++){
-            Invoke("Delay",1f);
-            cube1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cube1.transform.position = spawnPos;
-            cube1.name = "cube" + inum.ToString();
-            cube1.AddComponent<Rigidbody>();
-            rb = cube1.GetComponent<Rigidbody>();
-            rb.MovePosition(spawnPos + movePos * (float)inum);
-        }
+    void Spawn(){
+        cube1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cube1.transform.position = spawnPos;
+        cube1.name = "cube1";
+        cube1.AddComponent<Rigidbody>();
+        // rb is the box is getting moved
+        rb = cube1.GetComponent<Rigidbody>();
+    }
+    void Move(){   
+        Vector3 targetPosition = movePos + new Vector3(0,0,1);
+        var dx = targetPosition - cube1.transform.position;
+        rb.MovePosition(cube1.transform.position + dx/100);
+        dx = targetPosition - cube1.transform.position;
+        if ( dx.x < 2f ){
+            spawnModifier = true;
+        };
+
     }
     
     void FixedUpdate(){
-        spawnAndMove();
+        if (spawnModifier == true){ 
+            Spawn();
+            spawnModifier = false;
+        }
+        if (spawnModifier == false){ 
+            Move();
+        }
     }
 
-    void Update(){
+    void LateUpdate(){
         nv1.BuildNavMesh();
     }
 }
