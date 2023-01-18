@@ -328,7 +328,7 @@ public class PackerHand : Agent
     public void SelectPosition(float x, float y, float z) {
          targetBin  = new GameObject().transform;
         // Update box position
-        targetBin.position = new Vector3(8.75f, 1.00f, 79.00f); // teleport.
+        targetBin.position = new Vector3(9.75f, 1.00f, 79.00f); // teleport.
         //vertex: (8.25, 0.50, 79.50)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
         isPositionSelected = true;   

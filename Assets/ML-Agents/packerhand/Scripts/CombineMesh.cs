@@ -88,7 +88,7 @@ public class CombineMesh : MonoBehaviour
          var box_mc = box.GetComponent<Collider>();
 
         // Set trigger to false so bin won't be triggered by this box anymore
-        //box_mc.isTrigger = false;
+        box_mc.isTrigger = false;
 
 
         // // Make box child of bin
