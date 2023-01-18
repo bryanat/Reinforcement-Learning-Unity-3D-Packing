@@ -31,6 +31,11 @@ public class CombineMesh : MonoBehaviour
 
     public string meshname;
 
+    public bool enteredTrigger;
+
+    public Transform [] allSidesOfBox;
+
+    ///public GameObject unitbox;
 
 
 
@@ -78,56 +83,77 @@ public class CombineMesh : MonoBehaviour
     //     }
     // }
 
+    void OnCollisionEnter(Collision collision) {
+    
 
+        if (enteredTrigger) {
+            enteredTrigger = false;
+            Transform box = agent.carriedObject.transform;
+            allSidesOfBox = box.GetComponentsInChildren<Transform>().Skip(1).ToArray();
+            // Get the side that collided into mesh
+            Transform collidedSide = collision.GetContact(0).otherCollider.transform;
+            Debug.Log($"COLLIDED SIDE IS {collidedSide.name} ON MESH {meshname}");
+            string oppositeSideName = GetOppositeSide(collidedSide);
+            Debug.Log($"SIDE TO BE COMBINED NAME IS {oppositeSideName} FOR MESH {meshname}");
+            Transform sideTobeCombined = allSidesOfBox.Where(k => k.gameObject.name == oppositeSideName).FirstOrDefault();
+            ///Debug.Log($"Side to be combined for mesh {meshname} is {sideTobeCombined}");
+
+            if (sideTobeCombined != null) {
+                 // Set side to be combined as child of ground, side, or back
+                sideTobeCombined.parent = transform;
+                meshList = GetComponentsInChildren<MeshFilter>();
+                // Combine side mesh into bin mesh
+                MeshCombiner(meshList); 
+            }      
+        }
+
+    }
 
     void OnTriggerEnter(Collider box) {
 
         Debug.Log($"ENTERED TRIGGER for BOX {box.name} AND MESH {meshname}");
 
-
-         var box_mc = box.GetComponent<Collider>();
-
+        //var box_mc = box.GetComponent<Collider>();
         // Set trigger to false so bin won't be triggered by this box anymore
-        box_mc.isTrigger = false;
+
+        enteredTrigger = true;
+        //box_mc.isTrigger = false;
 
 
-        // // Make box child of bin
-        Transform boxObject = box.transform;
-        Transform [] allSides = box.GetComponentsInChildren<Transform>();
-        allSides = allSides.Skip(1).ToArray();
-        Debug.Log($"ALL SIDES COUNT IS : {allSides[0].name}");
-        Debug.Log($"ALL SIDES COUNT IS : {allSides[1].name}");
-        Debug.Log($"ALL SIDES COUNT IS : {allSides[2].name}");
 
 
-        // Select a child to combine the mesh
-        foreach(Transform side in allSides) 
-        {
-            Debug.Log($"COLLIDING SIDE IS {side.name}");
-            //check which side collided with this mesh
-            if (CheckSideCollided(side)) {
-                string oppositeSideName = GetOppositeSide(side);
-                Debug.Log($"OPPOSITE SIDE NAME IS {oppositeSideName}");
+        // // // Make box child of bin
+        // Transform boxObject = box.transform;
+        // Transform [] allSides = box.GetComponentsInChildren<Transform>();
+        // allSides = allSides.Skip(1).ToArray();
 
-                Transform sideTobeCombined = allSides.Where(k => k.gameObject.name == oppositeSideName).FirstOrDefault();
 
-                // Set side to be combined as child of ground, side, or back
-                if (sideTobeCombined != null) {
-                    sideTobeCombined.parent = transform;
-                    meshList = GetComponentsInChildren<MeshFilter>();
-                     // Combine side mesh into bin mesh
-                    MeshCombiner(meshList);
-                }
-                //agent.StateReset();
-                //break;
+        // // Select a child to combine the mesh
+        // foreach(Transform side in allSides) 
+        // {
+        //     Debug.Log($"COLLIDING SIDE IS {side.name}");
+        //     //check which side collided with this mesh
+        //     if (CheckSideCollided(side)) {
+        //         string oppositeSideName = GetOppositeSide(side);
+
+        //         Transform sideTobeCombined = allSides.Where(k => k.gameObject.name == oppositeSideName).FirstOrDefault();
+        //         Debug.Log($"Side to be combined for mesh {meshname} is {sideTobeCombined}");
+
+        //         // Set side to be combined as child of ground, side, or back
+        //         if (sideTobeCombined != null) {
+        //             sideTobeCombined.parent = transform;
+        //             meshList = GetComponentsInChildren<MeshFilter>();
+        //              // Combine side mesh into bin mesh
+        //             MeshCombiner(meshList);
+        //         }
+        //         //agent.StateReset();
+        //         //break;
                 
-            }
-        }
-        //box.transform.parent = transform;
-        // Combine bin and box meshes
-        //meshList = GetComponentsInChildren<MeshFilter>(); 
-        //MeshFilter [] meshList = new [] {box.GetComponent<MeshFilter>()};
-        //MeshCombiner(meshList);
+        //     }
+        // }
+    
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //GetVertices();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////        
@@ -137,24 +163,24 @@ public class CombineMesh : MonoBehaviour
 
     bool CheckSideCollided(Transform side) {
         if (meshname == "BinIso20Back") {
-            Debug.Log("COLLIDED INTO BACK BIN");
-            if (side.position.z - agent.targetBin.position.z < 0.01f) {
+            Debug.Log($"Z POSITION OF SIDE {side.name} IS {side.position.z}");
+            if (side.localPosition.z - agent.targetBin.position.z < 0.01f) {
                 Debug.Log($"BACK MESH AND THE SIDE {side.name} TO COMBINE");
                 return true;
             }
         }
         // needs to know to left or right side depends on direction
         else if (meshname == "BinIso20Side") {
-            Debug.Log("COLLIDED INTO SIDE BIN");
-            if (side.position.x - agent.targetBin.position.x < 0.01f) {
+            Debug.Log($"X POSITION OF SIDE {side.name} IS {side.position.x}");
+            if (side.localPosition.x - agent.targetBin.position.x < 0.01f) {
                 Debug.Log($"SIDE MESH AND THE SIDE {side.name} TO COMBINE");
                 return true;
             }
 
         }
         else if (meshname == "BinIso20Bottom") {
-            Debug.Log("COLLIDED INTO BOTTOM BIN");
-            if (side.position.y - agent.targetBin.position.y < 0.01f) {
+            Debug.Log($"Y POSITION OF SIDE {side.name} IS {side.position.y}");
+            if (side.localPosition.y - agent.targetBin.position.y < 0.01f) {
                 Debug.Log($"BOTTOM MESH AND THE SIDE {side.name} TO COMBINE");
                 return true;
             }

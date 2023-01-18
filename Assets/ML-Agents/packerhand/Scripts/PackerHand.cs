@@ -70,9 +70,9 @@ public class PackerHand : Agent
     public List<Vector3> bottomVertices;
     public List<Vector3> sideVertices;
 
-    // public Vector3 [] backVertices1;
-    // public Vector3 []bottomVertices1;
-    // public Vector3 [] sideVertices1;
+    // public Vector3 [] backVertices;
+    // public Vector3 []bottomVertices;
+    // public Vector3 [] sideVertices;
     public MeshFilter mf_back;
     public MeshFilter mf_bottom;
     public MeshFilter mf_side;
@@ -299,6 +299,9 @@ public class PackerHand : Agent
             if (binObject.name == "BinIso20Back") {
                 mf_back = binObject.GetComponent<MeshFilter>();
                 backVertices.AddRange(mf_back.mesh.vertices);
+                // another way is to add the new box vertices to preexisting vertices
+
+                //backVertices.AddRange()
 
             }
             else if (binObject.name == "BinIso20Bottom") {
@@ -315,18 +318,22 @@ public class PackerHand : Agent
 
 
     public Vector3 SelectVertex() {
+        Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
         for (int i=0; i<backVertices.Count;i++) {
             for (int j =0; j<sideVertices.Count;j++) {
                 for (int k=0; k<=bottomVertices.Count;k++) {
-                    if (backVertices[i]==sideVertices[j] 
-                    && backVertices[i]==bottomVertices[k]
-                    && sideVertices[j]==bottomVertices[k]) {
-                        return backVertices[i];
+                    var backV = localToWorld.MultiplyPoint3x4(backVertices[i]);
+                    var sideV = localToWorld.MultiplyPoint3x4(sideVertices[i]);
+                    var bottomV = localToWorld.MultiplyPoint3x4(bottomVertices[i]);
+                    if (backV==sideV && sideV==bottomV && backV==bottomV) {
+                        Debug.Log($"Selected Vertex position is {backV}");
+                        return backV;
                     }
                 }
             }
 
         }
+
         return Vector3.zero;
     }
 
@@ -354,7 +361,7 @@ public class PackerHand : Agent
     public void SelectPosition(float x, float y, float z) {
          targetBin  = new GameObject().transform;
         // Update box position
-        targetBin.position = new Vector3(9.75f, 1.00f, 79.00f); // teleport.
+        targetBin.position = new Vector3(8.83f, 1.04f, 78.99f); // teleport.
         //vertex: (8.25, 0.50, 79.50)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
         isPositionSelected = true;   
@@ -485,6 +492,9 @@ public class PackerHand : Agent
         carriedObject.parent = this.transform;
 
         isPickedup = true;
+
+        Destroy(carriedObject.GetComponent<BoxCollider>());
+
     }
 
 
@@ -509,7 +519,8 @@ public class PackerHand : Agent
         carriedObject.SetParent(null);
 
         var m_rb =  carriedObject.GetComponent<Rigidbody>();
-        var m_c = carriedObject.GetComponent<Collider>();
+        //var m_c = carriedObject.GetComponent<Collider>();
+        Collider [] m_cList = carriedObject.GetComponentsInChildren<Collider>();
         //m_rb.isKinematic = false;
 
         // Lock box position and location
@@ -518,7 +529,11 @@ public class PackerHand : Agent
         m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
         // Enbles OnTriggerEnter in CollideAndCombineMesh 
-        m_c.isTrigger = true;
+        //m_c.isTrigger = true;
+
+        foreach (Collider m_c in m_cList) {
+            m_c.isTrigger = true;
+        }
 
     }
 
