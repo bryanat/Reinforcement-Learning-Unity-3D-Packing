@@ -66,16 +66,18 @@ public class PackerHand : Agent
 
     public List<Box> boxPool;
 
-    public List<Vector3> backVertices;
-    public List<Vector3> bottomVertices;
-    public List<Vector3> sideVertices;
+    // public List<Vector3> backVertices;
+    // public List<Vector3> bottomVertices;
+    // public List<Vector3> sideVertices;
 
-    // public Vector3 [] backVertices;
-    // public Vector3 []bottomVertices;
-    // public Vector3 [] sideVertices;
+    public Vector3 [] backVertices;
+    public Vector3 []bottomVertices;
+    public Vector3 [] sideVertices;
     public MeshFilter mf_back;
     public MeshFilter mf_bottom;
     public MeshFilter mf_side;
+
+    public int testn = 0;
 
 
 
@@ -158,6 +160,8 @@ public class PackerHand : Agent
         m_c.isTrigger = true;
 
 
+        UpdateVertices();
+
 
         // Reset agent and rewards
         SetResetParameters();
@@ -188,8 +192,8 @@ public class PackerHand : Agent
         foreach (var box in boxPool) 
         {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
-            sensor.AddObservation(box.rb.position); //add box position to sensor observations
-            sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
+            // sensor.AddObservation(box.rb.position); //add box position to sensor observations
+            // sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
         }
 
         // // Add Agent postiion
@@ -235,7 +239,7 @@ public class PackerHand : Agent
         }
         // if box is dropped off, go for next round of box selection
         if (isDroppedoff) {
-            UpdateVertices();
+            //UpdateVertices();
             StateReset();
         }
         // if agent selects a box, it should move towards the box
@@ -310,19 +314,19 @@ public class PackerHand : Agent
         foreach(Transform binObject in binObjects) {
             if (binObject.name == "BinIso20Back") {
                 mf_back = binObject.GetComponent<MeshFilter>();
-                backVertices.AddRange(mf_back.mesh.vertices);
-                // another way is to add the new box vertices to preexisting vertices
-
-                //backVertices.AddRange()
+                backVertices = mf_back.mesh.vertices;
+                // backVertices.AddRange(mf_back.mesh.vertices);
 
             }
             else if (binObject.name == "BinIso20Bottom") {
                 mf_bottom = binObject.GetComponent<MeshFilter>();
-                bottomVertices.AddRange(mf_bottom.mesh.vertices);
+                //bottomVertices.AddRange(mf_bottom.mesh.vertices);
+                bottomVertices = mf_bottom.mesh.vertices;
             }
             else if (binObject.name == "BinIso20Side") {
                 mf_side = binObject.GetComponent<MeshFilter>();
-                sideVertices.AddRange(mf_side.mesh.vertices);         
+                //sideVertices.AddRange(mf_side.mesh.vertices);  
+                sideVertices = mf_side.mesh.vertices;        
             }
         }
 
@@ -331,20 +335,26 @@ public class PackerHand : Agent
 
     public Vector3 SelectVertex() {
         Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
-        for (int i=0; i<backVertices.Count;i++) {
-            for (int j =0; j<sideVertices.Count;j++) {
-                for (int k=0; k<=bottomVertices.Count;k++) {
+        for (int i=0; i<backVertices.Length;i++) {
+            for (int j =0; j<sideVertices.Length;j++) {
+                for (int k=0; k<bottomVertices.Length;k++) {
                     var backV = localToWorld.MultiplyPoint3x4(backVertices[i]);
-                    var sideV = localToWorld.MultiplyPoint3x4(sideVertices[i]);
-                    var bottomV = localToWorld.MultiplyPoint3x4(bottomVertices[i]);
-                    if (backV==sideV && sideV==bottomV && backV==bottomV) {
+                    var sideV = localToWorld.MultiplyPoint3x4(sideVertices[j]);
+                    var bottomV = localToWorld.MultiplyPoint3x4(bottomVertices[k]);
+                    // Debug.Log($"BACK VERTEX IS {backV}");
+                    // Debug.Log($"SIDE VERTEX IS {sideV}");
+                    // Debug.Log($"BOTTOM VERTEXT IS {bottomV}");
+                    if (backV==sideV && sideV ==bottomV) {
                         Debug.Log($"Selected Vertex position is {backV}");
                         return backV;
                     }
                 }
             }
 
-        }
+       }
+        // var backList = new List<Vector3>(backVertices);
+        // var sideList = new List<Vector3>(sideVertices);
+        // var bottomList = new List<Vector3>(bottomVertices);
 
         return Vector3.zero;
     }
@@ -373,10 +383,19 @@ public class PackerHand : Agent
          targetBin  = new GameObject().transform;
         // Update box position
         // targetBin.position = new Vector3(8.83f, 1.04f, 78.99f); // teleport.
-        targetBin.position = new Vector3(8.25f, 0.50f, 79.50f); // teleport.
+        //targetBin.position = new Vector3(8.25f, 0.50f, 79.50f); // teleport.
 
         // add distance from vertex to target position (as position is the center, want to place via Vertex position)
-        targetBin.position = new Vector3(8.75f, 1.00f, 79.00f);
+        testn += testn +1;
+        Debug.Log($"ROUND INSIDE SELECT POSITION  {testn}");
+        if (testn==1) {
+            targetBin.position = new Vector3(8.75f, 1.00f, 79.00f);
+        }
+        if (testn==3) {
+            Debug.Log("SECOND BOX SHOULD BE 9.75 X");
+            targetBin.position = new Vector3(9.75f, 1.00f, 79.00f);
+        }
+        //targetBin.position = SelectVertex();
 
         //vertex: (8.25, 0.50, 79.50)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
@@ -562,10 +581,10 @@ public class PackerHand : Agent
         // Enbles OnTriggerEnter in CollideAndCombineMesh 
         //m_c.isTrigger = true;
 
-        foreach (Collider m_c in m_cList) {
-            m_c.isTrigger = false;
-            // m_c.gameObject.tag = "droppedoff";
-        }
+        // foreach (Collider m_c in m_cList) {
+        //     m_c.isTrigger = false;
+        //     // m_c.gameObject.tag = "droppedoff";
+        // }
 
         Debug.Log($"DropoffBox(): end of droppedoff function");
 

@@ -57,6 +57,8 @@ public class CombineMesh : MonoBehaviour
                                                  // SET isTrigger IN DROPOFF BEFORE COLLISION USES isTrigger
         Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {name}");
 
+        Debug.Log($"AGENT TESTN INSIDE ONCOLLISION ENTER IS {agent.testn}");
+
 
 
         
@@ -73,6 +75,7 @@ public class CombineMesh : MonoBehaviour
             // get the gameObject of the opposite side using the name of the opposite side 
             GameObject green_opposite_side_gameObject = GameObject.Find($"{collision.gameObject.transform.parent.name}/{green_opposite_side_name}"); // synatax for getting a child is GameObject.Find("Parent/Child")
             oppositeSideObject = GameObject.Find($"{collision.gameObject.transform.parent.name}/{green_opposite_side_name}");
+            Debug.Log($"OPPOSITE SIDE FOR BOTTOM MESH IS {oppositeSideObject}");
         }
         // BLUE
         // if this mesh is Back Blue mesh and a box collides with it then set isCollidedBlue collision property to true
@@ -109,6 +112,9 @@ public class CombineMesh : MonoBehaviour
         {
         
             if (dontloopinfinitely == false) {
+
+
+                Debug.Log($"AGENT TESTN INSIDE INFINITEY LOOP IS {agent.testn}");
         
         
                 oppositeSideObject.transform.parent = this.transform;
@@ -120,17 +126,11 @@ public class CombineMesh : MonoBehaviour
                 isCollidedRed = false; 
 
                 dontloopinfinitely = true;
+
+                agent.isDroppedoff = true;
             }
         }
     }
-
-
-
-
-    //public Transform [] allSidesOfBox;
-
-    ///public GameObject unitbox;
-
             
 
 
