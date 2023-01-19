@@ -12,11 +12,11 @@ public class NavMeshTest : MonoBehaviour
     private Vector3 targetPosition;
     private Vector3 spawnPos;
     private NavMeshSurface nv1;
+    private NavMeshAgent nva1;
     private Vector3 point;
     private GameObject cubeX;
     private Rigidbody rb;
     private bool spawnModifier;
-    // private NavMeshAgent agentX;
 
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
     {
@@ -37,7 +37,8 @@ public class NavMeshTest : MonoBehaviour
 
     void Awake(){
         spawnPos = new Vector3(10,0.5f,0);
-        nv1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshSurface>();
+        nv1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshSurface>(); 
+        nva1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshAgent>();
         // agentX = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshAgent>();
     }
 
@@ -63,15 +64,10 @@ public class NavMeshTest : MonoBehaviour
             cubeX.AddComponent<Rigidbody>();
             rb = cubeX.GetComponent<Rigidbody>();
 
-            // cubeX.AddComponent<NavMeshAgent>();
-            // agentX.radius = 3.1f;
-            // nv1.agentTypeID = agentX.agentTypeID;
-
+            Debug.Log($" nva1 name        ============ {nva1.name}");
+            Debug.Log($" nva1 height      ============ {nva1.height}");
+            Debug.Log($" nva1 agentTypeID ============ {nva1.agentTypeID}");
             // NavMeshBuildSettings buildSettings = new NavMeshBuildSettings();
-
-            // nv1.agentRadius = 5.f;         
-            // NavMesh.CreateSettings();
-            // Debug.Log($" agent type ============ {buildSettings.agentTypeID}");
         }
         if ( spawnModifier == false ){
             // Move box <rb>
