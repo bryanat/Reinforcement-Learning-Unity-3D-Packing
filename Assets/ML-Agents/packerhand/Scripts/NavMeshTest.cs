@@ -9,14 +9,14 @@ public class NavMeshTest : MonoBehaviour
     // Start is called before the first frame update
 
     private float range;
-    private Vector3 movePos;
+    private Vector3 targetPosition;
     private Vector3 spawnPos;
     private NavMeshSurface nv1;
     private Vector3 point;
-    private GameObject objectToMove;
-    private GameObject cube1;
+    private GameObject cubeX;
     private Rigidbody rb;
     private bool spawnModifier;
+    // private NavMeshAgent agentX;
 
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
     {
@@ -35,56 +35,59 @@ public class NavMeshTest : MonoBehaviour
         return false;
     }
 
-    IEnumerator Delay(){
-        yield return new WaitForSeconds(3);
-        spawnModifier = true;
-    }
-
     void Awake(){
-        spawnModifier = true;
         spawnPos = new Vector3(10,0.5f,0);
-        movePos = new Vector3(20,0,0);
-        objectToMove = GameObject.Find("Cube");
         nv1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshSurface>();
+        // agentX = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshAgent>();
     }
 
     void Start(){
-        Rigidbody rb = objectToMove.GetComponent<Rigidbody>();
-        rb.MovePosition(objectToMove.transform.position + movePos);
-        // if (RandomPoint(objectToMove.transform.position, range, out point))
-        // {
-        //     Debug.DrawRay(point, Vector3.up, Color.blue, 5.0f);
-        //     Debug.Log($" random point === {point}");
-        // }
+        spawnModifier = true;
+        targetPosition = new Vector3(20,0,0);
+    //     //  Sample random point and draw ray 
+    //     // if (RandomPoint(cubeX.transform.position, range, out point))
+    //     // {
+    //     //     Debug.DrawRay(point, Vector3.up, Color.blue, 5.0f);
+    //     //     Debug.Log($" random point === {point}");
+    //     // }
     }
 
-    void Spawn(){
-        cube1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube1.transform.position = spawnPos;
-        cube1.name = "cube1";
-        cube1.AddComponent<Rigidbody>();
-        // rb is the box is getting moved
-        rb = cube1.GetComponent<Rigidbody>();
-    }
-    void Move(){   
-        Vector3 targetPosition = movePos + new Vector3(0,0,1);
-        var dx = targetPosition - cube1.transform.position;
-        rb.MovePosition(cube1.transform.position + dx/100);
-        dx = targetPosition - cube1.transform.position;
-        if ( dx.x < 2f ){
-            spawnModifier = true;
-        };
+    void SpawnAndMove(){
+        if ( spawnModifier == true ){
+            spawnModifier = false;
+            // Spawn box
+            Debug.Log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5   Spawn ");
+            cubeX = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cubeX.transform.position = spawnPos;
+            cubeX.name = "cubeX";
+            cubeX.AddComponent<Rigidbody>();
+            rb = cubeX.GetComponent<Rigidbody>();
 
+            // cubeX.AddComponent<NavMeshAgent>();
+            // agentX.radius = 3.1f;
+            // nv1.agentTypeID = agentX.agentTypeID;
+
+            // NavMeshBuildSettings buildSettings = new NavMeshBuildSettings();
+
+            // nv1.agentRadius = 5.f;         
+            // NavMesh.CreateSettings();
+            // Debug.Log($" agent type ============ {buildSettings.agentTypeID}");
+        }
+        if ( spawnModifier == false ){
+            // Move box <rb>
+            var dx = targetPosition - cubeX.transform.position;
+            rb.MovePosition(cubeX.transform.position + dx / 100);
+            dx = targetPosition - cubeX.transform.position;
+            // Debug.Log($" %%%%%%%%%%%%%%% dx.x ======== {dx.x}");
+            if ( dx.x < 2f ){
+                spawnModifier = true;
+                targetPosition = targetPosition + new Vector3(0,0,2);
+            }
+        }
     }
     
     void FixedUpdate(){
-        if (spawnModifier == true){ 
-            Spawn();
-            spawnModifier = false;
-        }
-        if (spawnModifier == false){ 
-            Move();
-        }
+        SpawnAndMove();
     }
 
     void LateUpdate(){
