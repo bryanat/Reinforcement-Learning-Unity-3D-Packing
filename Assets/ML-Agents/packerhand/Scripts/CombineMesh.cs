@@ -52,8 +52,6 @@ public class CombineMesh : MonoBehaviour
 
         // Identify ground, side or back mesh
         meshname = this.name;
-
-
     }
 
 
@@ -82,18 +80,22 @@ public class CombineMesh : MonoBehaviour
     //         Debug.Log($"OVERLAPPED IS: {overlapped} for BOX {hit.transform.name}");
     //     }
     // }
+    
 
-    void OnCollisionEnter(Collision collision) {
+    void OnCollisionEnter(Collision collision) { // COLLISION IS HAPPENING FIRST BEFORE DROPOFFBOX()
+                                                 // COLLISION NEEDS TO HAPPEN AFTER DROPOFF BOX
+                                                 // NEED TO DROPOFF BOX BEFORE COLLISION
+                                                 // SET isTrigger IN DROPOFF BEFORE COLLISION USES isTrigger
             
-
         Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {meshname}");
     
-        //Debug.Log($"ENTERED TRIGGER for BOX {collision.gameObject.name} AND MESH {meshname}");
-        if (collision.gameObject.GetComponent<Collider>().isTrigger==false) {
-
+        // two colliders cannot have isTrigger=true and collide, hack: to collide turn one trigger of with isTrigger=false allowing collision
+        if (collision.gameObject.GetComponent<Collider>().isTrigger==false) 
+        {
             Debug.Log($"RIGID BODY INSIDE COLLISION IS {agent.carriedObject.GetComponent<Rigidbody>().position}");
             //SenteredTrigger = false;
             Transform box = agent.carriedObject.transform;
+            // Get all transform component and drop the parent transform with Skip(1)
             allSidesOfBox = box.GetComponentsInChildren<Transform>().Skip(1).ToArray();
             // Get the side that collided into mesh
             Transform collidedSide = collision.GetContact(0).otherCollider.transform;
@@ -103,7 +105,8 @@ public class CombineMesh : MonoBehaviour
             Transform sideTobeCombined = allSidesOfBox.Where(k => k.gameObject.name == oppositeSideName).FirstOrDefault();
             ///Debug.Log($"Side to be combined for mesh {meshname} is {sideTobeCombined}");
 
-            if (sideTobeCombined != null) {
+            if (sideTobeCombined != null) 
+            {
                  // Set side to be combined as child of ground, side, or back
                 sideTobeCombined.parent = transform;
                 meshList = GetComponentsInChildren<MeshFilter>();
@@ -111,11 +114,11 @@ public class CombineMesh : MonoBehaviour
                 MeshCombiner(meshList); 
             }      
         }
-
     }
 
-    // void OnTriggerEnter(Collider box) {
 
+    // void OnTriggerEnter(Collider box) {
+    //     // Refactored OnTriggerEnter code into OnCollisionEnter
 
     //     // var box_mc = box.GetComponent<Collider>();
     //     // // Set trigger to false so bin won't be triggered by this box anymore
@@ -127,15 +130,10 @@ public class CombineMesh : MonoBehaviour
     //     }
     // }
 
-
-
-
-
         // // // Make box child of bin
         // Transform boxObject = box.transform;
         // Transform [] allSides = box.GetComponentsInChildren<Transform>();
         // allSides = allSides.Skip(1).ToArray();
-
 
         // // Select a child to combine the mesh
         // foreach(Transform side in allSides) 
@@ -157,20 +155,19 @@ public class CombineMesh : MonoBehaviour
         //         }
         //         //agent.StateReset();
         //         //break;
-                
         //     }
         // }
     
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////
         //GetVertices();
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////        
+        ////////////////////////////////////////////////////       
         // Trigger the next round of picking
         //agent.StateReset();
    // }
 
-    bool CheckSideCollided(Transform side) {
+
+    bool CheckSideCollided(Transform side) 
+    {
         if (meshname == "BinIso20Back") {
             Debug.Log($"Z POSITION OF SIDE {side.name} IS {side.position.z}");
             if (side.localPosition.z - agent.targetBin.position.z < 0.01f) {
@@ -198,7 +195,9 @@ public class CombineMesh : MonoBehaviour
         return false;
     }
 
-    string GetOppositeSide(Transform side) {
+
+    string GetOppositeSide(Transform side) 
+    {
         if (side.name == "left") {
             return "right";
         }
@@ -219,11 +218,11 @@ public class CombineMesh : MonoBehaviour
         }
     }
 
+
     // void OnDrawGizmos() {
     //     var mesh = GetComponent<MeshFilter>().sharedMesh;
     //     Vector3[] vertices = mesh.vertices;
     //     int[] triangles = mesh.triangles;
-
 
     //     Matrix4x4 localToWorld = transform.localToWorldMatrix;
  
@@ -233,15 +232,14 @@ public class CombineMesh : MonoBehaviour
     //         Gizmos.color = Color.blue;
     //         Gizmos.DrawSphere(world_v, 0.1f);
     //     }
-
     // }
 
 
-    void GetVertices() {
+    void GetVertices() 
+    {
         var mesh = GetComponent<MeshFilter>().mesh;
         Vector3[] vertices = mesh.vertices;
         int[] triangles = mesh.triangles;
-
 
         Matrix4x4 localToWorld = transform.localToWorldMatrix;
  
@@ -282,13 +280,11 @@ public class CombineMesh : MonoBehaviour
         //     Debug.DrawLine(transform.TransformPoint(a), transform.TransformPoint(c), Color.red);
         //     Debug.DrawLine(transform.TransformPoint(b), transform.TransformPoint(c), Color.red);
         // }
-
     }
     
- 
 
-
-    void MeshCombiner(MeshFilter[] meshList) {
+    void MeshCombiner(MeshFilter[] meshList) 
+    {
         Debug.Log("++++++++++++START OF MESHCOMBINER++++++++++++");
         List<CombineInstance> combine = new List<CombineInstance>();
 
@@ -315,7 +311,6 @@ public class CombineMesh : MonoBehaviour
 
             // Add the CombineInstance to the list
             combine.Add(ci);
-
         }
 
         MeshRenderer parent_mr = gameObject.GetComponent<MeshRenderer>();
@@ -326,7 +321,6 @@ public class CombineMesh : MonoBehaviour
             materials[i] = meshList[i].GetComponent<Renderer>().sharedMaterial;
         }
         parent_mr.materials = materials;
-
         
          // Create a new mesh on bin
         MeshFilter parent_mf = gameObject.GetComponent<MeshFilter>();
@@ -338,7 +332,6 @@ public class CombineMesh : MonoBehaviour
         parent_mf.mesh = new Mesh();
         //parent_mf.mesh.CombineMeshes(combine);
         //transform.gameObject.SetActive(true);
-
 
         //MeshFilter parent_mf = gameObject.AddComponent<MeshFilter>();
         // if (!parent_mf.mesh) {
@@ -368,6 +361,5 @@ public class CombineMesh : MonoBehaviour
         parent_mc.sharedMesh = parent_mf.mesh; // add the mesh shape (from the parent mesh) to the mesh collider
 
         Debug.Log("+++++++++++END OF MESH COMBINER+++++++++++++");
-
     }
 }
