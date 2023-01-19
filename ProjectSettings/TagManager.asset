@@ -36,6 +36,8 @@ TagManager:
   - 1
   - bin
   - minibin
+  - droppedoff
+  - pickedupbox
   layers:
   - Default
   - TransparentFX

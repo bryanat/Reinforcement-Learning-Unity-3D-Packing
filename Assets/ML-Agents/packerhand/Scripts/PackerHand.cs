@@ -252,6 +252,8 @@ public class PackerHand : Agent
             UpdateAgentPosition(targetBin);
             UpdateCarriedObject();
             //if agent is close enough to the position, it should drop off the box
+            // if (total_x_distance < 4f && total_z_distance<4f) {
+            // note this (based on < distance) results in DropoffBox being called many times
             if (total_x_distance < 2f && total_z_distance<2f) {
                 DropoffBox();
             }
@@ -265,6 +267,7 @@ public class PackerHand : Agent
         else {return;}
     }
     
+
     /// <summary>
     /// Updates agent position relative to the target position
     ///</summary>
@@ -279,8 +282,9 @@ public class PackerHand : Agent
         // this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
         // current_agent_y/100, current_agent_z+total_z_distance/100);    
         this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
-        5f, current_agent_z+total_z_distance/100);   
+        target.position.y, current_agent_z+total_z_distance/100);   
     }
+
 
     /// <summary>
     /// Update carried object position relative to the agent position
@@ -289,13 +293,14 @@ public class PackerHand : Agent
     {
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
-        var dist = 0.2f;
+        // var dist = 0.2f;
          // distance from agent is relative to the box size
-        carriedObject.localPosition = new Vector3(box_x_length, dist, box_z_length);
+        // carriedObject.localPosition = new Vector3(box_x_length, dist, box_z_length);
+        carriedObject.localPosition = new Vector3(0,1,1);
         // stop box from rotating
         carriedObject.rotation = Quaternion.identity;
-        // stop box from falling 
-        carriedObject.GetComponent<Rigidbody>().useGravity = false;
+        // dont need to turn off gravity anymore since no more rb, rb is destroyed after pickupbox()
+        // carriedObject.GetComponent<Rigidbody>().useGravity = false; 
     }
 
 
@@ -360,7 +365,6 @@ public class PackerHand : Agent
             // Add box to list so it won't be selected again
             Box.organizedBoxes.Add(Box.boxIdx);
             isBoxSelected = true;
-
         }
     }
 
@@ -368,7 +372,12 @@ public class PackerHand : Agent
     public void SelectPosition(float x, float y, float z) {
          targetBin  = new GameObject().transform;
         // Update box position
-        targetBin.position = new Vector3(8.83f, 1.04f, 78.99f); // teleport.
+        // targetBin.position = new Vector3(8.83f, 1.04f, 78.99f); // teleport.
+        targetBin.position = new Vector3(8.25f, 0.50f, 79.50f); // teleport.
+
+        // add distance from vertex to target position (as position is the center, want to place via Vertex position)
+        targetBin.position = new Vector3(8.75f, 1.00f, 79.00f);
+
         //vertex: (8.25, 0.50, 79.50)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
         isPositionSelected = true;   
@@ -408,7 +417,6 @@ public class PackerHand : Agent
     //         //     //     // Update search space
     //         //     //     UpdateSearchSpace(l, w, h);
     //         //     // }
-
     //         //     }
     //         }
     //         else {
@@ -430,8 +438,6 @@ public class PackerHand : Agent
     // }
 
 
-
-
     public void UpdateBinVolume() {
         // Update bin volume
         if (m_config==0) 
@@ -446,7 +452,6 @@ public class PackerHand : Agent
         }
         
     }
-
 
 
     /// <summary>
@@ -481,8 +486,8 @@ public class PackerHand : Agent
                 rotation = new Vector3(0, 90, 0);
                 break;
             }
-         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
-         isRotationSelected = true;
+        Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
+        isRotationSelected = true;
     }
 
 
@@ -498,10 +503,20 @@ public class PackerHand : Agent
         //carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
         carriedObject.parent = this.transform;
 
+        carriedObject.tag = "pickedupbox";
+        foreach (Transform child in carriedObject.GetComponentsInChildren<Transform>())
+        {
+            child.tag = "pickedupbox";
+            Debug.Log($"XAC child.name: {child.name}");
+            Debug.Log($"XAC child.tag: {child.tag}");
+        }
+        Debug.Log($"XAB carriedObject.name: {carriedObject.name}");
+        Debug.Log($"XAB carriedObject.tag: {carriedObject.tag}");
+        // have to give children children.tag = "pickedupbox" 
         isPickedup = true;
 
         Destroy(carriedObject.GetComponent<BoxCollider>());
-
+        Destroy(carriedObject.GetComponent<Rigidbody>());
     }
 
 
@@ -525,7 +540,7 @@ public class PackerHand : Agent
         // Detach box from agent
         carriedObject.SetParent(null);
 
-        var m_rb =  carriedObject.GetComponent<Rigidbody>();
+        // var m_rb =  carriedObject.GetComponent<Rigidbody>();
         //var m_c = carriedObject.GetComponent<Collider>();
         Collider [] m_cList = carriedObject.GetComponentsInChildren<Collider>();
         //m_rb.isKinematic = false;
@@ -536,10 +551,11 @@ public class PackerHand : Agent
         // }
 
         // Lock box position and location
-        carriedObject.position = targetBin.position;
+        ///////////////////////COLLISION/////////////////////////
+        carriedObject.position = targetBin.position; // COLLISION OCCURS IMMEDIATELY AFTER SET POSITION OCCURS
+        ///////////////////////COLLISION/////////////////////////
         carriedObject.rotation = Quaternion.Euler(rotation);
-        m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
-        Destroy(m_rb);
+        // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
         //Destroy(carriedObject.GetComponent<Rigidbody>());
 
@@ -548,14 +564,14 @@ public class PackerHand : Agent
 
         foreach (Collider m_c in m_cList) {
             m_c.isTrigger = false;
+            // m_c.gameObject.tag = "droppedoff";
         }
+
+        Debug.Log($"DropoffBox(): end of droppedoff function");
 
     }
 
 
-
-
-    
     /// <summary>
     //// Rewards agent for large contact surface area
     ///</summary>
@@ -564,6 +580,7 @@ public class PackerHand : Agent
         AddReward(0.005f*surface_area);
         Debug.Log($"SurfaceArea is {surface_area} Dropped in bin!!!Total reward: {GetCumulativeReward()}");
     }
+
 
     /// <summary>
     //// Rewards agent for select a good position
@@ -581,6 +598,7 @@ public class PackerHand : Agent
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
     }
+
 
     public void StateReset() 
     {
@@ -705,7 +723,6 @@ public class PackerHand : Agent
 
         // Reset states;
         StateReset();
-
     }
 
 
@@ -734,7 +751,5 @@ public class PackerHand : Agent
             Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
     }
-    
-
 }
 
