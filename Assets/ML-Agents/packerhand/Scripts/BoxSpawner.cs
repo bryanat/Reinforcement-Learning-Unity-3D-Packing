@@ -26,7 +26,9 @@ public class Box
 
     public static void ResetBoxes(Box box)
     {
-        box.rb.transform.position = box.startingPos; // Reset box position
+        //box.rb.transform.position = box.startingPos; // Reset box position
+
+        box.rb.transform.position = box.startingPos;
     }
 
     public static List<Box> GetBoxPool() {
@@ -126,8 +128,12 @@ public class BoxSpawner : MonoBehaviour
             //box.layer = 5;
             box.name = idx.ToString();
             var m_rb = box.GetComponent<Rigidbody>();
-            var m_c = box.GetComponent<BoxCollider>();
-            m_c.isTrigger = true;
+            var m_c1 = box.GetComponent<BoxCollider>();
+            Collider [] m_cList = box.GetComponentsInChildren<Collider>();
+            foreach (Collider m_c in m_cList) {
+                m_c.isTrigger = true;
+            }
+            m_c1.isTrigger = true;
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             m_rb.isKinematic = true;
             //m_rb.detectCollisions = false;

@@ -289,7 +289,7 @@ public class PackerHand : Agent
     {
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
-        var dist = 2f;
+        var dist = 0.2f;
          // distance from agent is relative to the box size
         carriedObject.localPosition = new Vector3(box_x_length, dist, box_z_length);
         // stop box from rotating
@@ -539,6 +539,7 @@ public class PackerHand : Agent
         carriedObject.position = targetBin.position;
         carriedObject.rotation = Quaternion.Euler(rotation);
         m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
+        Destroy(m_rb);
 
         //Destroy(carriedObject.GetComponent<Rigidbody>());
 

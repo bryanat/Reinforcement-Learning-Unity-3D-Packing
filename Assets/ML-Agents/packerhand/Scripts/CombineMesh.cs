@@ -84,12 +84,14 @@ public class CombineMesh : MonoBehaviour
     // }
 
     void OnCollisionEnter(Collision collision) {
-
+            
 
         Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {meshname}");
     
         //Debug.Log($"ENTERED TRIGGER for BOX {collision.gameObject.name} AND MESH {meshname}");
         if (collision.gameObject.GetComponent<Collider>().isTrigger==false) {
+
+            Debug.Log($"RIGID BODY INSIDE COLLISION IS {agent.carriedObject.GetComponent<Rigidbody>().position}");
             //SenteredTrigger = false;
             Transform box = agent.carriedObject.transform;
             allSidesOfBox = box.GetComponentsInChildren<Transform>().Skip(1).ToArray();
