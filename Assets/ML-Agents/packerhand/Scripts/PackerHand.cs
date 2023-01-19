@@ -154,6 +154,11 @@ public class PackerHand : Agent
             sensor.agent = this;
         }
 
+        var m_c = GetComponent<CapsuleCollider>();
+        m_c.isTrigger = true;
+
+
+
         // Reset agent and rewards
         SetResetParameters();
     }
@@ -247,7 +252,7 @@ public class PackerHand : Agent
             UpdateAgentPosition(targetBin);
             UpdateCarriedObject();
             //if agent is close enough to the position, it should drop off the box
-            if (total_x_distance < 0.1f && total_z_distance<0.1f) {
+            if (total_x_distance < 2f && total_z_distance<2f) {
                 DropoffBox();
             }
     
@@ -271,8 +276,10 @@ public class PackerHand : Agent
         var current_agent_x = this.transform.position.x;
         var current_agent_y = this.transform.position.y;
         var current_agent_z = this.transform.position.z;
+        // this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
+        // current_agent_y/100, current_agent_z+total_z_distance/100);    
         this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
-        current_agent_y/100, current_agent_z+total_z_distance/100);    
+        5f, current_agent_z+total_z_distance/100);   
     }
 
     /// <summary>
@@ -282,7 +289,7 @@ public class PackerHand : Agent
     {
         var box_x_length = carriedObject.localScale.x;
         var box_z_length = carriedObject.localScale.z;
-        var dist = 0.5f;
+        var dist = 2f;
          // distance from agent is relative to the box size
         carriedObject.localPosition = new Vector3(box_x_length, dist, box_z_length);
         // stop box from rotating
@@ -523,16 +530,23 @@ public class PackerHand : Agent
         Collider [] m_cList = carriedObject.GetComponentsInChildren<Collider>();
         //m_rb.isKinematic = false;
 
+
+        // foreach (Collider m_c in m_cList) {
+        //     m_c.isTrigger = false;
+        // }
+
         // Lock box position and location
         carriedObject.position = targetBin.position;
         carriedObject.rotation = Quaternion.Euler(rotation);
         m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
+        //Destroy(carriedObject.GetComponent<Rigidbody>());
+
         // Enbles OnTriggerEnter in CollideAndCombineMesh 
         //m_c.isTrigger = true;
 
         foreach (Collider m_c in m_cList) {
-            m_c.isTrigger = true;
+            m_c.isTrigger = false;
         }
 
     }

@@ -84,15 +84,18 @@ public class CombineMesh : MonoBehaviour
     // }
 
     void OnCollisionEnter(Collision collision) {
-    
 
-        if (enteredTrigger) {
-            enteredTrigger = false;
+
+        Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {meshname}");
+    
+        //Debug.Log($"ENTERED TRIGGER for BOX {collision.gameObject.name} AND MESH {meshname}");
+        if (collision.gameObject.GetComponent<Collider>().isTrigger==false) {
+            //SenteredTrigger = false;
             Transform box = agent.carriedObject.transform;
             allSidesOfBox = box.GetComponentsInChildren<Transform>().Skip(1).ToArray();
             // Get the side that collided into mesh
             Transform collidedSide = collision.GetContact(0).otherCollider.transform;
-            Debug.Log($"COLLIDED SIDE IS {collidedSide.name} ON MESH {meshname}");
+            Debug.Log($"COLLIDED SIDE 0 IS {collidedSide.name} ON MESH {meshname}");
             string oppositeSideName = GetOppositeSide(collidedSide);
             Debug.Log($"SIDE TO BE COMBINED NAME IS {oppositeSideName} FOR MESH {meshname}");
             Transform sideTobeCombined = allSidesOfBox.Where(k => k.gameObject.name == oppositeSideName).FirstOrDefault();
@@ -109,15 +112,19 @@ public class CombineMesh : MonoBehaviour
 
     }
 
-    void OnTriggerEnter(Collider box) {
+    // void OnTriggerEnter(Collider box) {
 
-        Debug.Log($"ENTERED TRIGGER for BOX {box.name} AND MESH {meshname}");
 
-        //var box_mc = box.GetComponent<Collider>();
-        // Set trigger to false so bin won't be triggered by this box anymore
+    //     // var box_mc = box.GetComponent<Collider>();
+    //     // // Set trigger to false so bin won't be triggered by this box anymore
 
-        enteredTrigger = true;
-        //box_mc.isTrigger = false;
+    //     // box_mc.isTrigger = false;
+    //     Collider [] m_cList = box.GetComponentsInChildren<Collider>();
+    //     foreach (Collider m_c in m_cList) {
+    //         m_c.isTrigger = false;
+    //     }
+    // }
+
 
 
 
@@ -159,7 +166,7 @@ public class CombineMesh : MonoBehaviour
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////        
         // Trigger the next round of picking
         //agent.StateReset();
-    }
+   // }
 
     bool CheckSideCollided(Transform side) {
         if (meshname == "BinIso20Back") {
