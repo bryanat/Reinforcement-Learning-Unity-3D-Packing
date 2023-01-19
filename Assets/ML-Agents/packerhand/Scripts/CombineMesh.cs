@@ -125,30 +125,56 @@ public class CombineMesh : MonoBehaviour
              Debug.Log($"OPPOSITE SIDE FOR {name} IS {red_opposite_side_gameObject.name}");
         }
 
+        ////////////////////////////////////////////////////////everything above is fine/////////////////////////////////////////////////////////////////////////
+
+
         // if all three meshes have contact, then allow combining meshes // TRIGGERED BY EACH BINISO20SIDE 
         // only entered for the last one mesh 
         if (GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen && GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().isCollidedBlue && GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().isCollidedRed)
         {
         
-            //if (dontloopinfinitely == false) {
+            // GREEN
+            if (name == "BinIso20Bottom") {
+
+                GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Bottom").transform;
+                var greenMeshList = GameObject.Find("BinIso20Bottom").GetComponentsInChildren<MeshFilter>(); 
+                MeshCombiner(greenMeshList);
+            
+            }
+            // BLUE
+            if (name == "BinIso20Back") {
+
+                GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Back").transform;
+                var blueMeshList = GameObject.Find("BinIso20Back").GetComponentsInChildren<MeshFilter>(); 
+                MeshCombiner(blueMeshList);
+            
+            }
+            // RED
+            if (name == "BinIso20Side") {
+
+                GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Side").transform;
+                var redMeshList = GameObject.Find("BinIso20Side").GetComponentsInChildren<MeshFilter>(); 
+                MeshCombiner(redMeshList);
+            
+            }
 
 
                 Debug.Log($"AGENT TESTN INSIDE INFINITEY LOOP IS {agent.testn}");
 
-                binBottom.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBottom.transform;
-                binSide.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binSide.transform;
-                binBack.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBack.transform;
+               
+                // GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Back").transform;
+                // GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Side").transform;
 
-                Debug.Log($"ZZZ OPPOSITE SIDE PARENT OF {binBottom} IS: {binBottom.GetComponent<CombineMesh>().oppositeSideObject.transform.parent}");
-                Debug.Log($"ZZZ OPPOSITE SIDE PARENT OF {binSide} IS: {binSide.GetComponent<CombineMesh>().oppositeSideObject.transform.parent}");
-                Debug.Log($"ZZZ OPPOSITE SIDE PARENT OF {binBack} IS: {binBack.GetComponent<CombineMesh>().oppositeSideObject.transform.parent}");
-                var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
-                var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
-                var redMeshList = binSide.GetComponentsInChildren<MeshFilter>(); 
+               // var greenMeshList = GameObject.Find("BinIso20Bottom").GetComponentsInChildren<MeshFilter>(); 
+                //var blueMeshList = GameObject.Find("BinIso20Back").GetComponentsInChildren<MeshFilter>(); 
+                //var redMeshList = GameObject.Find("BinIso20Side").GetComponentsInChildren<MeshFilter>().Skip(1).ToArray(); 
 
-                MeshCombiner(greenMeshList);
-                MeshCombiner(blueMeshList);
-                MeshCombiner(redMeshList);
+                /////////////////////////////////////////////////////////////////////////////
+                //// only the last mesh combiner is called////
+
+                //MeshCombiner(greenMeshList);
+               // MeshCombiner(blueMeshList);
+                //MeshCombiner(redMeshList);
 
                 isCollidedGreen = false;
                 isCollidedBlue = false;
