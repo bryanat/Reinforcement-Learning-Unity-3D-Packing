@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -102,6 +103,29 @@ public class PackerHand : Agent
 
     public override void OnEpisodeBegin()
     {   
+
+        GameObject abc = GameObject.Find("BinGen20");
+        NavMeshSurface nv1 = abc.GetComponent<NavMeshSurface>();    
+        // NavMesh nv2 = abc.GetComponent<NavMeshSurface>();    
+        Debug.Log($"%%%%%%%%%%%%%%%%% bin name  ===== {abc.name}");
+        Debug.Log($"%%%%%%%%%%%%%%%%% agenttype ===== {nv1.agentTypeID}");
+
+        // void FixedUpdateMesh(){
+        GameObject objectToMove = GameObject.Find("MovingCube");
+        Rigidbody  rb = objectToMove.GetComponent<Rigidbody>();
+        Vector3 targetPosition = objectToMove.transform.position;
+        // targetPosition = Vector3.Add(objectToMove.transform.position, new Vector3(1, 2, 3));
+        Debug.Log($"old box position =========== {objectToMove.transform.position}");
+        targetPosition = targetPosition + new Vector3(1,0,6);
+        Debug.Log($"target position =========== {targetPosition}");
+        // rb.MovePosition(Vector3.Lerp(objectToMove.transform.position, targetPosition, 1.0f));
+        rb.MovePosition(targetPosition);
+        Debug.Log($"new box position =========== {objectToMove.transform.position}");
+        nv1.BuildNavMesh();
+        NavMesh.CalculateTriangulation();
+        // }
+        // FixedUpdateMesh();
+
 
         Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
 
