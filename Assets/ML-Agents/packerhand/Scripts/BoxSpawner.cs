@@ -130,9 +130,9 @@ public class BoxSpawner : MonoBehaviour
             var m_rb = box.GetComponent<Rigidbody>();
             var m_c1 = box.GetComponent<BoxCollider>();
             Collider [] m_cList = box.GetComponentsInChildren<Collider>();
-            // foreach (Collider m_c in m_cList) {
-            //     m_c.isTrigger = true;
-            // }
+            foreach (Collider m_c in m_cList) {
+                m_c.isTrigger = true;
+            }
             // m_c1.isTrigger = true;
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             m_rb.isKinematic = true;

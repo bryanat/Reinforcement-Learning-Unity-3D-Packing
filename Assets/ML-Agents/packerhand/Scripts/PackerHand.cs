@@ -386,12 +386,12 @@ public class PackerHand : Agent
         //targetBin.position = new Vector3(8.25f, 0.50f, 79.50f); // teleport.
 
         // add distance from vertex to target position (as position is the center, want to place via Vertex position)
-        testn += testn +1;
+        testn = testn +1;
         Debug.Log($"ROUND INSIDE SELECT POSITION  {testn}");
         if (testn==1) {
             targetBin.position = new Vector3(8.75f, 1.00f, 79.00f);
         }
-        if (testn==3) {
+        if (testn==2) {
             Debug.Log("SECOND BOX SHOULD BE 9.75 X");
             targetBin.position = new Vector3(9.75f, 1.00f, 79.00f);
         }
@@ -581,10 +581,10 @@ public class PackerHand : Agent
         // Enbles OnTriggerEnter in CollideAndCombineMesh 
         //m_c.isTrigger = true;
 
-        // foreach (Collider m_c in m_cList) {
-        //     m_c.isTrigger = false;
-        //     // m_c.gameObject.tag = "droppedoff";
-        // }
+        foreach (Collider m_c in m_cList) {
+            m_c.isTrigger = false;
+            // m_c.gameObject.tag = "droppedoff";
+        }
 
         Debug.Log($"DropoffBox(): end of droppedoff function");
 
