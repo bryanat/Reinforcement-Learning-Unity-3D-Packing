@@ -67,13 +67,13 @@ public class PackerHand : Agent
 
     public List<Box> boxPool;
 
-    // public List<Vector3> backVertices;
-    // public List<Vector3> bottomVertices;
-    // public List<Vector3> sideVertices;
+    public List<Vector3> backVertices;
+    public List<Vector3> bottomVertices;
+    public List<Vector3> sideVertices;
 
-    public Vector3 [] backVertices;
-    public Vector3 []bottomVertices;
-    public Vector3 [] sideVertices;
+    // public Vector3 [] backVertices;
+    // public Vector3 []bottomVertices;
+    // public Vector3 [] sideVertices;
     public MeshFilter mf_back;
     public MeshFilter mf_bottom;
     public MeshFilter mf_side;
@@ -326,20 +326,26 @@ public class PackerHand : Agent
         foreach(Transform binObject in binObjects) {
             if (binObject.name == "BinIso20Back") {
                 mf_back = binObject.GetComponent<MeshFilter>();
+                // get unique set of back vertices
                 localToWorld(mf_back.mesh.vertices, backVertices);
-                Debug.Log($"BACK VERTICES COUNT IS: {backVertices.Length}");
+                Debug.Log($"BACK VERTICES COUNT IS: {backVertices.Distinct().Count()}");
+                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BACK MESH LOOP IS {allVertices.Count()}");
                 // backVertices.AddRange();
 
             }
             else if (binObject.name == "BinIso20Bottom") {
                 mf_bottom = binObject.GetComponent<MeshFilter>();
+                // get unique set of bottom vertices
                 localToWorld(mf_bottom.mesh.vertices, bottomVertices);
-                Debug.Log($"Bottom VERTICES COUNT IS: {bottomVertices.Length}");
+                Debug.Log($"Bottom VERTICES COUNT IS: {bottomVertices.Count}");
+                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BOTTOM MESH LOOP IS {allVertices.Count()}");
             }
             else if (binObject.name == "BinIso20Side") {
                 mf_side = binObject.GetComponent<MeshFilter>();
+                // get unique set of side vertices
                 localToWorld(mf_side.mesh.vertices, sideVertices);    
-                Debug.Log($"Side VERTICES COUNT IS: {sideVertices.Length}");    
+                Debug.Log($"Side VERTICES COUNT IS: {sideVertices.Count}");  
+                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN SIDE MESH LOOP IS {allVertices.Count()}");  
             }
         }
 
@@ -354,17 +360,19 @@ public class PackerHand : Agent
         var uniqueVertices = new List<Vector3>(vertices).Distinct();
         foreach (Vector3 vertex in uniqueVertices) {
             // local vertex scale replaced with vertex's world position
-            verticesList.Add(localToWorld.MultiplyPoint3x4(vertex));
-            Debug.Log($"CCC VERTICES V IS {vertex}");
+            Vector3 newV = localToWorld.MultiplyPoint3x4(vertex);
+            verticesList.Add(newV);
+            Debug.Log($"SSSSS VERTEX INSIDE UNIQUE VERTICES LIST IS: {newV}");
             // adds vertex to a counting dictionary
             // every mesh will have one set of unique vertices, where the count for a vertex is 3 is where the meshes intersect
-            if (allVertices.ContainsKey(vertex)) {
-                allVertices[vertex] ++;
-                Debug.Log($"DDD COUNT FOR {vertex} IS {allVertices[vertex]}");
+            if (allVertices.ContainsKey(newV)) {
+                allVertices[newV] ++;
+                Debug.Log($"DDD COUNT FOR {newV} IS {allVertices[newV]}");
                 
             }
             else {
-                 allVertices.Add(vertex, 1);
+                Debug.Log($"$CCC NEW VERTEX {newV} IS ADDED TO DICTIONARY");
+                 allVertices.Add(newV, 1);
             }
 
         }
