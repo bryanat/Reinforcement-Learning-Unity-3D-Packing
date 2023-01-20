@@ -357,18 +357,21 @@ public class PackerHand : Agent
     void RoundAndLocalToWorld(Vector3 [] vertices, List<Vector3> verticesList) {
         Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
         var tempHashSet = new HashSet<Vector3>();
+        // rounding part
         foreach (Vector3 vertex in vertices) {
             // first address vertices that are meant to be the same by rounding
             var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 3)), (float)(Math.Round(vertex.y, 3)), (float)(Math.Round(vertex.z, 3)));
             // remove duplicates by using a hash set
             tempHashSet.Add(roundedVertex);
         }
+        // localtoworld part
         foreach (Vector3 vertex in tempHashSet) {
             // convert local scale to world position
             Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
-            // all to vertices list
+            // add to vertices list
             verticesList.Add(worldVertex);
             // Add to a counter to check for intersection
+            // reduce stage: vertex is key, value is int number which gets increased for each vertex
             if (allVertices.ContainsKey(worldVertex)) {
                 allVertices[worldVertex] ++;
             }
@@ -380,6 +383,7 @@ public class PackerHand : Agent
 
 
     public Vector3 SelectVertex() {
+        //// selectedVertex = math.max(allVertices)
         foreach(KeyValuePair<Vector3, int> vertex in allVertices) {
             ///// the black box restraint can be added here
             ///// right now it's returning the first vertex where all 3 meshes intersect
