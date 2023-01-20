@@ -447,37 +447,194 @@ public class PackerHand : Agent
     /// <summary>
     /// Agent selects rotation for the box
     /// </summary>
-        public void SelectRotation(int action) 
-    {
-        switch (action) 
+    public void SelectRotation(int action) 
+    {   
+        var childrenList = carriedObject.GetComponentsInChildren<Transform>();
+
+        // rotation order of operations key: zxy (z first, x second, y last)
+        // [x,     y,       z]
+        // [left, bottom, back]
+        // [right, top, front]
+
+        // xyz
+        // [left, bottom, back]
+        // [right, top, front]
+        if (action == 1) {
+            rotation = new Vector3(0, 0, 0);
+            foreach (Transform child in childrenList)
             {
-            case 1:
-                rotation = new Vector3(0, 0, 0);
-                break;
-            case 2:
-                rotation = new Vector3(0, 90, 90 );
-                break;
-            case 3:
-                rotation = new Vector3(90, 0, 90);
-                break;
-            case 4:
-                rotation = new Vector3(90, 90, 0);
-                break;
-            case 5:
-                rotation = new Vector3(90, 90, 90);
-                break;
-            case 6:
-                rotation = new Vector3(0, 0, 90);
-                break;
-            case 7:
-                rotation = new Vector3(90, 0, 0);
-                break;
-            case 8:
-                rotation = new Vector3(0, 90, 0);
-                break;
+                child.tag = "pickupbox";
+            }      
+        }
+        
+        // xzy
+        // [left, back, bottom]
+        // [right, front, top]
+        else if (action==2) {
+            Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
+            rotation = new Vector3(90, 0, 0);
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickupbox";
+                if (child.name=="bottom") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "bottom";
+                }
+
+                else if (child.name == "top") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "top";
+                }
             }
-         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
-         isRotationSelected = true;
+        }
+
+        // zyx
+        // [back, bottom, left]
+        // [front, top, right]
+        else if (action==3) {
+            Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
+            rotation = new Vector3(0, 90, 0);
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickupbox";
+                if (child.name=="left") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "left";
+                }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "right";
+                }
+            }        
+        }
+      
+        // yxz
+        // [bottom, left, back]
+        // [top, right, front]
+        else if (action==4) {
+            Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
+            rotation = new Vector3(0, 0, 90);
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickupbox";
+                if (child.name=="left") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "left";
+                }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "right";
+                }
+            }
+        }
+
+        // zxy
+        // [back, left, bottom]
+        // [front, right, top]
+        else if (action==5) {
+            Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
+            rotation = new Vector3(0, 90, 90 );
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickupbox";
+                if (child.name=="left") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "left";
+                }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "right";
+                }
+            }      
+        }
+
+        // yzx
+        //[bottom, back, left] 
+        //[top, front, right]
+        else {
+            Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
+            rotation = new Vector3(90, 0, 90);
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickupbox";
+                if (child.name=="left") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "left";
+                }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "right";
+                }
+            }      
+        }
+
+        /////// NOTE: No Vector3(90, 90, 90) or Vector3(90, 90, 0) rotations as
+                // Vector3(90, 90, 90) == Vector3(90, 0, 0) == xzy
+                // Vector3(90, 90, 0)  == Vector3(90, 0, 90) == yzx 
+
+        ///// left -> back or bottom; 
+        Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
+        isRotationSelected = true;
     }
 
 

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44658822, g: 0.49642307, b: 0.5748253, a: 1}
+  m_IndirectSpecularColor: {r: 0.4465785, g: 0.49641252, b: 0.574817, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -567,7 +567,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 6
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &838871229
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2949,6 +2949,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1023523651}
     m_Modifications:
+    - target: {fileID: 7064194473024145744, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
+        type: 3}
+      propertyPath: m_TagString
+      value: pickedupbox
+      objectReference: {fileID: 0}
     - target: {fileID: 7064194473024145745, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -2973,6 +2978,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_CollisionDetection
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7064194473188895817, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
+        type: 3}
+      propertyPath: m_TagString
+      value: pickedupbox
       objectReference: {fileID: 0}
     - target: {fileID: 7064194473188895818, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
         type: 3}
@@ -2999,6 +3009,11 @@ PrefabInstance:
       propertyPath: m_CollisionDetection
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7064194473268919569, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
+        type: 3}
+      propertyPath: m_TagString
+      value: pickedupbox
+      objectReference: {fileID: 0}
     - target: {fileID: 7064194473268919570, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -3023,6 +3038,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_CollisionDetection
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7064194474146799122, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
+        type: 3}
+      propertyPath: m_TagString
+      value: pickedupbox
       objectReference: {fileID: 0}
     - target: {fileID: 7064194474146799123, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
         type: 3}
@@ -3049,6 +3069,11 @@ PrefabInstance:
       propertyPath: m_CollisionDetection
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7064194474221438027, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
+        type: 3}
+      propertyPath: m_TagString
+      value: pickedupbox
+      objectReference: {fileID: 0}
     - target: {fileID: 7064194474221438028, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -3073,6 +3098,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_CollisionDetection
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7064194474499136794, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
+        type: 3}
+      propertyPath: m_TagString
+      value: pickedupbox
       objectReference: {fileID: 0}
     - target: {fileID: 7064194474499136795, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
         type: 3}
@@ -3111,13 +3141,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7064194474866550841, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
         type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7064194474866550841, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7064194474866550841, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
+        type: 3}
       propertyPath: m_LocalPosition.x
       value: 15.42
       objectReference: {fileID: 0}
     - target: {fileID: 7064194474866550841, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.46
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7064194474866550841, guid: b4a8536a3ea103acc9832fc8fd3d2c9c,
         type: 3}
