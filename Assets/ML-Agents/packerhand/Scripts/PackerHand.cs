@@ -401,11 +401,46 @@ public class PackerHand : Agent
         // Update box position
         ///// still needs to account for box rotation and size///
         /////vertex!=position///////////////
-        targetBin.position = SelectVertex();
+        // targetBin.position = SelectVertex();
 
         //vertex: (8.25, 0.50, 79.50)
+     
+
+
+
+
+
+    //D: select position from A+B
+        // 1: rotate (reduce to 6) => carriedObject.transform.localRotation => Vector3(x,y,z)
+        // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
+        // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
+        // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
+
+        // 1: Magnitude
+        // SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z 
+        // * 0.5 is for getting midpoint, which is half (0.5) of total dimension
+        float magnitudeX = targetBox.localScale.x * 0.5f; 
+        float magnitudeY = targetBox.localScale.y * 0.5f; 
+        float magnitudeZ = targetBox.localScale.z * 0.5f; 
+
+        // 2: Direction
+        int directionX = 1; 
+        int directionY = 1;
+        int directionZ = 1;
+
+        // var directionX = blackbox.position.x > 0 : 1 : -1; 
+        // var directionY = blackbox.position.y > 0 : 1 : -1;
+        // var directionZ = blackbox.position.z > 0 : 1 : -1;
+            
+        // 3: Calc SelectedPosition
+        var selectedVertex = SelectVertex(); // Vector3(x,y,z)
+        Vector3 selectedPosition = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
+
+        targetBin.position = selectedPosition;
+
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
         isPositionSelected = true;   
+
     }
 
 
