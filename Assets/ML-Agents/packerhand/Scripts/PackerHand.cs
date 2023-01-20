@@ -327,7 +327,7 @@ public class PackerHand : Agent
             if (binObject.name == "BinIso20Back") {
                 mf_back = binObject.GetComponent<MeshFilter>();
                 // get unique set of back vertices
-                localToWorld(mf_back.mesh.vertices, backVertices);
+                RoundAndLocalToWorld(mf_back.mesh.vertices, backVertices);
                 Debug.Log($"BACK VERTICES COUNT IS: {backVertices.Distinct().Count()}");
                 Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BACK MESH LOOP IS {allVertices.Count()}");
                 // backVertices.AddRange();
@@ -336,14 +336,14 @@ public class PackerHand : Agent
             else if (binObject.name == "BinIso20Bottom") {
                 mf_bottom = binObject.GetComponent<MeshFilter>();
                 // get unique set of bottom vertices
-                localToWorld(mf_bottom.mesh.vertices, bottomVertices);
+                RoundAndLocalToWorld(mf_bottom.mesh.vertices, bottomVertices);
                 Debug.Log($"Bottom VERTICES COUNT IS: {bottomVertices.Count}");
                 Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BOTTOM MESH LOOP IS {allVertices.Count()}");
             }
             else if (binObject.name == "BinIso20Side") {
                 mf_side = binObject.GetComponent<MeshFilter>();
                 // get unique set of side vertices
-                localToWorld(mf_side.mesh.vertices, sideVertices);    
+                RoundAndLocalToWorld(mf_side.mesh.vertices, sideVertices);    
                 Debug.Log($"Side VERTICES COUNT IS: {sideVertices.Count}");  
                 Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN SIDE MESH LOOP IS {allVertices.Count()}");  
             }
@@ -352,31 +352,29 @@ public class PackerHand : Agent
     }
 
      /// <summary>
-    /// Outputs unique set of vertices
+    /// For every mesh, creates a unique set of vertices with world position and add each unique vertex to a counter dictionary
     ///</summary>
-    void localToWorld(Vector3 [] vertices, List<Vector3> verticesList) {
+    void RoundAndLocalToWorld(Vector3 [] vertices, List<Vector3> verticesList) {
         Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
-        // remove duplicates in vertices
-        var uniqueVertices = new List<Vector3>(vertices).Distinct();
-        foreach (Vector3 vertex in uniqueVertices) {
-            // local vertex scale replaced with vertex's world position
-            Vector3 newV = localToWorld.MultiplyPoint3x4(vertex);
-            verticesList.Add(newV);
-            Debug.Log($"SSSSS VERTEX INSIDE UNIQUE VERTICES LIST IS: {newV}");
-            // adds vertex to a counting dictionary
-            // every mesh will have one set of unique vertices, where the count for a vertex is 3 is where the meshes intersect
-            if (allVertices.ContainsKey(newV)) {
-                allVertices[newV] ++;
-                Debug.Log($"DDD COUNT FOR {newV} IS {allVertices[newV]}");
-                
+        var tempHashSet = new HashSet<Vector3>();
+        foreach (Vector3 vertex in vertices) {
+            // first address vertices that are meant to be the same by rounding
+            var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 3)), (float)(Math.Round(vertex.y, 3)), (float)(Math.Round(vertex.z, 3)));
+            // remove duplicates by using a hash set
+            tempHashSet.Add(roundedVertex);
+        }
+        foreach (Vector3 vertex in tempHashSet) {
+            // convert local scale to world position
+            Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
+            verticesList.Add(vertex);
+            // Add to a counter to check for intersection
+            if (!allVertices.ContainsKey(worldVertex)) {
+                allVertices[worldVertex] ++;
             }
             else {
-                Debug.Log($"$CCC NEW VERTEX {newV} IS ADDED TO DICTIONARY");
-                 allVertices.Add(newV, 1);
+                allVertices.Add(worldVertex, 1);
             }
-
         }
-
     }
 
 
