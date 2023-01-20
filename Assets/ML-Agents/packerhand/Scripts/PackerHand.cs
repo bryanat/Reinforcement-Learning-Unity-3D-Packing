@@ -487,6 +487,7 @@ public class PackerHand : Agent
 
         // xyz
         // [left, bottom, back]
+        // [right, top, front]
         if (action == 1) {
             Debug.Log("1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
             rotation = new Vector3(0, 0, 0);
@@ -499,6 +500,7 @@ public class PackerHand : Agent
         
         // xzy
         // [left, back, bottom]
+        // [right, front, top]
         else if (action==2) {
             rotation = new Vector3(90, 0, 0);
             foreach (Transform child in childrenList)
@@ -512,6 +514,16 @@ public class PackerHand : Agent
                 {
                     child.name = "bottom";
                 }
+
+                else if (child.name == "top") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "top";
+                }
+
                 else 
                 {
                     Debug.Log($"error: there should have been a rotation (90, 0, 0)");
@@ -521,6 +533,7 @@ public class PackerHand : Agent
 
         // zyx
         // [back, bottom, left]
+        // [front, top, right]
         else if (action==3) {
             Debug.Log("8XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
             rotation = new Vector3(0, 90, 0);
@@ -536,6 +549,16 @@ public class PackerHand : Agent
                 {
                     child.name = "left";
                 }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "right";
+                }
+
                 else 
                 {
                     Debug.Log($"error: there should have been a rotation (0, 90, 0)");
@@ -545,6 +568,7 @@ public class PackerHand : Agent
       
         // yxz
         // [bottom, left, back]
+        // [top, right, front]
         else if (action==4) {
             Debug.Log("6XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
             rotation = new Vector3(0, 0, 90);
@@ -560,6 +584,16 @@ public class PackerHand : Agent
                 {
                     child.name = "left";
                 }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "right";
+                }
+
                 else 
                 {
                     Debug.Log($"error: there should have been a rotation (0, 0, 90)");
@@ -576,10 +610,11 @@ public class PackerHand : Agent
         // // [x,     y,       z]
         // // [left, bottom, back]
         // zxy = [back, left, bottom]
-        // clockwise rotation (inverse of Vector3(90, 0, 90 ))
+        // diagonal counterclockwise rotation (inverse of Vector3(90, 0, 90 ))
 
         // zxy
         // [back, left, bottom]
+        // [front, right, top]
         else if (action==5) {
             Debug.Log("2XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
             rotation = new Vector3(0, 90, 90 );
@@ -599,6 +634,20 @@ public class PackerHand : Agent
                 {
                     child.name = "left";
                 }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "right";
+                }
+
                 else 
                 {
                     Debug.Log($"error: there should have been a rotation (0, 90, 90)");
@@ -619,10 +668,11 @@ public class PackerHand : Agent
         // // [x,     y,       z]
         // // [left, bottom, back]
         // yzx = [bottom, back, left]
-        // counterclockwise rotation (inverse of Vector3(0, 90, 90 ))
+        // diagonal clockwise rotation (inverse of Vector3(0, 90, 90 ))
 
         // yzx
         //[bottom, back, left] 
+        //[top, front, right]
         else {
             Debug.Log("3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
             rotation = new Vector3(90, 0, 90);
@@ -642,6 +692,20 @@ public class PackerHand : Agent
                 {
                     child.name = "left";
                 }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "right";
+                }
+
                 else 
                 {
                     Debug.Log($"error: there should have been a rotation (90, 0, 90)");
