@@ -239,7 +239,7 @@ public class PackerHand : Agent
         }
         // if box is dropped off, go for next round of box selection
         if (isDroppedoff) {
-            //UpdateVertices();
+            UpdateVertices();
             StateReset();
         }
         // if agent selects a box, it should move towards the box
@@ -344,7 +344,7 @@ public class PackerHand : Agent
                     // Debug.Log($"BACK VERTEX IS {backV}");
                     // Debug.Log($"SIDE VERTEX IS {sideV}");
                     // Debug.Log($"BOTTOM VERTEXT IS {bottomV}");
-                    if (backV==sideV && sideV ==bottomV) {
+                    if (backV==sideV && sideV ==bottomV ) {
                         Debug.Log($"Selected Vertex position is {backV}");
                         return backV;
                     }
@@ -478,33 +478,98 @@ public class PackerHand : Agent
     /// </summary>
     public void SelectRotation(int action) 
     {
-        switch (action) 
+        var childrenList = carriedObject.GetComponentsInChildren<Transform>();
+        if (action == 1) {
+            Debug.Log("1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            rotation = new Vector3(0, 0, 0);
+            Debug.Log("1YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
+                foreach (Transform child in childrenList)
             {
-            case 1:
-                rotation = new Vector3(0, 0, 0);
-                break;
-            case 2:
-                rotation = new Vector3(0, 90, 90 );
-                break;
-            case 3:
-                rotation = new Vector3(90, 0, 90);
-                break;
-            case 4:
-                rotation = new Vector3(90, 90, 0);
-                break;
-            case 5:
-                rotation = new Vector3(90, 90, 90);
-                break;
-            case 6:
-                rotation = new Vector3(0, 0, 90);
-                break;
-            case 7:
-                rotation = new Vector3(90, 0, 0);
-                break;
-            case 8:
-                rotation = new Vector3(0, 90, 0);
-                break;
+                child.tag = "pickedupbox";
+                Debug.Log($"XAC child.name: {child.name}");
+                Debug.Log($"XAC child.tag: {child.tag}");   
             }
+        }
+        else if (action==2) {
+            Debug.Log("2XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            rotation = new Vector3(0, 90, 90 );
+            Debug.Log("2YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickedupbox";
+            }
+        }
+        else if (action ==3) {
+            Debug.Log("3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            rotation = new Vector3(90, 0, 90);
+            Debug.Log("3YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickedupbox";  
+            }
+        }
+        else if (action==4) {
+            Debug.Log("8XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            rotation = new Vector3(0, 90, 0);
+            Debug.Log("8YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickupbox";
+                if (child.name=="front") {
+                    child.name = "left";
+                }
+                else if (child.name == "back") {
+                    child.name = "right";
+                }
+                else if (child.name == "left") {
+                    child.name = "back";
+                }
+                else if (child.name == "right") {
+                    child.name = "front";
+                } 
+            }        
+        }
+        else if (action==5) {
+            Debug.Log("6XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            rotation = new Vector3(0, 0, 90);
+            Debug.Log("6YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickupbox";
+                if (child.name=="left") {
+                    child.name = "bottom";
+                }
+                else if (child.name == "bottom") {
+                    child.name = "right";
+                }
+                else if (child.name == "top") {
+                    child.name = "left";
+                }
+                else if (child.name == "right") {
+                    child.name = "top";
+                } 
+            }
+        }
+        else {
+            rotation = new Vector3(90, 0, 0);
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickupbox";
+                if (child.name=="front") {
+                    child.name = "top";
+                }
+                else if (child.name == "back") {
+                    child.name = "bottom";
+                }
+                else if (child.name == "top") {
+                    child.name = "back";
+                }
+                else if (child.name == "bottom") {
+                    child.name = "front";
+                } 
+            }
+        }
+        ///// left -> back or bottom; 
         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
         isRotationSelected = true;
     }
@@ -523,15 +588,15 @@ public class PackerHand : Agent
         carriedObject.parent = this.transform;
 
         carriedObject.tag = "pickedupbox";
-        foreach (Transform child in carriedObject.GetComponentsInChildren<Transform>())
-        {
-            child.tag = "pickedupbox";
-            Debug.Log($"XAC child.name: {child.name}");
-            Debug.Log($"XAC child.tag: {child.tag}");
-        }
-        Debug.Log($"XAB carriedObject.name: {carriedObject.name}");
-        Debug.Log($"XAB carriedObject.tag: {carriedObject.tag}");
-        // have to give children children.tag = "pickedupbox" 
+        // foreach (Transform child in carriedObject.GetComponentsInChildren<Transform>())
+        // {
+        //     child.tag = "pickedupbox";
+        //     Debug.Log($"XAC child.name: {child.name}");
+        //     Debug.Log($"XAC child.tag: {child.tag}");
+        // }
+        // Debug.Log($"XAB carriedObject.name: {carriedObject.name}");
+        // Debug.Log($"XAB carriedObject.tag: {carriedObject.tag}");
+        // // have to give children children.tag = "pickedupbox" 
         isPickedup = true;
 
         Destroy(carriedObject.GetComponent<BoxCollider>());

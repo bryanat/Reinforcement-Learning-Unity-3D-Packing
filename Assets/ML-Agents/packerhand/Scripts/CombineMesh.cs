@@ -53,9 +53,12 @@ public class CombineMesh : MonoBehaviour
         // Combine meshes
         MeshCombiner(meshList);
 
-        binBottom = GameObject.Find("BinIso20Bottom");
-        binSide = GameObject.Find("BinIso20Side");
-        binBack = GameObject.Find("BinIso20Back");
+        // binBottom = GameObject.Find("BinIso20Bottom");
+        // binSide = GameObject.Find("BinIso20Side");
+        // binBack = GameObject.Find("BinIso20Back");
+        isCollidedBlue=false;
+        isCollidedRed=false;
+        isCollidedGreen=false;
 
 
      }
@@ -71,7 +74,7 @@ public class CombineMesh : MonoBehaviour
         
         // GREEN
         // if this mesh is Bottom Green mesh and a box collides with it then set isCollidedGreen collision property to true
-        if (name == "BinIso20Bottom" && collision.gameObject.tag == "pickedupbox")
+        if (isCollidedGreen == false && name == "BinIso20Bottom" && collision.gameObject.tag == "pickedupbox" && collision.gameObject.name == "bottom")
         {
             // set mesh property isCollidedGreen to true, used when all three colors are true then combinemeshes
             isCollidedGreen = true;
@@ -87,7 +90,7 @@ public class CombineMesh : MonoBehaviour
         }
         // BLUE
         // if this mesh is Back Blue mesh and a box collides with it then set isCollidedBlue collision property to true
-        if (name == "BinIso20Back" && collision.gameObject.tag == "pickedupbox"){
+        if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickedupbox" && collision.gameObject.name == "back"){
             // set mesh property isCollidedBlue to true, used when all three colors are true then combinemeshes
             isCollidedBlue = true;
             Debug.Log($"{name}: BCA isCollidedBlue triggered, value of isCollidedBlue: {isCollidedBlue}");
@@ -104,7 +107,7 @@ public class CombineMesh : MonoBehaviour
 
         // RED
         // if this mesh is Side Red mesh and a box collides with it then set isCollidedRed collision property to true
-        if (name == "BinIso20Side" && collision.gameObject.tag == "pickedupbox")
+        if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickedupbox" && (collision.gameObject.name=="left" | collision.gameObject.name=="right"))
         {
             // set mesh property isCollidedRed to true, used when all three colors are true then combinemeshes
             isCollidedRed = true;
@@ -133,6 +136,7 @@ public class CombineMesh : MonoBehaviour
                 GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Bottom").transform;
                 var greenMeshList = GameObject.Find("BinIso20Bottom").GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(greenMeshList);
+                isCollidedGreen = false;
             
             }
             // BLUE
@@ -141,6 +145,7 @@ public class CombineMesh : MonoBehaviour
                 GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Back").transform;
                 var blueMeshList = GameObject.Find("BinIso20Back").GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(blueMeshList);
+                isCollidedBlue = false;
             
             }
             // RED
@@ -149,16 +154,13 @@ public class CombineMesh : MonoBehaviour
                 GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Side").transform;
                 var redMeshList = GameObject.Find("BinIso20Side").GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(redMeshList);
+                isCollidedRed = false;
             
             }
 
-                isCollidedGreen = false;
-                isCollidedBlue = false;
-                isCollidedRed = false; 
-
-                dontloopinfinitely = true;
-
+            if (agent.isDroppedoff == false) {
                 agent.isDroppedoff = true;
+            }
         }
     }
             

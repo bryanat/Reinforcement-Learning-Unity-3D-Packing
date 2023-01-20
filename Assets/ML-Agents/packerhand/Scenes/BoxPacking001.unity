@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.4465785, g: 0.49641252, b: 0.574817, a: 1}
+  m_IndirectSpecularColor: {r: 0.44658822, g: 0.49642307, b: 0.5748253, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -560,14 +560,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 786607491}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 18.703, y: -9.268, z: 147.671}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 11, y: 10, z: 79}
+  m_LocalScale: {x: 1, y: 2.508, z: -4.3428}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 6
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1001 &838871229
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -983,18 +983,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   c: {fileID: 0}
   agent: {fileID: 0}
-  meshList: []
-  meshname: 
-  enteredTrigger: 0
-  allSidesOfBox: []
   isCollidedGreen: 0
   isCollidedBlue: 0
   isCollidedRed: 0
-  greenlist_CollisionGameObjects: []
-  bluelist_CollisionGameObjects: []
-  redlist_CollisionGameObjects: []
-  dont: 0
+  oppositeSideObject: {fileID: 0}
+  dontloopinfinitely: 0
   parent_mf: {fileID: 0}
+  binBottom: {fileID: 0}
+  binSide: {fileID: 0}
+  binBack: {fileID: 0}
 --- !u!43 &1232477463
 Mesh:
   m_ObjectHideFlags: 0
@@ -1525,18 +1522,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   c: {fileID: 0}
   agent: {fileID: 0}
-  meshList: []
-  meshname: 
-  enteredTrigger: 0
-  allSidesOfBox: []
   isCollidedGreen: 0
   isCollidedBlue: 0
   isCollidedRed: 0
-  greenlist_CollisionGameObjects: []
-  bluelist_CollisionGameObjects: []
-  redlist_CollisionGameObjects: []
-  dont: 0
+  oppositeSideObject: {fileID: 0}
+  dontloopinfinitely: 0
   parent_mf: {fileID: 0}
+  binBottom: {fileID: 0}
+  binSide: {fileID: 0}
+  binBack: {fileID: 0}
 --- !u!1001 &1565958924
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2577,18 +2571,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   c: {fileID: 0}
   agent: {fileID: 0}
-  meshList: []
-  meshname: 
-  enteredTrigger: 0
-  allSidesOfBox: []
   isCollidedGreen: 0
   isCollidedBlue: 0
   isCollidedRed: 0
-  greenlist_CollisionGameObjects: []
-  bluelist_CollisionGameObjects: []
-  redlist_CollisionGameObjects: []
-  dont: 0
+  oppositeSideObject: {fileID: 0}
+  dontloopinfinitely: 0
   parent_mf: {fileID: 0}
+  binBottom: {fileID: 0}
+  binSide: {fileID: 0}
+  binBack: {fileID: 0}
 --- !u!1001 &1149920266690001738
 PrefabInstance:
   m_ObjectHideFlags: 0
