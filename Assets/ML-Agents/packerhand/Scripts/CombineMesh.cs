@@ -47,8 +47,9 @@ public class CombineMesh : MonoBehaviour
         //c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
         // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
 
-        var meshList = GetComponentsInChildren<MeshFilter>(); 
-        Debug.Log($"{name}: beging meshList length: {meshList.Length}");
+        // Skip 1 is to skip the parent mesh filter
+        var meshList = GetComponentsInChildren<MeshFilter>();//.Skip(1).ToArray(); 
+        Debug.Log($"{name}: beging meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
         
         // Combine meshes
         MeshCombiner(meshList);
@@ -74,7 +75,8 @@ public class CombineMesh : MonoBehaviour
         
         // GREEN
         // if this mesh is Bottom Green mesh and a box collides with it then set isCollidedGreen collision property to true
-        if (isCollidedGreen == false && name == "BinIso20Bottom" && collision.gameObject.tag == "pickedupbox" && collision.gameObject.name == "bottom")
+        //if (isCollidedGreen == false && name == "BinIso20Bottom" && collision.gameObject.tag == "pickedupbox" && collision.gameObject.name == "bottom")
+         if (name == "BinIso20Bottom" && collision.gameObject.tag == "pickedupbox")
         {
             // set mesh property isCollidedGreen to true, used when all three colors are true then combinemeshes
             isCollidedGreen = true;
@@ -90,7 +92,9 @@ public class CombineMesh : MonoBehaviour
         }
         // BLUE
         // if this mesh is Back Blue mesh and a box collides with it then set isCollidedBlue collision property to true
-        if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickedupbox" && collision.gameObject.name == "back"){
+        //if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickedupbox" && collision.gameObject.name == "back")
+        if (name == "BinIso20Back" && collision.gameObject.tag == "pickedupbox")
+        {
             // set mesh property isCollidedBlue to true, used when all three colors are true then combinemeshes
             isCollidedBlue = true;
             Debug.Log($"{name}: BCA isCollidedBlue triggered, value of isCollidedBlue: {isCollidedBlue}");
@@ -107,7 +111,8 @@ public class CombineMesh : MonoBehaviour
 
         // RED
         // if this mesh is Side Red mesh and a box collides with it then set isCollidedRed collision property to true
-        if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickedupbox" && (collision.gameObject.name=="left" | collision.gameObject.name=="right"))
+         if (name == "BinIso20Side" && collision.gameObject.tag == "pickedupbox" )
+        //if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickedupbox" && (collision.gameObject.name=="left" | collision.gameObject.name=="right"))
         {
             // set mesh property isCollidedRed to true, used when all three colors are true then combinemeshes
             isCollidedRed = true;

@@ -10,6 +10,7 @@ using Unity.MLAgents.Policies;
 using Box = Boxes.Box;
 using Boxes;
 using System.Collections;
+using System.Linq;
 
 public class PackerHand : Agent 
 {
@@ -78,6 +79,9 @@ public class PackerHand : Agent
     public MeshFilter mf_side;
 
     public int testn = 0;
+
+    public Dictionary<Vector3, int > allVertices;
+
 
 
 
@@ -156,10 +160,11 @@ public class PackerHand : Agent
             sensor.agent = this;
         }
 
+        // Make agent unaffected by collision
         var m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
-
+        // Get vertices of the bin
         UpdateVertices();
 
 
@@ -207,7 +212,7 @@ public class PackerHand : Agent
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
         var j = -1;
-        var i = -1;
+        //var i = -1;
 
         var discreteActions = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
@@ -220,8 +225,11 @@ public class PackerHand : Agent
             SelectRotation(discreteActions[++j]);
         }
 
+
+        // should select position still be in here???//////
         if (isPickedup && isPositionSelected==false) {
-            SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+            //SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+            SelectPosition();
         }
     } 
 
@@ -307,56 +315,90 @@ public class PackerHand : Agent
         // carriedObject.GetComponent<Rigidbody>().useGravity = false; 
     }
 
-
+    /// <summary>
+    /// Updates the vertices every time a new mesh is created
+    ///</summary>
     public void UpdateVertices() {
+        ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
+        /////// future could add vertices of boxes to preexisting vertices list and dictionary for optimization//////////////
         Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
-
+        allVertices = new Dictionary<Vector3, int>();
         foreach(Transform binObject in binObjects) {
             if (binObject.name == "BinIso20Back") {
                 mf_back = binObject.GetComponent<MeshFilter>();
-                backVertices = mf_back.mesh.vertices;
-                // backVertices.AddRange(mf_back.mesh.vertices);
+                localToWorld(mf_back.mesh.vertices, backVertices);
+                Debug.Log($"BACK VERTICES COUNT IS: {backVertices.Length}");
+                // backVertices.AddRange();
 
             }
             else if (binObject.name == "BinIso20Bottom") {
                 mf_bottom = binObject.GetComponent<MeshFilter>();
-                //bottomVertices.AddRange(mf_bottom.mesh.vertices);
-                bottomVertices = mf_bottom.mesh.vertices;
+                localToWorld(mf_bottom.mesh.vertices, bottomVertices);
+                Debug.Log($"Bottom VERTICES COUNT IS: {bottomVertices.Length}");
             }
             else if (binObject.name == "BinIso20Side") {
                 mf_side = binObject.GetComponent<MeshFilter>();
-                //sideVertices.AddRange(mf_side.mesh.vertices);  
-                sideVertices = mf_side.mesh.vertices;        
+                localToWorld(mf_side.mesh.vertices, sideVertices);    
+                Debug.Log($"Side VERTICES COUNT IS: {sideVertices.Length}");    
             }
+        }
+
+    }
+
+     /// <summary>
+    /// Outputs unique set of vertices
+    ///</summary>
+    void localToWorld(Vector3 [] vertices, List<Vector3> verticesList) {
+        Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
+        // remove duplicates in vertices
+        var uniqueVertices = new List<Vector3>(vertices).Distinct();
+        foreach (Vector3 vertex in uniqueVertices) {
+            // local vertex scale replaced with vertex's world position
+            verticesList.Add(localToWorld.MultiplyPoint3x4(vertex));
+            Debug.Log($"CCC VERTICES V IS {vertex}");
+            // adds vertex to a counting dictionary
+            // every mesh will have one set of unique vertices, where the count for a vertex is 3 is where the meshes intersect
+            if (allVertices.ContainsKey(vertex)) {
+                allVertices[vertex] ++;
+                Debug.Log($"DDD COUNT FOR {vertex} IS {allVertices[vertex]}");
+                
+            }
+            else {
+                 allVertices.Add(vertex, 1);
+            }
+
         }
 
     }
 
 
     public Vector3 SelectVertex() {
-        Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
-        for (int i=0; i<backVertices.Length;i++) {
-            for (int j =0; j<sideVertices.Length;j++) {
-                for (int k=0; k<bottomVertices.Length;k++) {
-                    var backV = localToWorld.MultiplyPoint3x4(backVertices[i]);
-                    var sideV = localToWorld.MultiplyPoint3x4(sideVertices[j]);
-                    var bottomV = localToWorld.MultiplyPoint3x4(bottomVertices[k]);
-                    // Debug.Log($"BACK VERTEX IS {backV}");
-                    // Debug.Log($"SIDE VERTEX IS {sideV}");
-                    // Debug.Log($"BOTTOM VERTEXT IS {bottomV}");
-                    if (backV==sideV && sideV ==bottomV ) {
-                        Debug.Log($"Selected Vertex position is {backV}");
-                        return backV;
-                    }
-                }
+        foreach(KeyValuePair<Vector3, int> vertex in allVertices) {
+            ///// the black box restraint can be added here
+            ///// right now it's returning the first vertex where all 3 meshes intersect
+            if (vertex.Value == 3) {
+                Debug.Log($"VVV SELECTED VERTEX IS {vertex.Key}");
+                return vertex.Key;
             }
+        }
 
-       }
         // var backList = new List<Vector3>(backVertices);
         // var sideList = new List<Vector3>(sideVertices);
         // var bottomList = new List<Vector3>(bottomVertices);
 
         return Vector3.zero;
+    }
+
+    public void SelectPosition() {
+        targetBin  = new GameObject().transform;
+        // Update box position
+        ///// still needs to account for box rotation and size///
+        /////vertex!=position///////////////
+        targetBin.position = SelectVertex();
+
+        //vertex: (8.25, 0.50, 79.50)
+        Debug.Log($"SELECTED POSITION IS {targetBin.position}");
+        isPositionSelected = true;   
     }
 
 
@@ -379,84 +421,6 @@ public class PackerHand : Agent
     }
 
 
-    public void SelectPosition(float x, float y, float z) {
-         targetBin  = new GameObject().transform;
-        // Update box position
-        // targetBin.position = new Vector3(8.83f, 1.04f, 78.99f); // teleport.
-        //targetBin.position = new Vector3(8.25f, 0.50f, 79.50f); // teleport.
-
-        // add distance from vertex to target position (as position is the center, want to place via Vertex position)
-        testn = testn +1;
-        Debug.Log($"ROUND INSIDE SELECT POSITION  {testn}");
-        if (testn==1) {
-            targetBin.position = new Vector3(8.75f, 1.00f, 79.00f);
-        }
-        if (testn==2) {
-            Debug.Log("SECOND BOX SHOULD BE 9.75 X");
-            targetBin.position = new Vector3(9.75f, 1.00f, 79.00f);
-        }
-        //targetBin.position = SelectVertex();
-
-        //vertex: (8.25, 0.50, 79.50)
-        Debug.Log($"SELECTED POSITION IS {targetBin.position}");
-        isPositionSelected = true;   
-    }
-
-
-    /// <summary>
-    /// Agent selects position for box
-    // ///</summary>
-    // public void SelectPosition(float x, float y, float z) 
-    // { 
-    //     // Scale x, y, z between 0 and 1 (passed in values are between -1 and 1)
-    //     x = (x + 1f) * 0.5f;
-    //     y = (y + 1f) * 0.5f;
-    //     z = (z + 1f) * 0.5f;
-    //     var x_position = 0f;
-    //     var y_position = 0f;
-    //     var z_position = 0f;
-    //     var l = boxPool[Box.boxIdx].boxSize.x;
-    //     var h = boxPool[Box.boxIdx].boxSize.y;
-    //     var w = boxPool[Box.boxIdx].boxSize.z;
-    //     var test_position = Vector3.zero;
-    //     if (m_config==0) {
-    //         // // Interpolate position between x, y, z bounds of the mini bin
-    //         // x_position = Mathf.Lerp(binMini.transform.position.x-miniBounds.extents.x+1, binMini.transform.position.x+miniBounds.extents.x-1, x);
-    //         // y_position = Mathf.Lerp(binMini.transform.position.y-miniBounds.extents.y+1, binMini.transform.position.y+miniBounds.extents.y-1, y);
-    //         // z_position = Mathf.Lerp(binMini.transform.position.z-miniBounds.extents.z+1, binMini.transform.position.z+miniBounds.extents.z-1, z);
-    //         // test_position = new Vector3(x_position,y_position,z_position);
-    //         // ////////WHY DOESN'T THE ABOVE GIVE US A POSITION INSIDE BIN?????????????///////////
-    //         // Debug.Log($"TEST POSITION IS INSIDE BIN: {miniBounds.Contains(test_position)}");
-    //         // // check if position inside bin bounds
-    //         // if (miniBounds.Contains(test_position)) {
-    //         //         targetBin  = new GameObject().transform;
-    //         //         targetBin.position = test_position; // teleport.
-    //         //         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
-    //         //         isPositionSelected = true;
-    //         //     //     // Update search space
-    //         //     //     UpdateSearchSpace(l, w, h);
-    //         //     // }
-    //         //     }
-    //         }
-    //         else {
-    //             // Interpolate position between x, y, z bounds of the bin
-    //             x_position = Mathf.Lerp(binArea.transform.position.x-areaBounds.extents.x+1, binArea.transform.position.x+areaBounds.extents.x-1, x);
-    //             y_position = Mathf.Lerp(binArea.transform.position.y-areaBounds.extents.y+1, binArea.transform.position.y+areaBounds.extents.y-1, y);
-    //             z_position = Mathf.Lerp(binArea.transform.position.z-areaBounds.extents.z+1, binArea.transform.position.z+areaBounds.extents.z-1, z);
-    //             test_position = new Vector3(x_position, y_position,z_position);
-    //             if (areaBounds.Contains(test_position)) 
-    //             {              
-    //                 targetBin  = new GameObject().transform;
-    //                 // Update box position
-    //                 targetBin.position = test_position; // teleport.
-    //                 Debug.Log($"SELECTED POSITION IS {targetBin.position}");
-    //                 isPositionSelected = true;   
-    //         //    }  
-    //          } 
-    //     }
-    // }
-
-
     public void UpdateBinVolume() {
         // Update bin volume
         if (m_config==0) 
@@ -476,102 +440,37 @@ public class PackerHand : Agent
     /// <summary>
     /// Agent selects rotation for the box
     /// </summary>
-    public void SelectRotation(int action) 
+        public void SelectRotation(int action) 
     {
-        var childrenList = carriedObject.GetComponentsInChildren<Transform>();
-        if (action == 1) {
-            Debug.Log("1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-            rotation = new Vector3(0, 0, 0);
-            Debug.Log("1YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
-                foreach (Transform child in childrenList)
+        switch (action) 
             {
-                child.tag = "pickedupbox";
-                Debug.Log($"XAC child.name: {child.name}");
-                Debug.Log($"XAC child.tag: {child.tag}");   
+            case 1:
+                rotation = new Vector3(0, 0, 0);
+                break;
+            case 2:
+                rotation = new Vector3(0, 90, 90 );
+                break;
+            case 3:
+                rotation = new Vector3(90, 0, 90);
+                break;
+            case 4:
+                rotation = new Vector3(90, 90, 0);
+                break;
+            case 5:
+                rotation = new Vector3(90, 90, 90);
+                break;
+            case 6:
+                rotation = new Vector3(0, 0, 90);
+                break;
+            case 7:
+                rotation = new Vector3(90, 0, 0);
+                break;
+            case 8:
+                rotation = new Vector3(0, 90, 0);
+                break;
             }
-        }
-        else if (action==2) {
-            Debug.Log("2XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-            rotation = new Vector3(0, 90, 90 );
-            Debug.Log("2YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
-            foreach (Transform child in childrenList)
-            {
-                child.tag = "pickedupbox";
-            }
-        }
-        else if (action ==3) {
-            Debug.Log("3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-            rotation = new Vector3(90, 0, 90);
-            Debug.Log("3YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
-            foreach (Transform child in childrenList)
-            {
-                child.tag = "pickedupbox";  
-            }
-        }
-        else if (action==4) {
-            Debug.Log("8XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-            rotation = new Vector3(0, 90, 0);
-            Debug.Log("8YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
-            foreach (Transform child in childrenList)
-            {
-                child.tag = "pickupbox";
-                if (child.name=="front") {
-                    child.name = "left";
-                }
-                else if (child.name == "back") {
-                    child.name = "right";
-                }
-                else if (child.name == "left") {
-                    child.name = "back";
-                }
-                else if (child.name == "right") {
-                    child.name = "front";
-                } 
-            }        
-        }
-        else if (action==5) {
-            Debug.Log("6XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-            rotation = new Vector3(0, 0, 90);
-            Debug.Log("6YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
-            foreach (Transform child in childrenList)
-            {
-                child.tag = "pickupbox";
-                if (child.name=="left") {
-                    child.name = "bottom";
-                }
-                else if (child.name == "bottom") {
-                    child.name = "right";
-                }
-                else if (child.name == "top") {
-                    child.name = "left";
-                }
-                else if (child.name == "right") {
-                    child.name = "top";
-                } 
-            }
-        }
-        else {
-            rotation = new Vector3(90, 0, 0);
-            foreach (Transform child in childrenList)
-            {
-                child.tag = "pickupbox";
-                if (child.name=="front") {
-                    child.name = "top";
-                }
-                else if (child.name == "back") {
-                    child.name = "bottom";
-                }
-                else if (child.name == "top") {
-                    child.name = "back";
-                }
-                else if (child.name == "bottom") {
-                    child.name = "front";
-                } 
-            }
-        }
-        ///// left -> back or bottom; 
-        Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
-        isRotationSelected = true;
+         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
+         isRotationSelected = true;
     }
 
 
@@ -588,15 +487,15 @@ public class PackerHand : Agent
         carriedObject.parent = this.transform;
 
         carriedObject.tag = "pickedupbox";
-        // foreach (Transform child in carriedObject.GetComponentsInChildren<Transform>())
-        // {
-        //     child.tag = "pickedupbox";
-        //     Debug.Log($"XAC child.name: {child.name}");
-        //     Debug.Log($"XAC child.tag: {child.tag}");
-        // }
-        // Debug.Log($"XAB carriedObject.name: {carriedObject.name}");
-        // Debug.Log($"XAB carriedObject.tag: {carriedObject.tag}");
-        // // have to give children children.tag = "pickedupbox" 
+        foreach (Transform child in carriedObject.GetComponentsInChildren<Transform>())
+        {
+            child.tag = "pickedupbox";
+            Debug.Log($"XAC child.name: {child.name}");
+            Debug.Log($"XAC child.tag: {child.tag}");
+        }
+        Debug.Log($"XAB carriedObject.name: {carriedObject.name}");
+        Debug.Log($"XAB carriedObject.tag: {carriedObject.tag}");
+        // have to give children children.tag = "pickedupbox" 
         isPickedup = true;
 
         Destroy(carriedObject.GetComponent<BoxCollider>());
