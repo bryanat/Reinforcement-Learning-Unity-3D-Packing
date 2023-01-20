@@ -480,18 +480,16 @@ public class PackerHand : Agent
     {   
         var childrenList = carriedObject.GetComponentsInChildren<Transform>();
 
-        // // [x,     y,       z]
-        // // [left, bottom, back]
-        // // [right, top, front]
-        // rotation order of operations key: zxy (z first, x second, y last) if present 
+        // rotation order of operations key: zxy (z first, x second, y last)
+        // [x,     y,       z]
+        // [left, bottom, back]
+        // [right, top, front]
 
         // xyz
         // [left, bottom, back]
         // [right, top, front]
         if (action == 1) {
-            Debug.Log("1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
             rotation = new Vector3(0, 0, 0);
-            Debug.Log("1YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
@@ -502,6 +500,7 @@ public class PackerHand : Agent
         // [left, back, bottom]
         // [right, front, top]
         else if (action==2) {
+            Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             rotation = new Vector3(90, 0, 0);
             foreach (Transform child in childrenList)
             {
@@ -523,11 +522,6 @@ public class PackerHand : Agent
                 {
                     child.name = "top";
                 }
-
-                else 
-                {
-                    Debug.Log($"error: there should have been a rotation (90, 0, 0)");
-                }
             }
         }
 
@@ -535,9 +529,8 @@ public class PackerHand : Agent
         // [back, bottom, left]
         // [front, top, right]
         else if (action==3) {
-            Debug.Log("8XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             rotation = new Vector3(0, 90, 0);
-            Debug.Log("8YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
@@ -557,11 +550,6 @@ public class PackerHand : Agent
                 else if (child.name == "front") 
                 {
                     child.name = "right";
-                }
-
-                else 
-                {
-                    Debug.Log($"error: there should have been a rotation (0, 90, 0)");
                 }
             }        
         }
@@ -570,9 +558,8 @@ public class PackerHand : Agent
         // [bottom, left, back]
         // [top, right, front]
         else if (action==4) {
-            Debug.Log("6XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             rotation = new Vector3(0, 0, 90);
-            Debug.Log("6YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
@@ -593,32 +580,15 @@ public class PackerHand : Agent
                 {
                     child.name = "right";
                 }
-
-                else 
-                {
-                    Debug.Log($"error: there should have been a rotation (0, 0, 90)");
-                }
             }
         }
-
-        // key: zxy
-
-        // xyz => (0,0,90) => (0,90,0)
-        // xyz => yxz => zxy RESULT
-
-        // zxy
-        // // [x,     y,       z]
-        // // [left, bottom, back]
-        // zxy = [back, left, bottom]
-        // diagonal counterclockwise rotation (inverse of Vector3(90, 0, 90 ))
 
         // zxy
         // [back, left, bottom]
         // [front, right, top]
         else if (action==5) {
-            Debug.Log("2XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             rotation = new Vector3(0, 90, 90 );
-            Debug.Log("2YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
@@ -647,36 +617,15 @@ public class PackerHand : Agent
                 {
                     child.name = "right";
                 }
-
-                else 
-                {
-                    Debug.Log($"error: there should have been a rotation (0, 90, 90)");
-                }
             }      
         }
-
-
-        // // [x,     y,       z]
-        // // [left, bottom, back]
-        // // [right, top, front]
-
-        // key: zxy 
-        // xyz =>  (0,0,90) => (90, 0, 0) 
-        // xyz => yxz => yzx
-
-        // yzx 
-        // // [x,     y,       z]
-        // // [left, bottom, back]
-        // yzx = [bottom, back, left]
-        // diagonal clockwise rotation (inverse of Vector3(0, 90, 90 ))
 
         // yzx
         //[bottom, back, left] 
         //[top, front, right]
         else {
-            Debug.Log("3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             rotation = new Vector3(90, 0, 90);
-            Debug.Log("3YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
@@ -704,11 +653,6 @@ public class PackerHand : Agent
                 else if (child.name == "front") 
                 {
                     child.name = "right";
-                }
-
-                else 
-                {
-                    Debug.Log($"error: there should have been a rotation (90, 0, 90)");
                 }
             }      
         }
