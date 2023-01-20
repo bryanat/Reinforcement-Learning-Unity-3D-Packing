@@ -477,98 +477,182 @@ public class PackerHand : Agent
     /// Agent selects rotation for the box
     /// </summary>
     public void SelectRotation(int action) 
-    {
+    {   
         var childrenList = carriedObject.GetComponentsInChildren<Transform>();
+
+        // // [x,     y,       z]
+        // // [left, bottom, back]
+        // // [right, top, front]
+        // rotation order of operations key: zxy (z first, x second, y last) if present 
+
+        // xyz
+        // [left, bottom, back]
         if (action == 1) {
             Debug.Log("1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
             rotation = new Vector3(0, 0, 0);
             Debug.Log("1YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
-                foreach (Transform child in childrenList)
+            foreach (Transform child in childrenList)
             {
-                child.tag = "pickedupbox";
-                Debug.Log($"XAC child.name: {child.name}");
-                Debug.Log($"XAC child.tag: {child.tag}");   
-            }
+                child.tag = "pickupbox";
+            }      
         }
+        
+        // xzy
+        // [left, back, bottom]
         else if (action==2) {
-            Debug.Log("2XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-            rotation = new Vector3(0, 90, 90 );
-            Debug.Log("2YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
+            rotation = new Vector3(90, 0, 0);
             foreach (Transform child in childrenList)
             {
-                child.tag = "pickedupbox";
+                child.tag = "pickupbox";
+                if (child.name=="bottom") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "bottom";
+                }
+                else 
+                {
+                    Debug.Log($"error: there should have been a rotation (90, 0, 0)");
+                }
             }
         }
-        else if (action ==3) {
-            Debug.Log("3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-            rotation = new Vector3(90, 0, 90);
-            Debug.Log("3YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
-            foreach (Transform child in childrenList)
-            {
-                child.tag = "pickedupbox";  
-            }
-        }
-        else if (action==4) {
+
+        // zyx
+        // [back, bottom, left]
+        else if (action==3) {
             Debug.Log("8XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
             rotation = new Vector3(0, 90, 0);
             Debug.Log("8YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
-                if (child.name=="front") {
-                    child.name = "left";
-                }
-                else if (child.name == "back") {
-                    child.name = "right";
-                }
-                else if (child.name == "left") {
+                if (child.name=="left") 
+                {
                     child.name = "back";
                 }
-                else if (child.name == "right") {
-                    child.name = "front";
-                } 
+                else if (child.name == "back") 
+                {
+                    child.name = "left";
+                }
+                else 
+                {
+                    Debug.Log($"error: there should have been a rotation (0, 90, 0)");
+                }
             }        
         }
-        else if (action==5) {
+      
+        // yxz
+        // [bottom, left, back]
+        else if (action==4) {
             Debug.Log("6XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
             rotation = new Vector3(0, 0, 90);
             Debug.Log("6YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
-                if (child.name=="left") {
+                if (child.name=="left") 
+                {
                     child.name = "bottom";
                 }
-                else if (child.name == "bottom") {
-                    child.name = "right";
-                }
-                else if (child.name == "top") {
+                else if (child.name == "bottom") 
+                {
                     child.name = "left";
                 }
-                else if (child.name == "right") {
-                    child.name = "top";
-                } 
+                else 
+                {
+                    Debug.Log($"error: there should have been a rotation (0, 0, 90)");
+                }
             }
         }
-        else {
-            rotation = new Vector3(90, 0, 0);
+
+        // key: zxy
+
+        // xyz => (0,0,90) => (0,90,0)
+        // xyz => yxz => zxy RESULT
+
+        // zxy
+        // // [x,     y,       z]
+        // // [left, bottom, back]
+        // zxy = [back, left, bottom]
+        // clockwise rotation (inverse of Vector3(90, 0, 90 ))
+
+        // zxy
+        // [back, left, bottom]
+        else if (action==5) {
+            Debug.Log("2XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            rotation = new Vector3(0, 90, 90 );
+            Debug.Log("2YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
-                if (child.name=="front") {
-                    child.name = "top";
-                }
-                else if (child.name == "back") {
-                    child.name = "bottom";
-                }
-                else if (child.name == "top") {
+                if (child.name=="left") 
+                {
                     child.name = "back";
                 }
-                else if (child.name == "bottom") {
-                    child.name = "front";
-                } 
-            }
+                else if (child.name == "back") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "left";
+                }
+                else 
+                {
+                    Debug.Log($"error: there should have been a rotation (0, 90, 90)");
+                }
+            }      
         }
+
+
+        // // [x,     y,       z]
+        // // [left, bottom, back]
+        // // [right, top, front]
+
+        // key: zxy 
+        // xyz =>  (0,0,90) => (90, 0, 0) 
+        // xyz => yxz => yzx
+
+        // yzx 
+        // // [x,     y,       z]
+        // // [left, bottom, back]
+        // yzx = [bottom, back, left]
+        // counterclockwise rotation (inverse of Vector3(0, 90, 90 ))
+
+        // yzx
+        //[bottom, back, left] 
+        else {
+            Debug.Log("3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            rotation = new Vector3(90, 0, 90);
+            Debug.Log("3YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
+            foreach (Transform child in childrenList)
+            {
+                child.tag = "pickupbox";
+                if (child.name=="left") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "left";
+                }
+                else 
+                {
+                    Debug.Log($"error: there should have been a rotation (90, 0, 90)");
+                }
+            }      
+        }
+
+        /////// NOTE: No Vector3(90, 90, 90) or Vector3(90, 90, 0) rotations as
+                // Vector3(90, 90, 90) == Vector3(90, 0, 0) == xzy
+                // Vector3(90, 90, 0)  == Vector3(90, 0, 90) == yzx 
+
         ///// left -> back or bottom; 
         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
         isRotationSelected = true;
