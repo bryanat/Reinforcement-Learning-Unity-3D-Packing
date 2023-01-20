@@ -82,6 +82,10 @@ public class PackerHand : Agent
 
     public Dictionary<Vector3, int > allVertices;
 
+    public List<Vector3> intersectingVertices;
+
+    public GameObject blackbox;
+
 
 
 
@@ -381,6 +385,32 @@ public class PackerHand : Agent
         }
     }
 
+    public void CreateBlackBox() {
+        ////need to create a black box based on intersecting vertices
+        //// there might be many intersecting vertices, black box is the subspace with smallest volume
+        //// need box size: front, top and left/right
+        /// for top: need box's top size
+        // Vector3 topSideSize = targetBox.Find("top").localScale;
+        // Vector3 topSidePos = targetBox.Find("top").localPosition;
+        // Vector3 topVertex1 = Vector3.zero;
+        // Vector3 topVertex2 = Vector3.zero;
+        // Vector3 topVertex3 = Vector3.zero;
+        // Vector3 topVertex4 = Vector3.zero;
+        // foreach(Vector3 intersectingVertex in intersectingVertices) {
+        //     // minus or add in x depends on placing from left to right or right to left
+        //     if (intersectingVertex.x == topSidePos.x - topSideSize.x/2
+        //     && intersectingVertex.y == topSidePos.y 
+        //     && intersectingVertex.z == topSidePos.z+topSideSize.z/2) {
+        //         topVertex1 = intersectingVertex;
+        //         topVertex2 = new Vector3(intersectingVertex.x +topSideSize.x, intersectingVertex.y, intersectingVertex.z);
+        //         topVertex3 = new Vector3(intersectingVertex.x, intersectingVertex.y, intersectingVertex.z-topSideSize.z);
+        //         topVertex4 = new Vector3(intersectingVertex.x, intersectingVertex.z, intersectingVertex.z+??);
+        //         // calculate volume
+        //         // 
+        //     }
+        // }
+    }
+
 
     public Vector3 SelectVertex() {
         //// selectedVertex = math.max(allVertices)
@@ -388,10 +418,12 @@ public class PackerHand : Agent
             ///// the black box restraint can be added here
             ///// right now it's returning the first vertex where all 3 meshes intersect
             if (vertex.Value == 3) {
-                Debug.Log($"VVV SELECTED VERTEX IS {vertex.Key}");
-                return vertex.Key;
+                Debug.Log($"VVV INTERSECTING VERTEX IS {vertex.Key}");
+                intersectingVertices.Add(vertex.Key);
+                //return vertex.Key;
             }
         }
+        CreateBlackBox();
         // return default if no right vertex found
         return Vector3.zero;
     }
