@@ -366,9 +366,10 @@ public class PackerHand : Agent
         foreach (Vector3 vertex in tempHashSet) {
             // convert local scale to world position
             Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
-            verticesList.Add(vertex);
+            // all to vertices list
+            verticesList.Add(worldVertex);
             // Add to a counter to check for intersection
-            if (!allVertices.ContainsKey(worldVertex)) {
+            if (allVertices.ContainsKey(worldVertex)) {
                 allVertices[worldVertex] ++;
             }
             else {
@@ -387,11 +388,7 @@ public class PackerHand : Agent
                 return vertex.Key;
             }
         }
-
-        // var backList = new List<Vector3>(backVertices);
-        // var sideList = new List<Vector3>(sideVertices);
-        // var bottomList = new List<Vector3>(bottomVertices);
-
+        // return default if no right vertex found
         return Vector3.zero;
     }
 
