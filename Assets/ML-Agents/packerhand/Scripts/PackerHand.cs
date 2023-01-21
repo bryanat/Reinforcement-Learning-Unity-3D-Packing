@@ -78,8 +78,6 @@ public class PackerHand : Agent
     public MeshFilter mf_bottom;
     public MeshFilter mf_side;
 
-    public int testn = 0;
-
     public Dictionary<Vector3, int > allVertices;
 
     public List<Vector3> intersectingVertices;
@@ -420,7 +418,7 @@ public class PackerHand : Agent
             if (vertex.Value == 3) {
                 Debug.Log($"VVV INTERSECTING VERTEX IS {vertex.Key}");
                 intersectingVertices.Add(vertex.Key);
-                //return vertex.Key;
+                return vertex.Key;
             }
         }
         CreateBlackBox();
@@ -430,18 +428,8 @@ public class PackerHand : Agent
 
     public void SelectPosition() {
         targetBin  = new GameObject().transform;
-        // Update box position
-        ///// still needs to account for box rotation and size///
-        /////vertex!=position///////////////
-        // targetBin.position = SelectVertex();
-
-        //vertex: (8.25, 0.50, 79.50)
+    
      
-
-
-
-
-
     //D: select position from A+B
         // 1: rotate (reduce to 6) => carriedObject.transform.localRotation => Vector3(x,y,z)
         // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
@@ -451,9 +439,13 @@ public class PackerHand : Agent
         // 1: Magnitude
         // SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z 
         // * 0.5 is for getting midpoint, which is half (0.5) of total dimension
-        float magnitudeX = targetBox.localScale.x * 0.5f; 
-        float magnitudeY = targetBox.localScale.y * 0.5f; 
-        float magnitudeZ = targetBox.localScale.z * 0.5f; 
+        float magnitudeX = (targetBox.Find("back").localScale.x + 0.05f) * 0.5f; 
+        Debug.Log($"MAGNITITUDE X IS {magnitudeX}");
+        // left or right depends on direction (left for now)
+        float magnitudeY = (targetBox.Find("left").localScale.y + 0.05f) * 0.5f; 
+        Debug.Log($"MAGNITITUDE Y IS {magnitudeY}");
+        float magnitudeZ = (targetBox.Find("bottom").localScale.z + 0.05f) * 0.5f; 
+        Debug.Log($"MAGNITITUDE Z IS {magnitudeZ}");
 
         // 2: Direction
         int directionX = 1; 
@@ -466,10 +458,12 @@ public class PackerHand : Agent
             
         // 3: Calc SelectedPosition
         var selectedVertex = SelectVertex(); // Vector3(x,y,z)
-        Vector3 selectedPosition = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
+        Vector3 selectedPosition = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z - (magnitudeZ * directionZ)) );
 
         targetBin.position = selectedPosition;
+        //targetBin.position = new Vector3(8.75f, 1.00f, 79.00f);
 
+        // first left corner position should be: (8.75f, 1.00f, 79.00f)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
         isPositionSelected = true;   
 
@@ -662,7 +656,7 @@ public class PackerHand : Agent
         //[bottom, back, left] 
         //[top, front, right]
         else {
-            Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
+            Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             rotation = new Vector3(90, 0, 90);
             foreach (Transform child in childrenList)
             {
