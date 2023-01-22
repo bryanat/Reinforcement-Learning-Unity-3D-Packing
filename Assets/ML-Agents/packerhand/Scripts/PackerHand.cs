@@ -88,15 +88,6 @@ public class PackerHand : Agent
     public bool isSideMeshCombined;
     public bool isBackMeshCombined;
 
-    public float magnitudeX;
-    public float magnitudeY;
-    public float magnitudeZ;
-
-
-
-
-
-
 
 
 
@@ -849,56 +840,6 @@ public class PackerHand : Agent
     }
 
 
-    /// <summary>
-    /// Moves the agent according to the selected action.
-    /// </summary>
-    public void ActionMoveAgent(ActionSegment<int> action)
-    {
-        var dirToGo = Vector3.zero;
-        var rotateDir = Vector3.zero;
-
-        // log the movement actions
-        Debug.Log("" + string.Join(",", action.Array[1..4]));
-        var zBlueAxis = action[1];
-        var xRedAxis = action[2];
-        var xzRotateAxis = action[3];
-
-        switch(zBlueAxis){
-            // forward
-            case 1:
-                dirToGo = transform.forward * 2f;
-                break;
-            // backward
-            case 2:
-                dirToGo = transform.forward * -2f;
-                break;
-        }
-        switch(xRedAxis){
-            // right
-            case 1:
-                dirToGo = transform.right * 2f;
-                break;
-            // left
-            case 2:
-                dirToGo = transform.right * -2f;
-                break;
-        }
-        // refactor: rotational axis 
-        switch(xzRotateAxis){
-            // turn clockwise (right)
-            case 1:
-                rotateDir = transform.up * 2f;
-                break;
-            // turn counterclockwise (left)
-            case 2:
-                rotateDir = transform.up * -2f;
-                break;
-        }
-
-        transform.Rotate(rotateDir, Time.fixedDeltaTime * 180f);
-        m_Agent.AddForce(dirToGo, ForceMode.VelocityChange);
-    }
-
 
     public void SetResetParameters()
     {
@@ -928,8 +869,7 @@ public class PackerHand : Agent
     /// </summary>
     void ConfigureAgent(int n) 
     {
-        /////////////CURRENTLY IT'S NOT POSSIBLE TO CHANGE THE VECTOR OBSERVATION SPACE SIZE AT RUNTIME/////////////////////
-        /////IMPLIES IF WE CHANGE NUMBER OF BOXES DURING EACH CURRICULUM LEARNING, OBSERVATION WILL EITHER BE PADDED OR TRUNCATED//////////////////
+
         if (n==0) 
         {
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
