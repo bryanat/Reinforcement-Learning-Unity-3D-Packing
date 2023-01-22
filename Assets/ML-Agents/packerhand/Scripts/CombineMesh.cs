@@ -54,9 +54,9 @@ public class CombineMesh : MonoBehaviour
         // Combine meshes
         MeshCombiner(meshList);
 
-        // binBottom = GameObject.Find("BinIso20Bottom");
-        // binSide = GameObject.Find("BinIso20Side");
-        // binBack = GameObject.Find("BinIso20Back");
+        binBottom = GameObject.Find("BinIso20Bottom");
+        binSide = GameObject.Find("BinIso20Side");
+        binBack = GameObject.Find("BinIso20Back");
         isCollidedBlue=false;
         isCollidedRed=false;
         isCollidedGreen=false;
@@ -137,14 +137,14 @@ public class CombineMesh : MonoBehaviour
 
         // if all three meshes have contact, then allow combining meshes 
         // only entered for the last one mesh 
-        if (GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen && GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().isCollidedBlue && GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().isCollidedRed)
+        if (binBottom.GetComponent<CombineMesh>().isCollidedGreen && binBack.GetComponent<CombineMesh>().isCollidedBlue && binSide.GetComponent<CombineMesh>().isCollidedRed)
         {
         
             // GREEN
             if (name == "BinIso20Bottom") {
 
-                GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Bottom").transform;
-                var greenMeshList = GameObject.Find("BinIso20Bottom").GetComponentsInChildren<MeshFilter>(); 
+                binBottom.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBottom.transform;
+                var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(greenMeshList);
                 Debug.Log("MMM MESH COMBINED FOR BOTTOM MESH");
                 isCollidedGreen = false;
@@ -158,8 +158,8 @@ public class CombineMesh : MonoBehaviour
             // BLUE
             if (name == "BinIso20Back") {
 
-                GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Back").transform;
-                var blueMeshList = GameObject.Find("BinIso20Back").GetComponentsInChildren<MeshFilter>(); 
+                binBack.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBack.transform;
+                var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(blueMeshList);
                 Debug.Log("MMM MESH COMBINED FOR BACK MESH");
                 isCollidedBlue = false;
@@ -170,8 +170,8 @@ public class CombineMesh : MonoBehaviour
             // RED
             if (name == "BinIso20Side") {
 
-                GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Side").transform;
-                var redMeshList = GameObject.Find("BinIso20Side").GetComponentsInChildren<MeshFilter>(); 
+                binSide.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binSide.transform;
+                var redMeshList = binSide.GetComponentsInChildren<MeshFilter>(); 
                 isCollidedRed = false;
                 MeshCombiner(redMeshList);
                 Debug.Log("MMM MESH COMBINED FOR SIDE MESH");
