@@ -110,7 +110,7 @@ public class CombineMesh : MonoBehaviour
             // get the gameObject of the opposite side using the name of the opposite side
             // synatax for getting a child is GameObject.Find("Parent/Child")
             oppositeSideObject = GameObject.Find($"{collision.gameObject.transform.parent.name}/{blue_opposite_side_name}");
-             Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
+            Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
 
         }
 
@@ -131,7 +131,7 @@ public class CombineMesh : MonoBehaviour
             // get the gameObject of the opposite side using the name of the opposite side 
             // synatax for getting a child is GameObject.Find("Parent/Child")
             oppositeSideObject =  GameObject.Find($"{collision.gameObject.transform.parent.name}/{red_opposite_side_name}");
-             Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
+            Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
         }
 
 
@@ -151,9 +151,7 @@ public class CombineMesh : MonoBehaviour
                 /// if this state change is called outside in the script of all three meshes, isDroppedoff will be called 3 times and vertices updated 3 times
                 if (agent.isBottomMeshCombined == false) {
                     agent.isBottomMeshCombined = true;
-                }
-
-            
+                }    
             }
             // BLUE
             if (name == "BinIso20Back") {

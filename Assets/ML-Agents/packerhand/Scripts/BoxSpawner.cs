@@ -77,39 +77,39 @@ public class BoxSpawner : MonoBehaviour
          }
         else {
         //temporary box sizes array (to be fed from json later)
-            sizes = new float[][] {
-                new float[] {1f, 1f, 1f},
-                new float[] {1f, 1f, 1f},
-                new float[] {1f, 1f, 1f}
+            // sizes = new float[][] {
+            //     new float[] {1f, 1f, 1f},
+            //     new float[] {1f, 1f, 1f},
+            //     new float[] {1f, 1f, 1f}
+            // };
+            sizes = new float[][] 
+            {
+                new float[] { 1.0f, 2.0f, 3.0f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.0f, 2.0f, 3.5f },
+                new float[] { 2.0f, 2.0f, 2.0f },
+                new float[] { 1.0f, 1.0f, 2.0f },
+                new float[] { 3.0f, 4.0f, 4.0f },
+                new float[] { 1.0f, 2.0f, 3.5f },
+                new float[] { 1.0f, 1.5f, 0.5f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.5f, 0.5f, 0.5f },
+                new float[] { 2.0f, 3.0f, 4.0f },
+                new float[] { 0.5f, 0.5f, 0.5f },
+                new float[] { 1.0f, 2.0f, 3.5f },
+                new float[] { 1.0f, 1.5f, 0.5f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.0f, 2.0f, 2.0f },
+                new float[] { 1.0f, 1.0f, 2.0f },
+                new float[] { 3.0f, 4.0f, 4.0f },
+                new float[] { 1.0f, 2.0f, 3.5f },
+                new float[] { 1.0f, 1.5f, 0.5f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.5f, 0.5f, 0.5f },
+                new float[] { 1.0f, 2.0f, 3.0f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.0f, 2.0f, 3.5f },
             };
-        //     sizes = new float[][] 
-        //     {
-        //         new float[] { 1.0f, 2.0f, 3.0f },
-        //         new float[] { 3.0f, 3.0f, 3.0f },
-        //         new float[] { 2.0f, 2.0f, 3.5f },
-        //         new float[] { 2.0f, 2.0f, 2.0f },
-        //         new float[] { 1.0f, 1.0f, 2.0f },
-        //         new float[] { 3.0f, 4.0f, 4.0f },
-        //         new float[] { 1.0f, 2.0f, 3.5f },
-        //         new float[] { 1.0f, 1.5f, 0.5f },
-        //         new float[] { 3.0f, 3.0f, 3.0f },
-        //         new float[] { 2.5f, 0.5f, 0.5f },
-        //         new float[] { 2.0f, 3.0f, 4.0f },
-        //         new float[] { 0.5f, 0.5f, 0.5f },
-        //         new float[] { 1.0f, 2.0f, 3.5f },
-        //         new float[] { 1.0f, 1.5f, 0.5f },
-        //         new float[] { 3.0f, 3.0f, 3.0f },
-        //         new float[] { 2.0f, 2.0f, 2.0f },
-        //         new float[] { 1.0f, 1.0f, 2.0f },
-        //         new float[] { 3.0f, 4.0f, 4.0f },
-        //         new float[] { 1.0f, 2.0f, 3.5f },
-        //         new float[] { 1.0f, 1.5f, 0.5f },
-        //         new float[] { 3.0f, 3.0f, 3.0f },
-        //         new float[] { 2.5f, 0.5f, 0.5f },
-        //         new float[] { 1.0f, 2.0f, 3.0f },
-        //         new float[] { 3.0f, 3.0f, 3.0f },
-        //         new float[] { 2.0f, 2.0f, 3.5f },
-        //     };
         }
         var idx = 0;
         foreach(var s in sizes) 
@@ -117,7 +117,19 @@ public class BoxSpawner : MonoBehaviour
             // Create GameObject box
             GameObject box = Instantiate(unitBox);
             var position = GetRandomSpawnPos();
-            box.transform.localScale = new Vector3(s[0], s[1], s[2]); 
+            box.transform.localScale = new Vector3(s[0], s[1], s[2]);
+            // for (int i = 0; i < 6; i++)
+            // {
+            //     Transform side = box.transform.GetChild(i);
+            //     if (side.gameObject.activeInHierarchy)
+            //     {
+            //         if (side.name == "left" | side.name == "right" ) {
+            //             side.localScale *= ;
+            //         }
+
+            //     }
+            // }
+
             //var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box

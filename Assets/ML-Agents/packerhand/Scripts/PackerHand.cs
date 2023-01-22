@@ -208,7 +208,6 @@ public class PackerHand : Agent
 
         if (isPickedup && isRotationSelected==false) {
             SelectRotation(discreteActions[++j]);
-            //rotation = new Vector3(0,0,0);
         }
 
 
@@ -492,19 +491,18 @@ public class PackerHand : Agent
     public void SelectRotation(int action) 
     {   
         var childrenList = carriedObject.GetComponentsInChildren<Transform>();
-
-        if (action == 1) {
+        Debug.Log($"ROTATION SELECTED IS : {action}");
+        if (action == 0 ) {
             rotation = new Vector3(0, 0, 0);
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
             }      
-        }
-        
-        // xzy
-        // [left, back, bottom]
-        // [right, front, top]
-        else if (action==2) {
+        }  
+        // // xzy
+        // // [left, back, bottom]
+        // // [right, front, top]
+        else if (action==1) {
             Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             rotation = new Vector3(90, 0, 0);
             foreach (Transform child in childrenList)
@@ -530,10 +528,10 @@ public class PackerHand : Agent
             }
         }
 
-        // zyx
-        // [back, bottom, left]
-        // [front, top, right]
-        else if (action==3) {
+        // // zyx
+        // // [back, bottom, left]
+        // // [front, top, right]
+        if (action==2) {
             Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             rotation = new Vector3(0, 90, 0);
             foreach (Transform child in childrenList)
@@ -559,10 +557,10 @@ public class PackerHand : Agent
             }        
         }
       
-        // yxz
-        // [bottom, left, back]
-        // [top, right, front]
-        else if (action==4) {
+        // // yxz
+        // // [bottom, left, back]
+        // // [top, right, front]
+        if (action==3) {
             Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             rotation = new Vector3(0, 0, 90);
             foreach (Transform child in childrenList)
@@ -588,10 +586,10 @@ public class PackerHand : Agent
             }
         }
 
-        // zxy
-        // [back, left, bottom]
-        // [front, right, top]
-        else if (action==5) {
+        // // zxy
+        // // [back, left, bottom]
+        // // [front, right, top]
+        if (action==4 ) {
             Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             rotation = new Vector3(0, 90, 90 );
             foreach (Transform child in childrenList)
@@ -625,9 +623,9 @@ public class PackerHand : Agent
             }      
         }
 
-        // yzx
-        //[bottom, back, left] 
-        //[top, front, right]
+        // // yzx
+        // //[bottom, back, left] 
+        // //[top, front, right]
         else {
             Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             rotation = new Vector3(90, 0, 90);
@@ -662,9 +660,9 @@ public class PackerHand : Agent
              }      
         }
 
-        /////// NOTE: No Vector3(90, 90, 90) or Vector3(90, 90, 0) rotations as
-                // Vector3(90, 90, 90) == Vector3(90, 0, 0) == xzy
-                // Vector3(90, 90, 0)  == Vector3(90, 0, 90) == yzx 
+        // /////// NOTE: No Vector3(90, 90, 90) or Vector3(90, 90, 0) rotations as
+        //         // Vector3(90, 90, 90) == Vector3(90, 0, 0) == xzy
+        //         // Vector3(90, 90, 0)  == Vector3(90, 0, 90) == yzx 
 
         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
         isRotationSelected = true;
