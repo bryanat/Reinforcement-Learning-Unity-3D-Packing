@@ -18,6 +18,13 @@ public class NavMeshTest : MonoBehaviour
     private Rigidbody rb;
     private bool spawnModifier;
 
+    private int debugNum;
+
+    //NavMeshBuildSettings
+    // getBuildSettings
+
+    // bake navmesh based on agent
+
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
     {
         for (int i = 0; i < 3; i++)
@@ -38,7 +45,9 @@ public class NavMeshTest : MonoBehaviour
     void Awake(){
         spawnPos = new Vector3(10,0.5f,0);
         nv1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshSurface>(); 
-        nva1 = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshAgent>();
+        // nv1 = GameObject.Find("NavMesh Surface XX").AddComponent<NavMeshAgent>();
+        // nva1 = GameObject.Find("Smith").GetComponent<NavMeshAgent>();
+        // nva1 = GameObject.Find("Morpheus").GetComponent<NavMeshAgent>();
         // agentX = GameObject.Find("NavMesh Surface XX").GetComponent<NavMeshAgent>();
     }
 
@@ -51,6 +60,7 @@ public class NavMeshTest : MonoBehaviour
     //     //     Debug.DrawRay(point, Vector3.up, Color.blue, 5.0f);
     //     //     Debug.Log($" random point === {point}");
     //     // }
+        debugNum = 0;
     }
 
     void SpawnAndMove(){
@@ -63,13 +73,20 @@ public class NavMeshTest : MonoBehaviour
             cubeX.name = "cubeX";
             cubeX.AddComponent<Rigidbody>();
             rb = cubeX.GetComponent<Rigidbody>();
+            
+            debugNum = debugNum + 1;
 
-            Debug.Log($" nva1 name        ============ {nva1.name}");
-            Debug.Log($" nva1 height      ============ {nva1.height}");
-            Debug.Log($" nva1 agentTypeID ============ {nva1.agentTypeID}");
+            
+
+            // Debug.Log($" nva1 name        ============ {nva1.name}");
+            // Debug.Log($" nva1 height      ============ {nva1.height}");
+            // Debug.Log($" nva1 agentTypeID ============ {nva1.agentTypeID}");
+            // Debug.Log($" nv1 agentTypeID ============ {nv1.agentTypeID}");
             // NavMeshBuildSettings buildSettings = new NavMeshBuildSettings();
+            
         }
         if ( spawnModifier == false ){
+
             // Move box <rb>
             var dx = targetPosition - cubeX.transform.position;
             rb.MovePosition(cubeX.transform.position + dx / 100);
@@ -79,11 +96,16 @@ public class NavMeshTest : MonoBehaviour
                 spawnModifier = true;
                 targetPosition = targetPosition + new Vector3(0,0,2);
             }
+
         }
     }
     
     void FixedUpdate(){
         SpawnAndMove();
+        if (debugNum ==2){
+            nv1.agentTypeID = 0;
+        }
+
     }
 
     void LateUpdate(){
