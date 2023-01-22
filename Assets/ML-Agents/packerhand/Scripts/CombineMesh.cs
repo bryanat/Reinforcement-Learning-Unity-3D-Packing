@@ -78,10 +78,10 @@ public class CombineMesh : MonoBehaviour
 
         
         // GREEN
-        Debug.Log($"{name} green {isCollidedGreen == false}, {name == "BinIso20Bottom"}, {collision.gameObject.tag == "pickedupbox"} | collision side:{collision.gameObject.name} AAA isCollidedGreen: {isCollidedGreen == false} name == BinIso20Bottom: {name == "BinIso20Bottom"} collision.gameObject.tag == pickedupbox: {collision.gameObject.tag == "pickedupbox"}");
+        Debug.Log($"{name} green {isCollidedGreen == false}, {name == "BinIso20Bottom"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedGreen: {isCollidedGreen == false} name == BinIso20Bottom: {name == "BinIso20Bottom"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
         // if this mesh is Bottom Green mesh and a box collides with it then set isCollidedGreen collision property to true
-        // if (isCollidedGreen == false && name == "BinIso20Bottom" && collision.gameObject.tag == "pickedupbox" && collision.gameObject.name == "bottom")
-        if (isCollidedGreen == false && name == "BinIso20Bottom" && collision.gameObject.tag == "pickedupbox")
+         if (isCollidedGreen == false && name == "BinIso20Bottom" && collision.gameObject.tag == "pickupbox" && collision.gameObject.name == "bottom")
+        //if (isCollidedGreen == false && name == "BinIso20Bottom" && collision.gameObject.tag == "pickupbox")
         {
             // set mesh property isCollidedGreen to true, used when all three colors are true then combinemeshes
             isCollidedGreen = true;
@@ -96,10 +96,10 @@ public class CombineMesh : MonoBehaviour
             Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
         }
         // BLUE
-        Debug.Log($"{name} blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickedupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickedupbox: {collision.gameObject.tag == "pickedupbox"}");
+        Debug.Log($"{name} blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
         // if this mesh is Back Blue mesh and a box collides with it then set isCollidedBlue collision property to true
-        // if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickedupbox" && collision.gameObject.name == "back"){
-        if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickedupbox"){
+        if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox" && collision.gameObject.name == "back"){
+        //if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox"){
             // set mesh property isCollidedBlue to true, used when all three colors are true then combinemeshes
             isCollidedBlue = true;
             Debug.Log($"{name}: BCA isCollidedBlue triggered, value of isCollidedBlue: {isCollidedBlue}");
@@ -115,10 +115,10 @@ public class CombineMesh : MonoBehaviour
         }
 
         // RED
-        Debug.Log($"{name} red {isCollidedRed == false}, {name == "BinIso20Side"}, {collision.gameObject.tag == "pickedupbox"} | collision side:{collision.gameObject.name} AAA isCollidedRed: {isCollidedRed == false} name == BinIso20Side: {name == "BinIso20Side"} collision.gameObject.tag == pickedupbox: {collision.gameObject.tag == "pickedupbox"}");
+        Debug.Log($"{name} red {isCollidedRed == false}, {name == "BinIso20Side"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedRed: {isCollidedRed == false} name == BinIso20Side: {name == "BinIso20Side"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
         // if this mesh is Side Red mesh and a box collides with it then set isCollidedRed collision property to true
-        // if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickedupbox" && (collision.gameObject.name=="left" | collision.gameObject.name=="right"))
-        if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickedupbox")
+        if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickupbox" && (collision.gameObject.name=="left" | collision.gameObject.name=="right"))
+        //if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickupbox")
         {
             // set mesh property isCollidedRed to true, used when all three colors are true then combinemeshes
             isCollidedRed = true;
@@ -161,6 +161,7 @@ public class CombineMesh : MonoBehaviour
                 GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Back").transform;
                 var blueMeshList = GameObject.Find("BinIso20Back").GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(blueMeshList);
+                isCollidedBlue = false;
                 if (agent.isBackMeshCombined == false) {
                     agent.isBackMeshCombined = true;
                 }
@@ -170,6 +171,7 @@ public class CombineMesh : MonoBehaviour
 
                 GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Side").transform;
                 var redMeshList = GameObject.Find("BinIso20Side").GetComponentsInChildren<MeshFilter>(); 
+                isCollidedRed = false;
                 MeshCombiner(redMeshList);
                 if (agent.isSideMeshCombined == false) {
                     agent.isSideMeshCombined = true;
@@ -220,53 +222,6 @@ public class CombineMesh : MonoBehaviour
     // }
 
 
-    // void GetVertices() 
-    // {
-    //     // var mesh = GetComponent<MeshFilter>().mesh;
-    //     var mesh = parent_mf.mesh;
-    //     Vector3[] vertices = mesh.vertices;
-    //     int[] triangles = mesh.triangles;
-
-    //     Matrix4x4 localToWorld = transform.localToWorldMatrix;
- 
-    //     for(int i = 0; i<mesh.vertices.Length; ++i){
-    //         Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
-    //         Debug.Log($"Vertex position is {world_v}");
-    //         //Gizmos.DrawIcon(world_v, "Light tebsandtig.tiff", true);
-    //     }
-
-    //     // // Iterate over the triangles in sets of 3
-    //     // for(var i = 0; i < triangles.Length; i += 3)
-    //     // {
-    //     //     // Get the 3 consequent int values
-    //     //     var aIndex = triangles[i];
-    //     //     var bIndex = triangles[i + 1];
-    //     //     var cIndex = triangles[i + 2];
-
-    //     //     // Get the 3 according vertices
-    //     //     var a = vertices[aIndex];
-    //     //     var b = vertices[bIndex];
-    //     //     var c = vertices[cIndex];
-
-    //     //     // Convert them into world space
-    //     //     // up to you if you want to do this before or after getting the distances
-    //     //     a = transform.TransformPoint(a);
-    //     //     b = transform.TransformPoint(b);
-    //     //     c = transform.TransformPoint(c);
-
-    //     //     // Get the 3 distances between those vertices
-    //     //     var distAB = Vector3.Distance(a, b);
-    //     //     var distAC = Vector3.Distance(a, c);
-    //     //     var distBC = Vector3.Distance(b, c);
-
-    //     //     Debug.Log($"INSIDE GETVERTICES: a is {a}, b is {b}, c is {c} ");
-
-    //     //     // Now according to the distances draw your lines between "a", "b" and "c" e.g.
-    //     //     Debug.DrawLine(transform.TransformPoint(a), transform.TransformPoint(b), Color.red);
-    //     //     Debug.DrawLine(transform.TransformPoint(a), transform.TransformPoint(c), Color.red);
-    //     //     Debug.DrawLine(transform.TransformPoint(b), transform.TransformPoint(c), Color.red);
-    //     // }
-    // }
     
 
     void MeshCombiner(MeshFilter[] meshList) 

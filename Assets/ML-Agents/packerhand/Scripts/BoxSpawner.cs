@@ -117,8 +117,11 @@ public class BoxSpawner : MonoBehaviour
             // Create GameObject box
             //GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             GameObject box = Instantiate(unitBox);
-            box.transform.localScale = new Vector3(s[0], s[1], s[2]); 
             var position = GetRandomSpawnPos();
+            //GameObject box = Instantiate(new GameObject(), position, Quaternion.identity(0, 0, 0));
+
+            box.transform.localScale = new Vector3(s[0], s[1], s[2]); 
+            //var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box
             // automatically comes with boxCollider and mesh renderer
@@ -128,12 +131,10 @@ public class BoxSpawner : MonoBehaviour
             //box.layer = 5;
             box.name = idx.ToString();
             var m_rb = box.GetComponent<Rigidbody>();
-            var m_c1 = box.GetComponent<BoxCollider>();
             Collider [] m_cList = box.GetComponentsInChildren<Collider>();
             foreach (Collider m_c in m_cList) {
                 m_c.isTrigger = true;
             }
-            // m_c1.isTrigger = true;
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             m_rb.isKinematic = true;
             //m_rb.detectCollisions = false;

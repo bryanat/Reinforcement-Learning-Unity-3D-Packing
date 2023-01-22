@@ -88,6 +88,11 @@ public class PackerHand : Agent
     public bool isSideMeshCombined;
     public bool isBackMeshCombined;
 
+    public float magnitudeX;
+    public float magnitudeY;
+    public float magnitudeZ;
+
+
 
 
 
@@ -141,9 +146,6 @@ public class PackerHand : Agent
         m_Configuration = 2;
         m_config = 2;
 
-        // Get bin's bounds from onstart
-        // Collider m_Collider = binArea.GetComponent<Collider>();
-        // areaBounds = m_Collider.bounds;
         var renderers = binArea.GetComponentsInChildren<Renderer>();
         var areaBounds = renderers[0].bounds;
         for (var i = 1; i < renderers.Length; ++i)
@@ -157,11 +159,6 @@ public class PackerHand : Agent
         //miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
 
         Debug.Log($" BIN VOLUME: {binVolume}");
-
-
-        // Initialize agent for collision detection and mesh combiner 
-        // CombineMesh sensorbin = binArea.GetComponent<CombineMesh>();
-        // sensorbin.agent = this;
 
         CombineMesh [] sensors = binArea.GetComponentsInChildren<CombineMesh>();
         foreach (var sensor in sensors) {
@@ -189,15 +186,11 @@ public class PackerHand : Agent
         /////once the box combines with the bin, we should also add bin bounds and bin volumne to observation
         if (m_config==0) 
         {
-            // Add Bin position
-            //sensor.AddObservation(binMini.transform.position); 
             // Add Bin size
             //sensor.AddObservation(binArea.transform.localScale);
         }
         else 
         {
-            // Add Bin position
-            //sensor.AddObservation(binArea.transform.position);
             // Add Bin size
             sensor.AddObservation(binArea.transform.localScale);
         }
@@ -205,16 +198,9 @@ public class PackerHand : Agent
         foreach (var box in boxPool) 
         {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
-            // sensor.AddObservation(box.rb.position); //add box position to sensor observations
             // sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
         }
 
-        // // Add Agent postiion
-        // sensor.AddObservation(this.transform.position);
-
-        // // Add Agent velocity
-        // sensor.AddObservation(m_Agent.velocity.x); // !! does agent need to know his velocity? 
-        // sensor.AddObservation(m_Agent.velocity.z); // !! does agent need to know his velocity?
     }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
@@ -231,6 +217,7 @@ public class PackerHand : Agent
 
         if (isPickedup && isRotationSelected==false) {
             SelectRotation(discreteActions[++j]);
+            //rotation = new Vector3(0,0,0);
         }
 
 
@@ -319,8 +306,6 @@ public class PackerHand : Agent
         carriedObject.localPosition = new Vector3(0,1,1);
         // stop box from rotating
         carriedObject.rotation = Quaternion.identity;
-        // dont need to turn off gravity anymore since no more rb, rb is destroyed after pickupbox()
-        // carriedObject.GetComponent<Rigidbody>().useGravity = false; 
     }
 
     /// <summary>
@@ -330,9 +315,7 @@ public class PackerHand : Agent
         ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
         /////// future could add vertices of boxes to preexisting vertices list and dictionary for optimization//////////////
         Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        Debug.Log($"DICTIONARY COUNT AT THE START OF EACH MESH COMBINE IS: {allVertices.Count()}");
-        //allVertices = new Dictionary<Vector3, int>();
+        allVertices = new Dictionary<Vector3, int>();
         foreach(Transform binObject in binObjects) {
             if (binObject.name == "BinIso20Back") {
                 mf_back = binObject.GetComponent<MeshFilter>();
@@ -426,7 +409,6 @@ public class PackerHand : Agent
             if (vertex.Value == 3) {
                 Debug.Log($"VVV INTERSECTING VERTEX IS {vertex.Key}");
                 //intersectingVertices.Add(vertex.Key);
-                allVertices.Add(vertex.Key, -100);
                 return vertex.Key; 
             }
         }
@@ -448,12 +430,30 @@ public class PackerHand : Agent
         // 1: Magnitude
         // SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z 
         // * 0.5 is for getting midpoint, which is half (0.5) of total dimension
-        float magnitudeX = (targetBox.Find("back").localScale.x + 0.05f) * 0.5f; 
+        //Vector3 worldScaleX = Vector3.Scale(targetBox.Find("back").lossyScale, targetBox.lossyScale);
+        //float magnitudeX = (worldScaleX.x + 0.05f) * 0.5f;
+        //float magnitudeX = (targetBox.Find("back").transform.lossyScale.x + 0.05f) * 0.5f; 
+        //float magnitudeX = Transform.TransformVector(targetBox.Find("back").transform.localScale);
+        //Transform back = targetBox.Find("back");
+        //Bounds bounds = targetBox.GetComponent<MeshFilter>().mesh.bounds;
+
+
+        ////////////////////////////need to work on this/////////////////////////////////////////
+        ///// using renderer and collider to get world scale are very inaccurate
+        ////lossyScale does not give back world scale of a side///////////
+
+        float backSize = targetBox.Find("back").GetComponent<Collider>().bounds.size.x;
+        float magnitudeX = (backSize + 0.05f) * 0.5f;
+
         Debug.Log($"MAGNITITUDE X IS {magnitudeX}");
+        Vector3 worldScaleY = Vector3.Scale(targetBox.Find("left").lossyScale, targetBox.lossyScale);
+        float magnitudeY = (worldScaleY.y + 0.05f) * 0.5f;
         // left or right depends on direction (left for now)
-        float magnitudeY = (targetBox.Find("left").localScale.y + 0.05f) * 0.5f; 
+        //float magnitudeY = (targetBox.Find("left").lossyScale.y + 0.05f) * 0.5f; 
         Debug.Log($"MAGNITITUDE Y IS {magnitudeY}");
-        float magnitudeZ = (targetBox.Find("bottom").localScale.z + 0.05f) * 0.5f; 
+        Vector3 worldScaleZ = Vector3.Scale(targetBox.Find("bottom").lossyScale, targetBox.lossyScale);
+        float magnitudeZ = (worldScaleZ.z + 0.05f) * 0.5f;
+        //float magnitudeZ = (targetBox.Find("bottom").lossyScale.z + 0.05f) * 0.5f; 
         Debug.Log($"MAGNITITUDE Z IS {magnitudeZ}");
 
         // 2: Direction
@@ -521,14 +521,6 @@ public class PackerHand : Agent
     {   
         var childrenList = carriedObject.GetComponentsInChildren<Transform>();
 
-        // rotation order of operations key: zxy (z first, x second, y last)
-        // [x,     y,       z]
-        // [left, bottom, back]
-        // [right, top, front]
-
-        // xyz
-        // [left, bottom, back]
-        // [right, top, front]
         if (action == 1) {
             rotation = new Vector3(0, 0, 0);
             foreach (Transform child in childrenList)
@@ -548,7 +540,7 @@ public class PackerHand : Agent
                 child.tag = "pickupbox";
                 if (child.name=="bottom") 
                 {
-                    child.name = "back";
+                    child.name = "front";
                 }
                 else if (child.name == "back") 
                 {
@@ -557,7 +549,7 @@ public class PackerHand : Agent
 
                 else if (child.name == "top") 
                 {
-                    child.name = "front";
+                    child.name = "back";
                 }
                 else if (child.name == "front") 
                 {
@@ -581,7 +573,7 @@ public class PackerHand : Agent
                 }
                 else if (child.name == "back") 
                 {
-                    child.name = "left";
+                    child.name = "right";
                 }
 
                 else if (child.name == "right") 
@@ -590,7 +582,7 @@ public class PackerHand : Agent
                 }
                 else if (child.name == "front") 
                 {
-                    child.name = "right";
+                    child.name = "left";
                 }
             }        
         }
@@ -610,7 +602,7 @@ public class PackerHand : Agent
                 }
                 else if (child.name == "bottom") 
                 {
-                    child.name = "left";
+                    child.name = "right";
                 }
 
                 else if (child.name == "right") 
@@ -619,7 +611,7 @@ public class PackerHand : Agent
                 }
                 else if (child.name == "top") 
                 {
-                    child.name = "right";
+                    child.name = "left";
                 }
             }
         }
@@ -635,28 +627,28 @@ public class PackerHand : Agent
                 child.tag = "pickupbox";
                 if (child.name=="left") 
                 {
-                    child.name = "back";
+                    child.name = "bottom";
                 }
                 else if (child.name == "back") 
                 {
-                    child.name = "bottom";
+                    child.name = "right";
                 }
                 else if (child.name == "bottom") 
                 {
-                    child.name = "left";
+                    child.name = "front";
                 }
 
                 else if (child.name == "right") 
                 {
-                    child.name = "front";
+                    child.name = "top";
                 }
                 else if (child.name == "front") 
                 {
-                    child.name = "top";
+                    child.name = "left";
                 }
                 else if (child.name == "top") 
                 {
-                    child.name = "right";
+                    child.name = "back";
                 }
             }      
         }
@@ -672,37 +664,36 @@ public class PackerHand : Agent
                 child.tag = "pickupbox";
                 if (child.name=="left") 
                 {
-                    child.name = "bottom";
+                    child.name = "front";
                 }
                 else if (child.name == "bottom") 
                 {
-                    child.name = "back";
+                    child.name = "right";
                 }
                 else if (child.name == "back") 
                 {
-                    child.name = "left";
-                }
 
+                    child.name = "bottom";
+                }
                 else if (child.name == "right") 
                 {
-                    child.name = "top";
+                    child.name = "back";
                 }
                 else if (child.name == "top") 
                 {
-                    child.name = "front";
+                    child.name = "left";
                 }
                 else if (child.name == "front") 
                 {
-                    child.name = "right";
+                    child.name = "top";
                 }
-            }      
+             }      
         }
 
         /////// NOTE: No Vector3(90, 90, 90) or Vector3(90, 90, 0) rotations as
                 // Vector3(90, 90, 90) == Vector3(90, 0, 0) == xzy
                 // Vector3(90, 90, 0)  == Vector3(90, 0, 90) == yzx 
 
-        ///// left -> back or bottom; 
         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
         isRotationSelected = true;
     }
@@ -719,17 +710,7 @@ public class PackerHand : Agent
         // Attach carriedObject to agent
         //carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
         carriedObject.parent = this.transform;
-
-        carriedObject.tag = "pickedupbox";
-        foreach (Transform child in carriedObject.GetComponentsInChildren<Transform>())
-        {
-            child.tag = "pickedupbox";
-            Debug.Log($"XAC child.name: {child.name}");
-            Debug.Log($"XAC child.tag: {child.tag}");
-        }
-        Debug.Log($"XAB carriedObject.name: {carriedObject.name}");
-        Debug.Log($"XAB carriedObject.tag: {carriedObject.tag}");
-        // have to give children children.tag = "pickedupbox" 
+     
         isPickedup = true;
 
         Destroy(carriedObject.GetComponent<BoxCollider>());
@@ -757,10 +738,8 @@ public class PackerHand : Agent
         // Detach box from agent
         carriedObject.SetParent(null);
 
-        // var m_rb =  carriedObject.GetComponent<Rigidbody>();
         //var m_c = carriedObject.GetComponent<Collider>();
         Collider [] m_cList = carriedObject.GetComponentsInChildren<Collider>();
-        //m_rb.isKinematic = false;
 
 
         // foreach (Collider m_c in m_cList) {
@@ -774,10 +753,7 @@ public class PackerHand : Agent
         carriedObject.rotation = Quaternion.Euler(rotation);
         // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
-        //Destroy(carriedObject.GetComponent<Rigidbody>());
 
-        // Enbles OnTriggerEnter in CollideAndCombineMesh 
-        //m_c.isTrigger = true;
 
         foreach (Collider m_c in m_cList) {
             m_c.isTrigger = false;
