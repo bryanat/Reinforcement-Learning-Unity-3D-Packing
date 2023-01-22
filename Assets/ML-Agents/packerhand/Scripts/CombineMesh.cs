@@ -148,6 +148,11 @@ public class CombineMesh : MonoBehaviour
                 var greenMeshList = GameObject.Find("BinIso20Bottom").GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(greenMeshList);
                 isCollidedGreen = false;
+                /// if this state change is called outside in the script of all three meshes, isDroppedoff will be called 3 times and vertices updated 3 times
+                if (agent.isBottomMeshCombined == false) {
+                    agent.isBottomMeshCombined = true;
+                }
+
             
             }
             // BLUE
@@ -156,8 +161,9 @@ public class CombineMesh : MonoBehaviour
                 GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Back").transform;
                 var blueMeshList = GameObject.Find("BinIso20Back").GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(blueMeshList);
-                isCollidedBlue = false;
-            
+                if (agent.isBackMeshCombined == false) {
+                    agent.isBackMeshCombined = true;
+                }
             }
             // RED
             if (name == "BinIso20Side") {
@@ -165,14 +171,11 @@ public class CombineMesh : MonoBehaviour
                 GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Side").transform;
                 var redMeshList = GameObject.Find("BinIso20Side").GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(redMeshList);
-                isCollidedRed = false;
+                if (agent.isSideMeshCombined == false) {
+                    agent.isSideMeshCombined = true;
             
-            }
+                }
 
-            
-
-            if (agent.isDroppedoff == false) {
-                agent.isDroppedoff = true;
             }
         }
     }
@@ -217,53 +220,53 @@ public class CombineMesh : MonoBehaviour
     // }
 
 
-    void GetVertices() 
-    {
-        // var mesh = GetComponent<MeshFilter>().mesh;
-        var mesh = parent_mf.mesh;
-        Vector3[] vertices = mesh.vertices;
-        int[] triangles = mesh.triangles;
+    // void GetVertices() 
+    // {
+    //     // var mesh = GetComponent<MeshFilter>().mesh;
+    //     var mesh = parent_mf.mesh;
+    //     Vector3[] vertices = mesh.vertices;
+    //     int[] triangles = mesh.triangles;
 
-        Matrix4x4 localToWorld = transform.localToWorldMatrix;
+    //     Matrix4x4 localToWorld = transform.localToWorldMatrix;
  
-        for(int i = 0; i<mesh.vertices.Length; ++i){
-            Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
-            Debug.Log($"Vertex position is {world_v}");
-            //Gizmos.DrawIcon(world_v, "Light tebsandtig.tiff", true);
-        }
+    //     for(int i = 0; i<mesh.vertices.Length; ++i){
+    //         Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
+    //         Debug.Log($"Vertex position is {world_v}");
+    //         //Gizmos.DrawIcon(world_v, "Light tebsandtig.tiff", true);
+    //     }
 
-        // // Iterate over the triangles in sets of 3
-        // for(var i = 0; i < triangles.Length; i += 3)
-        // {
-        //     // Get the 3 consequent int values
-        //     var aIndex = triangles[i];
-        //     var bIndex = triangles[i + 1];
-        //     var cIndex = triangles[i + 2];
+    //     // // Iterate over the triangles in sets of 3
+    //     // for(var i = 0; i < triangles.Length; i += 3)
+    //     // {
+    //     //     // Get the 3 consequent int values
+    //     //     var aIndex = triangles[i];
+    //     //     var bIndex = triangles[i + 1];
+    //     //     var cIndex = triangles[i + 2];
 
-        //     // Get the 3 according vertices
-        //     var a = vertices[aIndex];
-        //     var b = vertices[bIndex];
-        //     var c = vertices[cIndex];
+    //     //     // Get the 3 according vertices
+    //     //     var a = vertices[aIndex];
+    //     //     var b = vertices[bIndex];
+    //     //     var c = vertices[cIndex];
 
-        //     // Convert them into world space
-        //     // up to you if you want to do this before or after getting the distances
-        //     a = transform.TransformPoint(a);
-        //     b = transform.TransformPoint(b);
-        //     c = transform.TransformPoint(c);
+    //     //     // Convert them into world space
+    //     //     // up to you if you want to do this before or after getting the distances
+    //     //     a = transform.TransformPoint(a);
+    //     //     b = transform.TransformPoint(b);
+    //     //     c = transform.TransformPoint(c);
 
-        //     // Get the 3 distances between those vertices
-        //     var distAB = Vector3.Distance(a, b);
-        //     var distAC = Vector3.Distance(a, c);
-        //     var distBC = Vector3.Distance(b, c);
+    //     //     // Get the 3 distances between those vertices
+    //     //     var distAB = Vector3.Distance(a, b);
+    //     //     var distAC = Vector3.Distance(a, c);
+    //     //     var distBC = Vector3.Distance(b, c);
 
-        //     Debug.Log($"INSIDE GETVERTICES: a is {a}, b is {b}, c is {c} ");
+    //     //     Debug.Log($"INSIDE GETVERTICES: a is {a}, b is {b}, c is {c} ");
 
-        //     // Now according to the distances draw your lines between "a", "b" and "c" e.g.
-        //     Debug.DrawLine(transform.TransformPoint(a), transform.TransformPoint(b), Color.red);
-        //     Debug.DrawLine(transform.TransformPoint(a), transform.TransformPoint(c), Color.red);
-        //     Debug.DrawLine(transform.TransformPoint(b), transform.TransformPoint(c), Color.red);
-        // }
-    }
+    //     //     // Now according to the distances draw your lines between "a", "b" and "c" e.g.
+    //     //     Debug.DrawLine(transform.TransformPoint(a), transform.TransformPoint(b), Color.red);
+    //     //     Debug.DrawLine(transform.TransformPoint(a), transform.TransformPoint(c), Color.red);
+    //     //     Debug.DrawLine(transform.TransformPoint(b), transform.TransformPoint(c), Color.red);
+    //     // }
+    // }
     
 
     void MeshCombiner(MeshFilter[] meshList) 

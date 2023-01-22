@@ -78,11 +78,17 @@ public class PackerHand : Agent
     public MeshFilter mf_bottom;
     public MeshFilter mf_side;
 
-    public Dictionary<Vector3, int > allVertices;
+    public Dictionary<Vector3, int > allVertices = new Dictionary<Vector3, int>();
 
-    public List<Vector3> intersectingVertices;
+    public List<Vector3> intersectingVertices = new List<Vector3>();
 
     public GameObject blackbox;
+
+    public bool isBottomMeshCombined;
+    public bool isSideMeshCombined;
+    public bool isBackMeshCombined;
+
+
 
 
 
@@ -247,8 +253,8 @@ public class PackerHand : Agent
             ConfigureAgent(m_Configuration);
             m_Configuration = -1;
         }
-        // if box is dropped off, go for next round of box selection
-        if (isDroppedoff) {
+        // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection
+        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined) {
             UpdateVertices();
             StateReset();
         }
@@ -324,7 +330,9 @@ public class PackerHand : Agent
         ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
         /////// future could add vertices of boxes to preexisting vertices list and dictionary for optimization//////////////
         Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
-        allVertices = new Dictionary<Vector3, int>();
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        Debug.Log($"DICTIONARY COUNT AT THE START OF EACH MESH COMBINE IS: {allVertices.Count()}");
+        //allVertices = new Dictionary<Vector3, int>();
         foreach(Transform binObject in binObjects) {
             if (binObject.name == "BinIso20Back") {
                 mf_back = binObject.GetComponent<MeshFilter>();
@@ -397,7 +405,7 @@ public class PackerHand : Agent
         // foreach(Vector3 intersectingVertex in intersectingVertices) {
         //     // minus or add in x depends on placing from left to right or right to left
         //     if (intersectingVertex.x == topSidePos.x - topSideSize.x/2
-        //     && intersectingVertex.y == topSidePos.y 
+        //     && intersecting Vertex.y == topSidePos.y 
         //     && intersectingVertex.z == topSidePos.z+topSideSize.z/2) {
         //         topVertex1 = intersectingVertex;
         //         topVertex2 = new Vector3(intersectingVertex.x +topSideSize.x, intersectingVertex.y, intersectingVertex.z);
@@ -417,8 +425,9 @@ public class PackerHand : Agent
             ///// right now it's returning the first vertex where all 3 meshes intersect
             if (vertex.Value == 3) {
                 Debug.Log($"VVV INTERSECTING VERTEX IS {vertex.Key}");
-                intersectingVertices.Add(vertex.Key);
-                return vertex.Key;
+                //intersectingVertices.Add(vertex.Key);
+                allVertices.Add(vertex.Key, -100);
+                return vertex.Key; 
             }
         }
         CreateBlackBox();
@@ -815,6 +824,9 @@ public class PackerHand : Agent
         isRotationSelected = false;
         isPickedup = false;
         isDroppedoff = false;
+        isBackMeshCombined = false;
+        isBottomMeshCombined = false;
+        isSideMeshCombined = false;
         targetBin = null;
         targetBox = null;
     }
