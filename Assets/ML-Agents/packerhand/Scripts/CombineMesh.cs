@@ -139,7 +139,6 @@ public class CombineMesh : MonoBehaviour
         // only entered for the last one mesh 
         if (GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen && GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().isCollidedBlue && GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().isCollidedRed)
         {
-            Debug.Log($"RRR INSIDE {name}  INSIDE TRIMESH COMBINE STATEMENT");
         
             // GREEN
             if (name == "BinIso20Bottom") {
@@ -147,6 +146,7 @@ public class CombineMesh : MonoBehaviour
                 GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Bottom").transform;
                 var greenMeshList = GameObject.Find("BinIso20Bottom").GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(greenMeshList);
+                Debug.Log("MMM MESH COMBINED FOR BOTTOM MESH");
                 isCollidedGreen = false;
                 /// if this state change is called outside in the script of all three meshes, isDroppedoff will be called 3 times and vertices updated 3 times
                 if (agent.isBottomMeshCombined == false) {
@@ -161,6 +161,7 @@ public class CombineMesh : MonoBehaviour
                 GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().oppositeSideObject.transform.parent = GameObject.Find("BinIso20Back").transform;
                 var blueMeshList = GameObject.Find("BinIso20Back").GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(blueMeshList);
+                Debug.Log("MMM MESH COMBINED FOR BACK MESH");
                 isCollidedBlue = false;
                 if (agent.isBackMeshCombined == false) {
                     agent.isBackMeshCombined = true;
@@ -173,6 +174,7 @@ public class CombineMesh : MonoBehaviour
                 var redMeshList = GameObject.Find("BinIso20Side").GetComponentsInChildren<MeshFilter>(); 
                 isCollidedRed = false;
                 MeshCombiner(redMeshList);
+                Debug.Log("MMM MESH COMBINED FOR SIDE MESH");
                 if (agent.isSideMeshCombined == false) {
                     agent.isSideMeshCombined = true;
             

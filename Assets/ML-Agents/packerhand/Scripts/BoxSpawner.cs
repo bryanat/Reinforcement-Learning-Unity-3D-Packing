@@ -115,16 +115,12 @@ public class BoxSpawner : MonoBehaviour
         foreach(var s in sizes) 
         {
             // Create GameObject box
-            //GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             GameObject box = Instantiate(unitBox);
             var position = GetRandomSpawnPos();
-            //GameObject box = Instantiate(new GameObject(), position, Quaternion.identity(0, 0, 0));
-
             box.transform.localScale = new Vector3(s[0], s[1], s[2]); 
             //var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box
-            // automatically comes with boxCollider and mesh renderer
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
             //box.tag = "box";

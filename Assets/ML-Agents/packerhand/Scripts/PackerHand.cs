@@ -418,33 +418,14 @@ public class PackerHand : Agent
         // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
         // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
 
-        // 1: Magnitude
-        // SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z 
-        // * 0.5 is for getting midpoint, which is half (0.5) of total dimension
-        //Vector3 worldScaleX = Vector3.Scale(targetBox.Find("back").lossyScale, targetBox.lossyScale);
-        //float magnitudeX = (worldScaleX.x + 0.05f) * 0.5f;
-        //float magnitudeX = (targetBox.Find("back").transform.lossyScale.x + 0.05f) * 0.5f; 
-        //float magnitudeX = Transform.TransformVector(targetBox.Find("back").transform.localScale);
-        //Transform back = targetBox.Find("back");
-        //Bounds bounds = targetBox.GetComponent<MeshFilter>().mesh.bounds;
-
-
-        ////////////////////////////need to work on this/////////////////////////////////////////
-        ///// using renderer and collider to get world scale are very inaccurate
-        ////lossyScale does not give back world scale of a side///////////
-
-        float backSize = targetBox.Find("back").GetComponent<Collider>().bounds.size.x;
-        float magnitudeX = (backSize + 0.05f) * 0.5f;
-
+        float backSize = targetBox.Find("back").GetComponent<MeshFilter>().mesh.bounds.size.x;
+        float magnitudeX = (backSize) * 0.5f;
         Debug.Log($"MAGNITITUDE X IS {magnitudeX}");
-        Vector3 worldScaleY = Vector3.Scale(targetBox.Find("left").lossyScale, targetBox.lossyScale);
-        float magnitudeY = (worldScaleY.y + 0.05f) * 0.5f;
-        // left or right depends on direction (left for now)
-        //float magnitudeY = (targetBox.Find("left").lossyScale.y + 0.05f) * 0.5f; 
+        float sideSize = targetBox.Find("left").GetComponent<MeshFilter>().mesh.bounds.size.y;
+        float magnitudeY = (sideSize) * 0.5f;
         Debug.Log($"MAGNITITUDE Y IS {magnitudeY}");
-        Vector3 worldScaleZ = Vector3.Scale(targetBox.Find("bottom").lossyScale, targetBox.lossyScale);
-        float magnitudeZ = (worldScaleZ.z + 0.05f) * 0.5f;
-        //float magnitudeZ = (targetBox.Find("bottom").lossyScale.z + 0.05f) * 0.5f; 
+        float bottomSize = targetBox.Find("bottom").GetComponent<MeshFilter>().mesh.bounds.size.z;
+        float magnitudeZ = (sideSize) * 0.5f;
         Debug.Log($"MAGNITITUDE Z IS {magnitudeZ}");
 
         // 2: Direction
