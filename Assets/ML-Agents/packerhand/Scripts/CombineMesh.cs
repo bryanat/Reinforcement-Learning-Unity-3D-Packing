@@ -131,6 +131,14 @@ public class CombineMesh : MonoBehaviour
         // only entered for the last one mesh 
         if (binBottom.GetComponent<CombineMesh>().isCollidedGreen && binBack.GetComponent<CombineMesh>().isCollidedBlue && binSide.GetComponent<CombineMesh>().isCollidedRed)
         {
+
+            // // // Dont need this if unit box side scale 1 works (in the past side scale 1 caused mis-collision due to thiccness, but no longer)
+            // // Turn (0.5) scaled side back to unit (1.0) scale side by multiplying each transform.scale by 2 (was halved before)
+            // Transform[] array_children_transforms = collision.gameObject.transform.parent.GetComponentsInChildren<Transform>();
+            // foreach( Transform child_transform in array_children_transforms){
+            //     // child transform is 0.5, multiple by 2 to get 1.
+            //     child_transform.localScale = child_transform.localScale * 2f;
+            // }
         
             // GREEN
             if (name == "BinIso20Bottom") {

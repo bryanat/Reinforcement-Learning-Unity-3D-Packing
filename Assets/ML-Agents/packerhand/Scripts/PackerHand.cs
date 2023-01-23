@@ -214,6 +214,7 @@ public class PackerHand : Agent
         }
 
         if (isPickedup && isRotationSelected==false) {
+            j = 0; // set discrete actions incrementor to 0 in case the SelectBox if loop isnt triggered 
             SelectRotation(discreteActions[++j]);
         }
 
