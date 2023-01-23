@@ -83,6 +83,7 @@ public class PackerHand : Agent
     public List<Vector3> intersectingVertices = new List<Vector3>();
 
     public GameObject blackbox;
+    public Vector3 boxWorldScale;
 
     public bool isBottomMeshCombined;
     public bool isSideMeshCombined;
@@ -416,10 +417,9 @@ public class PackerHand : Agent
         // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
         // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
         // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
-        Vector3 boxScale = boxPool[boxIdx].rb.GetComponent<BoxCollider>().bounds.size;
-        float boxXScale = boxScale.x;
-        float boxYScale = boxScale.y;
-        float boxZScale = boxScale.z;
+        float boxXScale = boxWorldScale.x;
+        float boxYScale = boxWorldScale.y;
+        float boxZScale = boxWorldScale.z;
         float backSize = targetBox.Find("back").GetComponent<MeshFilter>().mesh.bounds.size.x;
         float magnitudeX = (backSize*boxXScale) * 0.5f;
         Debug.Log($"MAGNITITUDE X IS {magnitudeX}");
@@ -497,6 +497,7 @@ public class PackerHand : Agent
     public void SelectRotation(int action) 
     {   
         var childrenList = carriedObject.GetComponentsInChildren<Transform>();
+        boxWorldScale = carriedObject.localScale;
         Debug.Log($"ROTATION SELECTED IS : {action}");
         if (action == 0 ) {
             rotation = new Vector3(0, 0, 0);
@@ -508,6 +509,7 @@ public class PackerHand : Agent
         else if (action==1) {
             Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             rotation = new Vector3(90, 0, 0);
+            boxWorldScale = new Vector3(boxWorldScale[0], boxWorldScale[2], boxWorldScale[1]);
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
@@ -533,6 +535,7 @@ public class PackerHand : Agent
         else if (action==2) {
             Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             rotation = new Vector3(0, 90, 0);
+            boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[1], boxWorldScale[0]);
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
@@ -558,6 +561,7 @@ public class PackerHand : Agent
         else if (action==3) {
             Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             rotation = new Vector3(0, 0, 90);
+            boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[0], boxWorldScale[2]);
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
@@ -583,6 +587,7 @@ public class PackerHand : Agent
         else if (action==4 ) {
             Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             rotation = new Vector3(0, 90, 90 );
+            boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[0], boxWorldScale[1]);
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
@@ -616,6 +621,7 @@ public class PackerHand : Agent
          else {
             Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             rotation = new Vector3(90, 0, 90);
+            boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[2], boxWorldScale[0]);
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
@@ -688,7 +694,8 @@ public class PackerHand : Agent
         ///////////////////////COLLISION/////////////////////////
         carriedObject.position = targetBin.position; // COLLISION OCCURS IMMEDIATELY AFTER SET POSITION OCCURS
         ///////////////////////COLLISION/////////////////////////
-        carriedObject.rotation = Quaternion.Euler(rotation);
+        // carriedObject.rotation = Quaternion.Euler(rotation);
+        carriedObject.Rotate(rotation[0], rotation[1], rotation[2], Space.World);
         // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
 
