@@ -25,9 +25,7 @@ public class Box
 
     public static void ResetBoxes(Box box)
     {
-        //box.rb.transform.position = box.startingPos; // Reset box position
-
-        box.rb.transform.position = box.startingPos;
+        box.rb.transform.position = box.startingPos; // Reset box position
     }
 
     public static List<Box> GetBoxPool() {
@@ -76,39 +74,39 @@ public class BoxSpawner : MonoBehaviour
          }
         else {
         //temporary box sizes array (to be fed from json later)
-            sizes = new float[][] {
-                new float[] {1f, 1f, 1f},
-                new float[] {1f, 1f, 1f},
-                new float[] {1f, 1f, 1f}
+            // sizes = new float[][] {
+            //     new float[] {1f, 1f, 1f},
+            //     new float[] {1f, 1f, 1f},
+            //     new float[] {1f, 1f, 1f}
+            // };
+            sizes = new float[][] 
+            {
+                new float[] { 1.0f, 2.0f, 3.0f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.0f, 2.0f, 3.5f },
+                new float[] { 2.0f, 2.0f, 2.0f },
+                new float[] { 1.0f, 1.0f, 2.0f },
+                new float[] { 3.0f, 4.0f, 4.0f },
+                new float[] { 1.0f, 2.0f, 3.5f },
+                new float[] { 1.0f, 1.5f, 0.5f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.5f, 0.5f, 0.5f },
+                new float[] { 2.0f, 3.0f, 4.0f },
+                new float[] { 0.5f, 0.5f, 0.5f },
+                new float[] { 1.0f, 2.0f, 3.5f },
+                new float[] { 1.0f, 1.5f, 0.5f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.0f, 2.0f, 2.0f },
+                new float[] { 1.0f, 1.0f, 2.0f },
+                new float[] { 3.0f, 4.0f, 4.0f },
+                new float[] { 1.0f, 2.0f, 3.5f },
+                new float[] { 1.0f, 1.5f, 0.5f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.5f, 0.5f, 0.5f },
+                new float[] { 1.0f, 2.0f, 3.0f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 2.0f, 2.0f, 3.5f },
             };
-        //     sizes = new float[][] 
-        //     {
-        //         new float[] { 1.0f, 2.0f, 3.0f },
-        //         new float[] { 3.0f, 3.0f, 3.0f },
-        //         new float[] { 2.0f, 2.0f, 3.5f },
-        //         new float[] { 2.0f, 2.0f, 2.0f },
-        //         new float[] { 1.0f, 1.0f, 2.0f },
-        //         new float[] { 3.0f, 4.0f, 4.0f },
-        //         new float[] { 1.0f, 2.0f, 3.5f },
-        //         new float[] { 1.0f, 1.5f, 0.5f },
-        //         new float[] { 3.0f, 3.0f, 3.0f },
-        //         new float[] { 2.5f, 0.5f, 0.5f },
-        //         new float[] { 2.0f, 3.0f, 4.0f },
-        //         new float[] { 0.5f, 0.5f, 0.5f },
-        //         new float[] { 1.0f, 2.0f, 3.5f },
-        //         new float[] { 1.0f, 1.5f, 0.5f },
-        //         new float[] { 3.0f, 3.0f, 3.0f },
-        //         new float[] { 2.0f, 2.0f, 2.0f },
-        //         new float[] { 1.0f, 1.0f, 2.0f },
-        //         new float[] { 3.0f, 4.0f, 4.0f },
-        //         new float[] { 1.0f, 2.0f, 3.5f },
-        //         new float[] { 1.0f, 1.5f, 0.5f },
-        //         new float[] { 3.0f, 3.0f, 3.0f },
-        //         new float[] { 2.5f, 0.5f, 0.5f },
-        //         new float[] { 1.0f, 2.0f, 3.0f },
-        //         new float[] { 3.0f, 3.0f, 3.0f },
-        //         new float[] { 2.0f, 2.0f, 3.5f },
-        //     };
          }
         var idx = 0;
         foreach(var s in sizes) 
@@ -117,25 +115,10 @@ public class BoxSpawner : MonoBehaviour
             var position = GetRandomSpawnPos();
             GameObject box = Instantiate(unitBox, position, Quaternion.identity);
             box.transform.localScale = new Vector3(s[0], s[1], s[2]);
-            // for (int i = 0; i < 6; i++)
-            // {
-            //     Transform side = box.transform.GetChild(i);
-            //     if (side.gameObject.activeInHierarchy)
-            //     {
-            //         if (side.name == "left" | side.name == "right" ) {
-            //             //side.localScale *= ;
-            //         }
-
-            //     }
-            // }
-
-            //var position = GetRandomSpawnPos();
             box.transform.position = position;
             // Add compoments to GameObject box
             box.AddComponent<Rigidbody>();
             box.AddComponent<BoxCollider>();
-            //box.tag = "box";
-            //box.layer = 5;
             box.name = idx.ToString();
             var m_rb = box.GetComponent<Rigidbody>();
             Collider [] m_cList = box.GetComponentsInChildren<Collider>();
@@ -144,7 +127,6 @@ public class BoxSpawner : MonoBehaviour
             }
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             m_rb.isKinematic = true;
-            //m_rb.detectCollisions = false;
             // Transfer GameObject box properties to Box object 
             var newBox = new Box
             {
@@ -168,7 +150,6 @@ public class BoxSpawner : MonoBehaviour
         return randomSpawnPos;
     }
 }
-
 
 
 }

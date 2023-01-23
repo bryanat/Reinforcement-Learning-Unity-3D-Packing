@@ -27,9 +27,6 @@ public class CombineMesh : MonoBehaviour
 
     public GameObject oppositeSideObject;
 
-    public bool dontloopinfinitely;
-
-
     public MeshFilter parent_mf;
 
 
@@ -64,11 +61,6 @@ public class CombineMesh : MonoBehaviour
 
      }
 
-    //////////////////ISCOLLIDED////////////////////////////////
-    // current problem: when 2nd box comes in to spot, OnCollisionEnter, isCollided is already true, need isCollided=true to be isCollided=false
-        // need isCollided=false
-        // currently isCollided is true after 1st box, preventing 2nd box from placing, 
-        // can see checkmark in inspector on isCollided after 1st box placed 
 
     void OnCollisionEnter(Collision collision) { // COLLISION IS HAPPENING FIRST BEFORE DROPOFFBOX()
                                                  // COLLISION NEEDS TO HAPPEN AFTER DROPOFF BOX
@@ -224,7 +216,7 @@ public class CombineMesh : MonoBehaviour
 
     
 
-    void MeshCombiner(MeshFilter[] meshList) 
+    public void MeshCombiner(MeshFilter[] meshList) 
     {
         Debug.Log("++++++++++++START OF MESHCOMBINER++++++++++++");
         List<CombineInstance> combine = new List<CombineInstance>();

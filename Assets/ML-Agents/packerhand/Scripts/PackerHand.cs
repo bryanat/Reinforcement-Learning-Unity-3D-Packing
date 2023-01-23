@@ -416,15 +416,18 @@ public class PackerHand : Agent
         // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
         // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
         // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
-
+        Vector3 boxScale = boxPool[boxIdx].rb.GetComponent<BoxCollider>().bounds.size;
+        float boxXScale = boxScale.x;
+        float boxYScale = boxScale.y;
+        float boxZScale = boxScale.z;
         float backSize = targetBox.Find("back").GetComponent<MeshFilter>().mesh.bounds.size.x;
-        float magnitudeX = (backSize*boxPool[boxIdx].boxSize.x) * 0.5f;
+        float magnitudeX = (backSize*boxXScale) * 0.5f;
         Debug.Log($"MAGNITITUDE X IS {magnitudeX}");
         float sideSize = targetBox.Find("left").GetComponent<MeshFilter>().mesh.bounds.size.y;
-        float magnitudeY = (sideSize) * 0.5f;
+        float magnitudeY = (sideSize*boxYScale) * 0.5f;
         Debug.Log($"MAGNITITUDE Y IS {magnitudeY}");
         float bottomSize = targetBox.Find("bottom").GetComponent<MeshFilter>().mesh.bounds.size.z;
-        float magnitudeZ = (sideSize) * 0.5f;
+        float magnitudeZ = (sideSize*boxZScale) * 0.5f;
         Debug.Log($"MAGNITITUDE Z IS {magnitudeZ}");
 
         // 2: Direction
@@ -445,6 +448,9 @@ public class PackerHand : Agent
 
         // first left corner position should be: (8.75f, 1.00f, 79.00f)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
+
+        Destroy(carriedObject.GetComponent<BoxCollider>());
+        Destroy(carriedObject.GetComponent<Rigidbody>());
         isPositionSelected = true;   
 
     }
@@ -663,9 +669,6 @@ public class PackerHand : Agent
         carriedObject.parent = this.transform;
      
         isPickedup = true;
-
-        Destroy(carriedObject.GetComponent<BoxCollider>());
-        Destroy(carriedObject.GetComponent<Rigidbody>());
     }
 
 
@@ -674,28 +677,12 @@ public class PackerHand : Agent
     /// </summary>
     public void DropoffBox() 
     {
-      //A: select vertex from heuristic
-        // selectedVertex = same vertex present in all three meshes 
-      //B: select blackbox 
-        // selectedBlackbox = vertices including selectedVertex that creates rectangular prism
-      //C: select box from NN/blue/brain
-      //D: select position from A+B
-        // 1: rotate (reduce to 6) => carriedObject.transform.localRotation => Vector3(x,y,z)
-        // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
-        // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
-        // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
-
 
         // Detach box from agent
         carriedObject.SetParent(null);
 
         //var m_c = carriedObject.GetComponent<Collider>();
         Collider [] m_cList = carriedObject.GetComponentsInChildren<Collider>();
-
-
-        // foreach (Collider m_c in m_cList) {
-        //     m_c.isTrigger = false;
-        // }
 
         // Lock box position and location
         ///////////////////////COLLISION/////////////////////////
