@@ -37,7 +37,6 @@ public class CombineMesh : MonoBehaviour
     public GameObject binBack;
 
 
-
     void Start()
     {
         // instantiate the Collider component
@@ -66,11 +65,23 @@ public class CombineMesh : MonoBehaviour
                                                  // COLLISION NEEDS TO HAPPEN AFTER DROPOFF BOX
                                                  // NEED TO DROPOFF BOX BEFORE COLLISION
                                                  // SET isTrigger IN DROPOFF BEFORE COLLISION USES isTrigger
-        Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {name}");
+        // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
+        // Packerhand.cs  : deals parent box : position (math)
 
+        // Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {name}");
+
+        ///////////////////////////////////////
+        // Current problem: isCollidedColor is not reseting to false (isCollidedColor is still true)
+        // // isCollidedColor=true remains true after a CombineMesh 
+        /////////////////////////////////////// 
+        // ?? because it goes back in the 'upper' if loops
+        // // ?? Solution: prevent entering upper if loops during/around/after CombineMesh
+        ///////////////////////////////////////
+
+        Debug.Log($"{name} ICC isCollidedGreen:{isCollidedGreen} isCollidedBlue:{isCollidedBlue} isCollidedRed:{isCollidedBlue}");
         
         // GREEN
-        Debug.Log($"{name} green {isCollidedGreen == false}, {name == "BinIso20Bottom"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedGreen: {isCollidedGreen == false} name == BinIso20Bottom: {name == "BinIso20Bottom"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
+        Debug.Log($"{name} RRR green {isCollidedGreen == false}, {name == "BinIso20Bottom"}, {collision.gameObject.tag == "pickupbox"}, {collision.gameObject.name == "bottom"} | collision side:{collision.gameObject.name} AAA isCollidedGreen: {isCollidedGreen == false} name == BinIso20Bottom: {name == "BinIso20Bottom"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
         // if this mesh is Bottom Green mesh and a box collides with it then set isCollidedGreen collision property to true
          if (isCollidedGreen == false && name == "BinIso20Bottom" && collision.gameObject.tag == "pickupbox" && collision.gameObject.name == "bottom")
         //if (isCollidedGreen == false && name == "BinIso20Bottom" && collision.gameObject.tag == "pickupbox")
@@ -88,7 +99,7 @@ public class CombineMesh : MonoBehaviour
             Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
         }
         // BLUE
-        Debug.Log($"{name} blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
+        Debug.Log($"{name} RRR blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
         // if this mesh is Back Blue mesh and a box collides with it then set isCollidedBlue collision property to true
         if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox" && collision.gameObject.name == "back"){
         //if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox"){
@@ -107,7 +118,7 @@ public class CombineMesh : MonoBehaviour
         }
 
         // RED
-        Debug.Log($"{name} red {isCollidedRed == false}, {name == "BinIso20Side"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedRed: {isCollidedRed == false} name == BinIso20Side: {name == "BinIso20Side"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
+        Debug.Log($"{name} RRR red {isCollidedRed == false}, {name == "BinIso20Side"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedRed: {isCollidedRed == false} name == BinIso20Side: {name == "BinIso20Side"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
         // if this mesh is Side Red mesh and a box collides with it then set isCollidedRed collision property to true
         if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickupbox" && (collision.gameObject.name=="left" | collision.gameObject.name=="right"))
         //if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickupbox")
@@ -147,7 +158,7 @@ public class CombineMesh : MonoBehaviour
                 var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(greenMeshList);
                 Debug.Log("MMM MESH COMBINED FOR BOTTOM MESH");
-                isCollidedGreen = false;
+                this.isCollidedGreen = false;
                 /// if this state change is called outside in the script of all three meshes, isDroppedoff will be called 3 times and vertices updated 3 times
                 if (agent.isBottomMeshCombined == false) {
                     agent.isBottomMeshCombined = true;
@@ -175,9 +186,7 @@ public class CombineMesh : MonoBehaviour
                 Debug.Log("MMM MESH COMBINED FOR SIDE MESH");
                 if (agent.isSideMeshCombined == false) {
                     agent.isSideMeshCombined = true;
-            
                 }
-
             }
         }
     }
@@ -216,18 +225,18 @@ public class CombineMesh : MonoBehaviour
         for(int i = 0; i<mesh.vertices.Length; ++i){
             Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
             Debug.Log($"Vertex position is {world_v}");
-            if (name == "BinIso20Bottom") {
-                Gizmos.color = Color.green;
-                Gizmos.DrawSphere(world_v, 0.1f);
-            }
+            // if (name == "BinIso20Bottom") {
+            //     Gizmos.color = Color.green;
+            //     Gizmos.DrawSphere(world_v, 0.1f);
+            // }
             if (name == "BinIso20Back") {
                 Gizmos.color = Color.blue;
                 Gizmos.DrawSphere(world_v, 0.1f);
             }
-            if (name == "BinIso20Side") {
-                Gizmos.color = Color.red;
-                Gizmos.DrawSphere(world_v, 0.1f);
-            }
+            // if (name == "BinIso20Side") {
+            //     Gizmos.color = Color.red;
+            //     Gizmos.DrawSphere(world_v, 0.1f);
+            // }
         }
     }
 

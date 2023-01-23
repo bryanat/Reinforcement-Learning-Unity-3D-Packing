@@ -89,11 +89,14 @@ public class PackerHand : Agent
     public bool isSideMeshCombined;
     public bool isBackMeshCombined;
 
+    public int debugnum;
 
 
 
     public override void Initialize()
     {   
+
+        debugnum = 0;
 
         initialAgentPosition = this.transform.position;
 
@@ -388,6 +391,9 @@ public class PackerHand : Agent
         //// there might be many intersecting vertices, black box is the subspace with smallest volume
         //// need box size: front, top and left/right
         Debug.Log($"NNN NUMBER OF INTERSECTING VERTICES IS {intersectingVertices.Count()}");
+        foreach (var vertexx in intersectingVertices){
+            Debug.Log($"NNN NUMBER OF INTERSECTING VERTICES IS v: {vertexx}");
+        }
 
 
 
@@ -422,31 +428,43 @@ public class PackerHand : Agent
             ///// right now it's returning the first vertex where all 3 meshes intersect
             //return vertex.Key;
             selectedVertex = vertex; 
+            // selectedVertex = intersectingVertices[0]; // debug statement do not keep (final need something like: selectedVertex = vertex; )
         }
         return selectedVertex;
     }
 
     public void SelectPosition() {
         targetBin  = new GameObject().transform;
+
+        // Packerhand.cs  : deals parent box : position (math)
+        // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
     
-     
     //D: select position from A+B
         // 1: rotate (reduce to 6) => carriedObject.transform.localRotation => Vector3(x,y,z)
         // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
         // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
         // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
-        float boxXScale = boxWorldScale.x;
-        float boxYScale = boxWorldScale.y;
-        float boxZScale = boxWorldScale.z;
-        float backSize = targetBox.Find("back").GetComponent<MeshFilter>().mesh.bounds.size.x;
-        float magnitudeX = (backSize*boxXScale) * 0.5f;
-        Debug.Log($"MAGNITITUDE X IS {magnitudeX}");
-        float sideSize = targetBox.Find("left").GetComponent<MeshFilter>().mesh.bounds.size.y;
-        float magnitudeY = (sideSize*boxYScale) * 0.5f;
-        Debug.Log($"MAGNITITUDE Y IS {magnitudeY}");
-        float bottomSize = targetBox.Find("bottom").GetComponent<MeshFilter>().mesh.bounds.size.z;
-        float magnitudeZ = (sideSize*boxZScale) * 0.5f;
-        Debug.Log($"MAGNITITUDE Z IS {magnitudeZ}");
+
+        // float boxXScale = boxWorldScale.x;
+        // float boxYScale = boxWorldScale.y;
+        // float boxZScale = boxWorldScale.z;
+        // float backSize = targetBox.Find("back").GetComponent<MeshFilter>().mesh.bounds.size.x;
+        // float magnitudeX = (boxXScale) * 0.5f;
+        // Debug.Log($"MAGNITITUDE X IS {magnitudeX}");
+        // float sideSize = targetBox.Find("left").GetComponent<MeshFilter>().mesh.bounds.size.y;
+        // float magnitudeY = (sideSize*boxYScale) * 0.5f;
+        // Debug.Log($"MAGNITITUDE Y IS {magnitudeY}");
+        // float bottomSize = targetBox.Find("bottom").GetComponent<MeshFilter>().mesh.bounds.size.z;
+        // float magnitudeZ = (sideSize*boxZScale) * 0.5f;
+        // Debug.Log($"MAGNITITUDE Z IS {magnitudeZ}");
+
+        // float magnitudeX = targetBox.localScale.x * 0.5f; 
+        // float magnitudeY = targetBox.localScale.y * 0.5f; 
+        // float magnitudeZ = targetBox.localScale.z * 0.5f; 
+
+        float magnitudeX = boxWorldScale.x * 0.5f; 
+        float magnitudeY = boxWorldScale.y * 0.5f; 
+        float magnitudeZ = boxWorldScale.z * 0.5f; 
 
         // 2: Direction
         int directionX = 1; 
@@ -461,8 +479,15 @@ public class PackerHand : Agent
         var selectedVertex = SelectVertex(); // Vector3(x,y,z)
         Vector3 selectedPosition = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z - (magnitudeZ * directionZ)) );
 
+
         targetBin.position = selectedPosition;
-        //targetBin.position = new Vector3(8.75f, 1.00f, 79.00f);
+        targetBin.position = new Vector3(8.75f, 1.00f, 79.00f);
+
+        if (debugnum == 1){
+            targetBin.position = new Vector3(9.75f, 1.00f, 79.00f);
+        }
+
+        debugnum = debugnum + 1;
 
         // first left corner position should be: (8.75f, 1.00f, 79.00f)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
