@@ -418,7 +418,7 @@ public class PackerHand : Agent
         // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
 
         float backSize = targetBox.Find("back").GetComponent<MeshFilter>().mesh.bounds.size.x;
-        float magnitudeX = (backSize) * 0.5f;
+        float magnitudeX = (backSize*boxPool[Box.boxIdx].boxSize.x) * 0.5f;
         Debug.Log($"MAGNITITUDE X IS {magnitudeX}");
         float sideSize = targetBox.Find("left").GetComponent<MeshFilter>().mesh.bounds.size.y;
         float magnitudeY = (sideSize) * 0.5f;
