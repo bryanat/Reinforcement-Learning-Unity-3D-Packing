@@ -164,6 +164,12 @@ public class PackerHand : Agent
         // Get vertices of the bin
         UpdateVertices();
 
+        // Find all intersecting vertices
+        FindIntersectingVertices();
+
+        // Create black box 
+        CreateBlackBox();
+
 
         // Reset agent and rewards
         SetResetParameters();
@@ -234,6 +240,8 @@ public class PackerHand : Agent
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection
         if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined) {
             UpdateVertices();
+            FindIntersectingVertices();
+            CreateBlackBox();
             StateReset();
         }
         // if agent selects a box, it should move towards the box
@@ -365,11 +373,25 @@ public class PackerHand : Agent
         }
     }
 
+    void FindIntersectingVertices() {
+        foreach(KeyValuePair<Vector3, int> vertex in allVertices) {
+            if (vertex.Value == 3) {
+                Debug.Log($"VVV INTERSECTING VERTEX IS {vertex.Key}");
+                intersectingVertices.Add(vertex.Key);
+            }
+        }
+    }
+
     public void CreateBlackBox() {
         ////need to create a black box based on intersecting vertices
         //// there might be many intersecting vertices, black box is the subspace with smallest volume
         //// need box size: front, top and left/right
-        /// for top: need box's top size
+        Debug.Log($"NNN NUMBER OF INTERSECTING VERTICES IS {intersectingVertices.Count()}");
+
+
+
+
+
         // Vector3 topSideSize = targetBox.Find("top").localScale;
         // Vector3 topSidePos = targetBox.Find("top").localPosition;
         // Vector3 topVertex1 = Vector3.zero;
@@ -393,19 +415,14 @@ public class PackerHand : Agent
 
 
     public Vector3 SelectVertex() {
+        Vector3 selectedVertex = Vector3.zero;
         //// selectedVertex = math.max(allVertices)
-        foreach(KeyValuePair<Vector3, int> vertex in allVertices) {
-            ///// the black box restraint can be added here
+        foreach(Vector3 vertex in intersectingVertices) {
             ///// right now it's returning the first vertex where all 3 meshes intersect
-            if (vertex.Value == 3) {
-                Debug.Log($"VVV INTERSECTING VERTEX IS {vertex.Key}");
-                //intersectingVertices.Add(vertex.Key);
-                return vertex.Key; 
-            }
+            //return vertex.Key;
+            selectedVertex = vertex; 
         }
-        CreateBlackBox();
-        // return default if no right vertex found
-        return Vector3.zero;
+        return selectedVertex;
     }
 
     public void SelectPosition() {
@@ -449,8 +466,6 @@ public class PackerHand : Agent
         // first left corner position should be: (8.75f, 1.00f, 79.00f)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
 
-        Destroy(carriedObject.GetComponent<BoxCollider>());
-        Destroy(carriedObject.GetComponent<Rigidbody>());
         isPositionSelected = true;   
 
     }
@@ -673,6 +688,9 @@ public class PackerHand : Agent
         // Attach carriedObject to agent
         //carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
         carriedObject.parent = this.transform;
+
+        Destroy(carriedObject.GetComponent<BoxCollider>());
+        Destroy(carriedObject.GetComponent<Rigidbody>());
      
         isPickedup = true;
     }
