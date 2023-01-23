@@ -45,7 +45,7 @@ public class PackerHand : Agent
     
     // public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
 
-    // public int boxIdx; // box selected from box pool
+    public int boxIdx; // box selected from box pool
 
     public Bounds areaBounds; // regular bin's bounds
 
@@ -418,7 +418,7 @@ public class PackerHand : Agent
         // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
 
         float backSize = targetBox.Find("back").GetComponent<MeshFilter>().mesh.bounds.size.x;
-        float magnitudeX = (backSize*boxPool[Box.boxIdx].boxSize.x) * 0.5f;
+        float magnitudeX = (backSize*boxPool[boxIdx].boxSize.x) * 0.5f;
         Debug.Log($"MAGNITITUDE X IS {magnitudeX}");
         float sideSize = targetBox.Find("left").GetComponent<MeshFilter>().mesh.bounds.size.y;
         float magnitudeY = (sideSize) * 0.5f;
@@ -459,11 +459,11 @@ public class PackerHand : Agent
         // Check if a box has already been selected
         if (!Box.organizedBoxes.Contains(n)) 
         {
-            Box.boxIdx = n;
-            Debug.Log($"SELECTED BOX: {Box.boxIdx}");
-            targetBox = boxPool[Box.boxIdx].rb.transform;
+            boxIdx = n;
+            Debug.Log($"SELECTED BOX: {boxIdx}");
+            targetBox = boxPool[boxIdx].rb.transform;
             // Add box to list so it won't be selected again
-            Box.organizedBoxes.Add(Box.boxIdx);
+            Box.organizedBoxes.Add(boxIdx);
             isBoxSelected = true;
         }
     }
@@ -499,9 +499,6 @@ public class PackerHand : Agent
                 child.tag = "pickupbox";
             }      
         }  
-        // // xzy
-        // // [left, back, bottom]
-        // // [right, front, top]
         else if (action==1) {
             Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             rotation = new Vector3(90, 0, 0);
@@ -527,11 +524,7 @@ public class PackerHand : Agent
                 }
             }
         }
-
-        // // zyx
-        // // [back, bottom, left]
-        // // [front, top, right]
-        if (action==2) {
+        else if (action==2) {
             Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             rotation = new Vector3(0, 90, 0);
             foreach (Transform child in childrenList)
@@ -556,11 +549,7 @@ public class PackerHand : Agent
                 }
             }        
         }
-      
-        // // yxz
-        // // [bottom, left, back]
-        // // [top, right, front]
-        if (action==3) {
+        else if (action==3) {
             Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             rotation = new Vector3(0, 0, 90);
             foreach (Transform child in childrenList)
@@ -570,26 +559,22 @@ public class PackerHand : Agent
                 {
                     child.name = "bottom";
                 }
-                else if (child.name == "bottom") 
+                else if (child.name == "top") 
                 {
-                    child.name = "right";
+                    child.name = "left";
                 }
 
                 else if (child.name == "right") 
                 {
                     child.name = "top";
                 }
-                else if (child.name == "top") 
+                else if (child.name == "bottom") 
                 {
-                    child.name = "left";
+                    child.name = "right";
                 }
             }
         }
-
-        // // zxy
-        // // [back, left, bottom]
-        // // [front, right, top]
-        if (action==4 ) {
+        else if (action==4 ) {
             Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             rotation = new Vector3(0, 90, 90 );
             foreach (Transform child in childrenList)
@@ -622,11 +607,7 @@ public class PackerHand : Agent
                 }
             }      
         }
-
-        // // yzx
-        // //[bottom, back, left] 
-        // //[top, front, right]
-        else {
+         else {
             Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             rotation = new Vector3(90, 0, 90);
             foreach (Transform child in childrenList)

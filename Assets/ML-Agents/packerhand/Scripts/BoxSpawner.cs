@@ -21,7 +21,6 @@ public class Box
 
     public static List<int> organizedBoxes = new List<int>(); // list of organzed box indices
 
-    public static int boxIdx; // box selected from box pool
 
 
     public static void ResetBoxes(Box box)
@@ -115,8 +114,8 @@ public class BoxSpawner : MonoBehaviour
         foreach(var s in sizes) 
         {
             // Create GameObject box
-            GameObject box = Instantiate(unitBox);
             var position = GetRandomSpawnPos();
+            GameObject box = Instantiate(unitBox, position, Quaternion.identity);
             box.transform.localScale = new Vector3(s[0], s[1], s[2]);
             // for (int i = 0; i < 6; i++)
             // {
