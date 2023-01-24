@@ -89,14 +89,14 @@ public class PackerHand : Agent
     public bool isSideMeshCombined;
     public bool isBackMeshCombined;
 
-    public int debugnum;
+    public float debugnum;
 
 
 
     public override void Initialize()
     {   
 
-        debugnum = 0;
+        debugnum = 0f;
 
         initialAgentPosition = this.transform.position;
 
@@ -481,13 +481,9 @@ public class PackerHand : Agent
 
 
         targetBin.position = selectedPosition;
-        targetBin.position = new Vector3(8.75f, 1.00f, 79.00f);
+        targetBin.position = new Vector3(8.75f + debugnum, 1.00f, 79.00f);
 
-        if (debugnum == 1){
-            targetBin.position = new Vector3(9.75f, 1.00f, 79.00f);
-        }
-
-        debugnum = debugnum + 1;
+        debugnum = debugnum + 1f;
 
         // first left corner position should be: (8.75f, 1.00f, 79.00f)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
