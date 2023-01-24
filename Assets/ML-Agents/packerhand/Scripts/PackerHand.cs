@@ -80,9 +80,13 @@ public class PackerHand : Agent
 
     public Dictionary<Vector3, int > allVertices = new Dictionary<Vector3, int>();
 
-    public List<Vector3> intersectingVertices = new List<Vector3>();
+    public HashSet<Vector3> intersectingVertices = new HashSet<Vector3>();
+
+    public List<Vector3> selectedVertices = new List<Vector3>();
 
     public GameObject blackbox;
+
+    public List<GameObject> blackbox_list; 
     public Vector3 boxWorldScale;
 
     public bool isBottomMeshCombined;
@@ -378,46 +382,62 @@ public class PackerHand : Agent
     }
 
     void FindIntersectingVertices() {
+        // Put all intersecting vertices into a hash set
         foreach(KeyValuePair<Vector3, int> vertex in allVertices) {
             if (vertex.Value == 3) {
                 Debug.Log($"VVV INTERSECTING VERTEX IS {vertex.Key}");
                 intersectingVertices.Add(vertex.Key);
             }
         }
+         Debug.Log($"NNN NUMBER OF INTERSECTING VERTICES IS {intersectingVertices.Count()}");
+
+        // Get the 3 corner vertices that we care about and 
+        // first vertex: lowest x, lowest y, highest z
+        var V1 = intersectingVertices.OrderByDescending(v => v[2]).ThenBy(v=> v[1]).ThenBy(v=>v[0]).ToList()[0];
+        selectedVertices.Add(V1);
+        // second vertex: lowest x, highest y, lowest z
+        var V2 = intersectingVertices.OrderByDescending(v => v[1]).ThenBy(v=> v[2]).ThenBy(v=>v[0]).ToList()[0];
+        selectedVertices.Add(V2);
+        // third vertex: highest x, lowest y, lowest z
+        var V3 = intersectingVertices.OrderByDescending(v => v[0]).ThenBy(v=> v[1]).ThenBy(v=>v[2]).ToList()[0];
+        selectedVertices.Add(V3);
+        Debug.Log($"V1 IS {V1}");
+        Debug.Log($"V2 IS {V2}");
+        Debug.Log($"V3 IS {V3}");
+
     }
 
     public void CreateBlackBox() {
-        ////need to create a black box based on intersecting vertices
-        //// there might be many intersecting vertices, black box is the subspace with smallest volume
-        //// need box size: front, top and left/right
-        Debug.Log($"NNN NUMBER OF INTERSECTING VERTICES IS {intersectingVertices.Count()}");
-        foreach (var vertexx in intersectingVertices){
-            Debug.Log($"NNN NUMBER OF INTERSECTING VERTICES IS v: {vertexx}");
+
+        ///for(var i =0; i<selectedVertices.Count; i++){
+        foreach (Vector3 vertex in selectedVertices) {
+
+            //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
+            Vector3 closest_x_vertex = bottomVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
+            vertex != next && (next[0]-vertex[0] < min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
+            Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
+
+            Vector3 closest_y_vertex = sideVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
+            (next[1]-vertex[1] < min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
+            Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
+
+            Vector3 closest_z_vertex = sideVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
+            (next[2]-vertex[2] < min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
+            Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
+
+            float blackbox_x_size = Math.Abs(closest_x_vertex[0] - vertex[0]);
+            float blackbox_y_size = Math.Abs(closest_y_vertex[1] - vertex[1]);
+            float blackbox_z_size = Math.Abs(closest_z_vertex[2] - vertex[2]);
+            Vector3 blackbox_position = new Vector3((vertex[0] + blackbox_x_size)*0.5f, (vertex[1] + blackbox_y_size)*0.5f, (vertex[2] + blackbox_z_size)*0.5f);
+            Debug.Log($"BPS BLACK BOX POSITION {blackbox_position} SIZES {blackbox_x_size}, {blackbox_y_size}, {blackbox_z_size}");
+
+            GameObject blackbox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            blackbox.transform.position = blackbox_position;
+            blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
+            Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
+            cubeRenderer.material.SetColor("_Color", Color.black);
         }
 
-
-
-
-
-        // Vector3 topSideSize = targetBox.Find("top").localScale;
-        // Vector3 topSidePos = targetBox.Find("top").localPosition;
-        // Vector3 topVertex1 = Vector3.zero;
-        // Vector3 topVertex2 = Vector3.zero;
-        // Vector3 topVertex3 = Vector3.zero;
-        // Vector3 topVertex4 = Vector3.zero;
-        // foreach(Vector3 intersectingVertex in intersectingVertices) {
-        //     // minus or add in x depends on placing from left to right or right to left
-        //     if (intersectingVertex.x == topSidePos.x - topSideSize.x/2
-        //     && intersecting Vertex.y == topSidePos.y 
-        //     && intersectingVertex.z == topSidePos.z+topSideSize.z/2) {
-        //         topVertex1 = intersectingVertex;
-        //         topVertex2 = new Vector3(intersectingVertex.x +topSideSize.x, intersectingVertex.y, intersectingVertex.z);
-        //         topVertex3 = new Vector3(intersectingVertex.x, intersectingVertex.y, intersectingVertex.z-topSideSize.z);
-        //         topVertex4 = new Vector3(intersectingVertex.x, intersectingVertex.z, intersectingVertex.z+??);
-        //         // calculate volume
-        //         // 
-        //     }
-        // }
     }
 
 
@@ -444,23 +464,6 @@ public class PackerHand : Agent
         // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
         // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
         // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
-
-        // float boxXScale = boxWorldScale.x;
-        // float boxYScale = boxWorldScale.y;
-        // float boxZScale = boxWorldScale.z;
-        // float backSize = targetBox.Find("back").GetComponent<MeshFilter>().mesh.bounds.size.x;
-        // float magnitudeX = (boxXScale) * 0.5f;
-        // Debug.Log($"MAGNITITUDE X IS {magnitudeX}");
-        // float sideSize = targetBox.Find("left").GetComponent<MeshFilter>().mesh.bounds.size.y;
-        // float magnitudeY = (sideSize*boxYScale) * 0.5f;
-        // Debug.Log($"MAGNITITUDE Y IS {magnitudeY}");
-        // float bottomSize = targetBox.Find("bottom").GetComponent<MeshFilter>().mesh.bounds.size.z;
-        // float magnitudeZ = (sideSize*boxZScale) * 0.5f;
-        // Debug.Log($"MAGNITITUDE Z IS {magnitudeZ}");
-
-        // float magnitudeX = targetBox.localScale.x * 0.5f; 
-        // float magnitudeY = targetBox.localScale.y * 0.5f; 
-        // float magnitudeZ = targetBox.localScale.z * 0.5f; 
 
         float magnitudeX = boxWorldScale.x * 0.5f; 
         float magnitudeY = boxWorldScale.y * 0.5f; 
@@ -723,6 +726,7 @@ public class PackerHand : Agent
         isBackMeshCombined = false;
         isBottomMeshCombined = false;
         isSideMeshCombined = false;
+        GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().numOfContactPointsBlue = 0;
     }
 
 
