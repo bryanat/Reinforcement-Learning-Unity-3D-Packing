@@ -26,6 +26,7 @@ public class CombineMesh : MonoBehaviour
     public bool isCollidedRed;
 
     public GameObject oppositeSideObject;
+    public GameObject sameSideObject;
 
     public MeshFilter parent_mf;
 
@@ -70,13 +71,7 @@ public class CombineMesh : MonoBehaviour
 
         // Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {name}");
 
-        ///////////////////////////////////////
-        // Current problem: isCollidedColor is not reseting to false (isCollidedColor is still true)
-        // // isCollidedColor=true remains true after a CombineMesh 
-        /////////////////////////////////////// 
-        // ?? because it goes back in the 'upper' if loops
-        // // ?? Solution: prevent entering upper if loops during/around/after CombineMesh
-        ///////////////////////////////////////
+        // Infinite combining
 
         Debug.Log($"{name} ICC isCollidedGreen:{isCollidedGreen} isCollidedBlue:{isCollidedBlue} isCollidedRed:{isCollidedBlue}");
         
@@ -97,6 +92,8 @@ public class CombineMesh : MonoBehaviour
             // synatax for getting a child is GameObject.Find("Parent/Child")
             oppositeSideObject = GameObject.Find($"{collision.gameObject.transform.parent.name}/{green_opposite_side_name}");
             Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
+            
+            sameSideObject = collision.gameObject;
         }
         // BLUE
         Debug.Log($"{name} RRR blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
@@ -115,6 +112,7 @@ public class CombineMesh : MonoBehaviour
             oppositeSideObject = GameObject.Find($"{collision.gameObject.transform.parent.name}/{blue_opposite_side_name}");
             Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
 
+            sameSideObject = collision.gameObject;
         }
 
         // RED
@@ -135,6 +133,8 @@ public class CombineMesh : MonoBehaviour
             // synatax for getting a child is GameObject.Find("Parent/Child")
             oppositeSideObject =  GameObject.Find($"{collision.gameObject.transform.parent.name}/{red_opposite_side_name}");
             Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
+
+            sameSideObject = collision.gameObject;
         }
 
 
@@ -152,22 +152,24 @@ public class CombineMesh : MonoBehaviour
             // }
         
             // GREEN
-            if (name == "BinIso20Bottom") {
+            if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) {
 
                 binBottom.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBottom.transform;
+                binBottom.GetComponent<CombineMesh>().sameSideObject.transform.parent = binBottom.transform;                
                 var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(greenMeshList);
                 Debug.Log("MMM MESH COMBINED FOR BOTTOM MESH");
-                this.isCollidedGreen = false;
+                isCollidedGreen = false;
                 /// if this state change is called outside in the script of all three meshes, isDroppedoff will be called 3 times and vertices updated 3 times
                 if (agent.isBottomMeshCombined == false) {
                     agent.isBottomMeshCombined = true;
                 }    
             }
             // BLUE
-            if (name == "BinIso20Back") {
+            if (name == "BinIso20Back" && agent.isBackMeshCombined==false) {
 
                 binBack.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBack.transform;
+                binBack.GetComponent<CombineMesh>().sameSideObject.transform.parent = binBack.transform;
                 var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
                 MeshCombiner(blueMeshList);
                 Debug.Log("MMM MESH COMBINED FOR BACK MESH");
@@ -177,9 +179,10 @@ public class CombineMesh : MonoBehaviour
                 }
             }
             // RED
-            if (name == "BinIso20Side") {
+            if (name == "BinIso20Side" && agent.isSideMeshCombined==false) {
 
                 binSide.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binSide.transform;
+                binSide.GetComponent<CombineMesh>().sameSideObject.transform.parent = binSide.transform;
                 var redMeshList = binSide.GetComponentsInChildren<MeshFilter>(); 
                 isCollidedRed = false;
                 MeshCombiner(redMeshList);
@@ -215,30 +218,30 @@ public class CombineMesh : MonoBehaviour
     }
 
 
-    void OnDrawGizmos() {
-        var mesh = GetComponent<MeshFilter>().sharedMesh;
-        Vector3[] vertices = mesh.vertices;
-        int[] triangles = mesh.triangles;
+    // void OnDrawGizmos() {
+    //     var mesh = GetComponent<MeshFilter>().sharedMesh;
+    //     Vector3[] vertices = mesh.vertices;
+    //     int[] triangles = mesh.triangles;
 
-        Matrix4x4 localToWorld = transform.localToWorldMatrix;
+    //     Matrix4x4 localToWorld = transform.localToWorldMatrix;
  
-        for(int i = 0; i<mesh.vertices.Length; ++i){
-            Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
-            Debug.Log($"Vertex position is {world_v}");
-            // if (name == "BinIso20Bottom") {
-            //     Gizmos.color = Color.green;
-            //     Gizmos.DrawSphere(world_v, 0.1f);
-            // }
-            if (name == "BinIso20Back") {
-                Gizmos.color = Color.blue;
-                Gizmos.DrawSphere(world_v, 0.1f);
-            }
-            // if (name == "BinIso20Side") {
-            //     Gizmos.color = Color.red;
-            //     Gizmos.DrawSphere(world_v, 0.1f);
-            // }
-        }
-    }
+    //     for(int i = 0; i<mesh.vertices.Length; ++i){
+    //         Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
+    //         Debug.Log($"Vertex position is {world_v}");
+    //         // if (name == "BinIso20Bottom") {
+    //         //     Gizmos.color = Color.green;
+    //         //     Gizmos.DrawSphere(world_v, 0.1f);
+    //         // }
+    //         if (name == "BinIso20Back") {
+    //             Gizmos.color = Color.blue;
+    //             Gizmos.DrawSphere(world_v, 0.1f);
+    //         }
+    //         // if (name == "BinIso20Side") {
+    //         //     Gizmos.color = Color.red;
+    //         //     Gizmos.DrawSphere(world_v, 0.1f);
+    //         // }
+    //     }
+    // }
 
 
     
@@ -306,9 +309,10 @@ public class CombineMesh : MonoBehaviour
         parent_mc.convex = true;
         parent_mc.sharedMesh = parent_mf.mesh; // add the mesh shape (from the parent mesh) to the mesh collider
 
-        // foreach (MeshFilter child in meshList.Skip(1)) {
-        //     Destroy(child.gameObject);
-        // }
+        foreach (MeshFilter child in meshList.Skip(2)) {
+            Debug.Log($"WJV meshcombine destroy: {child}");
+            // Destroy(child.gameObject);
+        }
 
         Debug.Log("+++++++++++END OF MESH COMBINER+++++++++++++");
     }
