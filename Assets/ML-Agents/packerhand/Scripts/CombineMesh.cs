@@ -150,6 +150,7 @@ public class CombineMesh : MonoBehaviour
             //     // child transform is 0.5, multiple by 2 to get 1.
             //     child_transform.localScale = child_transform.localScale * 2f;
             // }
+            Debug.Log("TTTTTTTTTTTTTTTTTTTTTTTTTTTT");
         
             // GREEN
             if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) {
@@ -161,9 +162,7 @@ public class CombineMesh : MonoBehaviour
                 Debug.Log("MMM MESH COMBINED FOR BOTTOM MESH");
                 isCollidedGreen = false;
                 /// if this state change is called outside in the script of all three meshes, isDroppedoff will be called 3 times and vertices updated 3 times
-                if (agent.isBottomMeshCombined == false) {
-                    agent.isBottomMeshCombined = true;
-                }    
+                agent.isBottomMeshCombined = true;    
             }
             // BLUE
             if (name == "BinIso20Back" && agent.isBackMeshCombined==false) {
@@ -174,9 +173,7 @@ public class CombineMesh : MonoBehaviour
                 MeshCombiner(blueMeshList);
                 Debug.Log("MMM MESH COMBINED FOR BACK MESH");
                 isCollidedBlue = false;
-                if (agent.isBackMeshCombined == false) {
-                    agent.isBackMeshCombined = true;
-                }
+                agent.isBackMeshCombined = true;
             }
             // RED
             if (name == "BinIso20Side" && agent.isSideMeshCombined==false) {
@@ -187,9 +184,7 @@ public class CombineMesh : MonoBehaviour
                 isCollidedRed = false;
                 MeshCombiner(redMeshList);
                 Debug.Log("MMM MESH COMBINED FOR SIDE MESH");
-                if (agent.isSideMeshCombined == false) {
-                    agent.isSideMeshCombined = true;
-                }
+                agent.isSideMeshCombined = true;
             }
         }
     }
@@ -309,9 +304,9 @@ public class CombineMesh : MonoBehaviour
         parent_mc.convex = true;
         parent_mc.sharedMesh = parent_mf.mesh; // add the mesh shape (from the parent mesh) to the mesh collider
 
-        foreach (MeshFilter child in meshList.Skip(2)) {
+        foreach (MeshFilter child in meshList.Skip(1)) {
             Debug.Log($"WJV meshcombine destroy: {child}");
-            // Destroy(child.gameObject);
+            //Destroy(child.gameObject);
         }
 
         Debug.Log("+++++++++++END OF MESH COMBINER+++++++++++++");

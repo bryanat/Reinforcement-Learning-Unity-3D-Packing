@@ -724,6 +724,9 @@ public class PackerHand : Agent
         GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen = false;
         GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().isCollidedBlue = false;
         GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().isCollidedRed = false;
+        isBackMeshCombined = false;
+        isBottomMeshCombined = false;
+        isSideMeshCombined = false;
     }
 
 
