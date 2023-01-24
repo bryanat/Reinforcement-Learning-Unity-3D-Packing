@@ -484,9 +484,9 @@ public class PackerHand : Agent
 
 
         targetBin.position = selectedPosition;
-        // targetBin.position = new Vector3(8.75f + debugnum, 1.00f, 79.00f);
+        targetBin.position = new Vector3(8.75f + debugnum, 1.00f, 11.00f);
 
-        // debugnum = debugnum + 1f;
+        debugnum = debugnum + 1f;
 
         // first left corner position should be: (8.75f, 1.00f, 79.00f)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
