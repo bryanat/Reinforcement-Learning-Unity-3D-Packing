@@ -719,6 +719,11 @@ public class PackerHand : Agent
         Destroy(carriedObject.GetComponent<Rigidbody>());
      
         isPickedup = true;
+
+        // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
+        GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen = false;
+        GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().isCollidedBlue = false;
+        GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().isCollidedRed = false;
     }
 
 
@@ -794,6 +799,7 @@ public class PackerHand : Agent
         isSideMeshCombined = false;
         targetBin = null;
         targetBox = null;
+
     }
 
 

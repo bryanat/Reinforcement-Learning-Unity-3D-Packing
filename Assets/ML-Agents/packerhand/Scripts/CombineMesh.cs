@@ -306,6 +306,10 @@ public class CombineMesh : MonoBehaviour
         parent_mc.convex = true;
         parent_mc.sharedMesh = parent_mf.mesh; // add the mesh shape (from the parent mesh) to the mesh collider
 
+        // foreach (MeshFilter child in meshList.Skip(1)) {
+        //     Destroy(child.gameObject);
+        // }
+
         Debug.Log("+++++++++++END OF MESH COMBINER+++++++++++++");
     }
 }
