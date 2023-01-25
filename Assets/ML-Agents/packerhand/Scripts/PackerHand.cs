@@ -414,24 +414,25 @@ public class PackerHand : Agent
 
             //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
             Vector3 closest_x_vertex = bottomVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
-            vertex != next && (next[0]-vertex[0] < min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
+            vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
             Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
 
             Vector3 closest_y_vertex = sideVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
-            (next[1]-vertex[1] < min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
+            vertex[1]<next[1] && Math.Abs(next[1]-vertex[1]) < Math.Abs(min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
             Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
 
             Vector3 closest_z_vertex = sideVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
-            (next[2]-vertex[2] < min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
+            vertex[2]<next[2] && Math.Abs(next[2]-vertex[2]) < Math.Abs(min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
             Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
 
             float blackbox_x_size = Math.Abs(closest_x_vertex[0] - vertex[0]);
             float blackbox_y_size = Math.Abs(closest_y_vertex[1] - vertex[1]);
             float blackbox_z_size = Math.Abs(closest_z_vertex[2] - vertex[2]);
-            Vector3 blackbox_position = new Vector3((vertex[0] + blackbox_x_size)*0.5f, (vertex[1] + blackbox_y_size)*0.5f, (vertex[2] + blackbox_z_size)*0.5f);
+            Vector3 blackbox_position = new Vector3(blackbox_x_size*0.5f+vertex[0], blackbox_y_size*0.5f+vertex[1], blackbox_z_size*0.5f+vertex[2]);
             Debug.Log($"BPS BLACK BOX POSITION {blackbox_position} SIZES {blackbox_x_size}, {blackbox_y_size}, {blackbox_z_size}");
 
             GameObject blackbox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            blackbox.name = "blackbox";
             blackbox.transform.position = blackbox_position;
             blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
             Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
