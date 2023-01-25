@@ -18,10 +18,7 @@ public class Box
 
     public Vector3 boxSize; 
 
-
     public static List<int> organizedBoxes = new List<int>(); // list of organzed box indices
-
-
 
     public static void ResetBoxes(Box box)
     {
@@ -31,8 +28,6 @@ public class Box
     public static List<Box> GetBoxPool() {
         return BoxSpawner.boxPool;
     }
-
-
 }
 
 
@@ -41,9 +36,7 @@ public class BoxSpawner : MonoBehaviour
 {
     [HideInInspector] public static List<Box> boxPool = new List<Box>();
 
-    /// <summary>
-    /// The box area, which will be set manually in the Inspector
-    /// </summary>
+    // The box area, which will be set manually in the Inspector
     public GameObject boxArea;
 
     public GameObject binArea;
@@ -73,43 +66,23 @@ public class BoxSpawner : MonoBehaviour
             sizes = Enumerable.Repeat(Enumerable.Repeat(size, 3).ToArray(), n_boxes).ToArray();
          }
         else {
-        //temporary box sizes array (to be fed from json later)
-            // sizes = new float[][] {
-            //     new float[] {1f, 1f, 1f},
-            //     new float[] {1f, 1f, 1f},
-            //     new float[] {1f, 1f, 1f}
-            // };
+            // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
+            // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
+            // Create sizes_AmericanEuropeanAsian_pallets = new float[][] { ... }  42" X 42" = 10.67dm X 10.67dm
             sizes = new float[][] 
             {
-                new float[] { 1.0f, 1.0f, 1.0f },
-                new float[] { 1.0f, 1.0f, 1.0f },
-                new float[] { 1.0f, 1.0f, 1.0f },
-                new float[] { 1.0f, 1.0f, 1.0f },
-                new float[] { 1.0f, 1.0f, 1.0f },
-                new float[] { 1.0f, 1.0f, 1.0f },
-                // new float[] { 2.0f, 2.0f, 3.5f },
-                // new float[] { 2.0f, 2.0f, 2.0f },
-                // new float[] { 1.0f, 1.0f, 2.0f },
-                // new float[] { 3.0f, 4.0f, 4.0f },
-                // new float[] { 1.0f, 2.0f, 3.5f },
-                // new float[] { 1.0f, 1.5f, 0.5f },
-                // new float[] { 3.0f, 3.0f, 3.0f },
-                // new float[] { 2.5f, 0.5f, 0.5f },
-                // new float[] { 2.0f, 3.0f, 4.0f },
-                // new float[] { 0.5f, 0.5f, 0.5f },
-                // new float[] { 1.0f, 2.0f, 3.5f },
-                // new float[] { 1.0f, 1.5f, 0.5f },
-                // new float[] { 3.0f, 3.0f, 3.0f },
-                // new float[] { 2.0f, 2.0f, 2.0f },
-                // new float[] { 1.0f, 1.0f, 2.0f },
-                // new float[] { 3.0f, 4.0f, 4.0f },
-                // new float[] { 1.0f, 2.0f, 3.5f },
-                // new float[] { 1.0f, 1.5f, 0.5f },
-                // new float[] { 3.0f, 3.0f, 3.0f },
-                // new float[] { 2.5f, 0.5f, 0.5f },
-                // new float[] { 1.0f, 2.0f, 3.0f },
-                // new float[] { 3.0f, 3.0f, 3.0f },
-                // new float[] { 2.0f, 2.0f, 3.5f },
+                new float[] { 3.0f, 3.0f, 3.0f },
+                new float[] { 6.0f, 3.0f, 3.0f },
+                new float[] { 3.0f, 6.0f, 3.0f },
+                new float[] { 3.0f, 3.0f, 6.0f },
+                new float[] { 6.0f, 6.0f, 3.0f },
+                new float[] { 3.0f, 6.0f, 6.0f },
+                new float[] { 6.0f, 3.0f, 6.0f },
+                new float[] { 6.0f, 6.0f, 6.0f },
+                // new float[] { 6.0f, 3.0f, 9.0f },
+                // new float[] { 6.0f, 9.0f, 3.0f },
+                // new float[] { 9.0f, 3.0f, 3.0f },
+                // new float[] { 9.0f, 6.0f, 6.0f },
             };
          }
         var idx = 0;
@@ -126,7 +99,8 @@ public class BoxSpawner : MonoBehaviour
             box.name = idx.ToString();
             var m_rb = box.GetComponent<Rigidbody>();
             Collider [] m_cList = box.GetComponentsInChildren<Collider>();
-            foreach (Collider m_c in m_cList) {
+            foreach (Collider m_c in m_cList) 
+            {
                 m_c.isTrigger = true;
             }
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
