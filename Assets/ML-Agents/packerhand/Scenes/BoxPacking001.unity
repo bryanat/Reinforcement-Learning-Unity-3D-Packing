@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44658822, g: 0.49642307, b: 0.5748253, a: 1}
+  m_IndirectSpecularColor: {r: 0.4465785, g: 0.49641252, b: 0.574817, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -207,8 +207,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 108598591}
-  m_LocalRotation: {x: -0.08145224, y: 0.85009044, z: -0.13859297, w: -0.50150156}
-  m_LocalPosition: {x: 28.857935, y: 14.855792, z: 38.465157}
+  m_LocalRotation: {x: 0.0072184657, y: -0.992669, z: 0.09430434, w: 0.0752517}
+  m_LocalPosition: {x: 59.45198, y: 4.748439, z: 98.30478}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -625,7 +625,6 @@ MonoBehaviour:
   binBottom: {fileID: 0}
   binSide: {fileID: 0}
   binBack: {fileID: 0}
-  numOfContactPointsBlue: 0
 --- !u!43 &1232477463
 Mesh:
   m_ObjectHideFlags: 0
@@ -1165,7 +1164,6 @@ MonoBehaviour:
   binBottom: {fileID: 0}
   binSide: {fileID: 0}
   binBack: {fileID: 0}
-  numOfContactPointsBlue: 0
 --- !u!1 &1485939481
 GameObject:
   m_ObjectHideFlags: 0
@@ -1767,7 +1765,7 @@ PrefabInstance:
     - target: {fileID: 1762547801083227235, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 52.3
+      value: 51.44
       objectReference: {fileID: 0}
     - target: {fileID: 1762547801083227235, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1777,7 +1775,7 @@ PrefabInstance:
     - target: {fileID: 1762547801083227235, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 65.1
+      value: 66.19
       objectReference: {fileID: 0}
     - target: {fileID: 1762547801083227235, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -2276,7 +2274,6 @@ MonoBehaviour:
   binBottom: {fileID: 0}
   binSide: {fileID: 0}
   binBack: {fileID: 0}
-  numOfContactPointsBlue: 0
 --- !u!1001 &1149920266690001738
 PrefabInstance:
   m_ObjectHideFlags: 0

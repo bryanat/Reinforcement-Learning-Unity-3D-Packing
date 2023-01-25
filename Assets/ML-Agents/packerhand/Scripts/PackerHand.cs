@@ -242,7 +242,7 @@ public class PackerHand : Agent
         else if (isBoxSelected && isPickedup == false) 
         {
             UpdateAgentPosition(targetBox);
-            if (total_x_distance < 0.1f && total_z_distance<0.1f) {
+            if ( Math.Abs(total_x_distance) < 0.1f && Math.Abs(total_z_distance) < 0.1f ) {
                 PickupBox();
             }
         }
@@ -254,7 +254,7 @@ public class PackerHand : Agent
             //if agent is close enough to the position, it should drop off the box
             // if (total_x_distance < 4f && total_z_distance<4f) {
             // note this (based on < distance) results in DropoffBox being called many times
-            if (total_x_distance < 2f && total_z_distance<2f) {
+            if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) {
                 DropoffBox();
             }
     
