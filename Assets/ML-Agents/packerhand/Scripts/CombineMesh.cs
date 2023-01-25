@@ -72,6 +72,25 @@ public class CombineMesh : MonoBehaviour
 
         Debug.Log($"{name} ICC isCollidedGreen:{isCollidedGreen} isCollidedBlue:{isCollidedBlue} isCollidedRed:{isCollidedBlue}");
         
+        // BLUE
+        Debug.Log($"{name} RRR blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
+        // if this mesh is Back Blue mesh and a box collides with it then set isCollidedBlue collision property to true
+        if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox" && collision.gameObject.name == "back"){
+        //if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox"){
+            // set mesh property isCollidedBlue to true, used when all three colors are true then combinemeshes
+            isCollidedBlue = true;
+            Debug.Log($"{name}: BCA isCollidedBlue triggered, value of isCollidedBlue: {isCollidedBlue}");
+
+            // get the name of the opposite side using the collision gameObject 
+            string blue_opposite_side_name = GetOppositeSide(collision.transform); // back => front
+
+            // get the gameObject of the opposite side using the name of the opposite side
+            // synatax for getting a child is GameObject.Find("Parent/Child")
+            oppositeSideObject = GameObject.Find($"{collision.gameObject.transform.parent.name}/{blue_opposite_side_name}");
+            Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
+
+            sameSideObject = collision.gameObject;
+        }
         // GREEN
         Debug.Log($"{name} RRR green {isCollidedGreen == false}, {name == "BinIso20Bottom"}, {collision.gameObject.tag == "pickupbox"}, {collision.gameObject.name == "bottom"} | collision side:{collision.gameObject.name} AAA isCollidedGreen: {isCollidedGreen == false} name == BinIso20Bottom: {name == "BinIso20Bottom"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
         // if this mesh is Bottom Green mesh and a box collides with it then set isCollidedGreen collision property to true
@@ -90,25 +109,6 @@ public class CombineMesh : MonoBehaviour
             oppositeSideObject = GameObject.Find($"{collision.gameObject.transform.parent.name}/{green_opposite_side_name}");
             Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
             
-            sameSideObject = collision.gameObject;
-        }
-        // BLUE
-        Debug.Log($"{name} RRR blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
-        // if this mesh is Back Blue mesh and a box collides with it then set isCollidedBlue collision property to true
-        if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox" && collision.gameObject.name == "back"){
-        //if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox"){
-            // set mesh property isCollidedBlue to true, used when all three colors are true then combinemeshes
-            isCollidedBlue = true;
-            Debug.Log($"{name}: BCA isCollidedBlue triggered, value of isCollidedBlue: {isCollidedBlue}");
-
-            // get the name of the opposite side using the collision gameObject 
-            string blue_opposite_side_name = GetOppositeSide(collision.transform); // back => front
-
-            // get the gameObject of the opposite side using the name of the opposite side
-            // synatax for getting a child is GameObject.Find("Parent/Child")
-            oppositeSideObject = GameObject.Find($"{collision.gameObject.transform.parent.name}/{blue_opposite_side_name}");
-            Debug.Log($"OPPOSITE SIDE FOR {name} IS {oppositeSideObject.name}");
-
             sameSideObject = collision.gameObject;
         }
 
@@ -149,6 +149,17 @@ public class CombineMesh : MonoBehaviour
             // }
             Debug.Log("TTTTTTTTTTTTTTTTTTTTTTTTTTTT");
         
+            // BLUE
+            if (name == "BinIso20Back" && agent.isBackMeshCombined==false) {
+
+                binBack.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBack.transform;
+                binBack.GetComponent<CombineMesh>().sameSideObject.transform.parent = binBack.transform;
+                var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
+                MeshCombiner(blueMeshList);
+                Debug.Log("MMM MESH COMBINED FOR BACK MESH");
+                isCollidedBlue = false;
+                agent.isBackMeshCombined = true;
+            }
             // GREEN
             if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) {
 
@@ -160,17 +171,6 @@ public class CombineMesh : MonoBehaviour
                 isCollidedGreen = false;
                 /// if this state change is called outside in the script of all three meshes, isDroppedoff will be called 3 times and vertices updated 3 times
                 agent.isBottomMeshCombined = true;    
-            }
-            // BLUE
-            if (name == "BinIso20Back" && agent.isBackMeshCombined==false) {
-
-                binBack.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBack.transform;
-                binBack.GetComponent<CombineMesh>().sameSideObject.transform.parent = binBack.transform;
-                var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
-                MeshCombiner(blueMeshList);
-                Debug.Log("MMM MESH COMBINED FOR BACK MESH");
-                isCollidedBlue = false;
-                agent.isBackMeshCombined = true;
             }
             // RED
             if (name == "BinIso20Side" && agent.isSideMeshCombined==false) {

@@ -232,9 +232,9 @@ public class PackerHand : Agent
             m_Configuration = -1;
         }
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection
-        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined) {
+        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isBoxSelected && isPickedup) {
             UpdateVertices();
-            //FindIntersectingVertices();
+            FindIntersectingVertices();
             //CreateBlackBox();
             StateReset();
         }
@@ -780,9 +780,6 @@ public class PackerHand : Agent
         isRotationSelected = false;
         isPickedup = false;
         isDroppedoff = false;
-        isBackMeshCombined = false;
-        isBottomMeshCombined = false;
-        isSideMeshCombined = false;
         targetBin = null;
         targetBox = null;
 
