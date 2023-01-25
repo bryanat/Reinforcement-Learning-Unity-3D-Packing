@@ -21,9 +21,9 @@ public class CombineMesh : MonoBehaviour
 
     //public MeshFilter[] meshList;
 
-    public bool isCollidedGreen;
-    public bool isCollidedBlue;
-    public bool isCollidedRed;
+    public bool isCollidedGreen = false;
+    public bool isCollidedBlue = false;
+    public bool isCollidedRed = false;
 
     public GameObject oppositeSideObject;
     public GameObject sameSideObject;
@@ -37,7 +37,6 @@ public class CombineMesh : MonoBehaviour
 
     public GameObject binBack;
 
-    public int numOfContactPointsBlue=0;
 
 
     void Start()
@@ -56,12 +55,9 @@ public class CombineMesh : MonoBehaviour
         binBottom = GameObject.Find("BinIso20Bottom");
         binSide = GameObject.Find("BinIso20Side");
         binBack = GameObject.Find("BinIso20Back");
-        isCollidedBlue=false;
-        isCollidedRed=false;
-        isCollidedGreen=false;
-
 
      }
+
 
 
     void OnCollisionEnter(Collision collision) { // COLLISION IS HAPPENING FIRST BEFORE DROPOFFBOX()
@@ -104,12 +100,6 @@ public class CombineMesh : MonoBehaviour
             // set mesh property isCollidedBlue to true, used when all three colors are true then combinemeshes
             isCollidedBlue = true;
             Debug.Log($"{name}: BCA isCollidedBlue triggered, value of isCollidedBlue: {isCollidedBlue}");
-
-            if (numOfContactPointsBlue==0) {
-                numOfContactPointsBlue = collision.contactCount;
-                ///ideally if contact point is zero, it picked the wrong vertex
-                Debug.Log($"NCP NUMBER OF CONTACT POINT IN {name} IS {numOfContactPointsBlue}");
-            }
 
             // get the name of the opposite side using the collision gameObject 
             string blue_opposite_side_name = GetOppositeSide(collision.transform); // back => front
@@ -250,7 +240,7 @@ public class CombineMesh : MonoBehaviour
     // }
 
     void OnDrawGizmos() { 
-        foreach (Vector3 vertex in agent.intersectingVertices) {
+        foreach (Vector3 vertex in agent.selectedVertices) {
             Gizmos.color = Color.yellow;
             Gizmos.DrawSphere(vertex, 0.1f);
         }

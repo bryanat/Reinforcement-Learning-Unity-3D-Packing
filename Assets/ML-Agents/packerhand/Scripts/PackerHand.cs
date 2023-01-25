@@ -35,8 +35,6 @@ public class PackerHand : Agent
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
-    [HideInInspector] public Transform targetTransformPosition; //Target the agent will walk towards during training.
-
     public Vector3 rotation; // Rotation of box inside bin
 
     public float total_x_distance; //total x distance between agent and target
@@ -64,34 +62,22 @@ public class PackerHand : Agent
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isBoxSelected;
     [HideInInspector] public bool isDroppedoff;
+    public bool isBottomMeshCombined;
+    public bool isSideMeshCombined;
+    public bool isBackMeshCombined;
 
     public List<Box> boxPool;
-
-    public List<Vector3> backVertices;
-    public List<Vector3> bottomVertices;
-    public List<Vector3> sideVertices;
-
-    // public Vector3 [] backVertices;
-    // public Vector3 []bottomVertices;
-    // public Vector3 [] sideVertices;
     public MeshFilter mf_back;
     public MeshFilter mf_bottom;
     public MeshFilter mf_side;
 
-    public Dictionary<Vector3, int > allVertices = new Dictionary<Vector3, int>();
+    public Dictionary<Vector3, int > allVertices;
 
-    public HashSet<Vector3> intersectingVertices = new HashSet<Vector3>();
-
-    public List<Vector3> selectedVertices = new List<Vector3>();
-
-    public GameObject blackbox;
+    public List<Vector3> selectedVertices;
 
     public List<GameObject> blackbox_list; 
     public Vector3 boxWorldScale;
 
-    public bool isBottomMeshCombined;
-    public bool isSideMeshCombined;
-    public bool isBackMeshCombined;
 
     public float debugnum;
 
@@ -171,10 +157,10 @@ public class PackerHand : Agent
         // Get vertices of the bin
         UpdateVertices();
 
-        // Find all intersecting vertices
-        FindIntersectingVertices();
+        // // Find all intersecting vertices
+        //FindIntersectingVertices();
 
-        // Create black box 
+        // // Create black box 
         //CreateBlackBox();
 
 
@@ -248,8 +234,8 @@ public class PackerHand : Agent
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection
         if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined) {
             UpdateVertices();
-            FindIntersectingVertices();
-            CreateBlackBox();
+            //FindIntersectingVertices();
+            //CreateBlackBox();
             StateReset();
         }
         // if agent selects a box, it should move towards the box
@@ -320,15 +306,13 @@ public class PackerHand : Agent
     ///</summary>
     public void UpdateVertices() {
         ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
-        /////// future could add vertices of boxes to preexisting vertices list and dictionary for optimization//////////////
         Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
         allVertices = new Dictionary<Vector3, int>();
         foreach(Transform binObject in binObjects) {
             if (binObject.name == "BinIso20Back") {
                 mf_back = binObject.GetComponent<MeshFilter>();
                 // get unique set of back vertices
-                RoundAndLocalToWorld(mf_back.mesh.vertices, backVertices);
-                Debug.Log($"BACK VERTICES COUNT IS: {backVertices.Distinct().Count()}");
+                RoundAndLocalToWorld(mf_back.mesh.vertices);
                 Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BACK MESH LOOP IS {allVertices.Count()}");
                 // backVertices.AddRange();
 
@@ -336,15 +320,13 @@ public class PackerHand : Agent
             else if (binObject.name == "BinIso20Bottom") {
                 mf_bottom = binObject.GetComponent<MeshFilter>();
                 // get unique set of bottom vertices
-                RoundAndLocalToWorld(mf_bottom.mesh.vertices, bottomVertices);
-                Debug.Log($"Bottom VERTICES COUNT IS: {bottomVertices.Count}");
+                RoundAndLocalToWorld(mf_bottom.mesh.vertices);
                 Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BOTTOM MESH LOOP IS {allVertices.Count()}");
             }
             else if (binObject.name == "BinIso20Side") {
                 mf_side = binObject.GetComponent<MeshFilter>();
                 // get unique set of side vertices
-                RoundAndLocalToWorld(mf_side.mesh.vertices, sideVertices);    
-                Debug.Log($"Side VERTICES COUNT IS: {sideVertices.Count}");  
+                RoundAndLocalToWorld(mf_side.mesh.vertices);    
                 Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN SIDE MESH LOOP IS {allVertices.Count()}");  
             }
         }
@@ -352,9 +334,9 @@ public class PackerHand : Agent
     }
 
      /// <summary>
-    /// For every mesh, creates a unique set of vertices with world position and add each unique vertex to a counter dictionary
+    /// For every mesh, add each unique vertex to a counter dictionary
     ///</summary>
-    void RoundAndLocalToWorld(Vector3 [] vertices, List<Vector3> verticesList) {
+    void RoundAndLocalToWorld(Vector3 [] vertices) {
         Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
         var tempHashSet = new HashSet<Vector3>();
         // rounding part
@@ -368,9 +350,7 @@ public class PackerHand : Agent
         foreach (Vector3 vertex in tempHashSet) {
             // convert local scale to world position
             Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
-            // add to vertices list
-            verticesList.Add(worldVertex);
-            // Add to a counter to check for intersection
+            // Add to a counter dictionary to check for intersection
             // reduce stage: vertex is key, value is int number which gets increased for each vertex
             if (allVertices.ContainsKey(worldVertex)) {
                 allVertices[worldVertex] ++;
@@ -383,14 +363,15 @@ public class PackerHand : Agent
 
     void FindIntersectingVertices() {
         // Put all intersecting vertices into a hash set
+        List<Vector3> intersectingVertices = new List<Vector3>();
         foreach(KeyValuePair<Vector3, int> vertex in allVertices) {
             if (vertex.Value == 3) {
-                Debug.Log($"VVV INTERSECTING VERTEX IS {vertex.Key}");
                 intersectingVertices.Add(vertex.Key);
             }
         }
-         Debug.Log($"NNN NUMBER OF INTERSECTING VERTICES IS {intersectingVertices.Count()}");
+        Debug.Log($"NNN NUMBER OF INTERSECTING VERTICES IS {intersectingVertices.Count()}");
 
+        selectedVertices = new List<Vector3>();
         // Get the 3 corner vertices that we care about and 
         // first vertex: lowest x, lowest y, highest z
         var V1 = intersectingVertices.OrderByDescending(v => v[2]).ThenBy(v=> v[1]).ThenBy(v=>v[0]).ToList()[0];
@@ -401,27 +382,23 @@ public class PackerHand : Agent
         // third vertex: highest x, lowest y, lowest z
         var V3 = intersectingVertices.OrderByDescending(v => v[0]).ThenBy(v=> v[1]).ThenBy(v=>v[2]).ToList()[0];
         selectedVertices.Add(V3);
-        Debug.Log($"V1 IS {V1}");
-        Debug.Log($"V2 IS {V2}");
-        Debug.Log($"V3 IS {V3}");
 
     }
 
     public void CreateBlackBox() {
 
-        ///for(var i =0; i<selectedVertices.Count; i++){
         foreach (Vector3 vertex in selectedVertices) {
 
             //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
-            Vector3 closest_x_vertex = bottomVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
+            Vector3 closest_x_vertex = allVertices.Keys.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
             vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
             Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
 
-            Vector3 closest_y_vertex = sideVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
+            Vector3 closest_y_vertex = allVertices.Keys.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
             vertex[1]<next[1] && Math.Abs(next[1]-vertex[1]) < Math.Abs(min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
             Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
 
-            Vector3 closest_z_vertex = sideVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
+            Vector3 closest_z_vertex = allVertices.Keys.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
             vertex[2]<next[2] && Math.Abs(next[2]-vertex[2]) < Math.Abs(min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
             Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
 
@@ -440,6 +417,8 @@ public class PackerHand : Agent
 
             blackbox_list.Add(blackbox);
         }
+        // need to get the smallest off the blackbox list
+
 
     }
 
@@ -454,6 +433,7 @@ public class PackerHand : Agent
             // selectedVertex = intersectingVertices[0]; // debug statement do not keep (final need something like: selectedVertex = vertex; )
         }
         return selectedVertex;
+        //return selectedVertices[2];
     }
 
     public void SelectPosition() {
@@ -487,9 +467,9 @@ public class PackerHand : Agent
 
 
         targetBin.position = selectedPosition;
-        // targetBin.position = new Vector3(8.75f + debugnum, 1.00f, 11.00f);
+        targetBin.position = new Vector3(8.75f+debugnum, 1.00f, 11.00f);
 
-        // debugnum = debugnum + 1f;
+        debugnum = debugnum + 1f;
 
         // first left corner position should be: (8.75f, 1.00f, 79.00f)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
@@ -729,7 +709,8 @@ public class PackerHand : Agent
         isBackMeshCombined = false;
         isBottomMeshCombined = false;
         isSideMeshCombined = false;
-        GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().numOfContactPointsBlue = 0;
+
+        Debug.Log("PDB end of PickupBox()");
     }
 
 
@@ -760,7 +741,7 @@ public class PackerHand : Agent
             // m_c.gameObject.tag = "droppedoff";
         }
 
-        Debug.Log($"DropoffBox(): end of droppedoff function");
+        Debug.Log($"PDB Box(): end of droppedoff function");
 
     }
 
