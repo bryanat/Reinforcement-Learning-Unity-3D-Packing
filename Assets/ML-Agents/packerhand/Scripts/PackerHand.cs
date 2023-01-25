@@ -175,7 +175,7 @@ public class PackerHand : Agent
         FindIntersectingVertices();
 
         // Create black box 
-        CreateBlackBox();
+        //CreateBlackBox();
 
 
         // Reset agent and rewards
@@ -437,6 +437,8 @@ public class PackerHand : Agent
             blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
             Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
             cubeRenderer.material.SetColor("_Color", Color.black);
+
+            blackbox_list.Add(blackbox);
         }
 
     }
@@ -445,7 +447,7 @@ public class PackerHand : Agent
     public Vector3 SelectVertex() {
         Vector3 selectedVertex = Vector3.zero;
         //// selectedVertex = math.max(allVertices)
-        foreach(Vector3 vertex in intersectingVertices) {
+        foreach(Vector3 vertex in selectedVertices) {
             ///// right now it's returning the first vertex where all 3 meshes intersect
             //return vertex.Key;
             selectedVertex = vertex; 
@@ -485,9 +487,9 @@ public class PackerHand : Agent
 
 
         targetBin.position = selectedPosition;
-        targetBin.position = new Vector3(8.75f + debugnum, 1.00f, 11.00f);
+        // targetBin.position = new Vector3(8.75f + debugnum, 1.00f, 11.00f);
 
-        debugnum = debugnum + 1f;
+        // debugnum = debugnum + 1f;
 
         // first left corner position should be: (8.75f, 1.00f, 79.00f)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
