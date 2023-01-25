@@ -538,20 +538,20 @@ public class PackerHand : Agent
                 child.tag = "pickupbox";
                 if (child.name=="bottom") 
                 {
-                    child.name = "front";
+                    child.name = "back";
                 }
                 else if (child.name == "back") 
                 {
-                    child.name = "bottom";
+                    child.name = "top";
                 }
 
                 else if (child.name == "top") 
                 {
-                    child.name = "back";
+                    child.name = "front";
                 }
                 else if (child.name == "front") 
                 {
-                    child.name = "top";
+                    child.name = "bottom";
                 }
             }
         }
@@ -590,20 +590,20 @@ public class PackerHand : Agent
                 child.tag = "pickupbox";
                 if (child.name=="left") 
                 {
-                    child.name = "bottom";
+                    child.name = "top";
                 }
                 else if (child.name == "top") 
                 {
-                    child.name = "left";
+                    child.name = "right";
                 }
 
                 else if (child.name == "right") 
                 {
-                    child.name = "top";
+                    child.name = "bottom";
                 }
                 else if (child.name == "bottom") 
                 {
-                    child.name = "right";
+                    child.name = "left";
                 }
             }
         }
@@ -616,7 +616,7 @@ public class PackerHand : Agent
                 child.tag = "pickupbox";
                 if (child.name=="left") 
                 {
-                    child.name = "bottom";
+                    child.name = "top";
                 }
                 else if (child.name == "back") 
                 {
@@ -624,12 +624,12 @@ public class PackerHand : Agent
                 }
                 else if (child.name == "bottom") 
                 {
-                    child.name = "front";
+                    child.name = "back";
                 }
 
                 else if (child.name == "right") 
                 {
-                    child.name = "top";
+                    child.name = "bottom";
                 }
                 else if (child.name == "front") 
                 {
@@ -637,7 +637,7 @@ public class PackerHand : Agent
                 }
                 else if (child.name == "top") 
                 {
-                    child.name = "back";
+                    child.name = "front";
                 }
             }      
         }
@@ -654,12 +654,11 @@ public class PackerHand : Agent
                 }
                 else if (child.name == "bottom") 
                 {
-                    child.name = "right";
+                    child.name = "left";
                 }
                 else if (child.name == "back") 
                 {
-
-                    child.name = "bottom";
+                    child.name = "top";
                 }
                 else if (child.name == "right") 
                 {
@@ -667,11 +666,11 @@ public class PackerHand : Agent
                 }
                 else if (child.name == "top") 
                 {
-                    child.name = "left";
+                    child.name = "right";
                 }
                 else if (child.name == "front") 
                 {
-                    child.name = "top";
+                    child.name = "bottom";
                 }
              }      
         }
@@ -730,8 +729,8 @@ public class PackerHand : Agent
         ///////////////////////COLLISION/////////////////////////
         carriedObject.position = targetBin.position; // COLLISION OCCURS IMMEDIATELY AFTER SET POSITION OCCURS
         ///////////////////////COLLISION/////////////////////////
-        // carriedObject.rotation = Quaternion.Euler(rotation);
-        carriedObject.Rotate(rotation[0], rotation[1], rotation[2], Space.World);
+         carriedObject.rotation = Quaternion.Euler(rotation);
+        //carriedObject.Rotate(rotation[0], rotation[1], rotation[2], Space.World);
         // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
 
