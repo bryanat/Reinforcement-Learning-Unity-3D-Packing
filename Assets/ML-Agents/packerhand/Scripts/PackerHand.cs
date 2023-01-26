@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
@@ -9,13 +11,11 @@ using Unity.MLAgentsExamples;
 using Unity.MLAgents.Policies;
 using Box = Boxes.Box;
 using Boxes;
-using System.Collections;
-using System.Linq;
 
 public class PackerHand : Agent 
 {
-    int m_Configuration;  // Depending on this value, different curriculum will be picked
-    int m_config; // local reference of the above
+    int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
+    int curriculum_ConfigurationLocal; // local reference of the above
 
     public NNModel unitBoxBrain;   // Brain to use when all boxes are 1 by 1 by 1
     public NNModel similarBoxBrain;     // Brain to use when boxes are of similar sizes
@@ -71,6 +71,7 @@ public class PackerHand : Agent
     [HideInInspector] public bool isRotationSelected;
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isDroppedoff;
+    [HideInInspector] public bool isStateReset;
     public bool isBottomMeshCombined;
     public bool isSideMeshCombined;
     public bool isBackMeshCombined;
@@ -89,8 +90,6 @@ public class PackerHand : Agent
 
     public override void Initialize()
     {   
-
-
         initialAgentPosition = this.transform.position;
 
         Debug.Log($"BOX SPAWNER IS {boxSpawner}");
@@ -124,15 +123,14 @@ public class PackerHand : Agent
 
     public override void OnEpisodeBegin()
     {   
-
         Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
 
-       // Picks which curriculum to train
+        // Picks which curriculum to train
         // for now 1 is for unit boxes/mini bin, 2 is for similar sized boxes/regular bin, 3 is for regular boxes/regular bin
-        // m_Configuration = 0;
+        // curriculum_Configuration = 0;
         // m_config = 0;
-        m_Configuration = 2;
-        m_config = 2;
+        curriculum_ConfigurationGlobal = 2;
+        curriculum_ConfigurationLocal = 2; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
 
         Renderer [] renderers = binArea.GetComponentsInChildren<Renderer>();
         areaBounds = renderers[0].bounds;
@@ -157,17 +155,15 @@ public class PackerHand : Agent
             
         }
 
-
         // Make agent unaffected by collision
         var m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
-
-        selectedVertex = new Vector3(8.25f, 0.50f, 10.50f);
-        isVertexSelected = true;
-
         // Reset agent and rewards
         SetResetParameters();
+
+        selectedVertex = new Vector3(8.25f, 0.50f, 10.50f); // refactor to select first vertex
+        isVertexSelected = true;
     }
 
 
@@ -177,23 +173,30 @@ public class PackerHand : Agent
     public override void CollectObservations(VectorSensor sensor) 
     {
         /////once the box combines with the bin, we should also add bin bounds and bin volumne to observation
-        if (m_config==0) 
+        if (curriculum_ConfigurationLocal==0) 
         {
             // Add Bin size
             //sensor.AddObservation(binArea.transform.localScale);
         }
+
         else 
         {
             // Add Bin size
             sensor.AddObservation(binArea.transform.localScale);
         }
 
+        // array of all boxes
         foreach (var box in boxPool) 
         {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
             // sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
         }
 
+        // // array of vertices
+        // sensor.AddObservation(verticesArray); //add vertices to sensor observations
+
+        // // array of blackboxes 
+        // sensor.AddObservation(blackboxesArray); //add vertices to sensor observations
     }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
@@ -228,19 +231,23 @@ public class PackerHand : Agent
     void FixedUpdate() 
     {
         // Initialize curriculum and brain
-        if (m_Configuration != -1)
+        if (curriculum_ConfigurationGlobal != -1)
         {
-            ConfigureAgent(m_Configuration);
-            m_Configuration = -1;
+            ConfigureAgent(curriculum_ConfigurationGlobal);
+            curriculum_ConfigurationGlobal = -1;
         }
+
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection
-        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && targetBox!=null) {
+        // if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && targetBox!=null) {
+        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
+        {
             StateReset();
             UpdateTriPoints();
             UpdateBinVolume();
             UpdateVertices();
             UpdateBlackBox();
         }
+
         // if agent selects a box, it should move towards the box
         else if (isBoxSelected && isPickedup == false) 
         {
@@ -249,6 +256,7 @@ public class PackerHand : Agent
                 PickupBox();
             }
         }
+
         //if agent is carrying a box it should move towards the selected position
         else if (isPickedup && isRotationSelected && isDroppedoff == false) 
         {
@@ -260,12 +268,14 @@ public class PackerHand : Agent
                 DropoffBox();
             }
         }
+
         //if agent drops off the box, it should pick another one
         else if (isBoxSelected==false) 
         {
             AgentReset();
         }
-        else {return;}
+
+        else { return;}
     }
     
 
@@ -464,7 +474,7 @@ public class PackerHand : Agent
     public void SelectBox(int n) 
     {
         // Check if a box has already been selected
-        if (!Box.organizedBoxes.Contains(n)) 
+        if (!Box.organizedBoxes.Contains(n))
         {
             boxIdx = n;
             Debug.Log($"SELECTED BOX: {boxIdx}");
@@ -478,7 +488,7 @@ public class PackerHand : Agent
 
     public void UpdateBinVolume() {
         // Update bin volume
-        if (m_config==0) 
+        if (curriculum_ConfigurationLocal==0) 
         {
             // miniBinVolume = miniBinVolume - carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
             //  Debug.Log($"MINI BIN VOLUME IS {miniBinVolume}");
@@ -686,6 +696,7 @@ public class PackerHand : Agent
         isBackMeshCombined = false;
         isBottomMeshCombined = false;
         isSideMeshCombined = false;
+        isStateReset = false; // should be refactored into a end state reset function with isBlankMeshCombined's
 
         Debug.Log("PDB end of PickupBox()");
     }
@@ -763,7 +774,7 @@ public class PackerHand : Agent
         isDroppedoff = false;
         targetBin = null;
         targetBox = null;
-
+        isStateReset = true;
     }
 
 
