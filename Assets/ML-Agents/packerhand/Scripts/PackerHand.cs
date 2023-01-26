@@ -52,7 +52,6 @@ public class PackerHand : Agent
     
     // public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
 
-
     public Bounds areaBounds; // regular bin's bounds
 
     //public Bounds miniBounds; // mini bin's bounds
@@ -91,8 +90,6 @@ public class PackerHand : Agent
     public override void Initialize()
     {   
         initialAgentPosition = this.transform.position;
-
-        Debug.Log($"BOX SPAWNER IS {boxSpawner}");
 
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>(); 
@@ -139,7 +136,6 @@ public class PackerHand : Agent
 
         Debug.Log($"BIN BOUNDS: {areaBounds}");
 
-
         // Get total bin volume from onstart
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
         //miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
@@ -147,7 +143,8 @@ public class PackerHand : Agent
         Debug.Log($" BIN VOLUME: {binVolume}");
 
         CombineMesh [] meshScripts = binArea.GetComponentsInChildren<CombineMesh>();
-        foreach (CombineMesh meshScript in meshScripts) {
+        foreach (CombineMesh meshScript in meshScripts) 
+        {
             meshScript.agent = this;
             binBottom = meshScript.binBottom;
             binBack = meshScript.binBack;       
@@ -207,17 +204,19 @@ public class PackerHand : Agent
         var discreteActions = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
 
-
-        if (isBlackboxUpdated && isVertexSelected == false) {
+        if (isBlackboxUpdated && isVertexSelected == false) 
+        {
             //SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
             SelectVertex(); 
         }
 
-        if (isVertexSelected && isBoxSelected==false) {
+        if (isVertexSelected && isBoxSelected==false) 
+        {
             SelectBox(discreteActions[++j]); 
         }
 
-        if (isPickedup && isRotationSelected==false) {
+        if (isPickedup && isRotationSelected==false) 
+        {
             j = 0; // set discrete actions incrementor to 0 in case the SelectBox if loop isnt triggered 
             SelectRotation(discreteActions[++j]);
         }
@@ -238,7 +237,7 @@ public class PackerHand : Agent
         }
 
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection
-        // if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && targetBox!=null) {
+        // if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && targetBox!=null) 
         if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
         {
             StateReset();
@@ -252,7 +251,8 @@ public class PackerHand : Agent
         else if (isBoxSelected && isPickedup == false) 
         {
             UpdateAgentPosition(targetBox);
-            if ( Math.Abs(total_x_distance) < 0.1f && Math.Abs(total_z_distance) < 0.1f ) {
+            if ( Math.Abs(total_x_distance) < 0.1f && Math.Abs(total_z_distance) < 0.1f ) 
+            {
                 PickupBox();
             }
         }
@@ -264,7 +264,8 @@ public class PackerHand : Agent
             UpdateAgentPosition(targetBin);
             UpdateCarriedObject();
             //if agent is close enough to the position, it should drop off the box
-            if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) {
+            if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
+            {
                 DropoffBox();
             }
         }
@@ -315,7 +316,8 @@ public class PackerHand : Agent
     /// <summary>
     /// Updates the vertices every time a new mesh is created
     ///</summary>
-    void UpdateVertices() {
+    void UpdateVertices() 
+    {
         ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
         //Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
         allVerticesDictionary.Clear();
@@ -331,36 +333,42 @@ public class PackerHand : Agent
 
     }
 
-     /// <summary>
+    /// <summary>
     /// For every mesh, add each unique vertex to a mesh list and a counter dictionary
     ///</summary>
-    void AddVertices(Vector3 [] vertices, List<Vector3> verticesList) {
+    void AddVertices(Vector3 [] vertices, List<Vector3> verticesList) 
+    {
         Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
         var tempHashSet = new HashSet<Vector3>();
         // rounding part
-        foreach (Vector3 vertex in vertices) {
+        foreach (Vector3 vertex in vertices) 
+        {
             // first address vertices that are meant to be the same by rounding
             var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 2)), (float)(Math.Round(vertex.y, 2)), (float)(Math.Round(vertex.z, 2)));
             // remove duplicates by using a hash set
             tempHashSet.Add(roundedVertex);
         }
         // localtoworld part
-        foreach (Vector3 vertex in tempHashSet) {
+        foreach (Vector3 vertex in tempHashSet) 
+        {
             // convert local scale to world position
             Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
             verticesList.Add(worldVertex);
             // Add to a counter dictionary to check for intersection
             // reduce stage: vertex is key, value is int number which gets increased for each vertex
-            if (allVerticesDictionary.ContainsKey(worldVertex)) {
+            if (allVerticesDictionary.ContainsKey(worldVertex)) 
+            {
                 allVerticesDictionary[worldVertex] ++;
             }
-            else {
+            else 
+            {
                 allVerticesDictionary.Add(worldVertex, 1);
             }
         }
     }
 
-    void UpdateTriPoints() {
+    void UpdateTriPoints() 
+    {
         selectedVertices.Clear();
         Vector3 V1= new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z);
         Vector3 V2 = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
@@ -378,12 +386,12 @@ public class PackerHand : Agent
     }
 
 
-    public void UpdateBlackBox() {
+    public void UpdateBlackBox() 
+    {
+        Debug.Log($"UBX Update BlackboX running");
 
-        Debug.Log($"BBX runnnnnnningggggggggg");
-
-        foreach (Vector3 vertex in selectedVertices) {
-
+        foreach (Vector3 vertex in selectedVertices) 
+        {
             //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
             Vector3 closest_x_vertex = backMeshVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
             vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
@@ -416,31 +424,32 @@ public class PackerHand : Agent
     }
 
 
-    public void SelectVertex() {
+    public void SelectVertex() 
+    {
         //// selectedVertex = math.max(allVertices)
-        foreach(Vector3 vertex in selectedVertices) {
+        foreach(Vector3 vertex in selectedVertices) 
+        {
             ///// right now it's returning the first vertex where all 3 meshes intersect
-            //return vertex.Key;
             selectedVertex = vertex; 
-            Debug.Log($"VVV SELECTED VERTEX IS {selectedVertex}");
+            Debug.Log($"SVX Selected VerteX is selectedVertex: {selectedVertex}");
             // selectedVertex = intersectingVertices[0]; // debug statement do not keep (final need something like: selectedVertex = vertex; )
         }
-
         isVertexSelected = true;
     }
 
-    public void UpdateBoxPosition() {
-            // Packerhand.cs  : deals parent box : position (math)
-            // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
-        
-        if (targetBin==null) {
+    public void UpdateBoxPosition() 
+    {
+        // Packerhand.cs  : deals parent box : position (math)
+        // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
+
+        if (targetBin==null) 
+        {
             targetBin  = new GameObject().transform;
 
             //D: select position from A+B
-            // 1: rotate (reduce to 6) => carriedObject.transform.localRotation => Vector3(x,y,z)
-            // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
-            // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
-            // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
+            // 1: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
+            // 2: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
+            // 3: position: (1+2=3) = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
 
             float magnitudeX = boxWorldScale.x * 0.5f; 
             float magnitudeY = boxWorldScale.y * 0.5f; 
@@ -457,15 +466,11 @@ public class PackerHand : Agent
                 
             // 3: Calc Position
             Vector3 position = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
-            Debug.Log($"SVT pos selectedPosition: {position}");
+            Debug.Log($"UVP Updated Vertex Position position: {position}");
 
             targetBin.position = position;
-
         }
-
-
     }
-
 
 
     /// <summary>
@@ -477,7 +482,7 @@ public class PackerHand : Agent
         if (!Box.organizedBoxes.Contains(n))
         {
             boxIdx = n;
-            Debug.Log($"SELECTED BOX: {boxIdx}");
+            Debug.Log($"Selected Box boxIdx: {boxIdx}");
             targetBox = boxPool[boxIdx].rb.transform;
             // Add box to list so it won't be selected again
             Box.organizedBoxes.Add(boxIdx);
@@ -486,7 +491,8 @@ public class PackerHand : Agent
     }
 
 
-    public void UpdateBinVolume() {
+    public void UpdateBinVolume() 
+    {
         // Update bin volume
         if (curriculum_ConfigurationLocal==0) 
         {
@@ -496,7 +502,7 @@ public class PackerHand : Agent
         else 
         {
             binVolume = binVolume-carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
-            Debug.Log($"REGULAR BIN VOLUME IS {binVolume}");
+            Debug.Log($"RBV Regular Bin Volume is binVolume: {binVolume}");
         }
         
     }
@@ -510,18 +516,20 @@ public class PackerHand : Agent
         var childrenList = carriedObject.GetComponentsInChildren<Transform>();
         boxWorldScale = carriedObject.localScale;
         Debug.Log($"ROTATION SELECTED IS : {action}");
-        if (action == 0 ) {
+        if (action == 0 ) 
+        {
             rotation = new Vector3(0, 0, 0);
             foreach (Transform child in childrenList)
             {
                 child.tag = "pickupbox";
             }      
         }  
-        else if (action==1) {
+        else if (action==1) 
+        {
             Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             rotation = new Vector3(90, 0, 0);
-            boxWorldScale = new Vector3(boxWorldScale[0], boxWorldScale[2], boxWorldScale[1]);
-            foreach (Transform child in childrenList)
+            boxWorldScale = new Vector3(boxWorldScale[0], boxWorldScale[2], boxWorldScale[1]); // actual rotation of object transform
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
                 if (child.name=="bottom") 
@@ -543,11 +551,12 @@ public class PackerHand : Agent
                 }
             }
         }
-        else if (action==2) {
+        else if (action==2) 
+        {
             Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             rotation = new Vector3(0, 90, 0);
-            boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[1], boxWorldScale[0]);
-            foreach (Transform child in childrenList)
+            boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[1], boxWorldScale[0]); // actual rotation of object transform
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
                 if (child.name=="left") 
@@ -569,11 +578,12 @@ public class PackerHand : Agent
                 }
             }        
         }
-        else if (action==3) {
+        else if (action==3) 
+        {
             Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             rotation = new Vector3(0, 0, 90);
-            boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[0], boxWorldScale[2]);
-            foreach (Transform child in childrenList)
+            boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[0], boxWorldScale[2]); // actual rotation of object transform
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
                 if (child.name=="left") 
@@ -595,11 +605,12 @@ public class PackerHand : Agent
                 }
             }
         }
-        else if (action==4 ) {
+        else if (action==4 ) 
+        {
             Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
-            rotation = new Vector3(0, 90, 90 );
-            boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[0], boxWorldScale[1]);
-            foreach (Transform child in childrenList)
+            rotation = new Vector3(0, 90, 90 ); 
+            boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[0], boxWorldScale[1]); // actual rotation of object transform
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
                 if (child.name=="left") 
@@ -629,11 +640,12 @@ public class PackerHand : Agent
                 }
             }      
         }
-         else {
+        else 
+        {
             Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             rotation = new Vector3(90, 0, 90);
-            boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[2], boxWorldScale[0]);
-            foreach (Transform child in childrenList)
+            boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[2], boxWorldScale[0]); // actual rotation of object transform
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
                 if (child.name=="left") 
@@ -664,8 +676,8 @@ public class PackerHand : Agent
         }
 
         // /////// NOTE: No Vector3(90, 90, 90) or Vector3(90, 90, 0) rotations as
-        //         // Vector3(90, 90, 90) == Vector3(90, 0, 0) == xzy
-        //         // Vector3(90, 90, 0)  == Vector3(90, 0, 90) == yzx 
+        //               // Vector3(90, 90, 90) == Vector3(90, 0, 0) == xzy
+        //               // Vector3(90, 90, 0)  == Vector3(90, 0, 90) == yzx 
 
         Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
         isRotationSelected = true;
@@ -680,8 +692,7 @@ public class PackerHand : Agent
         // Change carriedObject to target
         carriedObject = targetBox.transform;
             
-        // Attach carriedObject to agent
-        //carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
+        // Attach carriedObject (the box) as a child of the agent parent, effectively attaching the box's movement to the agent's movement  
         carriedObject.parent = this.transform;
 
         isPickedup = true;
@@ -707,24 +718,22 @@ public class PackerHand : Agent
     /// </summary>
     public void DropoffBox() 
     {
-
-        // Detach box from agent
+        // Detach box from agent, preventing the placed box from moving again when the agent moves to pickup a new box 
         carriedObject.SetParent(null);
 
-        //var m_c = carriedObject.GetComponent<Collider>();
         Collider [] m_cList = carriedObject.GetComponentsInChildren<Collider>();
 
         // Lock box position and location
         ///////////////////////COLLISION/////////////////////////
         carriedObject.position = targetBin.position; // COLLISION OCCURS IMMEDIATELY AFTER SET POSITION OCCURS
         ///////////////////////COLLISION/////////////////////////
-         carriedObject.rotation = Quaternion.Euler(rotation);
-        //carriedObject.Rotate(rotation[0], rotation[1], rotation[2], Space.World);
-        // m_rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
 
+        carriedObject.rotation = Quaternion.Euler(rotation);
+        // carriedObject.Rotate(rotation[0], rotation[1], rotation[2], Space.World);
+        // dont need to freeze position on the rigidbody anymore because instead we just remove the rigidbody, preventing movement from collisions
 
-
-        foreach (Collider m_c in m_cList) {
+        foreach (Collider m_c in m_cList) 
+        {
             m_c.isTrigger = false;
             // m_c.gameObject.tag = "droppedoff";
         }
@@ -732,7 +741,6 @@ public class PackerHand : Agent
         isDroppedoff = true;
 
         Debug.Log($"PDB Box(): end of droppedoff function");
-
     }
 
 
@@ -817,7 +825,6 @@ public class PackerHand : Agent
             discreteActionsOut[3] = 2;
         }
     }
-
 
 
     public void SetResetParameters()
