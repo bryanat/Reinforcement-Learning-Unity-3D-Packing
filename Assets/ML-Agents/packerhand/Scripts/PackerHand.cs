@@ -55,10 +55,10 @@ public class PackerHand : Agent
 
     public Bounds areaBounds; // regular bin's bounds
 
-    public Bounds miniBounds; // mini bin's bounds
+    //public Bounds miniBounds; // mini bin's bounds
 
     public float binVolume; // regular bin's volume
-    public float miniBinVolume; // mini bin's volume
+    //public float miniBinVolume; // mini bin's volume
 
     EnvironmentParameters m_ResetParams; // Environment parameters
     public BoxSpawner boxSpawner; // Box Spawner
@@ -78,13 +78,9 @@ public class PackerHand : Agent
     public List<Box> boxPool;
     public GameObject binBottom;
     public GameObject binBack;
-
     public GameObject binSide;
 
     public Vector3 boxWorldScale;
-
-
-    public float debugnum;
 
     public Material clearPlastic;
 
@@ -94,7 +90,6 @@ public class PackerHand : Agent
     public override void Initialize()
     {   
 
-        debugnum = 0f;
 
         initialAgentPosition = this.transform.position;
 
@@ -139,8 +134,8 @@ public class PackerHand : Agent
         m_Configuration = 2;
         m_config = 2;
 
-        var renderers = binArea.GetComponentsInChildren<Renderer>();
-        var areaBounds = renderers[0].bounds;
+        Renderer [] renderers = binArea.GetComponentsInChildren<Renderer>();
+        areaBounds = renderers[0].bounds;
         for (var i = 1; i < renderers.Length; ++i)
             areaBounds.Encapsulate(renderers[i].bounds);
 
