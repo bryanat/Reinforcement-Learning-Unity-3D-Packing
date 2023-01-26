@@ -73,7 +73,7 @@ public class PackerHand : Agent
 
     public Dictionary<Vector3, int > allVertices;
 
-    public List<Vector3> selectedVertices;
+    public List<Vector3> selectedVertices = new List<Vector3>();
 
     public List<GameObject> blackbox_list; 
     public Vector3 boxWorldScale;
@@ -83,6 +83,8 @@ public class PackerHand : Agent
 
     public Material clearPlastic;
 
+    public Vector3 selectedVertex;
+    public List<Vector3> allSelectedVertices;
 
 
     public override void Initialize()
@@ -159,8 +161,10 @@ public class PackerHand : Agent
         // Get vertices of the bin
         UpdateVertices();
 
+        selectedVertex = new Vector3(8.25f, 0.50f, 10.50f);
+
         // // Find all intersecting vertices
-        FindIntersectingVertices();
+        //FindIntersectingVertices();
 
         // // Create black box 
         //CreateBlackBox();
@@ -235,8 +239,8 @@ public class PackerHand : Agent
         }
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection
         if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isBoxSelected && isPickedup) {
+            FindTriPoints();
             UpdateVertices();
-            FindIntersectingVertices();
             CreateBlackBox();
             StateReset();
         }
@@ -363,30 +367,46 @@ public class PackerHand : Agent
         }
     }
 
-    void FindIntersectingVertices() {
-        // Put all intersecting vertices into a hash set
-        List<Vector3> intersectingVertices = new List<Vector3>();
-        foreach(KeyValuePair<Vector3, int> vertex in allVertices) {
-            if (vertex.Value == 3) {
-                intersectingVertices.Add(vertex.Key);
-            }
-        }
-        Debug.Log($"NNN NUMBER OF INTERSECTING VERTICES IS {intersectingVertices.Count()}");
-
-        selectedVertices = new List<Vector3>();
-        // Get the corner vertices that we care about and 
-
-        // first vertex: lowest x, lowest y, highest z
-        var V1 = intersectingVertices.OrderByDescending(v => v[2]).ThenBy(v=> v[1]).ThenBy(v=>v[0]).ToList()[0];
+    void FindTriPoints() {
+        selectedVertices.Clear();
+        Vector3 V1= new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z);
+        Vector3 V2 = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
+        Vector3 V3 = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
         selectedVertices.Add(V1);
-        // second vertex: lowest x, highest y, lowest z
-        var V2 = intersectingVertices.OrderByDescending(v => v[1]).ThenBy(v=> v[2]).ThenBy(v=>v[0]).ToList()[0];
         selectedVertices.Add(V2);
-        // third vertex: highest x, lowest y, lowest z
-        var V3 = intersectingVertices.OrderByDescending(v => v[0]).ThenBy(v=> v[1]).ThenBy(v=>v[2]).ToList()[0];
         selectedVertices.Add(V3);
-
+        allSelectedVertices.Add(V1);
+        allSelectedVertices.Add(V2);
+        allSelectedVertices.Add(V3);
+        Debug.Log($"SSV Selected Vertices :{selectedVertices[0]}");
+        Debug.Log($"SSV Selected Vertices :{selectedVertices[1]}");
+        Debug.Log($"SSV Selected Vertices :{selectedVertices[2]}");
     }
+
+    // void FindIntersectingVertices() {
+    //     // Put all intersecting vertices into a hash set
+    //     List<Vector3> intersectingVertices = new List<Vector3>();
+    //     foreach(KeyValuePair<Vector3, int> vertex in allVertices) {
+    //         if (vertex.Value == 3) {
+    //             intersectingVertices.Add(vertex.Key);
+    //         }
+    //     }
+    // }
+
+    //     selectedVertices = new List<Vector3>();
+    //     // Get the corner vertices that we care about and 
+
+    //     // first vertex: lowest x, lowest y, highest z
+    //     Vector3 V1 = intersectingVertices.OrderByDescending(v => v[2]).ThenBy(v=> v[1]).ThenBy(v=>v[0]).ToList()[0];
+    //     selectedVertices.Add(V1);
+    //     // second vertex: lowest x, highest y, lowest z
+    //     Vector3 V2 = intersectingVertices.OrderByDescending(v => v[1]).ThenBy(v=> v[2]).ThenBy(v=>v[0]).ToList()[0];
+    //     selectedVertices.Add(V2);
+    //     // third vertex: highest x, lowest y, lowest z
+    //     Vector3 V3 = intersectingVertices.OrderByDescending(v => v[0]).ThenBy(v=> v[1]).ThenBy(v=>v[2]).ToList()[0];
+    //     selectedVertices.Add(V3);
+
+    // }
 
     public void CreateBlackBox() {
 
@@ -422,23 +442,22 @@ public class PackerHand : Agent
 
             blackbox_list.Add(blackbox);
         }
-        // need to get the smallest off the blackbox list
+
+        SelectVertex();
 
 
     }
 
 
-    public Vector3 SelectVertex() {
-        Vector3 selectedVertex = Vector3.zero;
+    public void SelectVertex() {
         //// selectedVertex = math.max(allVertices)
         foreach(Vector3 vertex in selectedVertices) {
             ///// right now it's returning the first vertex where all 3 meshes intersect
             //return vertex.Key;
             selectedVertex = vertex; 
+            Debug.Log($"VVV SELECTED VERTEX IS {selectedVertex}");
             // selectedVertex = intersectingVertices[0]; // debug statement do not keep (final need something like: selectedVertex = vertex; )
         }
-        return selectedVertex;
-        //return selectedVertices[2];
     }
 
     public void SelectPosition() {
@@ -467,7 +486,7 @@ public class PackerHand : Agent
         // var directionZ = blackbox.position.z > 0 : 1 : -1;
             
         // 3: Calc SelectedPosition
-        var selectedVertex = SelectVertex(); // Vector3(x,y,z)
+        //selectedVertex = SelectVertex(); // Vector3(x,y,z)
         Debug.Log($"SVT ver selectedVertex: {selectedVertex}");
 
         Vector3 selectedPosition = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
@@ -480,7 +499,8 @@ public class PackerHand : Agent
         // first left corner position should be: (8.75f, 1.00f, 11.00f)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
 
-        isPositionSelected = true;   
+        isPositionSelected = true; 
+
 
     }
 
