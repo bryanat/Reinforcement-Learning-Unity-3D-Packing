@@ -1175,6 +1175,11 @@ PrefabInstance:
       propertyPath: boxSpawner
       value: 
       objectReference: {fileID: 4405564776043660150}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      propertyPath: clearPlastic
+      value: 
+      objectReference: {fileID: 2100000, guid: ec99cc74da6543b459e71a51834b037d, type: 2}
     m_RemovedComponents:
     - {fileID: 2674329426616174709, guid: 2f2c1469c0f2c8453ab01d6d68f6526f, type: 3}
     m_RemovedGameObjects: []

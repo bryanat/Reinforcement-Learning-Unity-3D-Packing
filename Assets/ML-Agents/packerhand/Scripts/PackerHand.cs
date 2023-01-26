@@ -27,7 +27,7 @@ public class PackerHand : Agent
 
     public GameObject binArea; // The bin container, which will be manually selected in the Inspector
 
-    public GameObject binMini; // The mini bin container, used for lower lessons of Curriculum learning
+    //public GameObject binMini; // The mini bin container, used for lower lessons of Curriculum learning
 
     Rigidbody m_Agent; //cache agent rigidbody on initilization
 
@@ -35,7 +35,16 @@ public class PackerHand : Agent
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
+    public int boxIdx; // box selected from box pool
     public Vector3 rotation; // Rotation of box inside bin
+    public Vector3 selectedVertex; // Vertex of box inside bin
+
+    public List<Vector3> selectedVertices = new List<Vector3>();
+    public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
+    public List<Vector3> backMeshVertices = new List<Vector3>();
+    public List<Vector3> sideMeshVertices = new List<Vector3>();
+    public List<Vector3> bottomMeshVertices = new List<Vector3>();
+    public List<GameObject> blackbox_list; 
 
     public float total_x_distance; //total x distance between agent and target
     public float total_y_distance; //total y distance between agent and target
@@ -43,7 +52,6 @@ public class PackerHand : Agent
     
     // public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
 
-    public int boxIdx; // box selected from box pool
 
     public Bounds areaBounds; // regular bin's bounds
 
@@ -57,10 +65,11 @@ public class PackerHand : Agent
 
     [HideInInspector] public Vector3 initialAgentPosition;
 
-    [HideInInspector] public bool isPositionSelected;
+    [HideInInspector] public bool isBlackboxUpdated;
+    [HideInInspector] public bool isVertexSelected;
+    [HideInInspector] public bool isBoxSelected;
     [HideInInspector] public bool isRotationSelected;
     [HideInInspector] public bool isPickedup;
-    [HideInInspector] public bool isBoxSelected;
     [HideInInspector] public bool isDroppedoff;
     public bool isBottomMeshCombined;
     public bool isSideMeshCombined;
@@ -72,14 +81,6 @@ public class PackerHand : Agent
 
     public GameObject binSide;
 
-    public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
-    public List<Vector3> backMeshVertices = new List<Vector3>();
-    public List<Vector3> sideMeshVertices = new List<Vector3>();
-    public List<Vector3> bottomMeshVertices = new List<Vector3>();
-    
-    public List<Vector3> selectedVertices = new List<Vector3>();
-
-    public List<GameObject> blackbox_list; 
     public Vector3 boxWorldScale;
 
 
@@ -87,7 +88,6 @@ public class PackerHand : Agent
 
     public Material clearPlastic;
 
-    public Vector3 selectedVertex;
     public List<Vector3> allSelectedVertices;
 
 
@@ -169,7 +169,7 @@ public class PackerHand : Agent
 
 
         selectedVertex = new Vector3(8.25f, 0.50f, 10.50f);
-
+        isVertexSelected = true;
 
         // Reset agent and rewards
         SetResetParameters();
@@ -209,7 +209,13 @@ public class PackerHand : Agent
         var discreteActions = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
 
-        if (isBoxSelected==false) {
+
+        if (isBlackboxUpdated && isVertexSelected == false) {
+            //SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+            SelectVertex(); 
+        }
+
+        if (isVertexSelected && isBoxSelected==false) {
             SelectBox(discreteActions[++j]); 
         }
 
@@ -217,14 +223,8 @@ public class PackerHand : Agent
             j = 0; // set discrete actions incrementor to 0 in case the SelectBox if loop isnt triggered 
             SelectRotation(discreteActions[++j]);
         }
+    }
 
-
-        // should select position still be in here???//////
-        if (isPickedup && isPositionSelected==false) {
-            //SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
-            SelectPosition(); // add selecting vertex to SelectPosition() 
-        }
-    } 
 
 
     /// <summary>
@@ -239,11 +239,12 @@ public class PackerHand : Agent
             m_Configuration = -1;
         }
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection
-        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isBoxSelected && isPickedup) {
-            FindTriPoints();
-            UpdateVertices();
-            CreateBlackBox();
+        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && targetBox!=null) {
             StateReset();
+            UpdateTriPoints();
+            UpdateBinVolume();
+            UpdateVertices();
+            UpdateBlackBox();
         }
         // if agent selects a box, it should move towards the box
         else if (isBoxSelected && isPickedup == false) 
@@ -254,17 +255,15 @@ public class PackerHand : Agent
             }
         }
         //if agent is carrying a box it should move towards the selected position
-        else if (isPickedup && isPositionSelected && isRotationSelected) 
+        else if (isPickedup && isRotationSelected && isDroppedoff == false) 
         {
+            UpdateBoxPosition();
             UpdateAgentPosition(targetBin);
             UpdateCarriedObject();
             //if agent is close enough to the position, it should drop off the box
-            // if (total_x_distance < 4f && total_z_distance<4f) {
-            // note this (based on < distance) results in DropoffBox being called many times
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) {
                 DropoffBox();
             }
-    
         }
         //if agent drops off the box, it should pick another one
         else if (isBoxSelected==false) 
@@ -317,10 +316,13 @@ public class PackerHand : Agent
         allVerticesDictionary.Clear();
         MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
         AddVertices(mf_back.mesh.vertices, backMeshVertices);
+        Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
         MeshFilter mf_bottom = binBottom.GetComponent<MeshFilter>();
         AddVertices(mf_bottom.mesh.vertices, bottomMeshVertices);
+        Debug.Log($"OOO BOTTOM MESH VERTICES COUNT IS {bottomMeshVertices.Count()}");
         MeshFilter mf_side = binSide.GetComponent<MeshFilter>();
         AddVertices(mf_side.mesh.vertices, sideMeshVertices);  
+        Debug.Log($"OOO SIDE MESH VERTICES COUNT IS {sideMeshVertices.Count()}");
 
     }
 
@@ -333,7 +335,7 @@ public class PackerHand : Agent
         // rounding part
         foreach (Vector3 vertex in vertices) {
             // first address vertices that are meant to be the same by rounding
-            var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 1)), (float)(Math.Round(vertex.y, 1)), (float)(Math.Round(vertex.z, 1)));
+            var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 2)), (float)(Math.Round(vertex.y, 2)), (float)(Math.Round(vertex.z, 2)));
             // remove duplicates by using a hash set
             tempHashSet.Add(roundedVertex);
         }
@@ -341,6 +343,7 @@ public class PackerHand : Agent
         foreach (Vector3 vertex in tempHashSet) {
             // convert local scale to world position
             Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
+            verticesList.Add(worldVertex);
             // Add to a counter dictionary to check for intersection
             // reduce stage: vertex is key, value is int number which gets increased for each vertex
             if (allVerticesDictionary.ContainsKey(worldVertex)) {
@@ -352,7 +355,7 @@ public class PackerHand : Agent
         }
     }
 
-    void FindTriPoints() {
+    void UpdateTriPoints() {
         selectedVertices.Clear();
         Vector3 V1= new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z);
         Vector3 V2 = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
@@ -370,7 +373,7 @@ public class PackerHand : Agent
     }
 
 
-    public void CreateBlackBox() {
+    public void UpdateBlackBox() {
 
         Debug.Log($"BBX runnnnnnningggggggggg");
 
@@ -404,10 +407,7 @@ public class PackerHand : Agent
 
             blackbox_list.Add(blackbox);
         }
-
-        SelectVertex();
-
-
+        isBlackboxUpdated = true;
     }
 
 
@@ -420,48 +420,43 @@ public class PackerHand : Agent
             Debug.Log($"VVV SELECTED VERTEX IS {selectedVertex}");
             // selectedVertex = intersectingVertices[0]; // debug statement do not keep (final need something like: selectedVertex = vertex; )
         }
+
+        isVertexSelected = true;
     }
 
-    public void SelectPosition() {
-        targetBin  = new GameObject().transform;
+    public void UpdateBoxPosition() {
+            // Packerhand.cs  : deals parent box : position (math)
+            // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
+        
+        if (targetBin==null) {
+            targetBin  = new GameObject().transform;
 
-        // Packerhand.cs  : deals parent box : position (math)
-        // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
-    
-    //D: select position from A+B
-        // 1: rotate (reduce to 6) => carriedObject.transform.localRotation => Vector3(x,y,z)
-        // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
-        // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
-        // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
+            //D: select position from A+B
+            // 1: rotate (reduce to 6) => carriedObject.transform.localRotation => Vector3(x,y,z)
+            // 2: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
+            // 3: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
+            // 4: 1+2+3: selectedPosition = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
 
-        float magnitudeX = boxWorldScale.x * 0.5f; 
-        float magnitudeY = boxWorldScale.y * 0.5f; 
-        float magnitudeZ = boxWorldScale.z * 0.5f; 
+            float magnitudeX = boxWorldScale.x * 0.5f; 
+            float magnitudeY = boxWorldScale.y * 0.5f; 
+            float magnitudeZ = boxWorldScale.z * 0.5f; 
 
-        // 2: Direction
-        int directionX = 1; 
-        int directionY = 1;
-        int directionZ = 1;
+            // 2: Direction
+            int directionX = 1; 
+            int directionY = 1;
+            int directionZ = 1;
 
-        // var directionX = blackbox.position.x > 0 : 1 : -1; 
-        // var directionY = blackbox.position.y > 0 : 1 : -1;
-        // var directionZ = blackbox.position.z > 0 : 1 : -1;
-            
-        // 3: Calc SelectedPosition
-        //selectedVertex = SelectVertex(); // Vector3(x,y,z)
-        Debug.Log($"SVT ver selectedVertex: {selectedVertex}");
+            // var directionX = blackbox.position.x > 0 : 1 : -1; 
+            // var directionY = blackbox.position.y > 0 : 1 : -1;
+            // var directionZ = blackbox.position.z > 0 : 1 : -1;
+                
+            // 3: Calc Position
+            Vector3 position = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
+            Debug.Log($"SVT pos selectedPosition: {position}");
 
-        Vector3 selectedPosition = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
-        Debug.Log($"SVT pos selectedPosition: {selectedPosition}");
+            targetBin.position = position;
 
-
-        targetBin.position = selectedPosition;
-
-
-        // first left corner position should be: (8.75f, 1.00f, 11.00f)
-        Debug.Log($"SELECTED POSITION IS {targetBin.position}");
-
-        isPositionSelected = true; 
+        }
 
 
     }
@@ -684,10 +679,10 @@ public class PackerHand : Agent
         //carriedObject.SetParent(GameObject.FindWithTag("agent").transform, false);
         carriedObject.parent = this.transform;
 
-        Destroy(carriedObject.GetComponent<BoxCollider>());
-        Destroy(carriedObject.GetComponent<Rigidbody>());
-     
         isPickedup = true;
+
+        Destroy(carriedObject.GetComponent<BoxCollider>());
+        Destroy(carriedObject.GetComponent<Rigidbody>());   
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
         GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen = false;
@@ -728,6 +723,8 @@ public class PackerHand : Agent
             // m_c.gameObject.tag = "droppedoff";
         }
 
+        isDroppedoff = true;
+
         Debug.Log($"PDB Box(): end of droppedoff function");
 
     }
@@ -763,8 +760,9 @@ public class PackerHand : Agent
 
     public void StateReset() 
     {
+        isBlackboxUpdated = false;
+        isVertexSelected = false;
         isBoxSelected = false;
-        isPositionSelected = false;
         isRotationSelected = false;
         isPickedup = false;
         isDroppedoff = false;
