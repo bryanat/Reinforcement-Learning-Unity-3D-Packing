@@ -81,6 +81,8 @@ public class PackerHand : Agent
 
     public float debugnum;
 
+    public Material clearPlastic;
+
 
 
     public override void Initialize()
@@ -161,7 +163,7 @@ public class PackerHand : Agent
         FindIntersectingVertices();
 
         // // Create black box 
-        CreateBlackBox();
+        //CreateBlackBox();
 
 
         // Reset agent and rewards
@@ -342,7 +344,7 @@ public class PackerHand : Agent
         // rounding part
         foreach (Vector3 vertex in vertices) {
             // first address vertices that are meant to be the same by rounding
-            var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 3)), (float)(Math.Round(vertex.y, 3)), (float)(Math.Round(vertex.z, 3)));
+            var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 1)), (float)(Math.Round(vertex.y, 1)), (float)(Math.Round(vertex.z, 1)));
             // remove duplicates by using a hash set
             tempHashSet.Add(roundedVertex);
         }
@@ -372,7 +374,8 @@ public class PackerHand : Agent
         Debug.Log($"NNN NUMBER OF INTERSECTING VERTICES IS {intersectingVertices.Count()}");
 
         selectedVertices = new List<Vector3>();
-        // Get the 3 corner vertices that we care about and 
+        // Get the corner vertices that we care about and 
+
         // first vertex: lowest x, lowest y, highest z
         var V1 = intersectingVertices.OrderByDescending(v => v[2]).ThenBy(v=> v[1]).ThenBy(v=>v[0]).ToList()[0];
         selectedVertices.Add(V1);
@@ -415,7 +418,7 @@ public class PackerHand : Agent
             blackbox.transform.position = blackbox_position;
             blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
             Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
-            cubeRenderer.material.SetColor("_Color", Color.black);
+            cubeRenderer.material = clearPlastic;
 
             blackbox_list.Add(blackbox);
         }
@@ -472,11 +475,9 @@ public class PackerHand : Agent
 
 
         targetBin.position = selectedPosition;
-        // targetBin.position = new Vector3(8.75f+debugnum, 1.00f, 11.00f);
 
-        // debugnum = debugnum + 1f;
 
-        // first left corner position should be: (8.75f, 1.00f, 79.00f)
+        // first left corner position should be: (8.75f, 1.00f, 11.00f)
         Debug.Log($"SELECTED POSITION IS {targetBin.position}");
 
         isPositionSelected = true;   
