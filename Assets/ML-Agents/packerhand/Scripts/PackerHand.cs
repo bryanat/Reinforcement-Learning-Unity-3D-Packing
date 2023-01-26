@@ -67,9 +67,10 @@ public class PackerHand : Agent
     public bool isBackMeshCombined;
 
     public List<Box> boxPool;
-    public MeshFilter mf_back;
-    public MeshFilter mf_bottom;
-    public MeshFilter mf_side;
+    public GameObject binBottom;
+    public GameObject binBack;
+
+    public GameObject binSide;
 
     public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
     public List<Vector3> backMeshVertices = new List<Vector3>();
@@ -152,10 +153,15 @@ public class PackerHand : Agent
 
         Debug.Log($" BIN VOLUME: {binVolume}");
 
-        CombineMesh [] sensors = binArea.GetComponentsInChildren<CombineMesh>();
-        foreach (var sensor in sensors) {
-            sensor.agent = this;
+        CombineMesh [] meshScripts = binArea.GetComponentsInChildren<CombineMesh>();
+        foreach (CombineMesh meshScript in meshScripts) {
+            meshScript.agent = this;
+            binBottom = meshScript.binBottom;
+            binBack = meshScript.binBack;       
+            binSide = meshScript.binSide;
+            
         }
+
 
         // Make agent unaffected by collision
         var m_c = GetComponent<CapsuleCollider>();
@@ -307,30 +313,14 @@ public class PackerHand : Agent
     ///</summary>
     void UpdateVertices() {
         ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
-        Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
+        //Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
         allVerticesDictionary.Clear();
-        foreach(Transform binObject in binObjects) {
-            if (binObject.name == "BinIso20Back") {
-                mf_back = binObject.GetComponent<MeshFilter>();
-                // get unique set of back vertices
-                AddVertices(mf_back.mesh.vertices, backMeshVertices);
-                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BACK MESH LOOP IS {allVerticesDictionary.Count()}");
-                // backVertices.AddRange();
-
-            }
-            else if (binObject.name == "BinIso20Bottom") {
-                mf_bottom = binObject.GetComponent<MeshFilter>();
-                // get unique set of bottom vertices
-                AddVertices(mf_bottom.mesh.vertices, bottomMeshVertices);
-                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BOTTOM MESH LOOP IS {allVerticesDictionary.Count()}");
-            }
-            else if (binObject.name == "BinIso20Side") {
-                mf_side = binObject.GetComponent<MeshFilter>();
-                // get unique set of side vertices
-                AddVertices(mf_side.mesh.vertices, sideMeshVertices);    
-                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN SIDE MESH LOOP IS {allVerticesDictionary.Count()}");  
-            }
-        }
+        MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
+        AddVertices(mf_back.mesh.vertices, backMeshVertices);
+        MeshFilter mf_bottom = binBottom.GetComponent<MeshFilter>();
+        AddVertices(mf_bottom.mesh.vertices, bottomMeshVertices);
+        MeshFilter mf_side = binSide.GetComponent<MeshFilter>();
+        AddVertices(mf_side.mesh.vertices, sideMeshVertices);  
 
     }
 
@@ -370,6 +360,7 @@ public class PackerHand : Agent
         selectedVertices.Add(V1);
         selectedVertices.Add(V2);
         selectedVertices.Add(V3);
+        /// allSelectedVertices list is for visualization of all tri points with gizmos, will be deleted after black box is done
         allSelectedVertices.Add(V1);
         allSelectedVertices.Add(V2);
         allSelectedVertices.Add(V3);
@@ -378,30 +369,6 @@ public class PackerHand : Agent
         Debug.Log($"SSV Selected Vertices :{selectedVertices[2]}");
     }
 
-    // void FindIntersectingVertices() {
-    //     // Put all intersecting vertices into a hash set
-    //     List<Vector3> intersectingVertices = new List<Vector3>();
-    //     foreach(KeyValuePair<Vector3, int> vertex in allVertices) {
-    //         if (vertex.Value == 3) {
-    //             intersectingVertices.Add(vertex.Key);
-    //         }
-    //     }
-    // }
-
-    //     selectedVertices = new List<Vector3>();
-    //     // Get the corner vertices that we care about and 
-
-    //     // first vertex: lowest x, lowest y, highest z
-    //     Vector3 V1 = intersectingVertices.OrderByDescending(v => v[2]).ThenBy(v=> v[1]).ThenBy(v=>v[0]).ToList()[0];
-    //     selectedVertices.Add(V1);
-    //     // second vertex: lowest x, highest y, lowest z
-    //     Vector3 V2 = intersectingVertices.OrderByDescending(v => v[1]).ThenBy(v=> v[2]).ThenBy(v=>v[0]).ToList()[0];
-    //     selectedVertices.Add(V2);
-    //     // third vertex: highest x, lowest y, lowest z
-    //     Vector3 V3 = intersectingVertices.OrderByDescending(v => v[0]).ThenBy(v=> v[1]).ThenBy(v=>v[2]).ToList()[0];
-    //     selectedVertices.Add(V3);
-
-    // }
 
     public void CreateBlackBox() {
 
