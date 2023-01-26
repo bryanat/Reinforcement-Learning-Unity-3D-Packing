@@ -161,7 +161,7 @@ public class PackerHand : Agent
         FindIntersectingVertices();
 
         // // Create black box 
-        //CreateBlackBox();
+        CreateBlackBox();
 
 
         // Reset agent and rewards
@@ -215,7 +215,7 @@ public class PackerHand : Agent
         // should select position still be in here???//////
         if (isPickedup && isPositionSelected==false) {
             //SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
-            SelectPosition();
+            SelectPosition(); // add selecting vertex to SelectPosition() 
         }
     } 
 
@@ -235,7 +235,7 @@ public class PackerHand : Agent
         if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isBoxSelected && isPickedup) {
             UpdateVertices();
             FindIntersectingVertices();
-            //CreateBlackBox();
+            CreateBlackBox();
             StateReset();
         }
         // if agent selects a box, it should move towards the box
@@ -386,6 +386,8 @@ public class PackerHand : Agent
     }
 
     public void CreateBlackBox() {
+
+        Debug.Log($"BBX runnnnnnningggggggggg");
 
         foreach (Vector3 vertex in selectedVertices) {
 
