@@ -71,8 +71,11 @@ public class PackerHand : Agent
     public MeshFilter mf_bottom;
     public MeshFilter mf_side;
 
-    public Dictionary<Vector3, int > allVertices;
-
+    public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
+    public List<Vector3> backMeshVertices = new List<Vector3>();
+    public List<Vector3> sideMeshVertices = new List<Vector3>();
+    public List<Vector3> bottomMeshVertices = new List<Vector3>();
+    
     public List<Vector3> selectedVertices = new List<Vector3>();
 
     public List<GameObject> blackbox_list; 
@@ -158,16 +161,8 @@ public class PackerHand : Agent
         var m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
-        // Get vertices of the bin
-        UpdateVertices();
 
         selectedVertex = new Vector3(8.25f, 0.50f, 10.50f);
-
-        // // Find all intersecting vertices
-        //FindIntersectingVertices();
-
-        // // Create black box 
-        //CreateBlackBox();
 
 
         // Reset agent and rewards
@@ -310,39 +305,39 @@ public class PackerHand : Agent
     /// <summary>
     /// Updates the vertices every time a new mesh is created
     ///</summary>
-    public void UpdateVertices() {
+    void UpdateVertices() {
         ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
         Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
-        allVertices = new Dictionary<Vector3, int>();
+        allVerticesDictionary.Clear();
         foreach(Transform binObject in binObjects) {
             if (binObject.name == "BinIso20Back") {
                 mf_back = binObject.GetComponent<MeshFilter>();
                 // get unique set of back vertices
-                RoundAndLocalToWorld(mf_back.mesh.vertices);
-                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BACK MESH LOOP IS {allVertices.Count()}");
+                AddVertices(mf_back.mesh.vertices, backMeshVertices);
+                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BACK MESH LOOP IS {allVerticesDictionary.Count()}");
                 // backVertices.AddRange();
 
             }
             else if (binObject.name == "BinIso20Bottom") {
                 mf_bottom = binObject.GetComponent<MeshFilter>();
                 // get unique set of bottom vertices
-                RoundAndLocalToWorld(mf_bottom.mesh.vertices);
-                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BOTTOM MESH LOOP IS {allVertices.Count()}");
+                AddVertices(mf_bottom.mesh.vertices, bottomMeshVertices);
+                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN BOTTOM MESH LOOP IS {allVerticesDictionary.Count()}");
             }
             else if (binObject.name == "BinIso20Side") {
                 mf_side = binObject.GetComponent<MeshFilter>();
                 // get unique set of side vertices
-                RoundAndLocalToWorld(mf_side.mesh.vertices);    
-                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN SIDE MESH LOOP IS {allVertices.Count()}");  
+                AddVertices(mf_side.mesh.vertices, sideMeshVertices);    
+                Debug.Log($"EEE ALL VERTICES DICTIONARY COUNT IN SIDE MESH LOOP IS {allVerticesDictionary.Count()}");  
             }
         }
 
     }
 
      /// <summary>
-    /// For every mesh, add each unique vertex to a counter dictionary
+    /// For every mesh, add each unique vertex to a mesh list and a counter dictionary
     ///</summary>
-    void RoundAndLocalToWorld(Vector3 [] vertices) {
+    void AddVertices(Vector3 [] vertices, List<Vector3> verticesList) {
         Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
         var tempHashSet = new HashSet<Vector3>();
         // rounding part
@@ -358,11 +353,11 @@ public class PackerHand : Agent
             Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
             // Add to a counter dictionary to check for intersection
             // reduce stage: vertex is key, value is int number which gets increased for each vertex
-            if (allVertices.ContainsKey(worldVertex)) {
-                allVertices[worldVertex] ++;
+            if (allVerticesDictionary.ContainsKey(worldVertex)) {
+                allVerticesDictionary[worldVertex] ++;
             }
             else {
-                allVertices.Add(worldVertex, 1);
+                allVerticesDictionary.Add(worldVertex, 1);
             }
         }
     }
@@ -415,15 +410,15 @@ public class PackerHand : Agent
         foreach (Vector3 vertex in selectedVertices) {
 
             //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
-            Vector3 closest_x_vertex = allVertices.Keys.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
+            Vector3 closest_x_vertex = backMeshVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
             vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
             Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
 
-            Vector3 closest_y_vertex = allVertices.Keys.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
+            Vector3 closest_y_vertex = sideMeshVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
             vertex[1]<next[1] && Math.Abs(next[1]-vertex[1]) < Math.Abs(min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
             Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
 
-            Vector3 closest_z_vertex = allVertices.Keys.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
+            Vector3 closest_z_vertex = sideMeshVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
             vertex[2]<next[2] && Math.Abs(next[2]-vertex[2]) < Math.Abs(min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
             Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
 
