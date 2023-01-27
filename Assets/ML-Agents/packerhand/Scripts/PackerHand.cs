@@ -242,6 +242,14 @@ public class PackerHand : Agent
             curriculum_ConfigurationGlobal = -1;
         }
 
+        /////////////////////////////////
+        // end episode if a box falls to the floor: if( box.ContainsTag("droppedOff") == touching floor )
+        // // add a SensorFallenBox.cs component to Biniso20Bottom, that detects OnCollisionEnter a dropped box if( collision.gameObject.ContainsTag("droppedOff") ) { then agent.endEpisode}
+        // // add a shadow box (0, 1, 2) that is placed with physics and its rigidbody still on, to allow it to fall
+        // // // turn back on rigidbody in the destroyed components in pickupbox  Destroy(carriedObject.GetComponent<Rigidbody>());   
+        /////////////////////////////////
+        // also, prevent agent from selecting position 0,0,0
+
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection
         // if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && targetBox!=null) 
         if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
@@ -431,20 +439,9 @@ public class PackerHand : Agent
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
-            
-            Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex} | tripoints_list[idx]==selectedVertex: {tripoints_list[idx]==selectedVertex} ") ;
+            Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
             verticesArray[VertexCount] = tripoints_list[idx];
             VertexCount ++;
-
-            // find selectedVertex in verticesArray
-            // // remove consumed selectedVertex from verticesArray
-            // verticesArray[WUTT] = new Vector3(0, 0, 0);
-            // if (tripoints_list[idx]==selectedVertex) 
-            // {
-            //     tripoints_list.RemoveAt(idx); // removes from tripoint list
-                
-            // }
-
         }
     }
 
@@ -490,16 +487,30 @@ public class PackerHand : Agent
     public void SelectVertex(int vertexNum) 
     {
 
-        // randomly select a vertex right now, will be replaced by brain's action_SelectVertex 
-        int selectVertex = (int)Math.Round(UnityEngine.Random.Range(0f, 2*Box.organizedBoxes.Count())); // will be replaced by brain action_SelectVertex
-        // select random vertex from list of vertices
-        selectedVertex = verticesArray[selectVertex];
+        selectedVertex = verticesArray[vertexNum];
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        verticesArray[selectVertex] = new Vector3(0, 0, 0);
-
-        //Debug.Log($"SVL SELECTED VERTEX NUMBER IS {vertexNum}");
+        verticesArray[vertexNum] = new Vector3(0, 0, 0);
         // selectedVertex = verticesArray[vertexNum];
          Debug.Log($"SVL Selected Vertex: {selectedVertex}");
+
+        // // DONT SELECT 0's from actionBuffer ~ punish? just give negative reward and force to repick?
+        // if (verticesArray[vertexNum] == new Vector3(0, 0, 0)
+        // {
+        //     // give negative reward
+        //     // isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
+        //     // return; // to end function call
+        // }
+
+        int ixc = 0;
+        foreach ( var vertex in verticesArray){
+            Debug.Log($"SVL {ixc} vertex is: {vertex}");
+            ixc = ixc + 1;
+        }
+
+        // // randomly select a vertex right now, will be replaced by brain's action_SelectVertex 
+        // int selectVertex = (int)Math.Round(UnityEngine.Random.Range(0f, 2*Box.organizedBoxes.Count())); // will be replaced by brain action_SelectVertex
+        // // select random vertex from list of vertices
+        // selectedVertex = verticesArray[selectVertex];
 
         isVertexSelected = true;
     }
@@ -768,7 +779,7 @@ public class PackerHand : Agent
 
         isPickedup = true;
 
-        Destroy(carriedObject.GetComponent<BoxCollider>());
+        Destroy(carriedObject.GetComponent<BoxCollider>()); 
         Destroy(carriedObject.GetComponent<Rigidbody>());   
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue

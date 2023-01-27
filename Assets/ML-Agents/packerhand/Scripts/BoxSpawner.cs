@@ -71,18 +71,24 @@ public class BoxSpawner : MonoBehaviour
             // Create sizes_AmericanEuropeanAsian_pallets = new float[][] { ... }  42" X 42" = 10.67dm X 10.67dm
             sizes = new float[][] 
             {
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 6.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 6.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 6.0f },
-                new float[] { 6.0f, 6.0f, 3.0f },
-                new float[] { 3.0f, 6.0f, 6.0f },
-                new float[] { 6.0f, 3.0f, 6.0f },
-                new float[] { 6.0f, 6.0f, 6.0f },
-                new float[] { 6.0f, 3.0f, 9.0f },
-                new float[] { 6.0f, 9.0f, 3.0f },
-                new float[] { 9.0f, 3.0f, 3.0f },
-                new float[] { 9.0f, 6.0f, 6.0f },
+                new float[] { 1.0f, 1.0f, 9.0f },
+                new float[] { 1.0f, 1.0f, 9.0f },
+                new float[] { 1.0f, 1.0f, 9.0f },
+                // new float[] { 3.0f, 3.0f, 3.0f },
+                // new float[] { 6.0f, 3.0f, 3.0f },
+                // new float[] { 3.0f, 6.0f, 3.0f },
+                // new float[] { 3.0f, 3.0f, 6.0f },
+                // new float[] { 6.0f, 6.0f, 3.0f },
+                // new float[] { 3.0f, 6.0f, 6.0f },
+                // new float[] { 6.0f, 3.0f, 6.0f },
+                // new float[] { 6.0f, 6.0f, 6.0f },
+                // new float[] { 6.0f, 3.0f, 9.0f },
+                // new float[] { 6.0f, 9.0f, 3.0f },
+                // new float[] { 9.0f, 3.0f, 3.0f },
+                // new float[] { 9.0f, 6.0f, 6.0f },
+                new float[] { 9.0f, 6.0f, 3.0f },
+                new float[] { 9.0f, 6.0f, 3.0f },
+                new float[] { 9.0f, 6.0f, 3.0f },
             };
          }
         var idx = 0;
