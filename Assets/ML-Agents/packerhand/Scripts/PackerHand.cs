@@ -487,25 +487,32 @@ public class PackerHand : Agent
     public void SelectVertex(int vertexNum) 
     {
 
+        Debug.Log($"SVLx ###### tried Vertex: {verticesArray[vertexNum]} ######");
+
+
+        // // DONT SELECT 0's from actionBuffer ~ punish? just give negative reward and force to repick?
+        if (verticesArray[vertexNum] == new Vector3(0, 0, 0))
+        {
+            // give negative reward
+            isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
+            return; // to end function call
+        }
+
         selectedVertex = verticesArray[vertexNum];
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
         verticesArray[vertexNum] = new Vector3(0, 0, 0);
         // selectedVertex = verticesArray[vertexNum];
-         Debug.Log($"SVL Selected Vertex: {selectedVertex}");
-
-        // // DONT SELECT 0's from actionBuffer ~ punish? just give negative reward and force to repick?
-        // if (verticesArray[vertexNum] == new Vector3(0, 0, 0)
-        // {
-        //     // give negative reward
-        //     // isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
-        //     // return; // to end function call
-        // }
+        Debug.Log($"SVLx @@@@@@@@@@@@@@ Selected Vertex: {selectedVertex} @@@@@@@@@@@@@@@@@@");
 
         int ixc = 0;
         foreach ( var vertex in verticesArray){
             Debug.Log($"SVL {ixc} vertex is: {vertex}");
             ixc = ixc + 1;
         }
+
+        
+
+        // Range( 0f, 2*Box.organizedBoxes.Count() ) // 2n + 1 keeping this comment in case Box.organizedBoxes.Count() is useful later
 
         // // randomly select a vertex right now, will be replaced by brain's action_SelectVertex 
         // int selectVertex = (int)Math.Round(UnityEngine.Random.Range(0f, 2*Box.organizedBoxes.Count())); // will be replaced by brain action_SelectVertex
