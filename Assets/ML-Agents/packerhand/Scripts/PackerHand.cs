@@ -484,40 +484,23 @@ public class PackerHand : Agent
     }
 
 
-    public void SelectVertex(int vertexNum) 
+    public void SelectVertex(int action_SelectedVertex) 
     {
-
-        Debug.Log($"SVLx ###### tried Vertex: {verticesArray[vertexNum]} ######");
-
-
-        // // DONT SELECT 0's from actionBuffer ~ punish? just give negative reward and force to repick?
-        if (verticesArray[vertexNum] == new Vector3(0, 0, 0))
+        // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
+        if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
         {
             // give negative reward
             isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
             return; // to end function call
         }
 
-        selectedVertex = verticesArray[vertexNum];
+        // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
+        selectedVertex = verticesArray[action_SelectedVertex];
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        verticesArray[vertexNum] = new Vector3(0, 0, 0);
-        // selectedVertex = verticesArray[vertexNum];
-        Debug.Log($"SVLx @@@@@@@@@@@@@@ Selected Vertex: {selectedVertex} @@@@@@@@@@@@@@@@@@");
+        verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
+        Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
-        int ixc = 0;
-        foreach ( var vertex in verticesArray){
-            Debug.Log($"SVL {ixc} vertex is: {vertex}");
-            ixc = ixc + 1;
-        }
-
-        
-
-        // Range( 0f, 2*Box.organizedBoxes.Count() ) // 2n + 1 keeping this comment in case Box.organizedBoxes.Count() is useful later
-
-        // // randomly select a vertex right now, will be replaced by brain's action_SelectVertex 
-        // int selectVertex = (int)Math.Round(UnityEngine.Random.Range(0f, 2*Box.organizedBoxes.Count())); // will be replaced by brain action_SelectVertex
-        // // select random vertex from list of vertices
-        // selectedVertex = verticesArray[selectVertex];
+        // Range( 0f, 2*Box.organizedBoxes.Count() ) // 2n + 1, keeping this comment in case Box.organizedBoxes.Count() is useful later
 
         isVertexSelected = true;
     }
