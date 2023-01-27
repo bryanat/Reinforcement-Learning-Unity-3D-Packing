@@ -425,15 +425,32 @@ public class PackerHand : Agent
 
 
     public void SelectVertex() 
+    // public void SelectVertex(int vertexNum) 
     {
-        //// selectedVertex = math.max(allVertices)
-        foreach(Vector3 vertex in selectedVertices) 
-        {
-            ///// right now it's returning the first vertex where all 3 meshes intersect
-            selectedVertex = vertex; 
-            Debug.Log($"SVX Selected VerteX is selectedVertex: {selectedVertex}");
-            // selectedVertex = intersectingVertices[0]; // debug statement do not keep (final need something like: selectedVertex = vertex; )
-        }
+
+        // // hard code just select first vertext
+        // selectedVertex = selectedVertices[0];
+
+        // // select vertex from agent brain (action)
+        // selectedVertex = selectedVertices[discreteActions[++j]];
+        // selectedVertex = selectedVertices[vertexNum];
+
+        // randomly select a vertex right now, will be replaced by brain's action_SelectVertex 
+        int selectVertex = (int)Math.Round(UnityEngine.Random.Range(0f, selectedVertices.Count)); // will be replaced by brain action_SelectVertex
+        // select random vertex from list of vertices
+        selectedVertex = selectedVertices[selectVertex];
+        
+        Debug.Log($"SVL selectedVertices.length: {selectedVertices.Count}");
+
+        // //// selectedVertex = math.max(allVertices)
+        // foreach(Vector3 vertex in selectedVertices) 
+        // {
+        //     ///// right now it's returning the first vertex where all 3 meshes intersect
+        //     selectedVertex = vertex; 
+        //     Debug.Log($"SVX Selected VerteX is selectedVertex: {selectedVertex}");
+        //     // selectedVertex = intersectingVertices[0]; // debug statement do not keep (final need something like: selectedVertex = vertex; )
+        // }
+
         isVertexSelected = true;
     }
 
