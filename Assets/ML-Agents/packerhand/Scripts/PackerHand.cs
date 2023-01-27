@@ -41,10 +41,10 @@ public class PackerHand : Agent
 
     //public List<Vector3> selectedVertices = new List<Vector3>();
     //public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
-    public List<Vector3> backMeshVertices = new List<Vector3>();
-    public List<Vector3> sideMeshVertices = new List<Vector3>();
-    public List<Vector3> bottomMeshVertices = new List<Vector3>();
-    public Vector3 [] verticesArray;
+    public List<Vector3> backMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
+    public List<Vector3> sideMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
+    public List<Vector3> bottomMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
+    public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
 
     public int VertexCount = 0;
     public List<GameObject> blackbox_list; 
@@ -162,6 +162,7 @@ public class PackerHand : Agent
         SetResetParameters();
 
         selectedVertex = new Vector3(8.25f, 0.50f, 10.50f); // refactor to select first vertex
+        // selectedVertex = new Vector3(where the three trimesh meet init);
         isVertexSelected = true;
     }
 
@@ -338,12 +339,13 @@ public class PackerHand : Agent
         MeshFilter mf_side = binSide.GetComponent<MeshFilter>();
         AddVertices(mf_side.mesh.vertices, sideMeshVertices);  
         Debug.Log($"OOO SIDE MESH VERTICES COUNT IS {sideMeshVertices.Count()}");
-
     }
 
     /// <summary>
     /// For every mesh, add each unique vertex to a mesh list and a counter dictionary
     ///</summary>
+    // Vertices used for constructing blackbox
+    // AddVertices( input: ALL_LOCAL_VerticesFromMesh, output: UNIQUE_GLOBAL_VerticesFromMesh )
     void AddVertices(Vector3 [] vertices, List<Vector3> verticesList) 
     {
         Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
@@ -375,17 +377,62 @@ public class PackerHand : Agent
         }
     }
 
+
     void UpdateVerticesArray() 
     {
         List<Vector3> tripoints_list = new List<Vector3>();
-        var tripoint_one = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z);
-        var tripoint_two = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
-        var tripoint_three = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
-        tripoints_list.Add(tripoint_one);
-        tripoints_list.Add(tripoint_two);
-        tripoints_list.Add(tripoint_three);
-        for (int idx = 0; idx<tripoints_list.Count(); idx++) {
-            if (tripoints_list[idx]!=selectedVertex) {
+        var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
+        var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
+        var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
+
+        // purpose of split in 3: only need to compare tripoint_redx to sideMeshVertices (1/3 = n complexity) instead of tripoint_redx to all 3 meshes (3/3 = 3n complexity)
+        bool is_tripoint_redx_sameAsVertex = false;
+        bool is_tripoint_greeny_sameAsVertex = false;
+        bool is_tripoint_bluez_sameAsVertex = false;
+
+        // RED / X / SIDE-LEFTRIGHT
+        // loop over all vertexes in tripoints corresponding mesh first to check that tripoint is not an existing vertex from mf_side.mesh.vertices (which would be a bad stability score vertex)
+        foreach ( Vector3 vertex in sideMeshVertices)
+        {
+            // stateflag is_tripoint_redx_sameAsVertex set to true will prevent tripoint being added to tripoint_list since its an existing vertex from mf_side.mesh.vertices
+            if (tripoint_redx == vertex){
+                is_tripoint_redx_sameAsVertex = true;
+                break;
+            }
+        }
+        // if tripoint is not a shared vertex point add tripoint to list (effectively, creating an illegal tripoint and bad stability score placement)
+        if (!is_tripoint_redx_sameAsVertex){
+            tripoints_list.Add(tripoint_redx);
+        }
+
+        // GREEN / Y / BOTTOM-TOP
+        foreach ( Vector3 vertex in bottomMeshVertices)
+        {
+            if (tripoint_greeny == vertex){
+                is_tripoint_greeny_sameAsVertex = true;
+                break;
+            }
+        }
+        if (!is_tripoint_greeny_sameAsVertex){
+            tripoints_list.Add(tripoint_greeny);
+        }
+
+        // BLUE / Z / BACK-FRONT
+        foreach ( Vector3 vertex in backMeshVertices)
+        {
+            if (tripoint_bluez == vertex){
+                is_tripoint_bluez_sameAsVertex = true;
+                break;
+            }
+        }
+        if (!is_tripoint_bluez_sameAsVertex){
+            tripoints_list.Add(tripoint_bluez);
+        }
+        
+        for (int idx = 0; idx<tripoints_list.Count(); idx++) 
+        {
+            if (tripoints_list[idx]!=selectedVertex) 
+            {
                 verticesArray[VertexCount] = tripoints_list[idx];
                 Debug.Log($"TPP TRIPOINT ADDED IS: {tripoints_list[idx]}");
                 VertexCount ++;
@@ -442,7 +489,7 @@ public class PackerHand : Agent
 
         //Debug.Log($"SVL SELECTED VERTEX NUMBER IS {vertexNum}");
         // selectedVertex = verticesArray[vertexNum];
-         Debug.Log($"SVL SELECTED VERTEX: {selectedVertex}");
+         Debug.Log($"SVL Selected Vertex: {selectedVertex}");
 
         isVertexSelected = true;
     }

@@ -147,7 +147,7 @@ public class CombineMesh : MonoBehaviour
             //     // child transform is 0.5, multiple by 2 to get 1.
             //     child_transform.localScale = child_transform.localScale * 2f;
             // }
-            Debug.Log("TTTTTTTTTTTTTTTTTTTTTTTTTTTT");
+            Debug.Log($"{name} TTTTTTTTTTTTTTTTTTTTTTTTTTTT");
         
             // BLUE
             if (name == "BinIso20Back" && agent.isBackMeshCombined==false) {
@@ -239,12 +239,12 @@ public class CombineMesh : MonoBehaviour
     //     }
     // }
 
-    // void OnDrawGizmos() { 
-    //     foreach (Vector3 vertex in agent.allSelectedVertices) {
-    //         Gizmos.color = Color.yellow;
-    //         Gizmos.DrawSphere(vertex, 0.1f);
-    //     }
-    // }
+    void OnDrawGizmos() { 
+        foreach (Vector3 vertex in agent.verticesArray) {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawSphere(vertex, 0.1f);
+        }
+    }
 
 
     
