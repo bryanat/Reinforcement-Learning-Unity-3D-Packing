@@ -44,6 +44,9 @@ public class PackerHand : Agent
     public List<Vector3> backMeshVertices = new List<Vector3>();
     public List<Vector3> sideMeshVertices = new List<Vector3>();
     public List<Vector3> bottomMeshVertices = new List<Vector3>();
+    public Vector3 [] verticesArray;
+
+    public int VertexCount = 0;
     public List<GameObject> blackbox_list; 
 
     public float total_x_distance; //total x distance between agent and target
@@ -84,7 +87,6 @@ public class PackerHand : Agent
 
     public Material clearPlastic;
 
-    public List<Vector3> allSelectedVertices;
 
 
     public override void Initialize()
@@ -188,6 +190,7 @@ public class PackerHand : Agent
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
             // sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
         }
+        //sensor.AddObserv
 
         // // array of vertices
         // sensor.AddObservation(verticesArray); //add vertices to sensor observations
@@ -206,8 +209,8 @@ public class PackerHand : Agent
 
         if (isBlackboxUpdated && isVertexSelected == false) 
         {
-            //SelectPosition(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
-            SelectVertex(); 
+            //SelectVertex(); 
+            //SelectVertex(discreteActions[++j]);
         }
 
         if (isVertexSelected && isBoxSelected==false) 
@@ -244,6 +247,7 @@ public class PackerHand : Agent
             UpdateTriPoints();
             UpdateBinVolume();
             UpdateVertices();
+            UpdateVerticesArray();
             UpdateBlackBox();
         }
 
@@ -376,10 +380,6 @@ public class PackerHand : Agent
         selectedVertices.Add(V1);
         selectedVertices.Add(V2);
         selectedVertices.Add(V3);
-        /// allSelectedVertices list is for visualization of all tri points with gizmos, will be deleted after black box is done
-        allSelectedVertices.Add(V1);
-        allSelectedVertices.Add(V2);
-        allSelectedVertices.Add(V3);
         Debug.Log($"SSV Selected Vertices :{selectedVertices[0]}");
         Debug.Log($"SSV Selected Vertices :{selectedVertices[1]}");
         Debug.Log($"SSV Selected Vertices :{selectedVertices[2]}");
@@ -427,7 +427,6 @@ public class PackerHand : Agent
     public void SelectVertex() 
     // public void SelectVertex(int vertexNum) 
     {
-
         // // hard code just select first vertext
         // selectedVertex = selectedVertices[0];
 
@@ -453,6 +452,18 @@ public class PackerHand : Agent
 
         isVertexSelected = true;
     }
+
+
+    void UpdateVerticesArray() 
+    {
+        selectedVertices.Remove(selectedVertex);
+        for (int idx = 0; idx<selectedVertices.Count(); idx++) {
+            selectedVertices[VertexCount] = selectedVertices[idx];
+            VertexCount ++;
+        }
+        isBlackboxUpdated = true;
+    }
+
 
     public void UpdateBoxPosition() 
     {
