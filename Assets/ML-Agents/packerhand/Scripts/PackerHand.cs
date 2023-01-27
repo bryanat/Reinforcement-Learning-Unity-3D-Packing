@@ -431,12 +431,20 @@ public class PackerHand : Agent
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
-            if (tripoints_list[idx]!=selectedVertex) 
-            {
-                verticesArray[VertexCount] = tripoints_list[idx];
-                Debug.Log($"TPP TRIPOINT ADDED IS: {tripoints_list[idx]}");
-                VertexCount ++;
-            }
+            
+            Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex} | tripoints_list[idx]==selectedVertex: {tripoints_list[idx]==selectedVertex} ") ;
+            verticesArray[VertexCount] = tripoints_list[idx];
+            VertexCount ++;
+
+            // find selectedVertex in verticesArray
+            // // remove consumed selectedVertex from verticesArray
+            // verticesArray[WUTT] = new Vector3(0, 0, 0);
+            // if (tripoints_list[idx]==selectedVertex) 
+            // {
+            //     tripoints_list.RemoveAt(idx); // removes from tripoint list
+                
+            // }
+
         }
     }
 
@@ -486,6 +494,8 @@ public class PackerHand : Agent
         int selectVertex = (int)Math.Round(UnityEngine.Random.Range(0f, 2*Box.organizedBoxes.Count())); // will be replaced by brain action_SelectVertex
         // select random vertex from list of vertices
         selectedVertex = verticesArray[selectVertex];
+        // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
+        verticesArray[selectVertex] = new Vector3(0, 0, 0);
 
         //Debug.Log($"SVL SELECTED VERTEX NUMBER IS {vertexNum}");
         // selectedVertex = verticesArray[vertexNum];

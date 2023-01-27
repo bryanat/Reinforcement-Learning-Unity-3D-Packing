@@ -244,6 +244,8 @@ public class CombineMesh : MonoBehaviour
             Gizmos.color = Color.yellow;
             Gizmos.DrawSphere(vertex, 0.1f);
         }
+        Gizmos.color = Color.black;
+        Gizmos.DrawSphere(agent.selectedVertex, 0.1f);
     }
 
 
