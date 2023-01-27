@@ -39,8 +39,8 @@ public class PackerHand : Agent
     public Vector3 rotation; // Rotation of box inside bin
     public Vector3 selectedVertex; // Vertex of box inside bin
 
-    public List<Vector3> selectedVertices = new List<Vector3>();
-    public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
+    //public List<Vector3> selectedVertices = new List<Vector3>();
+    //public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
     public List<Vector3> backMeshVertices = new List<Vector3>();
     public List<Vector3> sideMeshVertices = new List<Vector3>();
     public List<Vector3> bottomMeshVertices = new List<Vector3>();
@@ -185,7 +185,7 @@ public class PackerHand : Agent
         }
 
         // array of all boxes
-        foreach (var box in boxPool) 
+        foreach (Box box in boxPool) 
         {
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
             // sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
@@ -193,7 +193,9 @@ public class PackerHand : Agent
         //sensor.AddObserv
 
         // // array of vertices
-        // sensor.AddObservation(verticesArray); //add vertices to sensor observations
+        foreach (Vector3 vertex in verticesArray) {
+            sensor.AddObservation(vertex); //add vertices to sensor observations
+        }
 
         // // array of blackboxes 
         // sensor.AddObservation(blackboxesArray); //add vertices to sensor observations
@@ -205,12 +207,12 @@ public class PackerHand : Agent
         //var i = -1;
 
         var discreteActions = actionBuffers.DiscreteActions;
-        var continuousActions = actionBuffers.ContinuousActions;
+        //var continuousActions = actionBuffers.ContinuousActions;
 
         if (isBlackboxUpdated && isVertexSelected == false) 
         {
             //SelectVertex(); 
-            //SelectVertex(discreteActions[++j]);
+            SelectVertex(discreteActions[++j]);
         }
 
         if (isVertexSelected && isBoxSelected==false) 
@@ -244,11 +246,13 @@ public class PackerHand : Agent
         if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
         {
             StateReset();
-            UpdateTriPoints();
-            UpdateBinVolume();
-            UpdateVertices();
+            // vertices array of tripoints doesn't depend on the trimesh
             UpdateVerticesArray();
+            // side, back, and bottom vertices lists depends on the trimesh
+            UpdateVerticesList();
+            // both vertices array and vertices list are used to find black boxes
             UpdateBlackBox();
+            UpdateBinVolume();
         }
 
         // if agent selects a box, it should move towards the box
@@ -320,11 +324,11 @@ public class PackerHand : Agent
     /// <summary>
     /// Updates the vertices every time a new mesh is created
     ///</summary>
-    void UpdateVertices() 
+    void UpdateVerticesList() 
     {
         ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
         //Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
-        allVerticesDictionary.Clear();
+        //allVerticesDictionary.Clear();
         MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
         AddVertices(mf_back.mesh.vertices, backMeshVertices);
         Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
@@ -360,29 +364,33 @@ public class PackerHand : Agent
             verticesList.Add(worldVertex);
             // Add to a counter dictionary to check for intersection
             // reduce stage: vertex is key, value is int number which gets increased for each vertex
-            if (allVerticesDictionary.ContainsKey(worldVertex)) 
-            {
-                allVerticesDictionary[worldVertex] ++;
-            }
-            else 
-            {
-                allVerticesDictionary.Add(worldVertex, 1);
-            }
+            // if (allVerticesDictionary.ContainsKey(worldVertex)) 
+            // {
+            //     allVerticesDictionary[worldVertex] ++;
+            // }
+            // else 
+            // {
+            //     allVerticesDictionary.Add(worldVertex, 1);
+            // }
         }
     }
 
-    void UpdateTriPoints() 
+    void UpdateVerticesArray() 
     {
-        selectedVertices.Clear();
-        Vector3 V1= new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z);
-        Vector3 V2 = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
-        Vector3 V3 = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
-        selectedVertices.Add(V1);
-        selectedVertices.Add(V2);
-        selectedVertices.Add(V3);
-        Debug.Log($"SSV Selected Vertices :{selectedVertices[0]}");
-        Debug.Log($"SSV Selected Vertices :{selectedVertices[1]}");
-        Debug.Log($"SSV Selected Vertices :{selectedVertices[2]}");
+        List<Vector3> tripoints_list = new List<Vector3>();
+        var tripoint_one = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z);
+        var tripoint_two = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
+        var tripoint_three = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
+        tripoints_list.Add(tripoint_one);
+        tripoints_list.Add(tripoint_two);
+        tripoints_list.Add(tripoint_three);
+        for (int idx = 0; idx<tripoints_list.Count(); idx++) {
+            if (tripoints_list[idx]!=selectedVertex) {
+                verticesArray[VertexCount] = tripoints_list[idx];
+                Debug.Log($"TPP TRIPOINT ADDED IS: {tripoints_list[idx]}");
+                VertexCount ++;
+            }
+        }
     }
 
 
@@ -390,79 +398,57 @@ public class PackerHand : Agent
     {
         Debug.Log($"UBX Update BlackboX running");
 
-        foreach (Vector3 vertex in selectedVertices) 
-        {
-            //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
-            Vector3 closest_x_vertex = backMeshVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
-            vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
-            Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
+        // foreach (Vector3 vertex in verticesArray) 
+        // {
+        //     //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
+        //     Vector3 closest_x_vertex = backMeshVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
+        //     vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
+        //     Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
 
-            Vector3 closest_y_vertex = sideMeshVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
-            vertex[1]<next[1] && Math.Abs(next[1]-vertex[1]) < Math.Abs(min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
-            Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
+        //     Vector3 closest_y_vertex = sideMeshVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
+        //     vertex[1]<next[1] && Math.Abs(next[1]-vertex[1]) < Math.Abs(min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
+        //     Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
 
-            Vector3 closest_z_vertex = sideMeshVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
-            vertex[2]<next[2] && Math.Abs(next[2]-vertex[2]) < Math.Abs(min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
-            Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
+        //     Vector3 closest_z_vertex = sideMeshVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
+        //     vertex[2]<next[2] && Math.Abs(next[2]-vertex[2]) < Math.Abs(min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
+        //     Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
 
-            float blackbox_x_size = Math.Abs(closest_x_vertex[0] - vertex[0]);
-            float blackbox_y_size = Math.Abs(closest_y_vertex[1] - vertex[1]);
-            float blackbox_z_size = Math.Abs(closest_z_vertex[2] - vertex[2]);
-            Vector3 blackbox_position = new Vector3(blackbox_x_size*0.5f+vertex[0], blackbox_y_size*0.5f+vertex[1], blackbox_z_size*0.5f+vertex[2]);
-            Debug.Log($"BPS BLACK BOX POSITION {blackbox_position} SIZES {blackbox_x_size}, {blackbox_y_size}, {blackbox_z_size}");
+        //     float blackbox_x_size = Math.Abs(closest_x_vertex[0] - vertex[0]);
+        //     float blackbox_y_size = Math.Abs(closest_y_vertex[1] - vertex[1]);
+        //     float blackbox_z_size = Math.Abs(closest_z_vertex[2] - vertex[2]);
+        //     Vector3 blackbox_position = new Vector3(blackbox_x_size*0.5f+vertex[0], blackbox_y_size*0.5f+vertex[1], blackbox_z_size*0.5f+vertex[2]);
+        //     Debug.Log($"BPS BLACK BOX POSITION {blackbox_position} SIZES {blackbox_x_size}, {blackbox_y_size}, {blackbox_z_size}");
 
-            GameObject blackbox = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            blackbox.name = "blackbox";
-            blackbox.transform.position = blackbox_position;
-            blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
-            Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
-            cubeRenderer.material = clearPlastic;
+        //     GameObject blackbox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        //     blackbox.name = "blackbox";
+        //     blackbox.transform.position = blackbox_position;
+        //     blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
+        //     Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
+        //     cubeRenderer.material = clearPlastic;
 
-            blackbox_list.Add(blackbox);
-        }
+        //     blackbox_list.Add(blackbox);
+        // }
         isBlackboxUpdated = true;
     }
 
 
-    public void SelectVertex() 
-    // public void SelectVertex(int vertexNum) 
+    public void SelectVertex(int vertexNum) 
     {
-        // // hard code just select first vertext
-        // selectedVertex = selectedVertices[0];
-
-        // // select vertex from agent brain (action)
-        // selectedVertex = selectedVertices[discreteActions[++j]];
-        // selectedVertex = selectedVertices[vertexNum];
 
         // randomly select a vertex right now, will be replaced by brain's action_SelectVertex 
-        int selectVertex = (int)Math.Round(UnityEngine.Random.Range(0f, selectedVertices.Count)); // will be replaced by brain action_SelectVertex
+        int selectVertex = (int)Math.Round(UnityEngine.Random.Range(0f, 2*Box.organizedBoxes.Count())); // will be replaced by brain action_SelectVertex
         // select random vertex from list of vertices
-        selectedVertex = selectedVertices[selectVertex];
-        
-        Debug.Log($"SVL selectedVertices.length: {selectedVertices.Count}");
+        selectedVertex = verticesArray[selectVertex];
 
-        // //// selectedVertex = math.max(allVertices)
-        // foreach(Vector3 vertex in selectedVertices) 
-        // {
-        //     ///// right now it's returning the first vertex where all 3 meshes intersect
-        //     selectedVertex = vertex; 
-        //     Debug.Log($"SVX Selected VerteX is selectedVertex: {selectedVertex}");
-        //     // selectedVertex = intersectingVertices[0]; // debug statement do not keep (final need something like: selectedVertex = vertex; )
-        // }
+        //Debug.Log($"SVL SELECTED VERTEX NUMBER IS {vertexNum}");
+        // selectedVertex = verticesArray[vertexNum];
+         Debug.Log($"SVL SELECTED VERTEX: {selectedVertex}");
 
         isVertexSelected = true;
     }
 
 
-    void UpdateVerticesArray() 
-    {
-        selectedVertices.Remove(selectedVertex);
-        for (int idx = 0; idx<selectedVertices.Count(); idx++) {
-            selectedVertices[VertexCount] = selectedVertices[idx];
-            VertexCount ++;
-        }
-        isBlackboxUpdated = true;
-    }
+
 
 
     public void UpdateBoxPosition() 
