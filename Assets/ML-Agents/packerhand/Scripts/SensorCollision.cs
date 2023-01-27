@@ -13,6 +13,15 @@ public class SensorCollision : MonoBehaviour
     // public Rigidbody rb;
     public PackerHand agent;
 
+    public float fallingThreshold = 1f;
+
+    public bool cloneEnteredCollision = false;
+
+    public bool cloneFell = false;
+
+    private RaycastHit hit;
+
+
     void Start()
     {
         // instantiate the Collider component
@@ -20,21 +29,50 @@ public class SensorCollision : MonoBehaviour
         // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
         // instantiate the MeshCollider component from Collider component
         // MeshCollider mc = c.GetComponent<MeshCollider>();
+
+
     }
 
 
     void Update()
-    {
+     {
+        if (cloneEnteredCollision) {
+            var dist = 0f;
+            if (GetHitDistance(out dist))
+            {
+                //  if (initialDistance < dist)
+                //  {
+                    //Get relative distance
+                    //var relDistance = dist - initialDistance;
+                    //Are we actually falling?
+                    if (dist > fallingThreshold)
+                    {
+                        cloneFell = true;
+                        Debug.Log($"FFF BOX FELL: {cloneFell}");
+                        //How far are we falling
+                    //      if (relDistance > maxFallingThreshold) Debug.Log("Fell off a cliff");
+                    //      else Debug.Log("basic falling!");
+                    //  }
+                }
+            //}
+            //  else
+            //  {
+            //      Debug.Log("Infinite Fall");
+         }
+     }
+     }
 
-    }
 
 
     void OnCollisionEnter(Collision collision)
     {
         if (collision.transform.name.StartsWith("clone")) {
             Debug.Log($"PHYSICS SWITCHED ON FOR {collision.transform.name}");
-            Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>();
-            if (rb.velocity.y<-0.1f | rb.velocity.x<-0.1f | rb.velocity.z<-0.1f) {
+            cloneEnteredCollision = true;
+            
+            // Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>();
+            // if (rb.velocity.y<-0.1f | rb.velocity.x<-0.1f | rb.velocity.z<-0.1f) {
+            if (cloneFell) {
                 //if fails gravity test, send box back and punishes agent for impossible box placement
                 //isGravityCheckPassed = false;
                 agent.carriedObject.parent = null;
@@ -49,7 +87,24 @@ public class SensorCollision : MonoBehaviour
             else {
                 Debug.Log($"SCS {collision.gameObject.name} PASSED GRAVITY CHECK");
             }
-            Destroy(collision.gameObject);
+            //Destroy(collision.gameObject);
+            cloneFell = false;
+            cloneEnteredCollision = false;
         } 
     }
+
+
+    bool GetHitDistance(out float distance)
+     {
+         distance = 0f;
+         Ray downRay = new Ray(transform.position, -Vector3.up); // this is the upward ray
+         if (Physics.Raycast(downRay, out hit))
+         {
+             distance = hit.distance;
+             Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROMT GROUND IS: {distance}");
+             return true;
+         }
+         return false;
+     }
+     
 }
