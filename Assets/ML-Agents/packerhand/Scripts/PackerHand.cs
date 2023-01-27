@@ -154,6 +154,9 @@ public class PackerHand : Agent
             
         }
 
+        SensorCollision sensorScript = binBottom.GetComponent<SensorCollision>();
+        sensorScript.agent = this;
+
         // Make agent unaffected by collision
         var m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
@@ -540,8 +543,24 @@ public class PackerHand : Agent
             Vector3 position = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
             Debug.Log($"UVP Updated Vertex Position position: {position}");
 
+            CheckPlacementPhysics(position);
+
             targetBin.position = position;
         }
+    }
+
+
+    public void CheckPlacementPhysics(Vector3 testPosition) {
+        // create a clone test box to check physics of placement
+        // teleported first before actual box is placed so gravity check comes before mesh combine
+        GameObject testBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        testBox.transform.localScale = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
+        testBox.transform.position = testPosition;
+        Rigidbody rb = testBox.AddComponent<Rigidbody>();
+        rb.useGravity = true;
+        rb.mass = 100f;
+        testBox.name = $"clone{carriedObject.name}";
+
     }
 
 

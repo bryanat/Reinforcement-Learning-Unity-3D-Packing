@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Box = Boxes.Box;
 
 // SensorCollision component to work requires:
 // - Collider component (needed for a Collision)
@@ -10,6 +11,7 @@ public class SensorCollision : MonoBehaviour
 {
     public Collider c; // note: don't need to drag and drop in inspector, will instantiate on line 17: c = GetComponent<Collider>();
     // public Rigidbody rb;
+    public PackerHand agent;
 
     void Start()
     {
@@ -29,18 +31,25 @@ public class SensorCollision : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        // if collision is with anything other than the ground 
-        // - note: future optimization via turn off collisions with ground for optimization? turn off by turning on kinematics for ground?
-
-        if (collision.gameObject.name != "Ground")
-        {
-            Debug.Log($"*@@@@@ Collision of {c.gameObject.name} and {collision.gameObject.name} @@@@@");
-        }
-
-        // if collision object is an unorganized box (tag "0")
-        if (collision.gameObject.CompareTag("box"))
-        {
-            Debug.Log($"*@@@@@ Collision of with a box (tag 0)  @@@@@");
-        }
+        if (collision.transform.name.StartsWith("clone")) {
+            Debug.Log($"PHYSICS SWITCHED ON FOR {collision.transform.name}");
+            Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>();
+            if (rb.velocity.y<-0.1f | rb.velocity.x<-0.1f | rb.velocity.z<-0.1f) {
+                //if fails gravity test, send box back and punishes agent for impossible box placement
+                //isGravityCheckPassed = false;
+                agent.carriedObject.parent = null;
+                int failedBoxIdx = int.Parse(collision.transform.name.Substring(5));
+                agent.carriedObject.position = agent.boxPool[failedBoxIdx].startingPos;
+                Box.organizedBoxes.Remove(failedBoxIdx);
+                agent.StateReset();
+                agent.isVertexSelected = true;
+                Debug.Log($"SCS {collision.gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");
+                
+            }
+            else {
+                Debug.Log($"SCS {collision.gameObject.name} PASSED GRAVITY CHECK");
+            }
+            Destroy(collision.gameObject);
+        } 
     }
 }
