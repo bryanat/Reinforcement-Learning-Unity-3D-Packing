@@ -22,16 +22,18 @@ public class SensorCollision : MonoBehaviour
     private RaycastHit hit;
 
 
-    // void Start()
-    // {
-    //     // instantiate the Collider component
-    //     c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
-    //     // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
-    //     // instantiate the MeshCollider component from Collider component
-    //     // MeshCollider mc = c.GetComponent<MeshCollider>();
+    void Start()
+    {
+
+        Destroy(gameObject, 5);
+        // instantiate the Collider component
+        //c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
+        // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
+        // instantiate the MeshCollider component from Collider component
+        // MeshCollider mc = c.GetComponent<MeshCollider>();
 
 
-    // }
+    }
 
 
     void Update()
@@ -53,19 +55,18 @@ public class SensorCollision : MonoBehaviour
             {
                 //if fails gravity test, send box back and punishes agent for impossible box placement
                 agent.carriedObject.parent = null;
-                int failedBoxIdx = int.Parse(this.gameObject.name.Substring(5));
+                int failedBoxIdx = int.Parse(gameObject.name.Substring(5));
                 agent.carriedObject.position = agent.boxPool[failedBoxIdx].startingPos;
                 Box.organizedBoxes.Remove(failedBoxIdx);
                 agent.StateReset();
                 agent.isVertexSelected = true;
-                Debug.Log($"SCS {this.gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");
+                Debug.Log($"SCS {gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");
                 
             }
             else 
             {
-                Debug.Log($"SCS {this.gameObject.name} PASSED GRAVITY CHECK");
+                Debug.Log($"SCS {gameObject.name} PASSED GRAVITY CHECK");
             }   
-            //Destroy(this.gameObject);
         } 
     }
 
