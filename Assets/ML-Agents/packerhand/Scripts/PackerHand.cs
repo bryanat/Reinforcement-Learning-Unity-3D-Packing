@@ -137,7 +137,6 @@ public class PackerHand : Agent
             areaBounds.Encapsulate(renderers[i].bounds);
 
         Debug.Log($"BIN BOUNDS: {areaBounds}");
-
         // Get total bin volume from onstart
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
         //miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
@@ -310,8 +309,8 @@ public class PackerHand : Agent
         var current_agent_z = this.transform.position.z;
         // this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
         // current_agent_y/100, current_agent_z+total_z_distance/100);    
-        this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
-        target.position.y, current_agent_z+total_z_distance/100);   
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/10, 
+        target.position.y, current_agent_z+total_z_distance/10);   
     }
 
 
@@ -439,9 +438,16 @@ public class PackerHand : Agent
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
-            Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
-            verticesArray[VertexCount] = tripoints_list[idx];
-            VertexCount ++;
+            Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
+            if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
+            if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
+            if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
+                Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
+                verticesArray[VertexCount] = tripoints_list[idx];
+                VertexCount ++;
+            }
+            }
+            }
         }
     }
 
