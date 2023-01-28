@@ -25,7 +25,7 @@ public class SensorCollision : MonoBehaviour
     void Start()
     {
 
-        Destroy(gameObject, 5);
+        Destroy(gameObject, 3);
         // instantiate the Collider component
         //c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
         // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
