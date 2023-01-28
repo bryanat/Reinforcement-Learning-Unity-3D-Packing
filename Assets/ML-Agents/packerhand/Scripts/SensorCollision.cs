@@ -15,96 +15,71 @@ public class SensorCollision : MonoBehaviour
 
     public float fallingThreshold = 1f;
 
-    public bool cloneEnteredCollision = false;
+    public float distance = 0f;
 
-    public bool cloneFell = false;
+    public bool enteredCollisionWithBottom = false;
 
     private RaycastHit hit;
 
 
-    void Start()
-    {
-        // instantiate the Collider component
-        c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
-        // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
-        // instantiate the MeshCollider component from Collider component
-        // MeshCollider mc = c.GetComponent<MeshCollider>();
+    // void Start()
+    // {
+    //     // instantiate the Collider component
+    //     c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
+    //     // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
+    //     // instantiate the MeshCollider component from Collider component
+    //     // MeshCollider mc = c.GetComponent<MeshCollider>();
 
 
-    }
+    // }
 
 
     void Update()
      {
-        if (cloneEnteredCollision) {
-            var dist = 0f;
-            if (GetHitDistance(out dist))
-            {
-                //  if (initialDistance < dist)
-                //  {
-                    //Get relative distance
-                    //var relDistance = dist - initialDistance;
-                    //Are we actually falling?
-                    if (dist > fallingThreshold)
-                    {
-                        cloneFell = true;
-                        Debug.Log($"FFF BOX FELL: {cloneFell}");
-                        //How far are we falling
-                    //      if (relDistance > maxFallingThreshold) Debug.Log("Fell off a cliff");
-                    //      else Debug.Log("basic falling!");
-                    //  }
-                }
-            //}
-            //  else
-            //  {
-            //      Debug.Log("Infinite Fall");
-         }
+        if (enteredCollisionWithBottom) {
+            Debug.Log("BBB ENTERED COLLISION WITH BOTTOM");
+            GetHitDistance();
+        }
      }
-     }
+    
 
 
 
-    void OnCollisionEnter(Collision collision)
+    void OnCollisionStay(Collision collision)
     {
-        if (collision.transform.name.StartsWith("clone")) {
-            Debug.Log($"PHYSICS SWITCHED ON FOR {collision.transform.name}");
-            cloneEnteredCollision = true;
-            
-            // Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>();
-            // if (rb.velocity.y<-0.1f | rb.velocity.x<-0.1f | rb.velocity.z<-0.1f) {
-            if (cloneFell) {
+        if (collision.gameObject.name == "BinIso20Bottom") {
+            enteredCollisionWithBottom = true;
+            if (distance > fallingThreshold) 
+            {
                 //if fails gravity test, send box back and punishes agent for impossible box placement
-                //isGravityCheckPassed = false;
                 agent.carriedObject.parent = null;
-                int failedBoxIdx = int.Parse(collision.transform.name.Substring(5));
+                int failedBoxIdx = int.Parse(this.gameObject.name.Substring(5));
                 agent.carriedObject.position = agent.boxPool[failedBoxIdx].startingPos;
                 Box.organizedBoxes.Remove(failedBoxIdx);
                 agent.StateReset();
                 agent.isVertexSelected = true;
-                Debug.Log($"SCS {collision.gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");
+                Debug.Log($"SCS {this.gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");
                 
             }
-            else {
-                Debug.Log($"SCS {collision.gameObject.name} PASSED GRAVITY CHECK");
-            }
-            //Destroy(collision.gameObject);
-            cloneFell = false;
-            cloneEnteredCollision = false;
+            else 
+            {
+                Debug.Log($"SCS {this.gameObject.name} PASSED GRAVITY CHECK");
+            }   
+            //Destroy(this.gameObject);
         } 
     }
 
 
-    bool GetHitDistance(out float distance)
+    void GetHitDistance()
      {
-         distance = 0f;
-         Ray downRay = new Ray(transform.position, -Vector3.up); // this is the upward ray
+        Vector3 boxBottomCenter = new Vector3(transform.position.x, transform.position.y-transform.localScale.y, transform.position.z);
+         Ray downRay = new Ray(boxBottomCenter, Vector3.down); // this is the downward ray from box to bottom mesh
          if (Physics.Raycast(downRay, out hit))
          {
-             distance = hit.distance;
-             Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROMT GROUND IS: {distance}");
-             return true;
+            distance = hit.distance;
+            Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM BOX TO {hit.transform.name} IS: {distance}");
          }
-         return false;
      }
+    
      
 }

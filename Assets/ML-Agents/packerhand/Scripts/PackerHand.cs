@@ -154,9 +154,6 @@ public class PackerHand : Agent
             
         }
 
-        SensorCollision sensorScript = binBottom.GetComponent<SensorCollision>();
-        sensorScript.agent = this;
-
         // Make agent unaffected by collision
         var m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
@@ -557,6 +554,8 @@ public class PackerHand : Agent
         testBox.transform.localScale = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
         testBox.transform.position = testPosition;
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
+        SensorCollision sensorScript = testBox.AddComponent<SensorCollision>();
+        sensorScript.agent = this;
         rb.useGravity = true;
         rb.mass = 100f;
         testBox.name = $"clone{carriedObject.name}";
