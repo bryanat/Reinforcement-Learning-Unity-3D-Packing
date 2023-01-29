@@ -256,6 +256,7 @@ public class PackerHand : Agent
         {
             StateReset();
             // vertices array of tripoints doesn't depend on the trimesh
+            // only update vertices list and vertices array when box is placed
             UpdateVerticesArray();
             // side, back, and bottom vertices lists depends on the trimesh
             UpdateVerticesList();
@@ -497,7 +498,9 @@ public class PackerHand : Agent
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
         selectedVertex = verticesArray[action_SelectedVertex];
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
+        if (isBackMeshCombined) {
+            verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
+        }
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
         // Range( 0f, 2*Box.organizedBoxes.Count() ) // 2n + 1, keeping this comment in case Box.organizedBoxes.Count() is useful later
@@ -556,8 +559,8 @@ public class PackerHand : Agent
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         SensorCollision sensorScript = testBox.AddComponent<SensorCollision>();
         sensorScript.agent = this;
-        rb.useGravity = true;
-        rb.mass = 100f;
+        // rb.useGravity = true;
+        // rb.isKinematic = false;
         testBox.name = $"clone{carriedObject.name}";
 
     }

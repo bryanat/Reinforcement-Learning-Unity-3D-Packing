@@ -9,13 +9,13 @@ using Box = Boxes.Box;
 // + usecase: SensorCollision component can attached to bin to detect box collisions with bin
 public class SensorCollision : MonoBehaviour
 {
-    public Collider c; // note: don't need to drag and drop in inspector, will instantiate on line 17: c = GetComponent<Collider>();
-    // public Rigidbody rb;
     public PackerHand agent;
 
-    public float fallingThreshold = 1f;
+    public float fallingThreshold = 3f;
 
     public float distance = 0f;
+
+    public float max_topple_angle;
 
     public bool enteredCollisionWithBottom = false;
 
@@ -25,13 +25,11 @@ public class SensorCollision : MonoBehaviour
     void Start()
     {
 
+        // float y_direction = gameObject.transform.localScale.y*0.5f;
+        // float x_direction = gameObject.transform.localScale.x*0.5f;
+        // max_topple_angle = Mathf.Tan(x_direction/y_direction);
+        // This destroys the test box 3 unity seconds after creation 
         Destroy(gameObject, 3);
-        // instantiate the Collider component
-        //c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
-        // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
-        // instantiate the MeshCollider component from Collider component
-        // MeshCollider mc = c.GetComponent<MeshCollider>();
-
 
     }
 
@@ -39,7 +37,6 @@ public class SensorCollision : MonoBehaviour
     void Update()
      {
         if (enteredCollisionWithBottom) {
-            Debug.Log("BBB ENTERED COLLISION WITH BOTTOM");
             GetHitDistance();
         }
      }
@@ -51,22 +48,32 @@ public class SensorCollision : MonoBehaviour
     {
         if (collision.gameObject.name == "BinIso20Bottom") {
             enteredCollisionWithBottom = true;
+            Rigidbody rb = gameObject.GetComponent<Rigidbody>();
+            // if fails gravity check
+            // this loop should only be executed once
             if (distance > fallingThreshold) 
             {
-                //if fails gravity test, send box back and punishes agent for impossible box placement
+                // detach box from agent
                 agent.carriedObject.parent = null;
                 int failedBoxIdx = int.Parse(gameObject.name.Substring(5));
+                // add back rigidbody and collider
+                agent.carriedObject.gameObject.AddComponent<Rigidbody>();
+                agent.carriedObject.gameObject.AddComponent<BoxCollider>();
+                // reset to starting position
                 agent.carriedObject.position = agent.boxPool[failedBoxIdx].startingPos;
+                // remove from organized list to be picked again
                 Box.organizedBoxes.Remove(failedBoxIdx);
+                // reset states
                 agent.StateReset();
-                agent.isVertexSelected = true;
-                Debug.Log($"SCS {gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");
-                
-            }
-            else 
-            {
-                Debug.Log($"SCS {gameObject.name} PASSED GRAVITY CHECK");
-            }   
+                // settting isBlackboxUpdated to true allows another vertex to be selected
+                agent.isBlackboxUpdated = true;
+                // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
+                //agent.isVertexSelected = true;
+                Debug.Log($"SCS {gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");  
+                // destroy test box  
+                Destroy(gameObject);
+            }  
+            //rb.isKinematic = true;
         } 
     }
 
@@ -74,11 +81,11 @@ public class SensorCollision : MonoBehaviour
     void GetHitDistance()
      {
         Vector3 boxBottomCenter = new Vector3(transform.position.x, transform.position.y-transform.localScale.y, transform.position.z);
-         Ray downRay = new Ray(boxBottomCenter, Vector3.down); // this is the downward ray from box to bottom mesh
+         Ray downRay = new Ray(boxBottomCenter, Vector3.down); // this is the downward ray from box bottom to ground
          if (Physics.Raycast(downRay, out hit))
          {
             distance = hit.distance;
-            Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM BOX TO {hit.transform.name} IS: {distance}");
+            Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
          }
      }
     
