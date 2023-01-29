@@ -147,6 +147,9 @@ public class PackerHand : Agent
         // Reset agent and rewards
         SetResetParameters();
 
+        // Reset boxes on new episode by spawning new boxes
+        boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
+
         selectedVertex = new Vector3(8.25f, 0.50f, 10.50f); // refactor to select first vertex
         // selectedVertex = new Vector3(where the three trimesh meet init);
         isVertexSelected = true;
@@ -537,7 +540,7 @@ public class PackerHand : Agent
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         SensorCollision sensorScript = testBox.AddComponent<SensorCollision>();
         sensorScript.agent = this;
-        rb.angularDrag = 2f;
+        //rb.angularDrag = 2f;
         testBox.name = $"testbox{targetBox.name}";
 
     }
@@ -895,12 +898,6 @@ public class PackerHand : Agent
 
         // Reset rewards
         TotalRewardReset();
-
-        // Reset boxes
-        foreach (var box in boxPool) 
-        {
-            Box.ResetBoxes(box);
-        }
 
         // Reset organized Boxes dictionary
         Box.organizedBoxes.Clear();

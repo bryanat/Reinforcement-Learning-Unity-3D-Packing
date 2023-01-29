@@ -11,7 +11,7 @@ public class SensorCollision : MonoBehaviour
 {
     public PackerHand agent;
 
-    public float fallingThreshold = 2f;
+    public float fallingThreshold = 3f;
 
     public float distance = 0f;
 
@@ -48,7 +48,7 @@ public class SensorCollision : MonoBehaviour
     {
         if (collision.gameObject.name == "BinIso20Bottom") {
             enteredCollisionWithBottom = true;
-            Rigidbody rb = gameObject.GetComponent<Rigidbody>();
+            //Rigidbody rb = gameObject.GetComponent<Rigidbody>();
             // if fails gravity check
             // this loop should only be executed once
             if (distance > fallingThreshold) 
@@ -57,8 +57,10 @@ public class SensorCollision : MonoBehaviour
                 agent.targetBox.parent = null;
                 int failedBoxIdx = int.Parse(gameObject.name.Substring(7));
                 // add back rigidbody and collider
-                agent.targetBox.gameObject.AddComponent<Rigidbody>();
-                agent.targetBox.gameObject.AddComponent<BoxCollider>();
+                Rigidbody rb = agent.targetBox.gameObject.AddComponent<Rigidbody>();
+                BoxCollider bc = agent.targetBox.gameObject.AddComponent<BoxCollider>();
+                // not be affected by forces or collisions, position and rotation will be controlled directly through script
+                rb.isKinematic = true;
                 // reset to starting position
                 agent.targetBox.position = agent.boxPool[failedBoxIdx].startingPos;
                 // remove from organized list to be picked again
@@ -73,7 +75,6 @@ public class SensorCollision : MonoBehaviour
                 // destroy test box  
                 Destroy(gameObject);
             }  
-            //rb.isKinematic = true;
         } 
     }
 
