@@ -11,7 +11,7 @@ public class SensorCollision : MonoBehaviour
 {
     public PackerHand agent;
 
-    public float fallingThreshold = 3f;
+    public float fallingThreshold = 2f;
 
     public float distance = 0f;
 
@@ -54,13 +54,13 @@ public class SensorCollision : MonoBehaviour
             if (distance > fallingThreshold) 
             {
                 // detach box from agent
-                agent.carriedObject.parent = null;
-                int failedBoxIdx = int.Parse(gameObject.name.Substring(5));
+                agent.targetBox.parent = null;
+                int failedBoxIdx = int.Parse(gameObject.name.Substring(7));
                 // add back rigidbody and collider
-                agent.carriedObject.gameObject.AddComponent<Rigidbody>();
-                agent.carriedObject.gameObject.AddComponent<BoxCollider>();
+                agent.targetBox.gameObject.AddComponent<Rigidbody>();
+                agent.targetBox.gameObject.AddComponent<BoxCollider>();
                 // reset to starting position
-                agent.carriedObject.position = agent.boxPool[failedBoxIdx].startingPos;
+                agent.targetBox.position = agent.boxPool[failedBoxIdx].startingPos;
                 // remove from organized list to be picked again
                 Box.organizedBoxes.Remove(failedBoxIdx);
                 // reset states

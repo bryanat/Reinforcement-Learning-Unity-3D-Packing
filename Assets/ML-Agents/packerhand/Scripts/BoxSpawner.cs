@@ -23,14 +23,10 @@ public class Box
     public static void ResetBoxes(Box box)
     {
         
-
         box.rb.transform.position = box.startingPos; // Reset box position
     }
-
-    public static List<Box> GetBoxPool() {
-        return BoxSpawner.boxPool;
-    }
 }
+
 
 
 
@@ -43,88 +39,65 @@ public class BoxSpawner : MonoBehaviour
 
     public GameObject binArea;
     
-    public GameObject binMini;
-
     public GameObject unitBox; 
 
 
     public void SetUpBoxes(int flag, float size) 
     {
         float[][] sizes = new float[][]{};
-        //for each box in json, get a list of box sizes;
-        //sizes = readJson(); 
-        if (flag ==0) 
-        {
-            // Gets bounds of mini bin
-            var miniBounds = binMini.transform.GetChild(0).GetComponent<Collider>().bounds;
-
-            // Encapsulate the bounds of each additional object in the overall bounds
-            for (int i = 1; i < 5; i++)
-            {
-                miniBounds.Encapsulate(binMini.transform.GetChild(i).GetComponent<Collider>().bounds);
-            }
-            var n_boxes = (int)Math.Floor(miniBounds.extents.x*2/size) *
-                (int)Math.Floor(miniBounds.extents.y*2/size)*(int)Math.Floor(miniBounds.extents.z*2/size);
-            sizes = Enumerable.Repeat(Enumerable.Repeat(size, 3).ToArray(), n_boxes).ToArray();
-         }
-        else {
-            // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
-            // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
-            // Create sizes_AmericanEuropeanAsian_pallets = new float[][] { ... }  42" X 42" = 10.67dm X 10.67dm
-            sizes =  new float[][] {
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                new float[] { 3.0f, 3.0f, 3.0f },
-                
-      
-
-            //     new float[] { 1.0f, 1.0f, 9.0f },
-            //     new float[] { 1.0f, 1.0f, 9.0f },
-            //     new float[] { 1.0f, 1.0f, 9.0f },
-            //     new float[] { 3.0f, 3.0f, 3.0f },
-            //     new float[] { 3.0f, 3.0f, 3.0f },
-            //     new float[] { 3.0f, 3.0f, 3.0f },
-            //     new float[] { 3.0f, 3.0f, 3.0f },
-            //     new float[] { 3.0f, 3.0f, 3.0f },
-            //     new float[] { 3.0f, 3.0f, 3.0f },
-            //     new float[] { 3.0f, 3.0f, 3.0f },
-            //     new float[] { 6.0f, 3.0f, 3.0f },
-            //     new float[] { 3.0f, 6.0f, 3.0f },
-            //     new float[] { 3.0f, 3.0f, 6.0f },
-            //     new float[] { 6.0f, 6.0f, 3.0f },
-            //     new float[] { 3.0f, 6.0f, 10.0f },
-            //     new float[] { 1.0f, 3.0f, 6.0f },
-            //     new float[] { 6.0f, 6.0f, 6.0f },
-            //     new float[] { 1.0f, 3.0f, 9.0f },
-            //     new float[] { 6.0f, 9.0f, 3.0f },
-            //     new float[] { 9.0f, 3.0f, 3.0f },
-            //     new float[] { 9.0f, 6.0f, 6.0f },
-            //     new float[] { 9.0f, 6.0f, 3.0f },
-            //     new float[] { 9.0f, 6.0f, 3.0f },
-            //     new float[] { 9.0f, 6.0f, 3.0f },
-             };
-         }
+        // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
+        // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
+        // Create sizes_AmericanEuropeanAsian_pallets = new float[][] { ... }  42" X 42" = 10.67dm X 10.67dm
+        sizes =  new float[][] {
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+        //     new float[] { 1.0f, 1.0f, 9.0f },
+        //     new float[] { 1.0f, 1.0f, 9.0f },
+        //     new float[] { 1.0f, 1.0f, 9.0f },
+        //     new float[] { 3.0f, 3.0f, 3.0f },
+        //     new float[] { 3.0f, 3.0f, 3.0f },
+        //     new float[] { 3.0f, 3.0f, 3.0f },
+        //     new float[] { 3.0f, 3.0f, 3.0f },
+        //     new float[] { 3.0f, 3.0f, 3.0f },
+        //     new float[] { 3.0f, 3.0f, 3.0f },
+        //     new float[] { 3.0f, 3.0f, 3.0f },
+        //     new float[] { 6.0f, 3.0f, 3.0f },
+        //     new float[] { 3.0f, 6.0f, 3.0f },
+        //     new float[] { 3.0f, 3.0f, 6.0f },
+        //     new float[] { 6.0f, 6.0f, 3.0f },
+        //     new float[] { 3.0f, 6.0f, 10.0f },
+        //     new float[] { 1.0f, 3.0f, 6.0f },
+        //     new float[] { 6.0f, 6.0f, 6.0f },
+        //     new float[] { 1.0f, 3.0f, 9.0f },
+        //     new float[] { 6.0f, 9.0f, 3.0f },
+        //     new float[] { 9.0f, 3.0f, 3.0f },
+        //     new float[] { 9.0f, 6.0f, 6.0f },
+        //     new float[] { 9.0f, 6.0f, 3.0f },
+        //     new float[] { 9.0f, 6.0f, 3.0f },
+        //     new float[] { 9.0f, 6.0f, 3.0f },
+            };
         var idx = 0;
         foreach(var s in sizes) 
         {

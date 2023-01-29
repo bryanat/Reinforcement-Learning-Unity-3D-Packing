@@ -15,7 +15,7 @@ using Boxes;
 public class PackerHand : Agent 
 {
     int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
-    int curriculum_ConfigurationLocal; // local reference of the above
+    //int curriculum_ConfigurationLocal; // local reference of the above
 
     public NNModel unitBoxBrain;   // Brain to use when all boxes are 1 by 1 by 1
     public NNModel similarBoxBrain;     // Brain to use when boxes are of similar sizes
@@ -25,13 +25,7 @@ public class PackerHand : Agent
     string m_SimilarBoxBehaviorName = "SimilarBox";
     string m_RegularBoxBehaviorName = "RegularBox";
 
-    public GameObject binArea; // The bin container, which will be manually selected in the Inspector
-
-    //public GameObject binMini; // The mini bin container, used for lower lessons of Curriculum learning
-
     Rigidbody m_Agent; //cache agent rigidbody on initilization
-
-    [HideInInspector] public Transform carriedObject; // local reference to box picked up by agent
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
@@ -39,7 +33,6 @@ public class PackerHand : Agent
     public Vector3 rotation; // Rotation of box inside bin
     public Vector3 selectedVertex; // Vertex of box inside bin
 
-    //public List<Vector3> selectedVertices = new List<Vector3>();
     //public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
     public List<Vector3> backMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
     public List<Vector3> sideMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
@@ -55,12 +48,10 @@ public class PackerHand : Agent
     
     // public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
 
+
+    public GameObject binArea; // The bin container, which will be manually selected in the Inspector
     public Bounds areaBounds; // regular bin's bounds
-
-    //public Bounds miniBounds; // mini bin's bounds
-
     public float binVolume; // regular bin's volume
-    //public float miniBinVolume; // mini bin's volume
 
     EnvironmentParameters m_ResetParams; // Environment parameters
     public BoxSpawner boxSpawner; // Box Spawner
@@ -114,9 +105,8 @@ public class PackerHand : Agent
         }
 
         // Create boxes according to curriculum
-        //boxSpawner.SetUpBoxes(0, m_ResetParams.GetWithDefault("unit_box", 1));
         boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
-        boxPool = Box.GetBoxPool();
+        boxPool = BoxSpawner.boxPool;
     }
 
 
@@ -125,11 +115,8 @@ public class PackerHand : Agent
         Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
 
         // Picks which curriculum to train
-        // for now 1 is for unit boxes/mini bin, 2 is for similar sized boxes/regular bin, 3 is for regular boxes/regular bin
-        // curriculum_Configuration = 0;
-        // m_config = 0;
         curriculum_ConfigurationGlobal = 2;
-        curriculum_ConfigurationLocal = 2; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
+        //curriculum_ConfigurationLocal = 2; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
 
         Renderer [] renderers = binArea.GetComponentsInChildren<Renderer>();
         areaBounds = renderers[0].bounds;
@@ -140,7 +127,6 @@ public class PackerHand : Agent
 
         // Get total bin volume from onstart
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
-        //miniBinVolume = miniBounds.extents.x*2 * miniBounds.extents.y*2 * miniBounds.extents.z*2;
 
         Debug.Log($" BIN VOLUME: {binVolume}");
 
@@ -173,17 +159,9 @@ public class PackerHand : Agent
     public override void CollectObservations(VectorSensor sensor) 
     {
         /////once the box combines with the bin, we should also add bin bounds and bin volumne to observation
-        if (curriculum_ConfigurationLocal==0) 
-        {
-            // Add Bin size
-            //sensor.AddObservation(binArea.transform.localScale);
-        }
 
-        else 
-        {
-            // Add Bin size
-            sensor.AddObservation(binArea.transform.localScale);
-        }
+        // Add Bin size
+        sensor.AddObservation(binArea.transform.localScale);
 
         // array of all boxes
         foreach (Box box in boxPool) 
@@ -280,7 +258,7 @@ public class PackerHand : Agent
         {
             UpdateBoxPosition();
             UpdateAgentPosition(targetBin);
-            UpdateCarriedObject();
+            UpdateTargetBox();
             //if agent is close enough to the position, it should drop off the box
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
             {
@@ -319,16 +297,16 @@ public class PackerHand : Agent
     /// <summary>
     /// Update carried object position relative to the agent position
     ///</summary>
-    void UpdateCarriedObject() 
+    void UpdateTargetBox() 
     {
-        var box_x_length = carriedObject.localScale.x;
-        var box_z_length = carriedObject.localScale.z;
+        var box_x_length = targetBox.localScale.x;
+        var box_z_length = targetBox.localScale.z;
         // var dist = 0.2f;
          // distance from agent is relative to the box size
-        // carriedObject.localPosition = new Vector3(box_x_length, dist, box_z_length);
-        carriedObject.localPosition = new Vector3(0,1,1);
+        // targetBox.localPosition = new Vector3(box_x_length, dist, box_z_length);
+        targetBox.localPosition = new Vector3(0,1,1);
         // stop box from rotating
-        carriedObject.rotation = Quaternion.identity;
+        targetBox.rotation = Quaternion.identity;
     }
 
     /// <summary>
@@ -498,7 +476,7 @@ public class PackerHand : Agent
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
         selectedVertex = verticesArray[action_SelectedVertex];
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        if (isBackMeshCombined) {
+        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
             verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
         }
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
@@ -559,9 +537,8 @@ public class PackerHand : Agent
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         SensorCollision sensorScript = testBox.AddComponent<SensorCollision>();
         sensorScript.agent = this;
-        // rb.useGravity = true;
-        // rb.isKinematic = false;
-        testBox.name = $"clone{carriedObject.name}";
+        rb.angularDrag = 2f;
+        testBox.name = $"testbox{targetBox.name}";
 
     }
 
@@ -587,16 +564,8 @@ public class PackerHand : Agent
     public void UpdateBinVolume() 
     {
         // Update bin volume
-        if (curriculum_ConfigurationLocal==0) 
-        {
-            // miniBinVolume = miniBinVolume - carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
-            //  Debug.Log($"MINI BIN VOLUME IS {miniBinVolume}");
-        }
-        else 
-        {
-            binVolume = binVolume-carriedObject.localScale.x*carriedObject.localScale.y*carriedObject.localScale.z;
-            Debug.Log($"RBV Regular Bin Volume is binVolume: {binVolume}");
-        }
+        binVolume = binVolume-targetBox.localScale.x*targetBox.localScale.y*targetBox.localScale.z;
+        Debug.Log($"RBV Regular Bin Volume is binVolume: {binVolume}");
         
     }
 
@@ -606,9 +575,8 @@ public class PackerHand : Agent
     /// </summary>
     public void SelectRotation(int action) 
     {   
-        var childrenList = carriedObject.GetComponentsInChildren<Transform>();
-        boxWorldScale = carriedObject.localScale;
-        Debug.Log($"ROTATION SELECTED IS : {action}");
+        var childrenList = targetBox.GetComponentsInChildren<Transform>();
+        boxWorldScale = targetBox.localScale;
         if (action == 0 ) 
         {
             rotation = new Vector3(0, 0, 0);
@@ -783,15 +751,15 @@ public class PackerHand : Agent
     public void PickupBox() 
     {
         // Change carriedObject to target
-        carriedObject = targetBox.transform;
+        //carriedObject = targetBox.transform;
             
-        // Attach carriedObject (the box) as a child of the agent parent, effectively attaching the box's movement to the agent's movement  
-        carriedObject.parent = this.transform;
+        // Attach the box as a child of the agent parent, effectively attaching the box's movement to the agent's movement  
+        targetBox.parent = this.transform;
 
         isPickedup = true;
 
-        Destroy(carriedObject.GetComponent<BoxCollider>()); 
-        Destroy(carriedObject.GetComponent<Rigidbody>());   
+        Destroy(targetBox.GetComponent<BoxCollider>()); 
+        Destroy(targetBox.GetComponent<Rigidbody>());   
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
         GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen = false;
@@ -812,17 +780,17 @@ public class PackerHand : Agent
     public void DropoffBox() 
     {
         // Detach box from agent, preventing the placed box from moving again when the agent moves to pickup a new box 
-        carriedObject.SetParent(null);
+        targetBox.SetParent(null);
 
-        Collider [] m_cList = carriedObject.GetComponentsInChildren<Collider>();
+        Collider [] m_cList = targetBox.GetComponentsInChildren<Collider>();
 
         // Lock box position and location
         ///////////////////////COLLISION/////////////////////////
-        carriedObject.position = targetBin.position; // COLLISION OCCURS IMMEDIATELY AFTER SET POSITION OCCURS
+        targetBox.position = targetBin.position; // COLLISION OCCURS IMMEDIATELY AFTER SET POSITION OCCURS
         ///////////////////////COLLISION/////////////////////////
 
-        carriedObject.rotation = Quaternion.Euler(rotation);
-        // carriedObject.Rotate(rotation[0], rotation[1], rotation[2], Space.World);
+        targetBox.rotation = Quaternion.Euler(rotation);
+        // targetBox.Rotate(rotation[0], rotation[1], rotation[2], Space.World);
         // dont need to freeze position on the rigidbody anymore because instead we just remove the rigidbody, preventing movement from collisions
 
         foreach (Collider m_c in m_cList) 
