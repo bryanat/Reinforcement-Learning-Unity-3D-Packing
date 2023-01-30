@@ -11,7 +11,7 @@ public class SensorCollision : MonoBehaviour
 {
     public PackerHand agent;
 
-    public float fallingThreshold = 1f;
+    public float fallingThreshold = 0.5f;
 
     public float distance = 0f;
 
@@ -25,7 +25,7 @@ public class SensorCollision : MonoBehaviour
     void Start()
     {
         // This destroys the test box 3 unity seconds after creation 
-        Destroy(gameObject, 3);
+        Destroy(gameObject, 10);
 
     }
 
@@ -66,12 +66,21 @@ public class SensorCollision : MonoBehaviour
          if (Physics.Raycast(boxBottomCenter, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide))
          {
             Debug.Log($"RCS RAYCAST HIT {hit.transform.name}");
-            if (hit.transform.name == "binbottom" | hit.transform.name == "top") {
+            if (hit.transform.name == "binbottom" | hit.transform.name == "top" | hit.transform.name == "BinIso20Bottom") {
                 distance = hit.distance;
                 Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
             }
          }
      }
+
+     void OnDrawGizmos()
+    {
+        // Draws a 5 unit long red line in front of the object
+        Gizmos.color = Color.yellow;
+        Vector3 position =   new Vector3(transform.position.x, transform.position.y-transform.localScale.y*0.5f, transform.position.z);
+        Vector3 direction = transform.TransformDirection(Vector3.down) * 30f;
+        Gizmos.DrawRay(position, direction);
+    }
     
      
 }
