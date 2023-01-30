@@ -24,10 +24,6 @@ public class SensorCollision : MonoBehaviour
 
     void Start()
     {
-
-        // float y_direction = gameObject.transform.localScale.y*0.5f;
-        // float x_direction = gameObject.transform.localScale.x*0.5f;
-        // max_topple_angle = Mathf.Tan(x_direction/y_direction);
         // This destroys the test box 3 unity seconds after creation 
         Destroy(gameObject, 3);
 

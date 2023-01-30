@@ -222,16 +222,7 @@ public class PackerHand : Agent
             curriculum_ConfigurationGlobal = -1;
         }
 
-        /////////////////////////////////
-        // end episode if a box falls to the floor: if( box.ContainsTag("droppedOff") == touching floor )
-        // // add a SensorFallenBox.cs component to Biniso20Bottom, that detects OnCollisionEnter a dropped box if( collision.gameObject.ContainsTag("droppedOff") ) { then agent.endEpisode}
-        // // add a shadow box (0, 1, 2) that is placed with physics and its rigidbody still on, to allow it to fall
-        // // // turn back on rigidbody in the destroyed components in pickupbox  Destroy(carriedObject.GetComponent<Rigidbody>());   
-        /////////////////////////////////
-        // also, prevent agent from selecting position 0,0,0
-
-        // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection
-        // if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && targetBox!=null) 
+        // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
         if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
         {
             StateReset();
@@ -551,18 +542,18 @@ public class PackerHand : Agent
         rb.constraints = RigidbodyConstraints.FreezeAll;
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
         // bc.center = Vector3.zero;
-        rb.mass = 300f;
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-        rb.drag = 1f;
-        rb.angularDrag = 1f;
+        // rb.mass = 300f;
+        // rb.velocity = Vector3.zero;
+        // rb.angularVelocity = Vector3.zero;
+        // rb.drag = 1f;
+        //rb.angularDrag = 2f;
+        // rb.angularDrag = 1f;
         // bc.material.bounciness = 0f;
         // bc.material.dynamicFriction = 1f;
         // bc.material.staticFriction = 1f;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         SensorCollision sensorScript = testBox.AddComponent<SensorCollision>();
         sensorScript.agent = this;
-        //rb.angularDrag = 2f;
         testBox.name = $"testbox{targetBox.name}";
 
     }
