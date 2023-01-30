@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44658822, g: 0.49642307, b: 0.5748253, a: 1}
+  m_IndirectSpecularColor: {r: 0.4465785, g: 0.49641252, b: 0.574817, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -737,6 +737,7 @@ MonoBehaviour:
   binBottom: {fileID: 0}
   binSide: {fileID: 0}
   binBack: {fileID: 0}
+  clearPlastic: {fileID: 2100000, guid: ec99cc74da6543b459e71a51834b037d, type: 2}
 --- !u!1 &1355652134
 GameObject:
   m_ObjectHideFlags: 0
@@ -1102,6 +1103,7 @@ MonoBehaviour:
   binBottom: {fileID: 0}
   binSide: {fileID: 0}
   binBack: {fileID: 0}
+  clearPlastic: {fileID: 2100000, guid: ec99cc74da6543b459e71a51834b037d, type: 2}
 --- !u!1 &1485939481
 GameObject:
   m_ObjectHideFlags: 0
@@ -1650,6 +1652,7 @@ MonoBehaviour:
   binBottom: {fileID: 0}
   binSide: {fileID: 0}
   binBack: {fileID: 0}
+  clearPlastic: {fileID: 2100000, guid: ec99cc74da6543b459e71a51834b037d, type: 2}
 --- !u!1001 &1149920266690001738
 PrefabInstance:
   m_ObjectHideFlags: 0
