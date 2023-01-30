@@ -207,8 +207,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 108598591}
-  m_LocalRotation: {x: 0.025342157, y: -0.9719138, z: 0.19446136, w: 0.13010076}
-  m_LocalPosition: {x: 30.351402, y: 21.756966, z: 97.056595}
+  m_LocalRotation: {x: 0.004015028, y: -0.9950614, z: 0.045296393, w: 0.08823288}
+  m_LocalPosition: {x: 10.694092, y: 10.402268, z: 32.121727}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1519,7 +1519,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: verticesArray.Array.size
-      value: 25
+      value: 13
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 2674329426616174709, guid: 2f2c1469c0f2c8453ab01d6d68f6526f, type: 3}
@@ -2165,7 +2165,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boxArea: {fileID: 868628914}
   binArea: {fileID: 0}
-  binMini: {fileID: 0}
   unitBox: {fileID: 9098616314326610961}
 --- !u!4 &5254446885462270048
 Transform:

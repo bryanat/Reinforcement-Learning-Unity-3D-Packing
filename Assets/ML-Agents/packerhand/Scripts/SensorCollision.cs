@@ -11,7 +11,7 @@ public class SensorCollision : MonoBehaviour
 {
     public PackerHand agent;
 
-    public float fallingThreshold = 3f;
+    public float fallingThreshold = 1f;
 
     public float distance = 0f;
 
@@ -48,29 +48,13 @@ public class SensorCollision : MonoBehaviour
     {
         if (collision.gameObject.name == "BinIso20Bottom") {
             enteredCollisionWithBottom = true;
-            //Rigidbody rb = gameObject.GetComponent<Rigidbody>();
+            float y_direction = transform.localScale.y*0.5f;
             // if fails gravity check
             // this loop should only be executed once
-            if (distance > fallingThreshold) 
+            if (distance - y_direction > fallingThreshold) 
             {
-                // detach box from agent
-                agent.targetBox.parent = null;
-                int failedBoxIdx = int.Parse(gameObject.name.Substring(7));
-                // add back rigidbody and collider
-                Rigidbody rb = agent.targetBox.gameObject.AddComponent<Rigidbody>();
-                BoxCollider bc = agent.targetBox.gameObject.AddComponent<BoxCollider>();
-                // not be affected by forces or collisions, position and rotation will be controlled directly through script
-                rb.isKinematic = true;
-                // reset to starting position
-                agent.targetBox.position = agent.boxPool[failedBoxIdx].startingPos;
-                // remove from organized list to be picked again
-                Box.organizedBoxes.Remove(failedBoxIdx);
-                // reset states
-                agent.StateReset();
-                // settting isBlackboxUpdated to true allows another vertex to be selected
-                agent.isBlackboxUpdated = true;
-                // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
-                //agent.isVertexSelected = true;
+                int failedBoxId = int.Parse(gameObject.name.Substring(7));
+                agent.BoxReset(failedBoxId, "failedGravityCheck");
                 Debug.Log($"SCS {gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");  
                 // destroy test box  
                 Destroy(gameObject);
@@ -81,7 +65,7 @@ public class SensorCollision : MonoBehaviour
 
     void GetHitDistance()
      {
-        Vector3 boxBottomCenter = new Vector3(transform.position.x, transform.position.y-transform.localScale.y, transform.position.z);
+        Vector3 boxBottomCenter = new Vector3(transform.position.x, transform.position.y, transform.position.z);
          Ray downRay = new Ray(boxBottomCenter, Vector3.down); // this is the downward ray from box bottom to ground
          if (Physics.Raycast(downRay, out hit))
          {

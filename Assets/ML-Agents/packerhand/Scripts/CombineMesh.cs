@@ -310,14 +310,17 @@ public class CombineMesh : MonoBehaviour
         MeshCollider parent_mc = gameObject.GetComponent<MeshCollider>(); // create parent_mc mesh collider 
         if (!parent_mc) {
             parent_mc = gameObject.AddComponent<MeshCollider>();
+            parent_mc.material.bounciness = 0f;
+            parent_mc.material.dynamicFriction = 1f;
+            parent_mc.material.staticFriction = 1f;
         }
         parent_mc.convex = true;
         parent_mc.sharedMesh = parent_mf.mesh; // add the mesh shape (from the parent mesh) to the mesh collider
 
-        foreach (MeshFilter child in meshList.Skip(1)) {
-            Debug.Log($"WJV meshcombine destroy: {child}");
-            //Destroy(child.gameObject);
-        }
+        // foreach (MeshFilter child in meshList.Skip(1)) {
+        //     Debug.Log($"WJV meshcombine destroy: {child}");
+        //     //Destroy(child.gameObject);
+        // }
 
         Debug.Log("+++++++++++END OF MESH COMBINER+++++++++++++");
     }

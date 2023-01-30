@@ -105,7 +105,7 @@ public class PackerHand : Agent
         }
 
         // Create boxes according to curriculum
-        boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
+        //boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
         boxPool = BoxSpawner.boxPool;
     }
 
@@ -291,8 +291,8 @@ public class PackerHand : Agent
         var current_agent_z = this.transform.position.z;
         // this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
         // current_agent_y/100, current_agent_z+total_z_distance/100);    
-        this.transform.position = new Vector3(current_agent_x + total_x_distance/10, 
-        target.position.y, current_agent_z+total_z_distance/10);   
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/200, 
+        target.position.y, current_agent_z+total_z_distance/200);   
     }
 
 
@@ -540,10 +540,26 @@ public class PackerHand : Agent
     public void CheckPlacementPhysics(Vector3 testPosition) {
         // create a clone test box to check physics of placement
         // teleported first before actual box is placed so gravity check comes before mesh combine
+
+        // extra large cardboard boxes (~6dm * 6dm * 6dm) weight 1 kg, large boxes weight 0.5 kg, medium boxes ( < 3dm * 3dm * 3dm) weight 0.1kg
+        //The maximum weights range from around 20 pounds for standard cardboard boxes to 60–150 pounds 
+        //corrugated and double-walled boxes, with some corrugated triple-walled boxes carrying up to 300 pounds
         GameObject testBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        Rigidbody rb = testBox.AddComponent<Rigidbody>();
         testBox.transform.localScale = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
         testBox.transform.position = testPosition;
-        Rigidbody rb = testBox.AddComponent<Rigidbody>();
+        rb.constraints = RigidbodyConstraints.FreezeAll;
+        // BoxCollider bc = testBox.GetComponent<BoxCollider>();
+        // bc.center = Vector3.zero;
+        rb.mass = 300f;
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.drag = 1f;
+        rb.angularDrag = 1f;
+        // bc.material.bounciness = 0f;
+        // bc.material.dynamicFriction = 1f;
+        // bc.material.staticFriction = 1f;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
         SensorCollision sensorScript = testBox.AddComponent<SensorCollision>();
         sensorScript.agent = this;
         //rb.angularDrag = 2f;
@@ -839,6 +855,30 @@ public class PackerHand : Agent
         this.transform.position = initialAgentPosition; // Vector3 of agents initial transform.position
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
+    }
+
+    public void BoxReset(int id, string cause)
+    {
+        if (cause == "failedGravityCheck") 
+        {
+            // detach box from agent
+            targetBox.parent = null;
+            // add back rigidbody and collider
+            Rigidbody rb = targetBox.gameObject.AddComponent<Rigidbody>();
+            BoxCollider bc = targetBox.gameObject.AddComponent<BoxCollider>();
+            // not be affected by forces or collisions, position and rotation will be controlled directly through script
+            rb.isKinematic = true;
+            // reset to starting position
+            targetBox.position = boxPool[id].startingPos;
+            // remove from organized list to be picked again
+            Box.organizedBoxes.Remove(id);
+            // reset states
+            StateReset();
+            // settting isBlackboxUpdated to true allows another vertex to be selected
+            isBlackboxUpdated = true;
+            // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
+            // isVertexSelected = true;
+        }
     }
 
 
