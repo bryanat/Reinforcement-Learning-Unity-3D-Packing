@@ -540,9 +540,9 @@ public class PackerHand : Agent
         GameObject testBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         testBox.transform.localScale = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
-        //testBox.transform.position = testPosition;
-        rb.MovePosition(testPosition);
-        //rb.constraints = RigidbodyConstraints.FreezeAll;
+        testBox.transform.position = testPosition;
+        //rb.MovePosition(testPosition);
+        rb.constraints = RigidbodyConstraints.FreezeAll;
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
         // bc.isTrigger = false;
         // bc.center = Vector3.zero;
