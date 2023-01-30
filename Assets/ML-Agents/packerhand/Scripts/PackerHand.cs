@@ -152,6 +152,7 @@ public class PackerHand : Agent
         selectedVertex = new Vector3(8.25f, 0.50f, 10.50f); // refactor to select first vertex
         // selectedVertex = new Vector3(where the three trimesh meet init);
         isVertexSelected = true;
+        
     }
 
 
@@ -294,7 +295,7 @@ public class PackerHand : Agent
     {
         var box_x_length = targetBox.localScale.x;
         var box_z_length = targetBox.localScale.z;
-        // var dist = 0.2f;
+        // var dist = 0.2f; 
          // distance from agent is relative to the box size
         // targetBox.localPosition = new Vector3(box_x_length, dist, box_z_length);
         targetBox.localPosition = new Vector3(0,1,1);
@@ -418,6 +419,7 @@ public class PackerHand : Agent
                 Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
                 verticesArray[VertexCount] = tripoints_list[idx];
                 VertexCount ++;
+                Debug.Log($"VERTEX COUNT IS {VertexCount}");
             }
             }
             }
@@ -538,8 +540,9 @@ public class PackerHand : Agent
         GameObject testBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         testBox.transform.localScale = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
-        testBox.transform.position = testPosition;
-        rb.constraints = RigidbodyConstraints.FreezeAll;
+        //testBox.transform.position = testPosition;
+        rb.MovePosition(testPosition);
+        //rb.constraints = RigidbodyConstraints.FreezeAll;
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
         // bc.center = Vector3.zero;
         // rb.mass = 300f;
@@ -580,7 +583,7 @@ public class PackerHand : Agent
     public void UpdateBinVolume() 
     {
         // Update bin volume
-        binVolume = binVolume-targetBox.localScale.x*targetBox.localScale.y*targetBox.localScale.z;
+        binVolume = binVolume-boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
         Debug.Log($"RBV Regular Bin Volume is binVolume: {binVolume}");
         
     }
@@ -775,7 +778,7 @@ public class PackerHand : Agent
         isPickedup = true;
 
         Destroy(targetBox.GetComponent<BoxCollider>()); 
-        Destroy(targetBox.GetComponent<Rigidbody>());   
+        //Destroy(targetBox.GetComponent<Rigidbody>());   
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
         GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen = false;
@@ -852,15 +855,16 @@ public class PackerHand : Agent
     {
         if (cause == "failedGravityCheck") 
         {
+            Debug.Log($"SCS BOX {id} RESET LOOP");
             // detach box from agent
             targetBox.parent = null;
             // add back rigidbody and collider
-            Rigidbody rb = targetBox.gameObject.AddComponent<Rigidbody>();
-            BoxCollider bc = targetBox.gameObject.AddComponent<BoxCollider>();
+            Rigidbody rb = boxPool[id].rb;
+            BoxCollider bc = boxPool[id].rb.gameObject.AddComponent<BoxCollider>();
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             rb.isKinematic = true;
             // reset to starting position
-            targetBox.position = boxPool[id].startingPos;
+            boxPool[id].rb.transform.position = boxPool[id].startingPos;
             // remove from organized list to be picked again
             Box.organizedBoxes.Remove(id);
             // reset states
