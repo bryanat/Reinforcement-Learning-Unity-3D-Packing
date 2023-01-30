@@ -30,12 +30,11 @@ public class CombineMesh : MonoBehaviour
 
     public MeshFilter parent_mf;
 
-
     public GameObject binBottom;
-
     public GameObject binSide;
-
     public GameObject binBack;
+
+    public Material clearPlastic;
 
 
 
@@ -159,6 +158,8 @@ public class CombineMesh : MonoBehaviour
                 Debug.Log("MMM MESH COMBINED FOR BACK MESH");
                 isCollidedBlue = false;
                 agent.isBackMeshCombined = true;
+                oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+                sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
             }
             // GREEN
             if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) {
@@ -170,7 +171,9 @@ public class CombineMesh : MonoBehaviour
                 Debug.Log("MMM MESH COMBINED FOR BOTTOM MESH");
                 isCollidedGreen = false;
                 /// if this state change is called outside in the script of all three meshes, isDroppedoff will be called 3 times and vertices updated 3 times
-                agent.isBottomMeshCombined = true;    
+                agent.isBottomMeshCombined = true;  
+                oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+                sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;  
             }
             // RED
             if (name == "BinIso20Side" && agent.isSideMeshCombined==false) {
@@ -182,6 +185,8 @@ public class CombineMesh : MonoBehaviour
                 MeshCombiner(redMeshList);
                 Debug.Log("MMM MESH COMBINED FOR SIDE MESH");
                 agent.isSideMeshCombined = true;
+                oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+                sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
             }
         }
     }
@@ -239,14 +244,14 @@ public class CombineMesh : MonoBehaviour
     //     }
     // }
 
-    // void OnDrawGizmos() { 
-    //     foreach (Vector3 vertex in agent.verticesArray) {
-    //         Gizmos.color = Color.yellow;
-    //         Gizmos.DrawSphere(vertex, 0.1f);
-    //     }
-    //     Gizmos.color = Color.black;
-    //     Gizmos.DrawSphere(agent.selectedVertex, 0.1f);
-    // }
+    void OnDrawGizmos() { 
+        foreach (Vector3 vertex in agent.verticesArray) {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawSphere(vertex, 0.1f);
+        }
+        Gizmos.color = Color.black;
+        Gizmos.DrawSphere(agent.selectedVertex, 0.1f);
+    }
 
 
     
@@ -281,13 +286,27 @@ public class CombineMesh : MonoBehaviour
             combine.Add(ci);
         }
 
+        // material is brown
+        // merge with parent mesh 
+        // make parent mesh blue PARENT.GetComponent<MeshRenderer>().material = blue
+        // make child mesh clear CHILD.GetComponent<MeshRenderer>().material = clearPlastic
+
         MeshRenderer parent_mr = gameObject.GetComponent<MeshRenderer>();
         // Set the materials of the new mesh to the materials of the original meshes
         Material[] materials = new Material[meshList.Length];
+
         for (int i = 0; i < meshList.Length; i++)
         {
-            materials[i] = meshList[i].GetComponent<Renderer>().sharedMaterial;
+            materials[i] = meshList[0].GetComponent<Renderer>().material;
         }
+
+        // for (int i = 0; i < meshList.Length; i++)
+        // {
+        //     // set each child material to parent material
+        //     materials[i] = meshList[0].GetComponent<Renderer>().sharedMaterial;
+        //     materials[i] = parent_mr.sharedMaterial;
+        // }
+
         parent_mr.materials = materials;
         
          // Add mesh fileter if doesn't exist

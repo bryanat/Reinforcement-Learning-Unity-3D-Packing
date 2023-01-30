@@ -47,6 +47,10 @@ public class SensorCollision : MonoBehaviour
             float y_direction = transform.localScale.y*0.5f;
             // if fails gravity check
             // this loop should only be executed once
+            Debug.Log($"SCS {gameObject.name} distance: {distance}");  
+            if (distance > 0){
+                Debug.Log($"SCS@ {gameObject.name} distance: {distance} @@@@@@@@@@@@@@@@@@@@@@@@@");  
+            }
             if (distance> fallingThreshold) 
             {
                 int failedBoxId = int.Parse(gameObject.name.Substring(7));
@@ -65,13 +69,11 @@ public class SensorCollision : MonoBehaviour
          //Ray downRay = new Ray(boxBottomCenter, Vector3.down); // this is the downward ray from box bottom to ground
          if (Physics.Raycast(boxBottomCenter, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide))
          {
-            Debug.Log($"RCS RAYCAST HIT {hit.transform.name}");
             if (hit.transform.name == "binbottom" | hit.transform.name == "top") {
+                Debug.Log($"RCS RAYCAST HIT {hit.transform.name}");
                 distance = hit.distance;
                 Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
             }
          }
      }
-    
-     
 }

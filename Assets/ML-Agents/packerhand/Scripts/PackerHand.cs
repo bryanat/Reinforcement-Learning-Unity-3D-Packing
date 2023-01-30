@@ -283,8 +283,8 @@ public class PackerHand : Agent
         var current_agent_z = this.transform.position.z;
         // this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
         // current_agent_y/100, current_agent_z+total_z_distance/100);    
-        this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
-        target.position.y, current_agent_z+total_z_distance/100);   
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/60, 
+        target.position.y, current_agent_z+total_z_distance/60);   
     }
 
 
@@ -852,6 +852,8 @@ public class PackerHand : Agent
         m_Agent.angularVelocity = Vector3.zero;
     }
 
+
+    // BoxReset is called in SensorCollision.cs (currently bad practice not modular but will refactor when have time)
     public void BoxReset(int id, string cause)
     {
         if (cause == "failedGravityCheck") 
