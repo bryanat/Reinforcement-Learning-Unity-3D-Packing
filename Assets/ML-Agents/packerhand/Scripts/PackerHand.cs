@@ -283,8 +283,8 @@ public class PackerHand : Agent
         var current_agent_z = this.transform.position.z;
         // this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
         // current_agent_y/100, current_agent_z+total_z_distance/100);    
-        this.transform.position = new Vector3(current_agent_x + total_x_distance/200, 
-        target.position.y, current_agent_z+total_z_distance/200);   
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
+        target.position.y, current_agent_z+total_z_distance/100);   
     }
 
 
@@ -544,6 +544,7 @@ public class PackerHand : Agent
         rb.MovePosition(testPosition);
         //rb.constraints = RigidbodyConstraints.FreezeAll;
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
+        // bc.isTrigger = false;
         // bc.center = Vector3.zero;
         // rb.mass = 300f;
         // rb.velocity = Vector3.zero;
