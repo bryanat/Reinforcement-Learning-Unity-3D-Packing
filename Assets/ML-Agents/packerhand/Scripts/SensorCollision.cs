@@ -41,7 +41,6 @@ public class SensorCollision : MonoBehaviour
             {
                 int failedBoxId = int.Parse(gameObject.name.Substring(7));
                 passedGravityCheck = false;
-                //agent.BoxReset(failedBoxId, "failedGravityCheck");
                 Debug.Log($"SCS {gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");  
                 // destroy test box  
                 Destroy(gameObject);

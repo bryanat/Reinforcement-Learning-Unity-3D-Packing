@@ -30,7 +30,7 @@ public class SensorOuterCollision : MonoBehaviour
         if (collision.gameObject.tag == "testbox") {
             int failedBoxId = int.Parse(gameObject.name.Substring(7));
             // reset box
-            agent.BoxReset(failedBoxId, "failedGravityCheck");
+            agent.BoxReset("failedPhysicsCheck");
             Debug.Log($"CTU {collision.gameObject.name} box reset due to collision with outer bin side: {name} ");
         } 
     }

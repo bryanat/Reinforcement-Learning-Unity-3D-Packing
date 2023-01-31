@@ -254,7 +254,7 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    BoxReset("failedGravityCheck");
+                    BoxReset("failedPhysicsCheck");
                 }
             }
 
@@ -978,7 +978,7 @@ public class PackerHand : Agent
     // BoxReset is called in SensorCollision.cs (currently bad practice not modular but will refactor when have time)
     public void BoxReset(string cause)
     {
-        if (cause == "failedGravityCheck") 
+        if (cause == "failedPhysicsCheck") 
         {
             Debug.Log($"SCS BOX {boxIdx} RESET LOOP");
             // detach box from agent
