@@ -530,7 +530,8 @@ public class PackerHand : Agent
         GameObject testBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         testBox.transform.localScale = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
-        testBox.transform.position = testPosition;
+        // test position has to be slightly elevated or else raycast doesn't detect the layer directly below
+        testBox.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         //rb.MovePosition(testPosition);
         rb.constraints = RigidbodyConstraints.FreezeAll;
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();

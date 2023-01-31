@@ -15,10 +15,6 @@ public class SensorCollision : MonoBehaviour
 
     public float distance = 0f;
 
-    //public float max_topple_angle;
-
-    //public bool enteredCollisionWithBottom = false;
-
     public bool passedGravityCheck;
 
     private RaycastHit hit;
@@ -32,21 +28,11 @@ public class SensorCollision : MonoBehaviour
     }
 
 
-    void Update()
-     {
-        //if (enteredCollisionWithBottom) {
-            //GetHitDistance();
-        //}
-     }
-    
 
-
-
-    void OnCollisionStay(Collision collision)
+    void OnCollisionEnter(Collision collision)
     {
         Debug.Log($"OCC COLLISION OBJECT NAME IS {collision.gameObject.name}");
         if (collision.gameObject.name == "BinIso20Bottom" | collision.gameObject.name == "top") {
-            //enteredCollisionWithBottom = true;
             GetHitDistance();
             // if fails gravity check
             // this loop should only be executed once
@@ -70,28 +56,34 @@ public class SensorCollision : MonoBehaviour
     }
 
 
+
     void GetHitDistance()
      {
+         // Bit shift the index of the layer (8) to get a bit mask
+        int layerMask = 1 << 8;
+        // This would cast rays only against colliders in layer 8.
+        // But instead we want to collide against everything except layer 8. The ~ operator does this, it inverts a bitmask.
+        layerMask = ~layerMask;
         Vector3 boxBottomCenter = new Vector3(transform.position.x, transform.position.y-transform.localScale.y*0.5f, transform.position.z);
          //Ray downRay = new Ray(boxBottomCenter, Vector3.down); // this is the downward ray from box bottom to ground
-         if (Physics.Raycast(boxBottomCenter, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide))
+         if (Physics.Raycast(boxBottomCenter, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, layerMask, QueryTriggerInteraction.Collide))
          {
             Debug.Log($"RCS RAYCAST HIT {hit.transform.name}");
-            if (hit.transform.name == "outerbinbottom" | hit.transform.name == "top" | hit.transform.name == "BinIso20Bottom") {
+            if (hit.transform.name == "top" | hit.transform.name == "BinIso20Bottom") {
                 distance = hit.distance;
                 Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
             }
          }
      }
 
-     void OnDrawGizmos()
-    {
-        // Draws a 5 unit long red line in front of the object
-        Gizmos.color = Color.yellow;
-        Vector3 position =   new Vector3(transform.position.x, transform.position.y-transform.localScale.y*0.5f, transform.position.z);
-        Vector3 direction = transform.TransformDirection(Vector3.down) * 30f;
-        Gizmos.DrawRay(position, direction);
-    }
+    //  void OnDrawGizmos()
+    // {
+    //     // Draws a 5 unit long red line in front of the object
+    //     Gizmos.color = Color.yellow;
+    //     Vector3 position =   new Vector3(transform.position.x, transform.position.y-transform.localScale.y*0.5f, transform.position.z);
+    //     Vector3 direction = transform.TransformDirection(Vector3.down) * 30f;
+    //     Gizmos.DrawRay(position, direction);
+    // }
     
      
 }
