@@ -553,7 +553,7 @@ public class PackerHand : Agent
         sensorCollision = testBox.AddComponent<SensorCollision>();
         sensorCollision.agent = this;
         testBox.name = $"testbox{targetBox.name}";
-
+        testBox.tag = "testbox";
     }
 
 
