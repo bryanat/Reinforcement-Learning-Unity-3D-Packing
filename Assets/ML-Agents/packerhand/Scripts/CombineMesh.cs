@@ -44,13 +44,6 @@ public class CombineMesh : MonoBehaviour
         //c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
         // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
 
-        // Skip 1 is to skip the parent mesh filter
-        // var meshList = GetComponentsInChildren<MeshFilter>();//.Skip(1).ToArray(); 
-        // Debug.Log($"{name}: beging meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
-        
-        // // Combine meshes
-        // MeshCombiner(meshList);
-
         binBottom = GameObject.Find("BinIso20Bottom");
         binSide = GameObject.Find("BinIso20Side");
         binBack = GameObject.Find("BinIso20Back");
@@ -138,15 +131,6 @@ public class CombineMesh : MonoBehaviour
         // only entered for the last one mesh 
         if (binBottom.GetComponent<CombineMesh>().isCollidedGreen && binBack.GetComponent<CombineMesh>().isCollidedBlue && binSide.GetComponent<CombineMesh>().isCollidedRed)
         {
-
-            // // // Dont need this if unit box side scale 1 works (in the past side scale 1 caused mis-collision due to thiccness, but no longer)
-            // // Turn (0.5) scaled side back to unit (1.0) scale side by multiplying each transform.scale by 2 (was halved before)
-            // Transform[] array_children_transforms = collision.gameObject.transform.parent.GetComponentsInChildren<Transform>();
-            // foreach( Transform child_transform in array_children_transforms){
-            //     // child transform is 0.5, multiple by 2 to get 1.
-            //     child_transform.localScale = child_transform.localScale * 2f;
-            // }
-            //Debug.Log($"{name} TTTTTTTTTTTTTTTTTTTTTTTTTTTT");
         
             // BLUE
             if (name == "BinIso20Back" && agent.isBackMeshCombined==false) {
@@ -286,11 +270,6 @@ public class CombineMesh : MonoBehaviour
             combine.Add(ci);
         }
 
-        // material is brown
-        // merge with parent mesh 
-        // make parent mesh blue PARENT.GetComponent<MeshRenderer>().material = blue
-        // make child mesh clear CHILD.GetComponent<MeshRenderer>().material = clearPlastic
-
         MeshRenderer parent_mr = parent.gameObject.GetComponent<MeshRenderer>();
         // Set the materials of the new mesh to the materials of the original meshes
         Material[] materials = new Material[meshList.Length];
@@ -299,13 +278,6 @@ public class CombineMesh : MonoBehaviour
         {
             materials[i] = meshList[0].GetComponent<Renderer>().material;
         }
-
-        // for (int i = 0; i < meshList.Length; i++)
-        // {
-        //     // set each child material to parent material
-        //     materials[i] = meshList[0].GetComponent<Renderer>().sharedMaterial;
-        //     materials[i] = parent_mr.sharedMaterial;
-        // }
 
         parent_mr.materials = materials;
         
@@ -336,10 +308,6 @@ public class CombineMesh : MonoBehaviour
         parent_mc.convex = true;
         parent_mc.sharedMesh = parent_mf.mesh; // add the mesh shape (from the parent mesh) to the mesh collider
 
-        // foreach (MeshFilter child in meshList.Skip(1)) {
-        //     Debug.Log($"WJV meshcombine destroy: {child}");
-        //     //Destroy(child.gameObject);
-        // }
 
         Debug.Log("+++++++++++END OF MESH COMBINER+++++++++++++");
     }

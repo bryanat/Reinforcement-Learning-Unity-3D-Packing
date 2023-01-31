@@ -15,9 +15,11 @@ public class SensorCollision : MonoBehaviour
 
     public float distance = 0f;
 
-    public float max_topple_angle;
+    //public float max_topple_angle;
 
-    public bool enteredCollisionWithBottom = false;
+    //public bool enteredCollisionWithBottom = false;
+
+    public bool passedGravityCheck;
 
     private RaycastHit hit;
 
@@ -25,16 +27,16 @@ public class SensorCollision : MonoBehaviour
     void Start()
     {
         // This destroys the test box 3 unity seconds after creation 
-        Destroy(gameObject, 10);
+        Destroy(gameObject, 5);
 
     }
 
 
     void Update()
      {
-        if (enteredCollisionWithBottom) {
-            GetHitDistance();
-        }
+        //if (enteredCollisionWithBottom) {
+            //GetHitDistance();
+        //}
      }
     
 
@@ -42,20 +44,28 @@ public class SensorCollision : MonoBehaviour
 
     void OnCollisionStay(Collision collision)
     {
-        if (collision.gameObject.name == "BinIso20Bottom") {
-            enteredCollisionWithBottom = true;
-            float y_direction = transform.localScale.y*0.5f;
+        Debug.Log($"OCC COLLISION OBJECT NAME IS {collision.gameObject.name}");
+        if (collision.gameObject.name == "BinIso20Bottom" | collision.gameObject.name == "top") {
+            //enteredCollisionWithBottom = true;
+            GetHitDistance();
             // if fails gravity check
             // this loop should only be executed once
             Debug.Log($"SCS {gameObject.name} distance: {distance}");  
             if (distance> fallingThreshold) 
             {
                 int failedBoxId = int.Parse(gameObject.name.Substring(7));
-                agent.BoxReset(failedBoxId, "failedGravityCheck");
+                passedGravityCheck = false;
+                //agent.BoxReset(failedBoxId, "failedGravityCheck");
                 Debug.Log($"SCS {gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");  
                 // destroy test box  
                 Destroy(gameObject);
             }  
+            else 
+            {
+                passedGravityCheck = true;
+                Debug.Log($"SCS {gameObject.name} PASSED GRAVITY CHECK");  
+                Destroy(gameObject);
+            }
         } 
     }
 

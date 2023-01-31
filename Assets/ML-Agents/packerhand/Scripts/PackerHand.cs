@@ -55,6 +55,8 @@ public class PackerHand : Agent
     EnvironmentParameters m_ResetParams; // Environment parameters
     public BoxSpawner boxSpawner; // Box Spawner
 
+    public SensorCollision sensorCollision;
+
     [HideInInspector] public Vector3 initialAgentPosition;
 
     [HideInInspector] public bool isBlackboxUpdated;
@@ -103,8 +105,6 @@ public class PackerHand : Agent
             m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
         }
 
-        // Create boxes according to curriculum
-        //boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
         boxPool = BoxSpawner.boxPool;
     }
 
@@ -127,16 +127,6 @@ public class PackerHand : Agent
         binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
 
         Debug.Log($" BIN VOLUME: {binVolume}");
-
-        // CombineMesh [] meshScripts = binArea.GetComponentsInChildren<CombineMesh>();
-        // foreach (CombineMesh meshScript in meshScripts) 
-        // {
-        //     meshScript.agent = this;
-        //     binBottom = meshScript.binBottom;
-        //     binBack = meshScript.binBack;       
-        //     binSide = meshScript.binSide;
-            
-        // }
 
         // Make agent unaffected by collision
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
@@ -255,10 +245,17 @@ public class PackerHand : Agent
             //if agent is close enough to the position, it should drop off the box
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
             {
-                DropoffBox();
+                if (sensorCollision.passedGravityCheck)
+                {
+                    DropoffBox();
+                }
+                else
+                {
+                    BoxReset("failedGravityCheck");
+                }
             }
-        }
 
+        }
         //if agent drops off the box, it should pick another one
         else if (isBoxSelected==false) 
         {
@@ -308,7 +305,6 @@ public class PackerHand : Agent
     void UpdateVerticesList() 
     {
         ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
-        //Transform [] binObjects = binArea.GetComponentsInChildren<Transform>();
         //allVerticesDictionary.Clear();
         MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
         AddVertices(mf_back.mesh.vertices, backMeshVertices);
@@ -500,11 +496,6 @@ public class PackerHand : Agent
         {
             targetBin  = new GameObject().transform;
 
-            //D: select position from A+B
-            // 1: magnitude: magnitude = SELECTEDBOX.localScale * 0.5 : Vector3(0.5x, 0.5y, 0.5z) : half of each x,y,z (magnitudeX = SELECTEDBOX.localScale.x * 0.5; magnitudeY = SELECTEDBOX.localScale.y * 0.5; magnitudeZ = SELECTEDBOX.localScale.z * 0.5; )
-            // 2: direction: directionX = blackbox.position.x.isPositive (true=1 or false=-1), directionY = blackbox.position.y.isPositive, directionZ = blackbox.position.z.isPositive
-            // 3: position: (1+2=3) = Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) )
-
             float magnitudeX = boxWorldScale.x * 0.5f; 
             float magnitudeY = boxWorldScale.y * 0.5f; 
             float magnitudeZ = boxWorldScale.z * 0.5f; 
@@ -522,14 +513,14 @@ public class PackerHand : Agent
             Vector3 position = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
             Debug.Log($"UVP Updated Vertex Position position: {position}");
 
-            CheckPlacementPhysics(position);
+            CheckBoxPlacementPhysics(position);
 
             targetBin.position = position;
         }
     }
 
 
-    public void CheckPlacementPhysics(Vector3 testPosition) {
+    public void CheckBoxPlacementPhysics(Vector3 testPosition) {
         // create a clone test box to check physics of placement
         // teleported first before actual box is placed so gravity check comes before mesh combine
 
@@ -555,8 +546,8 @@ public class PackerHand : Agent
         // bc.material.dynamicFriction = 1f;
         // bc.material.staticFriction = 1f;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
-        SensorCollision sensorScript = testBox.AddComponent<SensorCollision>();
-        sensorScript.agent = this;
+        sensorCollision = testBox.AddComponent<SensorCollision>();
+        sensorCollision.agent = this;
         testBox.name = $"testbox{targetBox.name}";
 
     }
@@ -771,8 +762,6 @@ public class PackerHand : Agent
     /// </summary>
     public void PickupBox() 
     {
-        // Change carriedObject to target
-        //carriedObject = targetBox.transform;
             
         // Attach the box as a child of the agent parent, effectively attaching the box's movement to the agent's movement  
         targetBox.parent = this.transform;
@@ -811,7 +800,6 @@ public class PackerHand : Agent
         ///////////////////////COLLISION/////////////////////////
 
         targetBox.rotation = Quaternion.Euler(rotation);
-        // targetBox.Rotate(rotation[0], rotation[1], rotation[2], Space.World);
         // dont need to freeze position on the rigidbody anymore because instead we just remove the rigidbody, preventing movement from collisions
 
         foreach (Collider m_c in m_cList) 
@@ -984,27 +972,24 @@ public class PackerHand : Agent
 
 
     // BoxReset is called in SensorCollision.cs (currently bad practice not modular but will refactor when have time)
-    public void BoxReset(int id, string cause)
+    public void BoxReset(string cause)
     {
         if (cause == "failedGravityCheck") 
         {
-            Debug.Log($"SCS BOX {id} RESET LOOP");
+            Debug.Log($"SCS BOX {boxIdx} RESET LOOP");
             // detach box from agent
             targetBox.parent = null;
             // add back rigidbody and collider
-            Rigidbody rb = boxPool[id].rb;
-            BoxCollider bc = boxPool[id].rb.gameObject.AddComponent<BoxCollider>();
+            Rigidbody rb = boxPool[boxIdx].rb;
+            BoxCollider bc = boxPool[boxIdx].rb.gameObject.AddComponent<BoxCollider>();
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             rb.isKinematic = true;
             // reset to starting position
-            // boxWorldScale is size of box after rotation 
-            //boxPool[id].boxSize = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
-            //rb.transform.rotation = Quaternion.Inverse(Quaternion.Euler(rotation));
-            ReverseSideNames(id);
-            rb.transform.rotation = boxPool[id].startingRot;
-            rb.transform.position = boxPool[id].startingPos;
+            ReverseSideNames(boxIdx);
+            rb.transform.rotation = boxPool[boxIdx].startingRot;
+            rb.transform.position = boxPool[boxIdx].startingPos;
             // remove from organized list to be picked again
-            organizedBoxes.Remove(id);
+            organizedBoxes.Remove(boxIdx);
             // reset states
             StateReset();
             // settting isBlackboxUpdated to true allows another vertex to be selected
