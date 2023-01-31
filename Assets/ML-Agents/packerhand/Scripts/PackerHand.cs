@@ -1121,6 +1121,9 @@ public class PackerHand : Agent
         // Reset vertices array
         Array.Clear(verticesArray, 0, verticesArray.Length);
 
+        // Reset vertex count
+        VertexCount = 0;
+
         // Reset states;
         StateReset();
     }
