@@ -16,6 +16,8 @@ public class Box
 
     public Vector3 startingPos;
 
+    public Quaternion startingRot;
+
     public Vector3 boxSize; 
 
     public static List<int> organizedBoxes = new List<int>(); // list of organzed box indices
@@ -44,23 +46,23 @@ public class BoxSpawner : MonoBehaviour
         // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
         // Create sizes_AmericanEuropeanAsian_pallets = new float[][] { ... }  42" X 42" = 10.67dm X 10.67dm
         sizes =  new float[][] {
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 6.0f, 6.0f, 6.0f },
-            // new float[] { 6.0f, 6.0f, 6.0f },
-            // new float[] { 6.0f, 6.0f, 6.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-        // //new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 1.0f, 1.0f, 9.0f },
+            new float[] { 1.0f, 1.0f, 9.0f },
+            new float[] { 1.0f, 1.0f, 9.0f },
+            new float[] { 9.0f, 1.0f, 9.0f },
+            new float[] { 9.0f, 1.0f, 9.0f },
+            new float[] { 1.0f, 9.0f, 9.0f },
+            new float[] { 1.0f, 9.0f, 9.0f },
+            new float[] { 1.0f, 9.0f, 9.0f },
+            new float[] { 9.0f, 1.0f, 9.0f },
+            new float[] { 6.0f, 6.0f, 6.0f },
+            new float[] { 6.0f, 6.0f, 6.0f },
+            new float[] { 6.0f, 6.0f, 6.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 3.0f, 3.0f, 3.0f },
+            new float[] { 1.0f, 1.0f, 9.0f },
+            new float[] { 1.0f, 1.0f, 9.0f },
             new float[] { 1.0f, 1.0f, 9.0f },
             new float[] { 9.0f, 1.0f, 9.0f },
             new float[] { 9.0f, 1.0f, 9.0f },
@@ -137,6 +139,7 @@ public class BoxSpawner : MonoBehaviour
             {
                 rb = box.GetComponent<Rigidbody>(), 
                 startingPos = box.transform.position,
+                startingRot = box.transform.rotation,
                 boxSize = box.transform.localScale,
             };
             // Add box to box pool

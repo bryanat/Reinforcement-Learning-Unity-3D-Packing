@@ -590,6 +590,8 @@ public class PackerHand : Agent
     }
 
 
+
+
     /// <summary>
     /// Agent selects rotation for the box
     /// </summary>
@@ -760,7 +762,7 @@ public class PackerHand : Agent
         //               // Vector3(90, 90, 90) == Vector3(90, 0, 0) == xzy
         //               // Vector3(90, 90, 0)  == Vector3(90, 0, 90) == yzx 
 
-        Debug.Log($"SELECTED TARGET ROTATION: {rotation}");
+        Debug.Log($"SELECTED TARGET ROTATION FOR BOX {boxIdx}: {rotation}");
         isRotationSelected = true;
     }
 
@@ -852,6 +854,141 @@ public class PackerHand : Agent
         m_Agent.angularVelocity = Vector3.zero;
     }
 
+    public void ReverseSideNames(int id) 
+    {
+        var childrenList = boxPool[id].rb.gameObject.GetComponentsInChildren<Transform>();
+        if (rotation==new Vector3(90, 0, 0))
+        {
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="bottom") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "bottom";
+                }
+
+                else if (child.name == "top") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "top";
+                }
+            }
+        }
+        else if (rotation == new Vector3(0, 90, 0)) 
+        {
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="left") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "left";
+                }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "right";
+                }
+            }        
+        }
+        else if (rotation == new Vector3(0, 0, 90))
+        {
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="left") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "left";
+                }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "right";
+                }
+            }                
+        }
+        else if (rotation == new Vector3(0, 90, 90)) 
+        {
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="back") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "right") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "left";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "left") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "right";
+                }
+
+            }      
+        }
+        else if (rotation == new Vector3(90, 0, 90))
+        {
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            {
+               if (child.name=="top") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "left") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "left";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "right") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "right";
+                }
+             }      
+        }
+    }
+
 
     // BoxReset is called in SensorCollision.cs (currently bad practice not modular but will refactor when have time)
     public void BoxReset(int id, string cause)
@@ -867,7 +1004,12 @@ public class PackerHand : Agent
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             rb.isKinematic = true;
             // reset to starting position
-            boxPool[id].rb.transform.position = boxPool[id].startingPos;
+            // boxWorldScale is size of box after rotation 
+            //boxPool[id].boxSize = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
+            //rb.transform.rotation = Quaternion.Inverse(Quaternion.Euler(rotation));
+            ReverseSideNames(id);
+            rb.transform.rotation = boxPool[id].startingRot;
+            rb.transform.position = boxPool[id].startingPos;
             // remove from organized list to be picked again
             Box.organizedBoxes.Remove(id);
             // reset states
