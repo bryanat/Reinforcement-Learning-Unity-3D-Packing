@@ -14,6 +14,8 @@ using Boxes;
 
 public class PackerHand : Agent 
 {
+    public int packSpeed = 20;
+
     int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
     //int curriculum_ConfigurationLocal; // local reference of the above
 
@@ -78,6 +80,7 @@ public class PackerHand : Agent
     public Vector3 boxWorldScale;
 
     public Material clearPlastic;
+
 
 
 
@@ -279,8 +282,8 @@ public class PackerHand : Agent
         var current_agent_z = this.transform.position.z;
         // this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
         // current_agent_y/100, current_agent_z+total_z_distance/100);    
-        this.transform.position = new Vector3(current_agent_x + total_x_distance/60, 
-        target.position.y, current_agent_z+total_z_distance/60);   
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/packSpeed, 
+        target.position.y, current_agent_z+total_z_distance/packSpeed);   
     }
 
 

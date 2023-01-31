@@ -228,14 +228,14 @@ public class CombineMesh : MonoBehaviour
     //     }
     // }
 
-    void OnDrawGizmos() { 
-        foreach (Vector3 vertex in agent.verticesArray) {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(vertex, 0.1f);
-        }
-        Gizmos.color = Color.black;
-        Gizmos.DrawSphere(agent.selectedVertex, 0.1f);
-    }
+    // void OnDrawGizmos() { 
+    //     foreach (Vector3 vertex in agent.verticesArray) {
+    //         Gizmos.color = Color.yellow;
+    //         Gizmos.DrawSphere(vertex, 0.1f);
+    //     }
+    //     Gizmos.color = Color.black;
+    //     Gizmos.DrawSphere(agent.selectedVertex, 0.1f);
+    // }
 
 
     
