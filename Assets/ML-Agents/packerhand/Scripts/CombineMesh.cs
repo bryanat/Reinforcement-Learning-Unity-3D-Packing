@@ -45,11 +45,11 @@ public class CombineMesh : MonoBehaviour
         // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
 
         // Skip 1 is to skip the parent mesh filter
-        var meshList = GetComponentsInChildren<MeshFilter>();//.Skip(1).ToArray(); 
-        Debug.Log($"{name}: beging meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+        // var meshList = GetComponentsInChildren<MeshFilter>();//.Skip(1).ToArray(); 
+        // Debug.Log($"{name}: beging meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
         
-        // Combine meshes
-        MeshCombiner(meshList);
+        // // Combine meshes
+        // MeshCombiner(meshList);
 
         binBottom = GameObject.Find("BinIso20Bottom");
         binSide = GameObject.Find("BinIso20Side");
@@ -154,7 +154,7 @@ public class CombineMesh : MonoBehaviour
                 binBack.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBack.transform;
                 binBack.GetComponent<CombineMesh>().sameSideObject.transform.parent = binBack.transform;
                 var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
-                MeshCombiner(blueMeshList);
+                MeshCombiner(blueMeshList, binBack);
                 Debug.Log("MMM MESH COMBINED FOR BACK MESH");
                 isCollidedBlue = false;
                 agent.isBackMeshCombined = true;
@@ -167,7 +167,7 @@ public class CombineMesh : MonoBehaviour
                 binBottom.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBottom.transform;
                 binBottom.GetComponent<CombineMesh>().sameSideObject.transform.parent = binBottom.transform;                
                 var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
-                MeshCombiner(greenMeshList);
+                MeshCombiner(greenMeshList, binBottom);
                 Debug.Log("MMM MESH COMBINED FOR BOTTOM MESH");
                 isCollidedGreen = false;
                 /// if this state change is called outside in the script of all three meshes, isDroppedoff will be called 3 times and vertices updated 3 times
@@ -182,7 +182,7 @@ public class CombineMesh : MonoBehaviour
                 binSide.GetComponent<CombineMesh>().sameSideObject.transform.parent = binSide.transform;
                 var redMeshList = binSide.GetComponentsInChildren<MeshFilter>(); 
                 isCollidedRed = false;
-                MeshCombiner(redMeshList);
+                MeshCombiner(redMeshList, binSide);
                 Debug.Log("MMM MESH COMBINED FOR SIDE MESH");
                 agent.isSideMeshCombined = true;
                 oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
@@ -256,18 +256,18 @@ public class CombineMesh : MonoBehaviour
 
     
 
-    public void MeshCombiner(MeshFilter[] meshList) 
+    public void MeshCombiner(MeshFilter[] meshList, GameObject parent) 
     {
         Debug.Log("++++++++++++START OF MESHCOMBINER++++++++++++");
         List<CombineInstance> combine = new List<CombineInstance>();
 
         // save the parent pos+rot
-        Vector3 position = transform.position;
-        Quaternion rotation = transform.rotation;
+        Vector3 position = parent.transform.position;
+        Quaternion rotation = parent.transform.rotation;
 
         // move to the origin for combining
-        transform.position = Vector3.zero;
-        transform.rotation = Quaternion.identity;
+        parent.transform.position = Vector3.zero;
+        parent.transform.rotation = Quaternion.identity;
 
          for (int i = 0; i < meshList.Length; i++)
         {
@@ -291,7 +291,7 @@ public class CombineMesh : MonoBehaviour
         // make parent mesh blue PARENT.GetComponent<MeshRenderer>().material = blue
         // make child mesh clear CHILD.GetComponent<MeshRenderer>().material = clearPlastic
 
-        MeshRenderer parent_mr = gameObject.GetComponent<MeshRenderer>();
+        MeshRenderer parent_mr = parent.gameObject.GetComponent<MeshRenderer>();
         // Set the materials of the new mesh to the materials of the original meshes
         Material[] materials = new Material[meshList.Length];
 
@@ -310,9 +310,9 @@ public class CombineMesh : MonoBehaviour
         parent_mr.materials = materials;
         
          // Add mesh fileter if doesn't exist
-        parent_mf = gameObject.GetComponent<MeshFilter>();
+        parent_mf = parent.gameObject.GetComponent<MeshFilter>();
         if (!parent_mf)  {
-            parent_mf = gameObject.AddComponent<MeshFilter>();
+            parent_mf = parent.gameObject.AddComponent<MeshFilter>();
         }
 
         // Destroy old mesh and combine new mesh
@@ -322,13 +322,13 @@ public class CombineMesh : MonoBehaviour
         parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
 
         // restore the parent pos+rot
-        transform.position = position;
-        transform.rotation = rotation;
+        parent.transform.position = position;
+        parent.transform.rotation = rotation;
 
         // Create a mesh collider if doesn't exist
-        MeshCollider parent_mc = gameObject.GetComponent<MeshCollider>(); // create parent_mc mesh collider 
+        MeshCollider parent_mc = parent.gameObject.GetComponent<MeshCollider>(); // create parent_mc mesh collider 
         if (!parent_mc) {
-            parent_mc = gameObject.AddComponent<MeshCollider>();
+            parent_mc = parent.gameObject.AddComponent<MeshCollider>();
             parent_mc.material.bounciness = 0f;
             parent_mc.material.dynamicFriction = 1f;
             parent_mc.material.staticFriction = 1f;

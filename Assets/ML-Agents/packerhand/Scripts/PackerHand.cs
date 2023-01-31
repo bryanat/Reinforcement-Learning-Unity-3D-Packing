@@ -46,8 +46,7 @@ public class PackerHand : Agent
     public float total_y_distance; //total y distance between agent and target
     public float total_z_distance; //total z distance between agent and target
     
-    // public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
-
+    public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
 
     public GameObject binArea; // The bin container, which will be manually selected in the Inspector
     public Bounds areaBounds; // regular bin's bounds
@@ -129,18 +128,18 @@ public class PackerHand : Agent
 
         Debug.Log($" BIN VOLUME: {binVolume}");
 
-        CombineMesh [] meshScripts = binArea.GetComponentsInChildren<CombineMesh>();
-        foreach (CombineMesh meshScript in meshScripts) 
-        {
-            meshScript.agent = this;
-            binBottom = meshScript.binBottom;
-            binBack = meshScript.binBack;       
-            binSide = meshScript.binSide;
+        // CombineMesh [] meshScripts = binArea.GetComponentsInChildren<CombineMesh>();
+        // foreach (CombineMesh meshScript in meshScripts) 
+        // {
+        //     meshScript.agent = this;
+        //     binBottom = meshScript.binBottom;
+        //     binBack = meshScript.binBack;       
+        //     binSide = meshScript.binSide;
             
-        }
+        // }
 
         // Make agent unaffected by collision
-        var m_c = GetComponent<CapsuleCollider>();
+        CapsuleCollider m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
         // Reset agent and rewards
@@ -483,7 +482,7 @@ public class PackerHand : Agent
         }
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
-        // Range( 0f, 2*Box.organizedBoxes.Count() ) // 2n + 1, keeping this comment in case Box.organizedBoxes.Count() is useful later
+        // Range( 0f, 2*organizedBoxes.Count() ) // 2n + 1, keeping this comment in case organizedBoxes.Count() is useful later
 
         isVertexSelected = true;
     }
@@ -569,13 +568,13 @@ public class PackerHand : Agent
     public void SelectBox(int n) 
     {
         // Check if a box has already been selected
-        if (!Box.organizedBoxes.Contains(n))
+        if (!organizedBoxes.Contains(n))
         {
             boxIdx = n;
             Debug.Log($"Selected Box boxIdx: {boxIdx}");
             targetBox = boxPool[boxIdx].rb.transform;
             // Add box to list so it won't be selected again
-            Box.organizedBoxes.Add(boxIdx);
+            organizedBoxes.Add(boxIdx);
             isBoxSelected = true;
         }
     }
@@ -847,12 +846,6 @@ public class PackerHand : Agent
     }
 
 
-    public void AgentReset() 
-    {
-        this.transform.position = initialAgentPosition; // Vector3 of agents initial transform.position
-        m_Agent.velocity = Vector3.zero;
-        m_Agent.angularVelocity = Vector3.zero;
-    }
 
     public void ReverseSideNames(int id) 
     {
@@ -1011,7 +1004,7 @@ public class PackerHand : Agent
             rb.transform.rotation = boxPool[id].startingRot;
             rb.transform.position = boxPool[id].startingPos;
             // remove from organized list to be picked again
-            Box.organizedBoxes.Remove(id);
+            organizedBoxes.Remove(id);
             // reset states
             StateReset();
             // settting isBlackboxUpdated to true allows another vertex to be selected
@@ -1022,6 +1015,12 @@ public class PackerHand : Agent
     }
 
 
+    public void AgentReset() 
+    {
+        this.transform.position = initialAgentPosition; // Vector3 of agents initial transform.position
+        m_Agent.velocity = Vector3.zero;
+        m_Agent.angularVelocity = Vector3.zero;
+    }
     public void StateReset() 
     {
         isBlackboxUpdated = false;
@@ -1033,6 +1032,42 @@ public class PackerHand : Agent
         targetBin = null;
         targetBox = null;
         isStateReset = true;
+    }
+
+    public void MeshReset()
+    {
+        
+        if (binBottom == null | binSide == null | binBack == null) {
+            binBottom = GameObject.Find("BinIso20Bottom");
+            binSide = GameObject.Find("BinIso20Side");
+            binBack = GameObject.Find("BinIso20Back");
+        }
+
+        while (binBottom.transform.childCount > 2) 
+        {
+            DestroyImmediate(binBottom.transform.GetChild(binBottom.transform.childCount-1).gameObject);
+        }   
+        while (binSide.transform.childCount > 2) 
+        {
+            DestroyImmediate(binSide.transform.GetChild(binSide.transform.childCount-1).gameObject);
+        }  
+        while (binBack.transform.childCount > 1) 
+        {
+            DestroyImmediate(binBack.transform.GetChild(binBack.transform.childCount-1).gameObject);
+        } 
+
+    
+        // // Combine meshes
+        CombineMesh [] meshScripts = binArea.GetComponentsInChildren<CombineMesh>();
+        foreach (CombineMesh meshScript in meshScripts) 
+        {
+            CombineMesh meshScriptInstance = new CombineMesh();
+            var meshList = meshScript.GetComponentsInChildren<MeshFilter>();
+            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+            meshScriptInstance.MeshCombiner(meshList, meshScript.gameObject); 
+            meshScript.agent = this;
+          
+        }
     }
 
 
@@ -1079,14 +1114,23 @@ public class PackerHand : Agent
 
     public void SetResetParameters()
     {
+        // Reset mesh
+        MeshReset();
+
         // Reset agent
         AgentReset();
 
         // Reset rewards
         TotalRewardReset();
 
-        // Reset organized Boxes dictionary
-        Box.organizedBoxes.Clear();
+        // Reset box pool 
+        boxPool.Clear();
+
+        // Reset organized Boxes list
+        organizedBoxes.Clear();
+
+        // Reset vertices array
+        Array.Clear(verticesArray, 0, verticesArray.Length);
 
         // Reset states;
         StateReset();

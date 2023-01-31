@@ -48,9 +48,6 @@ public class SensorCollision : MonoBehaviour
             // if fails gravity check
             // this loop should only be executed once
             Debug.Log($"SCS {gameObject.name} distance: {distance}");  
-            if (distance > 0){
-                Debug.Log($"SCS@ {gameObject.name} distance: {distance} @@@@@@@@@@@@@@@@@@@@@@@@@");  
-            }
             if (distance> fallingThreshold) 
             {
                 int failedBoxId = int.Parse(gameObject.name.Substring(7));
@@ -70,7 +67,7 @@ public class SensorCollision : MonoBehaviour
          if (Physics.Raycast(boxBottomCenter, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide))
          {
             Debug.Log($"RCS RAYCAST HIT {hit.transform.name}");
-            if (hit.transform.name == "binbottom" | hit.transform.name == "top" | hit.transform.name == "BinIso20Bottom") {
+            if (hit.transform.name == "outerbinbottom" | hit.transform.name == "top" | hit.transform.name == "BinIso20Bottom") {
                 distance = hit.distance;
                 Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
             }

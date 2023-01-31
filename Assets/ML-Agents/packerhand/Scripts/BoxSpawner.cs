@@ -20,7 +20,6 @@ public class Box
 
     public Vector3 boxSize; 
 
-    public static List<int> organizedBoxes = new List<int>(); // list of organzed box indices
 
 }
 
@@ -37,7 +36,6 @@ public class BoxSpawner : MonoBehaviour
     public GameObject binArea;
     
     public GameObject unitBox; 
-
 
     public void SetUpBoxes(int flag, float size) 
     {
