@@ -38,6 +38,7 @@ TagManager:
   - minibin
   - droppedoff
   - pickupbox
+  - testbox
   layers:
   - Default
   - TransparentFX
