@@ -471,12 +471,57 @@ public class PackerHand : Agent
 
     public void SelectVertex(int action_SelectedVertex) 
     {
+
+        // all we get: 0 - 50
+            // index doesnt matter
+            // VALUE at that index matters that agent learns from
+            // all indexes need to be filled with non-zero values
+            // all indexes need to be filled with current vertex values
+
+        // dont want brain to select 000
+        // update list of non-0,0,0 elements
+            // add next 3 to list 
+            // remove 1 from list when selected
+            // add next 3 to list
+        // pick from list
+        
+
+        Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
+        // 
+        if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
+        {
+            // 
+            isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
+            return; // to end function call
+        }
+
         // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
         if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
         {
-            // give negative reward
-            isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
+            // give negative reward (because agent is using computationally expensive array operation as a crutch)
             RewardSelectedVertex();
+            
+            
+            // computationally expensive array operation: denseVertixesArray = ...
+                // hey, on the next pick youre getting something that isnt zero
+                // hey, here are the picks that arent zero 
+
+
+                //////////// COPY FILL CRUTCH /////////////////////
+                // reselection forces a pick from a dense matrix of duplicate vertex values so there are no zeros (not sparse)
+                // dense matrix is FILLED via COPY (percentage repeat) and used by agent as a CRUTCH to not pick 0's until it learns not to pick zeros
+                    // can layer crutches alongside rewards with curriculum learning
+
+
+                //- copy fill crutch (for bootstrapping) : does this mess with training? does the index matter since the weight is associated with the index? 
+                // but then what about the index is filled with 0s? ideally the agent will stop selecting 0s after training and inference, 
+                // so it will never use this crutch after bootstrapping up. >> would only work for pointer network as value at index changes, 
+                // aka sometimes array index element 1 sometimes is 0 and sometimes copyfill makes it (8.5, 2, 3) and sometimes copyfill makes it (10.5, 5, 6)
+
+                // - pointer network vs. non-pointer network discrete action space :
+                // in non-pointer network array index element 1 forward remains forward through training vs. pointer network array index element 1 is sometimes vertex (3,4,5) and sometimes (6, 7, 8)
+
+            isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
             return; // to end function call
         }
 
