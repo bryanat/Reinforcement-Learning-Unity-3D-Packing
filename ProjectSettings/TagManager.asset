@@ -39,6 +39,11 @@ TagManager:
   - droppedoff
   - pickupbox
   - testbox
+  - key
+  - portal
+  - dragon
+  - lock
+  - outerbin
   layers:
   - Default
   - TransparentFX

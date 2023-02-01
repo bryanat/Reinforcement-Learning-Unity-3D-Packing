@@ -59,6 +59,8 @@ public class PackerHand : Agent
 
     public SensorCollision sensorCollision;
 
+    public SensorOuterCollision sensorOuterCollision;
+
     [HideInInspector] public Vector3 initialAgentPosition;
 
     [HideInInspector] public bool isBlackboxUpdated;
@@ -108,8 +110,6 @@ public class PackerHand : Agent
             regularBoxBrain = modelOverrider.GetModelForBehaviorName(m_RegularBoxBehaviorName);
             m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
         }
-        // Reset boxes on new episode by spawning new boxes
-        //boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
 
         boxPool = BoxSpawner.boxPool;
     }
@@ -252,7 +252,7 @@ public class PackerHand : Agent
             //if agent is close enough to the position, it should drop off the box
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
             {
-                if (sensorCollision.passedGravityCheck)
+                if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck)
                 {
                     DropoffBox();
                 }
@@ -610,7 +610,10 @@ public class PackerHand : Agent
         // bc.material.staticFriction = 1f;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         sensorCollision = testBox.AddComponent<SensorCollision>();
+        sensorOuterCollision = testBox.AddComponent<SensorOuterCollision>();
+        // probably don't need agent  in the scripts
         sensorCollision.agent = this;
+        sensorOuterCollision.agent = this;
         testBox.name = $"testbox{targetBox.name}";
         testBox.tag = "testbox";
         //}

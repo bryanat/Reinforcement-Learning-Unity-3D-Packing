@@ -10,6 +10,7 @@ using Box = Boxes.Box;
 public class SensorOuterCollision : MonoBehaviour
 {
     public PackerHand agent;
+    public bool passedBoundCheck;
 
 
     void Start()
@@ -27,12 +28,19 @@ public class SensorOuterCollision : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         // if a testbox physically penetrates the inner bin walls and touches the outer bin walls then reset the box (impossible placement)
-        if (collision.gameObject.tag == "testbox") {
-            int failedBoxId = int.Parse(gameObject.name.Substring(7));
+        if (collision.gameObject.tag == "outerbox") {
+            //int failedBoxId = int.Parse(gameObject.name.Substring(7));
             // reset box
-            agent.BoxReset("failedPhysicsCheck");
+            //agent.BoxReset("failedPhysicsCheck");
+            passedBoundCheck = false;
             Debug.Log($"CTU {collision.gameObject.name} box reset due to collision with outer bin side: {name} ");
         } 
+        else 
+        {
+            passedBoundCheck = true;
+            Debug.Log($"CTU {collision.gameObject.name} passed bound check");
+        }
+        
     }
     
      
