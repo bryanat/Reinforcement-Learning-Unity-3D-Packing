@@ -108,6 +108,8 @@ public class PackerHand : Agent
             regularBoxBrain = modelOverrider.GetModelForBehaviorName(m_RegularBoxBehaviorName);
             m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
         }
+        // Reset boxes on new episode by spawning new boxes
+        //boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
 
         boxPool = BoxSpawner.boxPool;
     }
@@ -139,9 +141,6 @@ public class PackerHand : Agent
         // Reset agent and rewards
         SetResetParameters();
 
-        // Reset boxes on new episode by spawning new boxes
-        boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
-
         selectedVertex = new Vector3(8.25f, 0.50f, 10.50f); // refactor to select first vertex
         // selectedVertex = new Vector3(where the three trimesh meet init);
         isVertexSelected = true;
@@ -165,7 +164,6 @@ public class PackerHand : Agent
             sensor.AddObservation(box.boxSize); //add box size to sensor observations
             // sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
         }
-        //sensor.AddObserv
 
         // // array of vertices
         foreach (Vector3 vertex in verticesArray) {
@@ -209,20 +207,20 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        if (StepCount >= MaxStep) 
-        {
-            //wait on onepisodebegin
-            return;
-        }
+        // if (StepCount >= MaxStep) 
+        // {
+        //     //wait on onepisodebegin
+        //     return;
+        // }
         // Initialize curriculum and brain
-        else if (curriculum_ConfigurationGlobal != -1)
+        if (curriculum_ConfigurationGlobal != -1)
         {
             ConfigureAgent(curriculum_ConfigurationGlobal);
             curriculum_ConfigurationGlobal = -1;
         }
 
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
-        else if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
+        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
         {
             StateReset();
             // vertices array of tripoints doesn't depend on the trimesh
@@ -834,8 +832,7 @@ public class PackerHand : Agent
 
         isPickedup = true;
 
-        Destroy(targetBox.GetComponent<BoxCollider>()); 
-        //Destroy(targetBox.GetComponent<Rigidbody>());   
+        Destroy(targetBox.GetComponent<BoxCollider>());  
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
         GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen = false;
@@ -1175,17 +1172,15 @@ public class PackerHand : Agent
         // Reset rewards
         TotalRewardReset();
 
-        // Reset box pool 
-        foreach (Box box in boxPool)
-        {
-            if (box.rb!=null) {
-                Debug.Log($"RGB BOX RIGID BODY FOR BOX {box.rb.name} IS: {box.rb}");
-                DestroyImmediate(box.rb.gameObject);
-            }
-        }
-
         // Reset organized Boxes list
         organizedBoxes.Clear();
+        
+        // for now leave the old boxes instances
+        // Reset box pool
+        boxPool.Clear();
+
+        // Reset boxes
+        boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
 
         // Reset vertices array
         Array.Clear(verticesArray, 0, verticesArray.Length);
