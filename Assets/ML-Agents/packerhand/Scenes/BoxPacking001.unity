@@ -1609,7 +1609,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: verticesArray.Array.size
-      value: 51
+      value: 52
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 2674329426616174709, guid: 2f2c1469c0f2c8453ab01d6d68f6526f, type: 3}

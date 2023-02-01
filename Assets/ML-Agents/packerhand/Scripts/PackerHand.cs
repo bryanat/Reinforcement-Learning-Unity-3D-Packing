@@ -68,6 +68,7 @@ public class PackerHand : Agent
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isDroppedoff;
     [HideInInspector] public bool isStateReset;
+
     public bool isBottomMeshCombined;
     public bool isSideMeshCombined;
     public bool isBackMeshCombined;
@@ -208,15 +209,20 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
+        if (StepCount >= MaxStep) 
+        {
+            //wait on onepisodebegin
+            return;
+        }
         // Initialize curriculum and brain
-        if (curriculum_ConfigurationGlobal != -1)
+        else if (curriculum_ConfigurationGlobal != -1)
         {
             ConfigureAgent(curriculum_ConfigurationGlobal);
             curriculum_ConfigurationGlobal = -1;
         }
 
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
-        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
+        else if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
         {
             StateReset();
             // vertices array of tripoints doesn't depend on the trimesh
@@ -470,6 +476,7 @@ public class PackerHand : Agent
         {
             // give negative reward
             isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
+            RewardSelectedVertex();
             return; // to end function call
         }
 
@@ -545,7 +552,6 @@ public class PackerHand : Agent
         testBox.transform.localScale = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
         // test position has to be slightly elevated or else raycast doesn't detect the layer directly below
         testBox.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
-        //rb.MovePosition(testPosition);
         rb.constraints = RigidbodyConstraints.FreezeAll;
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
         // bc.isTrigger = false;
@@ -842,11 +848,12 @@ public class PackerHand : Agent
     /// <summary>
     //// Rewards agent for select a good position
     ///</summary>
-    public void RewardSelectedPosition()
+    public void RewardSelectedVertex()
     { 
-        SetReward(1f);
-        Debug.Log($"Box dropped in bin!!!Total reward: {GetCumulativeReward()}");
+        SetReward(-0.1f);
+        Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!!Total reward: {GetCumulativeReward()}");
     }
+
 
 
 
@@ -1126,7 +1133,10 @@ public class PackerHand : Agent
         // Reset box pool 
         foreach (Box box in boxPool)
         {
-            DestroyImmediate(box.rb.gameObject);
+            if (box.rb!=null) {
+                Debug.Log($"RGB BOX RIGID BODY FOR BOX {box.rb.name} IS: {box.rb}");
+                DestroyImmediate(box.rb.gameObject);
+            }
         }
 
         // Reset organized Boxes list
