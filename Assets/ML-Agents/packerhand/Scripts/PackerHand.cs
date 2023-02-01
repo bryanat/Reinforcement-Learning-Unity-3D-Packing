@@ -497,6 +497,7 @@ public class PackerHand : Agent
 
         if (targetBin==null) 
         {
+            // this targetBin will need be destroyed too 
             targetBin  = new GameObject().transform;
 
             float magnitudeX = boxWorldScale.x * 0.5f; 
@@ -524,6 +525,15 @@ public class PackerHand : Agent
 
 
     public void CheckBoxPlacementPhysics(Vector3 testPosition) {
+        // Collider [] hitColliders = Physics.OverlapBox(new Vector3(0, 5.5f, 0), new Vector3(boxWorldScale.x*0.5f-1f, boxWorldScale.y*0.5f-1f, boxWorldScale.z*0.5f-1f), Quaternion.identity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
+        // if (hitColliders.Length!=0)
+        // {
+        //     Debug.Log($"HIT COLLIDERS LENGTH IS : {hitColliders.Length}");
+        //     BoxReset("failedPhysicsCheck");
+        //     Debug.Log("LAP FAILED OVERLAP CHECK");
+        // }
+        // else
+        // {
         // create a clone test box to check physics of placement
         // teleported first before actual box is placed so gravity check comes before mesh combine
 
@@ -554,6 +564,7 @@ public class PackerHand : Agent
         sensorCollision.agent = this;
         testBox.name = $"testbox{targetBox.name}";
         testBox.tag = "testbox";
+        //}
     }
 
 
@@ -1113,13 +1124,21 @@ public class PackerHand : Agent
         TotalRewardReset();
 
         // Reset box pool 
-        boxPool.Clear();
+        foreach (Box box in boxPool)
+        {
+            DestroyImmediate(box.rb.gameObject);
+        }
 
         // Reset organized Boxes list
         organizedBoxes.Clear();
 
         // Reset vertices array
         Array.Clear(verticesArray, 0, verticesArray.Length);
+
+        // Reset vertices list
+        backMeshVertices.Clear();
+        sideMeshVertices.Clear();
+        bottomMeshVertices.Clear();
 
         // Reset vertex count
         VertexCount = 0;
