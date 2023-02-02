@@ -11,7 +11,8 @@ public class SensorOverlapCollision : MonoBehaviour
 
     void Start()
     {
-
+        // This destroys the test box 3 unity seconds after creation 
+        Destroy(gameObject, 3);
     }
 
 
@@ -24,36 +25,52 @@ public class SensorOverlapCollision : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         Debug.Log($"CBO {collision.gameObject.name}               |          overlap with side: {name} ");
+        if (collision.gameObject.tag == "bin" | collision.gameObject.tag == "pickupbox") 
+        {
+            passedOverlapCheck = false;
+            Debug.Log($"CBOx {name} with SensorOverlapCollision script reset due to collision with: {collision.gameObject.name}");
+            Destroy(gameObject);
+        } 
 
-        int layerMask = 1 << 6;
+        // int layerMask = 1 << 6;
 
-        if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.left), out hit, (transform.localScale.x * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        {
-            passedOverlapCheck = false;
-           Debug.Log($"CBOx {name} FAILED OVERLAP TEST LEFT colliding with {collision.gameObject.name} ");
-        }
-        if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.right), out hit, (transform.localScale.x * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        {
-            passedOverlapCheck = false;
-            Debug.Log($"CBOx {name} FAILED OVERLAP TEST RIGHT colliding with {collision.gameObject.name} ");
-        }
+        // Vector3 transformCenter = transform.position;
+        // var vertex = center - 1/2x - 1/2y - 1/2z  
+        // var x = transform.position.x - 
 
-        if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.up), out hit, (transform.localScale.y * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        {
-            passedOverlapCheck = false;
-            Debug.Log($"CBOx {name} FAILED OVERLAP TEST UP colliding with {collision.gameObject.name} ");
-        }
-        if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.down), out hit, (transform.localScale.y * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        {
-            passedOverlapCheck = false;
-            Debug.Log($"CBOx {name} FAILED OVERLAP TEST DOWN colliding with {collision.gameObject.name} ");
-        }
+        // Vector3 transformEdge = transform.position;
+        // Vector3 transformEdgeX = new Vector3(transform.position.x, transform.position.y, transform.position.z);
 
-        if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.forward), out hit, (transform.localScale.z * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        {
-            passedOverlapCheck = false;
-            Debug.Log($"CBOx {name} FAILED OVERLAP TEST FORWARD colliding with {collision.gameObject.name} ");
-        }
+////////////////////////////////
+        // if (Physics.Raycast( transform.position , transform.TransformDirection(Vector3.left), out hit, (transform.localScale.x * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
+        // {
+        //     passedOverlapCheck = false;
+        //    Debug.Log($"CBOx {name} FAILED OVERLAP TEST LEFT colliding with {collision.gameObject.name} ");
+        // }
+        // if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.right), out hit, (transform.localScale.x * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
+        // {
+        //     passedOverlapCheck = false;
+        //     Debug.Log($"CBOx {name} FAILED OVERLAP TEST RIGHT colliding with {collision.gameObject.name} ");
+        // }
+
+        // if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.up), out hit, (transform.localScale.y * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
+        // {
+        //     passedOverlapCheck = false;
+        //     Debug.Log($"CBOx {name} FAILED OVERLAP TEST UP colliding with {collision.gameObject.name} ");
+        // }
+        // if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.down), out hit, (transform.localScale.y * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
+        // {
+        //     passedOverlapCheck = false;
+        //     Debug.Log($"CBOx {name} FAILED OVERLAP TEST DOWN colliding with {collision.gameObject.name} ");
+        // }
+
+        // if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.forward), out hit, (transform.localScale.z * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
+        // {
+        //     passedOverlapCheck = false;
+        //     Debug.Log($"CBOx {name} FAILED OVERLAP TEST FORWARD colliding with {collision.gameObject.name} ");
+        // }
+////////////////////////////
+
         // if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.back), out hit, (transform.localScale.z * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
         // {
         //     passedOverlapCheck = false;
@@ -83,14 +100,7 @@ public class SensorOverlapCollision : MonoBehaviour
 
         // // if true there is an overlap and therefor set passed overlap check false
         // // // if (Physics.CheckBox(transform.position, new Vector3(((transform.localScale.x * 0.5f) - 0.02f), ((transform.localScale.y * 0.5f) - 0.02f), ((transform.localScale.z * 0.5f) - 0.02f)))) 
-        // if (
-        //     // GetComponent<BoxCollider>().CheckBox(transform.position, new Vector3(((transform.localScale.x * 0.5f) - 0.02f), ((transform.localScale.y * 0.5f) - 0.02f), ((transform.localScale.z * 0.5f) - 0.02f)))
-
-        // ) 
-        // {
-        //     passedOverlapCheck = false;
-        //     Debug.Log($"CBOx {collision.gameObject.name} box reset due to collision with outer bin side: {name} ");
-        // } 
+        
     }
     
      

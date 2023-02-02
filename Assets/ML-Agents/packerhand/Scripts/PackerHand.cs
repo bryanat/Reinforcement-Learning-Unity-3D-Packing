@@ -611,13 +611,29 @@ public class PackerHand : Agent
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         sensorCollision = testBox.AddComponent<SensorCollision>();
         sensorOuterCollision = testBox.AddComponent<SensorOuterCollision>();
-        sensorOverlapCollision = testBox.AddComponent<SensorOverlapCollision>();
+        // sensorOverlapCollision = testBox.AddComponent<SensorOverlapCollision>();
         // probably don't need agent  in the scripts
-        sensorCollision.agent = this;
-        sensorOuterCollision.agent = this;
+        sensorCollision.agent = this; // probably dont need
+        sensorOuterCollision.agent = this; // probably dont need
         testBox.name = $"testbox{targetBox.name}";
         testBox.tag = "testbox";
-        //}
+        
+        // Setup child test boxes for physics check which check overlapping boxes (impossible placements)
+        GameObject testBoxChild = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
+        // testBoxChild.transform.parent = testBox.transform;
+        // testBoxChild.transform.localScale = new Vector3(0.9f, 0.9f, 0.9f);
+        // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
+        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.1f), (boxWorldScale.y - 0.1f), (boxWorldScale.z - 0.1f));
+        testBoxChild.transform.position = new Vector3(testPosition.x, testPosition.y, testPosition.z);
+        // testBoxChild.transform.localPosition = Vector3.zero;
+        rbChild.constraints = RigidbodyConstraints.FreezeAll;
+        rbChild.interpolation = RigidbodyInterpolation.Interpolate;
+        sensorOverlapCollision = testBoxChild.AddComponent<SensorOverlapCollision>();
+        sensorOuterCollision.agent = this; // probably dont need
+        testBoxChild.name = $"testboxChild{targetBox.name}";
+        testBoxChild.tag = "testboxChild";
+
     }
 
 

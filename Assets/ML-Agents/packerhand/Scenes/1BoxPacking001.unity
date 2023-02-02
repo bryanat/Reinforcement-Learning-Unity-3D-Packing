@@ -843,7 +843,7 @@ GameObject:
   - component: {fileID: 1355652136}
   m_Layer: 6
   m_Name: binleft
-  m_TagString: Untagged
+  m_TagString: bin
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1229,7 +1229,7 @@ GameObject:
   - component: {fileID: 1542420941}
   m_Layer: 6
   m_Name: bintop
-  m_TagString: Untagged
+  m_TagString: bin
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1517,7 +1517,7 @@ GameObject:
   - component: {fileID: 2244940504438052981}
   m_Layer: 6
   m_Name: binright
-  m_TagString: Untagged
+  m_TagString: bin
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1608,7 +1608,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: MaxStep
-      value: 2000
+      value: 4000
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1637,9 +1637,19 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: ec99cc74da6543b459e71a51834b037d, type: 2}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: testboxPurpleMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: ff14134b548ad4790809bd7ffdffbf32, type: 2}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: verticesArray.Array.size
       value: 52
       objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      propertyPath: testboxChildSoccerMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: 1644c0cb0c67e314194579be857f87da, type: 2}
     m_RemovedComponents:
     - {fileID: 2674329426616174709, guid: 2f2c1469c0f2c8453ab01d6d68f6526f, type: 3}
     m_RemovedGameObjects: []
@@ -2120,7 +2130,7 @@ GameObject:
   - component: {fileID: 1123337505}
   m_Layer: 6
   m_Name: BinIso20Side
-  m_TagString: bin
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2139,7 +2149,7 @@ GameObject:
   - component: {fileID: 1472715050}
   m_Layer: 6
   m_Name: BinIso20Back
-  m_TagString: bin
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2200,7 +2210,7 @@ GameObject:
   - component: {fileID: 931861565118854125}
   m_Layer: 6
   m_Name: BinIso20Bottom
-  m_TagString: bin
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2408,7 +2418,7 @@ GameObject:
   - component: {fileID: 7576661527470947631}
   m_Layer: 6
   m_Name: binback
-  m_TagString: Untagged
+  m_TagString: bin
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2546,7 +2556,7 @@ GameObject:
   - component: {fileID: 9163845157387914285}
   m_Layer: 6
   m_Name: binbottom
-  m_TagString: Untagged
+  m_TagString: bin
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
