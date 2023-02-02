@@ -33,6 +33,8 @@ public class SensorOuterCollision : MonoBehaviour
             // reset box
             //agent.BoxReset("failedPhysicsCheck");
             passedBoundCheck = false;
+            agent.AddReward(-1f);
+            Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedBoundCheck: {passedBoundCheck}");
             Debug.Log($"CTU {collision.gameObject.name} box reset due to collision with outer bin side: {name} ");
         } 
         
