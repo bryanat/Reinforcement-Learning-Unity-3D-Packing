@@ -230,7 +230,8 @@ public class PackerHand : Agent
             UpdateVerticesList();
             // both vertices array and vertices list are used to find black boxes
             UpdateBlackBox();
-            UpdateBinVolume();
+            AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/bin_volume) * 1000f);
+            Debug.Log($"RWD {GetCumulativeReward()} total reward | + {((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/bin_volume) * 1000f} reward from binVolume: {((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/bin_volume) * 100f}%");
         }
 
         // if agent selects a box, it should move towards the box
@@ -647,26 +648,6 @@ public class PackerHand : Agent
         }
     }
 
-
-    public void UpdateBinVolume() 
-    {
-        // Calculate placed box volume
-        var box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
-
-        // Update bin volume 
-        bin_volume = bin_volume - box_volume;
-        Debug.Log($"RBV Regular Bin Volume is bin_volume: {bin_volume}");
-
-        // var total_bin_volume = 33137.25f;
-        // var current_bin_volume = 32575.25f;
-        var current_bin_volume = bin_volume;
-
-        var percent_bin_volume = box_volume/331.3735f;
-        var add_reward_for_bin_volume = 10f * percent_bin_volume;
-        
-        AddReward(add_reward_for_bin_volume);
-        Debug.Log($"RWD {GetCumulativeReward()} total reward | +{add_reward_for_bin_volume} reward from binVolume: {current_bin_volume}");
-    }
 
 
 
