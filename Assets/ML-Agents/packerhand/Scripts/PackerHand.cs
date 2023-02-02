@@ -87,6 +87,7 @@ public class PackerHand : Agent
     public float current_bin_volume;
     public float percent_filled_bin_volume;
 
+    public GameObject outerbinfront;
 
 
     public override void Initialize()
@@ -234,7 +235,8 @@ public class PackerHand : Agent
             AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
-            Debug.Log($"RWD {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+            Debug.Log($"RWDt total bin vol: {total_bin_volume}");
+            Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
         }
 
         // if agent selects a box, it should move towards the box
@@ -613,8 +615,8 @@ public class PackerHand : Agent
         sensorOuterCollision = testBox.AddComponent<SensorOuterCollision>();
         // sensorOverlapCollision = testBox.AddComponent<SensorOverlapCollision>();
         // probably don't need agent  in the scripts
-        sensorCollision.agent = this; // probably dont need
-        sensorOuterCollision.agent = this; // probably dont need
+        sensorCollision.agent = this; // agent reference used by component to set rewards on collision
+        sensorOuterCollision.agent = this; // agent reference used by component to set rewards on collision
         testBox.name = $"testbox{targetBox.name}";
         testBox.tag = "testbox";
         
@@ -627,7 +629,7 @@ public class PackerHand : Agent
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
         sensorOverlapCollision = testBoxChild.AddComponent<SensorOverlapCollision>();
-        sensorOuterCollision.agent = this; // probably dont need
+        sensorOverlapCollision.agent = this; // agent reference used by component to set rewards on collision
         testBoxChild.name = $"testboxChild{targetBox.name}";
         testBoxChild.tag = "testboxChild";
 
@@ -1077,6 +1079,7 @@ public class PackerHand : Agent
         isDroppedoff = false;
         targetBin = null;
         targetBox = null;
+        outerbinfront.tag = "binopening";
         isStateReset = true;
     }
 

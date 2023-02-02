@@ -27,8 +27,13 @@ public class SensorOuterCollision : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
+        if (collision.gameObject.tag == "binopening") 
+        {
+            collision.gameObject.tag = "outerbin";
+        }
         // if a testbox physically penetrates the inner bin walls and touches the outer bin walls then reset the box (impossible placement)
-        if (collision.gameObject.tag == "outerbin") {
+        if (collision.gameObject.tag == "outerbin") 
+        {
             //int failedBoxId = int.Parse(gameObject.name.Substring(7));
             // reset box
             //agent.BoxReset("failedPhysicsCheck");

@@ -44,6 +44,8 @@ TagManager:
   - dragon
   - lock
   - outerbin
+  - binopening
+  - testboxChild
   layers:
   - Default
   - TransparentFX
