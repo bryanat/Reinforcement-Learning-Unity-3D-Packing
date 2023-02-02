@@ -52,7 +52,7 @@ public class PackerHand : Agent
 
     public GameObject binArea; // The bin container, which will be manually selected in the Inspector
     public Bounds areaBounds; // regular bin's bounds
-    public float binVolume; // regular bin's volume
+    public float bin_volume; // regular bin's volume
 
     EnvironmentParameters m_ResetParams; // Environment parameters
     public BoxSpawner boxSpawner; // Box Spawner
@@ -130,9 +130,9 @@ public class PackerHand : Agent
 
         Debug.Log($"BIN BOUNDS: {areaBounds}");
         // Get total bin volume from onstart
-        binVolume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
+        bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
 
-        Debug.Log($" BIN VOLUME: {binVolume}");
+        Debug.Log($" BIN VOLUME: {bin_volume}");
 
         // Make agent unaffected by collision
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
@@ -650,10 +650,22 @@ public class PackerHand : Agent
 
     public void UpdateBinVolume() 
     {
-        // Update bin volume
-        binVolume = binVolume-boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
-        Debug.Log($"RBV Regular Bin Volume is binVolume: {binVolume}");
+        // Calculate placed box volume
+        var box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
+
+        // Update bin volume 
+        bin_volume = bin_volume - box_volume;
+        Debug.Log($"RBV Regular Bin Volume is bin_volume: {bin_volume}");
+
+        // var total_bin_volume = 33137.25f;
+        // var current_bin_volume = 32575.25f;
+        var current_bin_volume = bin_volume;
+
+        var percent_bin_volume = box_volume/331.3735f;
+        var add_reward_for_bin_volume = 10f * percent_bin_volume;
         
+        AddReward(add_reward_for_bin_volume);
+        Debug.Log($"RWD {GetCumulativeReward()} total reward | +{add_reward_for_bin_volume} reward from binVolume: {current_bin_volume}");
     }
 
 
