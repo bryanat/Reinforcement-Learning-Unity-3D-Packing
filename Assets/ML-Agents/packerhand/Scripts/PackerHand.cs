@@ -374,49 +374,49 @@ public class PackerHand : Agent
         var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
         var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
-        // purpose of split in 3: only need to compare tripoint_redx to sideMeshVertices (1/3 = n complexity) instead of tripoint_redx to all 3 meshes (3/3 = 3n complexity)
-        bool is_tripoint_redx_sameAsVertex = false;
-        bool is_tripoint_greeny_sameAsVertex = false;
-        bool is_tripoint_bluez_sameAsVertex = false;
+        // // purpose of split in 3: only need to compare tripoint_redx to sideMeshVertices (1/3 = n complexity) instead of tripoint_redx to all 3 meshes (3/3 = 3n complexity)
+        // bool is_tripoint_redx_sameAsVertex = false;
+        // bool is_tripoint_greeny_sameAsVertex = false;
+        // bool is_tripoint_bluez_sameAsVertex = false;
 
-        // RED / X / SIDE-LEFTRIGHT
-        // loop over all vertexes in tripoints corresponding mesh first to check that tripoint is not an existing vertex from mf_side.mesh.vertices (which would be a bad stability score vertex)
-        foreach ( Vector3 vertex in sideMeshVertices)
-        {
-            // stateflag is_tripoint_redx_sameAsVertex set to true will prevent tripoint being added to tripoint_list since its an existing vertex from mf_side.mesh.vertices
-            if (tripoint_redx == vertex){
-                is_tripoint_redx_sameAsVertex = true;
-                break;
-            }
-        }
-        // if tripoint is not a shared vertex point add tripoint to list (effectively, creating an illegal tripoint and bad stability score placement)
-        if (!is_tripoint_redx_sameAsVertex){
+        // // RED / X / SIDE-LEFTRIGHT
+        // // loop over all vertexes in tripoints corresponding mesh first to check that tripoint is not an existing vertex from mf_side.mesh.vertices (which would be a bad stability score vertex)
+        // foreach ( Vector3 vertex in sideMeshVertices)
+        // {
+        //     // stateflag is_tripoint_redx_sameAsVertex set to true will prevent tripoint being added to tripoint_list since its an existing vertex from mf_side.mesh.vertices
+        //     if (tripoint_redx == vertex){
+        //         is_tripoint_redx_sameAsVertex = true;
+        //         break;
+        //     }
+        // }
+        // // if tripoint is not a shared vertex point add tripoint to list (effectively, creating an illegal tripoint and bad stability score placement)
+        // if (!is_tripoint_redx_sameAsVertex){
             tripoints_list.Add(tripoint_redx);
-        }
+        // }
 
-        // GREEN / Y / BOTTOM-TOP
-        foreach ( Vector3 vertex in bottomMeshVertices)
-        {
-            if (tripoint_greeny == vertex){
-                is_tripoint_greeny_sameAsVertex = true;
-                break;
-            }
-        }
-        if (!is_tripoint_greeny_sameAsVertex){
+        // // GREEN / Y / BOTTOM-TOP
+        // foreach ( Vector3 vertex in bottomMeshVertices)
+        // {
+        //     if (tripoint_greeny == vertex){
+        //         is_tripoint_greeny_sameAsVertex = true;
+        //         break;
+        //     }
+        // }
+        // if (!is_tripoint_greeny_sameAsVertex){
             tripoints_list.Add(tripoint_greeny);
-        }
+        // }
 
-        // BLUE / Z / BACK-FRONT
-        foreach ( Vector3 vertex in backMeshVertices)
-        {
-            if (tripoint_bluez == vertex){
-                is_tripoint_bluez_sameAsVertex = true;
-                break;
-            }
-        }
-        if (!is_tripoint_bluez_sameAsVertex){
+        // // BLUE / Z / BACK-FRONT
+        // foreach ( Vector3 vertex in backMeshVertices)
+        // {
+        //     if (tripoint_bluez == vertex){
+        //         is_tripoint_bluez_sameAsVertex = true;
+        //         break;
+        //     }
+        // }
+        // if (!is_tripoint_bluez_sameAsVertex){
             tripoints_list.Add(tripoint_bluez);
-        }
+        // }
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
