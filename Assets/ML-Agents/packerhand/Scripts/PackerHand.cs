@@ -518,7 +518,7 @@ public class PackerHand : Agent
 
             isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
              // Punish agent for selecting a bad position
-            AddReward(-0.1f);
+            //AddReward(-0.1f);
             Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
             return; // to end function call
         }
@@ -534,7 +534,7 @@ public class PackerHand : Agent
         // Range( 0f, 2*organizedBoxes.Count() ) // 2n + 1, keeping this comment in case organizedBoxes.Count() is useful later
 
         isVertexSelected = true;
-        AddReward(0.1f);
+        //AddReward(0.1f);
         Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
     }
 
@@ -642,7 +642,7 @@ public class PackerHand : Agent
     public void SelectBox(int n) 
     {
         // Check if a box has already been selected
-        if (!organizedBoxes.Contains(n))
+        if (!organizedBoxes.Contains(n) && n < boxPool.Count)
         {
             boxIdx = n;
             Debug.Log($"Selected Box boxIdx: {boxIdx}");
