@@ -58,8 +58,8 @@ public class PackerHand : Agent
     public BoxSpawner boxSpawner; // Box Spawner
 
     public SensorCollision sensorCollision;
-
     public SensorOuterCollision sensorOuterCollision;
+    public SensorOverlapCollision sensorOverlapCollision;
 
     [HideInInspector] public Vector3 initialAgentPosition;
 
@@ -92,7 +92,7 @@ public class PackerHand : Agent
         initialAgentPosition = this.transform.position;
 
         // Cache the agent rigidbody
-        m_Agent = GetComponent<Rigidbody>(); 
+        m_Agent = GetComponent<Rigidbody>();
         
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
@@ -252,7 +252,7 @@ public class PackerHand : Agent
             //if agent is close enough to the position, it should drop off the box
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
             {
-                if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck)
+                if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     DropoffBox();
                 }
@@ -611,6 +611,7 @@ public class PackerHand : Agent
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         sensorCollision = testBox.AddComponent<SensorCollision>();
         sensorOuterCollision = testBox.AddComponent<SensorOuterCollision>();
+        sensorOverlapCollision = testBox.AddComponent<SensorOverlapCollision>();
         // probably don't need agent  in the scripts
         sensorCollision.agent = this;
         sensorOuterCollision.agent = this;
