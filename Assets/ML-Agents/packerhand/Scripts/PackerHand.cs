@@ -52,7 +52,7 @@ public class PackerHand : Agent
 
     public GameObject binArea; // The bin container, which will be manually selected in the Inspector
     public Bounds areaBounds; // regular bin's bounds
-    public float bin_volume; // regular bin's volume
+    public float total_bin_volume; // regular bin's volume
 
     EnvironmentParameters m_ResetParams; // Environment parameters
     public BoxSpawner boxSpawner; // Box Spawner
@@ -84,6 +84,8 @@ public class PackerHand : Agent
 
     public Material clearPlastic;
 
+    public float current_bin_volume;
+    public float percent_filled_bin_volume;
 
 
 
@@ -130,9 +132,8 @@ public class PackerHand : Agent
 
         Debug.Log($"BIN BOUNDS: {areaBounds}");
         // Get total bin volume from onstart
-        bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
-
-        Debug.Log($" BIN VOLUME: {bin_volume}");
+        total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
+        Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
 
         // Make agent unaffected by collision
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
@@ -230,8 +231,10 @@ public class PackerHand : Agent
             UpdateVerticesList();
             // both vertices array and vertices list are used to find black boxes
             UpdateBlackBox();
-            AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/bin_volume) * 1000f);
-            Debug.Log($"RWD {GetCumulativeReward()} total reward | + {((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/bin_volume) * 1000f} reward from binVolume: {((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/bin_volume) * 100f}%");
+            AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
+            current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
+            percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
+            Debug.Log($"RWD {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
         }
 
         // if agent selects a box, it should move towards the box
@@ -1159,6 +1162,9 @@ public class PackerHand : Agent
 
         // Reset reward
         SetReward(0f);
+
+        // Reset current bin volume
+        current_bin_volume = total_bin_volume;
 
         // Reset organized Boxes list
         organizedBoxes.Clear();
