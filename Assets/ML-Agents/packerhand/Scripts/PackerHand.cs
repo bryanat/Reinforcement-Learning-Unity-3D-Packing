@@ -518,7 +518,7 @@ public class PackerHand : Agent
 
             isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
              // Punish agent for selecting a bad position
-            AddReward(-1f);
+            AddReward(-0.1f);
             Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
             return; // to end function call
         }
@@ -534,7 +534,7 @@ public class PackerHand : Agent
         // Range( 0f, 2*organizedBoxes.Count() ) // 2n + 1, keeping this comment in case organizedBoxes.Count() is useful later
 
         isVertexSelected = true;
-        AddReward(1f);
+        AddReward(0.1f);
         Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
     }
 
@@ -886,16 +886,6 @@ public class PackerHand : Agent
 
         Debug.Log($"PDB Box(): end of droppedoff function");
     }
-
-
-    /// <summary>
-    //// Rewards agent for large contact surface area
-    ///</summary>
-    // public void RewardSurfaceArea(float surface_area)
-    // { 
-    //     AddReward(0.005f*surface_area);
-    //     Debug.Log($"SurfaceArea is {surface_area} Dropped in bin!!!Total reward: {GetCumulativeReward()}");
-    // }
 
 
     public void ReverseSideNames(int id) 

@@ -29,7 +29,7 @@ public class SensorOverlapCollision : MonoBehaviour
         if (collision.gameObject.tag == "bin" | collision.gameObject.tag == "pickupbox") 
         {
             passedOverlapCheck = false;
-            agent.AddReward(-1f);
+            // agent.AddReward(-1f);
             Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedOverlapCheck: {passedOverlapCheck}");
             Debug.Log($"CBOx {name} with SensorOverlapCollision script reset due to collision with: {collision.gameObject.name}");
             Destroy(gameObject);

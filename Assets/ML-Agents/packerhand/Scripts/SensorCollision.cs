@@ -40,7 +40,7 @@ public class SensorCollision : MonoBehaviour
         {
             int failedBoxId = int.Parse(gameObject.name.Substring(7));
             passedGravityCheck = false;
-            agent.AddReward(-1f);
+            // agent.AddReward(-1f);
             Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedGravityCheck: {passedGravityCheck}");
             Debug.Log($"SCS {gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");  
             // destroy test box  
