@@ -1191,10 +1191,18 @@ public class PackerHand : Agent
 
         // Reset organized Boxes list
         organizedBoxes.Clear();
+
+        foreach (Box box in boxPool)
+        {
+            Debug.Log($"SRP BEFORE {box.gameobjectBox.name} IS DESTROYED");
+            DestroyImmediate(box.gameobjectBox);
+            Debug.Log($"SRP AFTER DESTRUCTION BOX IS: {box.gameobjectBox}");
+        }
         
         // for now leave the old boxes instances
         // Reset box pool
         boxPool.Clear();
+
 
         // Reset boxes
         boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));

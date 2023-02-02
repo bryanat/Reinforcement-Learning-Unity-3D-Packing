@@ -20,6 +20,7 @@ public class Box
 
     public Vector3 boxSize; 
 
+    public GameObject gameobjectBox;
 
 }
 
@@ -162,6 +163,7 @@ public class BoxSpawner : MonoBehaviour
                 startingPos = box.transform.position,
                 startingRot = box.transform.rotation,
                 boxSize = box.transform.localScale,
+                gameobjectBox = box,
             };
             // Add box to box pool
             boxPool.Add(newBox);  
