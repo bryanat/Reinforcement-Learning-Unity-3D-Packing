@@ -30,77 +30,7 @@ public class SensorOverlapCollision : MonoBehaviour
             passedOverlapCheck = false;
             Debug.Log($"CBOx {name} with SensorOverlapCollision script reset due to collision with: {collision.gameObject.name}");
             Destroy(gameObject);
-        } 
-
-        // int layerMask = 1 << 6;
-
-        // Vector3 transformCenter = transform.position;
-        // var vertex = center - 1/2x - 1/2y - 1/2z  
-        // var x = transform.position.x - 
-
-        // Vector3 transformEdge = transform.position;
-        // Vector3 transformEdgeX = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-
-////////////////////////////////
-        // if (Physics.Raycast( transform.position , transform.TransformDirection(Vector3.left), out hit, (transform.localScale.x * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        // {
-        //     passedOverlapCheck = false;
-        //    Debug.Log($"CBOx {name} FAILED OVERLAP TEST LEFT colliding with {collision.gameObject.name} ");
-        // }
-        // if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.right), out hit, (transform.localScale.x * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        // {
-        //     passedOverlapCheck = false;
-        //     Debug.Log($"CBOx {name} FAILED OVERLAP TEST RIGHT colliding with {collision.gameObject.name} ");
-        // }
-
-        // if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.up), out hit, (transform.localScale.y * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        // {
-        //     passedOverlapCheck = false;
-        //     Debug.Log($"CBOx {name} FAILED OVERLAP TEST UP colliding with {collision.gameObject.name} ");
-        // }
-        // if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.down), out hit, (transform.localScale.y * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        // {
-        //     passedOverlapCheck = false;
-        //     Debug.Log($"CBOx {name} FAILED OVERLAP TEST DOWN colliding with {collision.gameObject.name} ");
-        // }
-
-        // if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.forward), out hit, (transform.localScale.z * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        // {
-        //     passedOverlapCheck = false;
-        //     Debug.Log($"CBOx {name} FAILED OVERLAP TEST FORWARD colliding with {collision.gameObject.name} ");
-        // }
-////////////////////////////
-
-        // if (Physics.Raycast( transform.position, transform.TransformDirection(Vector3.back), out hit, (transform.localScale.z * 0.5f) - 0.1f, layerMask, QueryTriggerInteraction.Collide )) 
-        // {
-        //     passedOverlapCheck = false;
-        //     Debug.Log($"CBOx {name} FAILED OVERLAP TEST BACK colliding with {collision.gameObject.name} ");
-        // }
-
-        
-
-        // // if a testbox overlaps perpendicularly with a trimesh side then reset the box (impossible placement)
-        // if (collision.gameObject.tag == "outerbin") {
-        // if (collision.gameObject.tag == "SIDENSAFKJSDNFK") {
-        //     passedOverlapCheck = false;
-        //     Debug.Log($"CBO {collision.gameObject.name} box reset due to collision with outer bin side: {name} ");
-        // } 
-
-        // var checkmyBox = Physics.CheckBox(transform.position, new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z));
-
-        // var wuttPlus = new Vector3( (middle_position + (bounds - tinysliver)), (transform.position.y + ((transform.localScale.y * 0.5f) - 0.02f)), (transform.position.z + ((transform.localScale.z * 0.5f) - 0.02f)) )
-        
-        
-        
-        
-        // var wuttPlus = new Vector3( (transform.position.x + ((transform.localScale.x * 0.5f) - 0.02f)), (transform.position.y + ((transform.localScale.y * 0.5f) - 0.02f)), (transform.position.z + ((transform.localScale.z * 0.5f) - 0.02f)) )
-        // var wuttMinus = new Vector3( (transform.position.x - ((transform.localScale.x * 0.5f) - 0.02f)), (transform.position.y - ((transform.localScale.y * 0.5f) - 0.02f)), (transform.position.z - ((transform.localScale.z * 0.5f) - 0.02f)) )
-
-        // bounds
-
-        // // if true there is an overlap and therefor set passed overlap check false
-        // // // if (Physics.CheckBox(transform.position, new Vector3(((transform.localScale.x * 0.5f) - 0.02f), ((transform.localScale.y * 0.5f) - 0.02f), ((transform.localScale.z * 0.5f) - 0.02f)))) 
-        
+        }         
     }
     
      
