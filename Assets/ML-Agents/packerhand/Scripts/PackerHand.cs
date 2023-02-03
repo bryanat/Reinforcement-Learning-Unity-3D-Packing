@@ -89,6 +89,11 @@ public class PackerHand : Agent
 
     public GameObject outerbinfront;
 
+    public float binscale_x;
+    public float binscale_y;
+    public float binscale_z;
+    public Vector3 origin;
+
 
     public override void Initialize()
     {   
@@ -129,12 +134,21 @@ public class PackerHand : Agent
         Renderer [] renderers = binArea.GetComponentsInChildren<Renderer>();
         areaBounds = renderers[0].bounds;
         for (var i = 1; i < renderers.Length; ++i)
+        {
             areaBounds.Encapsulate(renderers[i].bounds);
-
+        }
         Debug.Log($"BIN BOUNDS: {areaBounds}");
         // Get total bin volume from onstart
         total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
         Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
+
+
+        binscale_x = areaBounds.extents.x*2;
+        binscale_y = areaBounds.extents.y*2;
+        binscale_z = areaBounds.extents.z*2;
+        origin = new Vector3(8.25f, 0.50f, 10.50f);
+        Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
+
 
         // Make agent unaffected by collision
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
@@ -169,6 +183,10 @@ public class PackerHand : Agent
 
         // // array of vertices
         foreach (Vector3 vertex in verticesArray) {
+            Vector3 scaled_continous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+            Debug.Log($"XYZ scaled_continous_vertex: {scaled_continous_vertex}");
+            // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continous_vertex: (-0.35, -0.02, -0.18)
+
             sensor.AddObservation(vertex); //add vertices to sensor observations
         }
 
@@ -267,7 +285,6 @@ public class PackerHand : Agent
                     BoxReset("failedPhysicsCheck");
                 }
             }
-
         }
         //if agent drops off the box, it should pick another one
         else if (isBoxSelected==false) 
@@ -425,7 +442,11 @@ public class PackerHand : Agent
             if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
             if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
                 Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
-                verticesArray[VertexCount] = tripoints_list[idx];
+                // add tripoint to vertices array
+                // verticesArray[VertexCount] = tripoints_list[idx];
+                Vector3 scaled_continous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
+                // Add scaled tripoint_vertex to verticesArray
+                verticesArray[VertexCount] = scaled_continous_vertex;
                 VertexCount ++;
                 Debug.Log($"VERTEX COUNT IS {VertexCount}");
             }
@@ -481,12 +502,12 @@ public class PackerHand : Agent
 
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
         // 
-        if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
-        {
-            // 
-            isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
-            return; // to end function call
-        }
+        // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
+        // {
+        //     // 
+        //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
+        //     return; // to end function call
+        // }
 
         // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
         if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
@@ -518,13 +539,14 @@ public class PackerHand : Agent
 
             isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
              // Punish agent for selecting a bad position
-            AddReward(-0.1f);
-            Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
+            // AddReward(-0.1f);
+            // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
             return; // to end function call
         }
 
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
-        selectedVertex = verticesArray[action_SelectedVertex];
+        var unscaled_selectedVertex = verticesArray[action_SelectedVertex];
+        selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
             verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
@@ -534,12 +556,9 @@ public class PackerHand : Agent
         // Range( 0f, 2*organizedBoxes.Count() ) // 2n + 1, keeping this comment in case organizedBoxes.Count() is useful later
 
         isVertexSelected = true;
-        AddReward(0.1f);
-        Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
+        // AddReward(0.1f);
+        // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
     }
-
-
-
 
 
     public void UpdateBoxPosition() 
