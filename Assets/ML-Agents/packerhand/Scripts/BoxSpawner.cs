@@ -86,7 +86,7 @@ public class BoxSpawner : MonoBehaviour
             new float[] {3f, 3f, 3f},
             new float[] {3f, 3f, 3f},
             new float[] {3f, 3f, 3f},
-                        new float[] {3f, 3f, 3f},
+            new float[] {3f, 3f, 3f},
             new float[] {3f, 3f, 3f},
             new float[] {3f, 3f, 3f},
             new float[] {3f, 3f, 3f},

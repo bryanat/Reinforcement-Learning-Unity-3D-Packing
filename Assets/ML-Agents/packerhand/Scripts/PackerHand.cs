@@ -433,8 +433,7 @@ public class PackerHand : Agent
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
         selectedVertex = verticesArray[action_SelectedVertex];
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        //if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
-        if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck) {
+        if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) {
             verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
             // decrease vertex count 
             VertexCount --;
