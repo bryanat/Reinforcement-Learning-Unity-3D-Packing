@@ -417,21 +417,17 @@ public class PackerHand : Agent
         // if (!is_tripoint_bluez_sameAsVertex){
             tripoints_list.Add(tripoint_bluez);
         // }
+
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
-            Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
-            if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
-            if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
-            if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
-                Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
-                verticesArray[VertexCount] = tripoints_list[idx];
-                VertexCount ++;
-                Debug.Log($"VERTEX COUNT IS {VertexCount}");
-            }
-            }
-            }
+            Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
+            verticesArray[VertexCount] = tripoints_list[idx];
+            VertexCount ++;
+            Debug.Log($"VVV VERTEX COUNT IS {VertexCount}");
+
         }
+
     }
 
 
@@ -528,6 +524,7 @@ public class PackerHand : Agent
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
             verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
+            VertexCount --;
         }
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
@@ -1029,7 +1026,7 @@ public class PackerHand : Agent
     {
         if (cause == "failedPhysicsCheck") 
         {
-            Debug.Log($"SCS BOX {boxIdx} RESET LOOP");
+            Debug.Log($"SCS BOX {boxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
             // detach box from agent
             targetBox.parent = null;
             // add back rigidbody and collider
