@@ -144,7 +144,6 @@ public class PackerHand : Agent
         SetResetParameters();
 
         selectedVertex = new Vector3(8.25f, 0.50f, 10.50f); // refactor to select first vertex
-        // selectedVertex = new Vector3(where the three trimesh meet init);
         isVertexSelected = true;
         
     }
@@ -155,7 +154,6 @@ public class PackerHand : Agent
     /// </summary>
     public override void CollectObservations(VectorSensor sensor) 
     {
-        /////once the box combines with the bin, we should also add bin bounds and bin volumne to observation
 
         // Add Bin size
         sensor.AddObservation(binArea.transform.localScale);
@@ -186,7 +184,6 @@ public class PackerHand : Agent
 
         if (isBlackboxUpdated && isVertexSelected == false) 
         {
-            //SelectVertex(); 
             SelectVertex(discreteActions[++j]);
         }
 
@@ -209,11 +206,6 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        // if (StepCount >= MaxStep) 
-        // {
-        //     //wait on onepisodebegin
-        //     return;
-        // }
         // Initialize curriculum and brain
         if (curriculum_ConfigurationGlobal != -1)
         {
@@ -317,8 +309,6 @@ public class PackerHand : Agent
     ///</summary>
     void UpdateVerticesList() 
     {
-        ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
-        //allVerticesDictionary.Clear();
         MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
         AddVertices(mf_back.mesh.vertices, backMeshVertices);
         Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
@@ -353,16 +343,6 @@ public class PackerHand : Agent
             // convert local scale to world position
             Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
             verticesList.Add(worldVertex);
-            // Add to a counter dictionary to check for intersection
-            // reduce stage: vertex is key, value is int number which gets increased for each vertex
-            // if (allVerticesDictionary.ContainsKey(worldVertex)) 
-            // {
-            //     allVerticesDictionary[worldVertex] ++;
-            // }
-            // else 
-            // {
-            //     allVerticesDictionary.Add(worldVertex, 1);
-            // }
         }
     }
 
@@ -374,57 +354,16 @@ public class PackerHand : Agent
         var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
         var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
-        // // purpose of split in 3: only need to compare tripoint_redx to sideMeshVertices (1/3 = n complexity) instead of tripoint_redx to all 3 meshes (3/3 = 3n complexity)
-        // bool is_tripoint_redx_sameAsVertex = false;
-        // bool is_tripoint_greeny_sameAsVertex = false;
-        // bool is_tripoint_bluez_sameAsVertex = false;
-
-        // // RED / X / SIDE-LEFTRIGHT
-        // // loop over all vertexes in tripoints corresponding mesh first to check that tripoint is not an existing vertex from mf_side.mesh.vertices (which would be a bad stability score vertex)
-        // foreach ( Vector3 vertex in sideMeshVertices)
-        // {
-        //     // stateflag is_tripoint_redx_sameAsVertex set to true will prevent tripoint being added to tripoint_list since its an existing vertex from mf_side.mesh.vertices
-        //     if (tripoint_redx == vertex){
-        //         is_tripoint_redx_sameAsVertex = true;
-        //         break;
-        //     }
-        // }
-        // // if tripoint is not a shared vertex point add tripoint to list (effectively, creating an illegal tripoint and bad stability score placement)
-        // if (!is_tripoint_redx_sameAsVertex){
-            tripoints_list.Add(tripoint_redx);
-        // }
-
-        // // GREEN / Y / BOTTOM-TOP
-        // foreach ( Vector3 vertex in bottomMeshVertices)
-        // {
-        //     if (tripoint_greeny == vertex){
-        //         is_tripoint_greeny_sameAsVertex = true;
-        //         break;
-        //     }
-        // }
-        // if (!is_tripoint_greeny_sameAsVertex){
-            tripoints_list.Add(tripoint_greeny);
-        // }
-
-        // // BLUE / Z / BACK-FRONT
-        // foreach ( Vector3 vertex in backMeshVertices)
-        // {
-        //     if (tripoint_bluez == vertex){
-        //         is_tripoint_bluez_sameAsVertex = true;
-        //         break;
-        //     }
-        // }
-        // if (!is_tripoint_bluez_sameAsVertex){
-            tripoints_list.Add(tripoint_bluez);
-        // }
-
+        tripoints_list.Add(tripoint_redx);   
+        tripoints_list.Add(tripoint_greeny);
+        tripoints_list.Add(tripoint_bluez);
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
             Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
             verticesArray[VertexCount] = tripoints_list[idx];
             VertexCount ++;
-            Debug.Log($"VVV VERTEX COUNT IS {VertexCount}");
+            Debug.Log($"VTX VERTEX COUNT IS {VertexCount}");
 
         }
 
@@ -435,45 +374,12 @@ public class PackerHand : Agent
     {
         Debug.Log($"UBX Update BlackboX running");
 
-        // foreach (Vector3 vertex in verticesArray) 
-        // {
-        //     //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
-        //     Vector3 closest_x_vertex = backMeshVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
-        //     vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
-        //     Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
-
-        //     Vector3 closest_y_vertex = sideMeshVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
-        //     vertex[1]<next[1] && Math.Abs(next[1]-vertex[1]) < Math.Abs(min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
-        //     Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
-
-        //     Vector3 closest_z_vertex = sideMeshVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
-        //     vertex[2]<next[2] && Math.Abs(next[2]-vertex[2]) < Math.Abs(min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
-        //     Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
-
-        //     float blackbox_x_size = Math.Abs(closest_x_vertex[0] - vertex[0]);
-        //     float blackbox_y_size = Math.Abs(closest_y_vertex[1] - vertex[1]);
-        //     float blackbox_z_size = Math.Abs(closest_z_vertex[2] - vertex[2]);
-        //     Vector3 blackbox_position = new Vector3(blackbox_x_size*0.5f+vertex[0], blackbox_y_size*0.5f+vertex[1], blackbox_z_size*0.5f+vertex[2]);
-        //     Debug.Log($"BPS BLACK BOX POSITION {blackbox_position} SIZES {blackbox_x_size}, {blackbox_y_size}, {blackbox_z_size}");
-
-        //     GameObject blackbox = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        //     blackbox.name = "blackbox";
-        //     blackbox.transform.position = blackbox_position;
-        //     blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
-        //     Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
-        //     cubeRenderer.material = clearPlastic;
-
-        //     blackbox_list.Add(blackbox);
-        // }
         isBlackboxUpdated = true;
     }
 
 
     public void SelectVertex(int action_SelectedVertex) 
     {
-
-        
-        
 
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
         // 
@@ -524,6 +430,7 @@ public class PackerHand : Agent
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
             verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
+            // decrease vertex count 
             VertexCount --;
         }
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
@@ -574,21 +481,9 @@ public class PackerHand : Agent
 
 
     public void CheckBoxPlacementPhysics(Vector3 testPosition) {
-        // Collider [] hitColliders = Physics.OverlapBox(new Vector3(0, 5.5f, 0), new Vector3(boxWorldScale.x*0.5f-1f, boxWorldScale.y*0.5f-1f, boxWorldScale.z*0.5f-1f), Quaternion.identity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
-        // if (hitColliders.Length!=0)
-        // {
-        //     Debug.Log($"HIT COLLIDERS LENGTH IS : {hitColliders.Length}");
-        //     BoxReset("failedPhysicsCheck");
-        //     Debug.Log("LAP FAILED OVERLAP CHECK");
-        // }
-        // else
-        // {
         // create a clone test box to check physics of placement
         // teleported first before actual box is placed so gravity check comes before mesh combine
 
-        // extra large cardboard boxes (~6dm * 6dm * 6dm) weight 1 kg, large boxes weight 0.5 kg, medium boxes ( < 3dm * 3dm * 3dm) weight 0.1kg
-        //The maximum weights range from around 20 pounds for standard cardboard boxes to 60–150 pounds 
-        //corrugated and double-walled boxes, with some corrugated triple-walled boxes carrying up to 300 pounds
         GameObject testBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         testBox.transform.localScale = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
@@ -610,7 +505,6 @@ public class PackerHand : Agent
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         sensorCollision = testBox.AddComponent<SensorCollision>();
         sensorOuterCollision = testBox.AddComponent<SensorOuterCollision>();
-        // sensorOverlapCollision = testBox.AddComponent<SensorOverlapCollision>();
         // probably don't need agent  in the scripts
         sensorCollision.agent = this; // agent reference used by component to set rewards on collision
         sensorOuterCollision.agent = this; // agent reference used by component to set rewards on collision
@@ -1021,7 +915,6 @@ public class PackerHand : Agent
     }
 
 
-    // BoxReset is called in SensorCollision.cs (currently bad practice not modular but will refactor when have time)
     public void BoxReset(string cause)
     {
         if (cause == "failedPhysicsCheck") 
