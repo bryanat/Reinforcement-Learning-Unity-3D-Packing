@@ -206,6 +206,11 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
+        // if reaches max step or packed all boxes, reset episode 
+        if (StepCount >= MaxStep | organizedBoxes.Count == boxPool.Count)
+        {
+            EndEpisode();
+        }
         // Initialize curriculum and brain
         if (curriculum_ConfigurationGlobal != -1)
         {
@@ -428,7 +433,8 @@ public class PackerHand : Agent
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
         selectedVertex = verticesArray[action_SelectedVertex];
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
+        //if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
+        if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck) {
             verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
             // decrease vertex count 
             VertexCount --;
@@ -516,7 +522,7 @@ public class PackerHand : Agent
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
         testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.1f), (boxWorldScale.y - 0.1f), (boxWorldScale.z - 0.1f));
-        testBoxChild.transform.position = new Vector3(testPosition.x, testPosition.y, testPosition.z);
+        testBoxChild.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
         sensorOverlapCollision = testBoxChild.AddComponent<SensorOverlapCollision>();
@@ -1040,9 +1046,6 @@ public class PackerHand : Agent
         // Reset mesh
         MeshReset();
 
-        // Reset agent
-        AgentReset();
-
         // Reset reward
         SetReward(0f);
 
@@ -1080,6 +1083,9 @@ public class PackerHand : Agent
 
         // Reset states;
         StateReset();
+
+        // Reset agent
+        AgentReset();
     }
 
 
