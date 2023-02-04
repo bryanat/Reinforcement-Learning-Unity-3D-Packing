@@ -359,9 +359,23 @@ public class PackerHand : Agent
         var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
         var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
+        // comment out the 4 lines below if want only 3 vertices
+        // in the future contraints can be refactored into flags
+        // var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
+        // var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+
+
         tripoints_list.Add(tripoint_redx);   
         tripoints_list.Add(tripoint_greeny);
         tripoints_list.Add(tripoint_bluez);
+
+        // comment out the 4 lines below if want only 3 vertices
+        // tripoints_list.Add(tripoint_xy);
+        // tripoints_list.Add(tripoint_xyz);
+        // tripoints_list.Add(tripoint_xz);
+        // tripoints_list.Add(tripoint_yz);
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
