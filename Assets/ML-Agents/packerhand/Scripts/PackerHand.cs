@@ -197,8 +197,8 @@ public class PackerHand : Agent
         if (isBlackboxUpdated && isVertexSelected == false) 
         {
             //SelectVertex(); 
-            //SelectVertex(discreteActions[++j]);
-            SelectBlackboxVertex();
+            SelectVertex(discreteActions[++j]);
+            //SelectBlackboxVertex();
         }
 
         if (isVertexSelected && isBoxSelected==false) 
@@ -374,11 +374,10 @@ public class PackerHand : Agent
         var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
         // comment out the 4 lines below if want only 3 vertices
-        // in the future contraints can be refactored into flags
-        // var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
-        // var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
-        // var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
-        // var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
+        var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
+        var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
 
 
         tripoints_list.Add(tripoint_redx);   
@@ -386,10 +385,10 @@ public class PackerHand : Agent
         tripoints_list.Add(tripoint_bluez);
 
         // comment out the 4 lines below if want only 3 vertices
-        // tripoints_list.Add(tripoint_xy);
-        // tripoints_list.Add(tripoint_xyz);
-        // tripoints_list.Add(tripoint_xz);
-        // tripoints_list.Add(tripoint_yz);
+        tripoints_list.Add(tripoint_xy);
+        tripoints_list.Add(tripoint_xyz);
+        tripoints_list.Add(tripoint_xz);
+        tripoints_list.Add(tripoint_yz);
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
@@ -407,48 +406,48 @@ public class PackerHand : Agent
     {
         Debug.Log($"UBX Update BlackboX running");
 
-        foreach (Vector3 vertex in verticesArray) 
-        {
-            //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
-            Vector3 closest_x_vertex = backMeshVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
-            vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
-            //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
+        // foreach (Vector3 vertex in verticesArray) 
+        // {
+        //     //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
+        //     Vector3 closest_x_vertex = backMeshVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
+        //     vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
+        //     //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
 
-            Vector3 closest_y_vertex = sideMeshVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
-            vertex[1]<next[1] && Math.Abs(next[1]-vertex[1]) < Math.Abs(min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
-            //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
+        //     Vector3 closest_y_vertex = sideMeshVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
+        //     vertex[1]<next[1] && Math.Abs(next[1]-vertex[1]) < Math.Abs(min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
+        //     //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
 
-            Vector3 closest_z_vertex = sideMeshVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
-            vertex[2]<next[2] && Math.Abs(next[2]-vertex[2]) < Math.Abs(min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
-            //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
+        //     Vector3 closest_z_vertex = sideMeshVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
+        //     vertex[2]<next[2] && Math.Abs(next[2]-vertex[2]) < Math.Abs(min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
+        //     //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
 
-            float blackbox_x_size = Math.Abs(closest_x_vertex[0] - vertex[0]);
-            float blackbox_y_size = Math.Abs(closest_y_vertex[1] - vertex[1]);
-            float blackbox_z_size = Math.Abs(closest_z_vertex[2] - vertex[2]);
-            Vector3 blackbox_position = new Vector3(blackbox_x_size*0.5f+vertex[0], blackbox_y_size*0.5f+vertex[1], blackbox_z_size*0.5f+vertex[2]);
+        //     float blackbox_x_size = Math.Abs(closest_x_vertex[0] - vertex[0]);
+        //     float blackbox_y_size = Math.Abs(closest_y_vertex[1] - vertex[1]);
+        //     float blackbox_z_size = Math.Abs(closest_z_vertex[2] - vertex[2]);
+        //     Vector3 blackbox_position = new Vector3(blackbox_x_size*0.5f+vertex[0], blackbox_y_size*0.5f+vertex[1], blackbox_z_size*0.5f+vertex[2]);
 
-            if (blackbox_x_size<100f && blackbox_x_size>2f && blackbox_y_size<100f && blackbox_y_size > 2f && blackbox_z_size<100f && blackbox_z_size>2f) 
-            {
-                Debug.Log($"BPS BLACK BOX POSITION {blackbox_position} SIZES {blackbox_x_size}, {blackbox_y_size}, {blackbox_z_size}");
-                GameObject blackbox = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                blackbox.name = "blackbox";
-                blackbox.transform.position = blackbox_position;
-                blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
-                Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
-                cubeRenderer.material = clearPlastic;
+        //     if (blackbox_x_size<100f && blackbox_x_size>2f && blackbox_y_size<100f && blackbox_y_size > 2f && blackbox_z_size<100f && blackbox_z_size>2f) 
+        //     {
+        //         Debug.Log($"BPS BLACK BOX POSITION {blackbox_position} SIZES {blackbox_x_size}, {blackbox_y_size}, {blackbox_z_size}");
+        //         GameObject blackbox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        //         blackbox.name = "blackbox";
+        //         blackbox.transform.position = blackbox_position;
+        //         blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
+        //         Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
+        //         cubeRenderer.material = clearPlastic;
 
-                Blackbox newBlackbox = new Blackbox
-                {
-                    position = blackbox_position,
-                    size = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size),
-                    vertex = vertex,
-                    gameobjectBlackbox = blackbox,
-                    volume = blackbox_x_size * blackbox_y_size * blackbox_z_size,
-                };
+        //         Blackbox newBlackbox = new Blackbox
+        //         {
+        //             position = blackbox_position,
+        //             size = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size),
+        //             vertex = vertex,
+        //             gameobjectBlackbox = blackbox,
+        //             volume = blackbox_x_size * blackbox_y_size * blackbox_z_size,
+        //         };
 
-                blackboxPool.Add(newBlackbox);
-            }
-        }
+        //         blackboxPool.Add(newBlackbox);
+        //     }
+        // }
         isBlackboxUpdated = true;
     }
 
@@ -599,10 +598,8 @@ public class PackerHand : Agent
         // bc.material.staticFriction = 1f;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         sensorCollision = testBox.AddComponent<SensorCollision>();
-        sensorOuterCollision = testBox.AddComponent<SensorOuterCollision>();
         // probably don't need agent  in the scripts
         sensorCollision.agent = this; // agent reference used by component to set rewards on collision
-        sensorOuterCollision.agent = this; // agent reference used by component to set rewards on collision
         testBox.name = $"testbox{targetBox.name}";
         testBox.tag = "testbox";
         
@@ -615,7 +612,9 @@ public class PackerHand : Agent
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
         sensorOverlapCollision = testBoxChild.AddComponent<SensorOverlapCollision>();
+        sensorOuterCollision = testBoxChild.AddComponent<SensorOuterCollision>();
         sensorOverlapCollision.agent = this; // agent reference used by component to set rewards on collision
+        sensorOuterCollision.agent = this; // agent reference used by component to set rewards on collision
         testBoxChild.name = $"testboxChild{targetBox.name}";
         testBoxChild.tag = "testboxChild";
 
