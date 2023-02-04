@@ -1051,7 +1051,11 @@ public class PackerHand : Agent
         isRotationSelected = false;
         isPickedup = false;
         isDroppedoff = false;
-        targetBin = null;
+        //targetBin = null;
+        if (targetBin!=null)
+        {
+        DestroyImmediate(targetBin.gameObject);
+        }
         targetBox = null;
         outerbinfront.tag = "binopening";
         isStateReset = true;
