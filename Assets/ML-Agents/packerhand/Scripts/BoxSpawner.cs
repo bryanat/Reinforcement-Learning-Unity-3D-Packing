@@ -24,6 +24,17 @@ public class Box
 
 }
 
+public class Blackbox
+{
+    public Vector3 position;
+    public Vector3 vertex;
+    public float volume;
+    public Vector3 size;
+
+    public GameObject gameobjectBlackbox;
+
+}
+
 
 
 
