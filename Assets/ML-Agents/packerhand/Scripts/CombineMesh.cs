@@ -203,45 +203,6 @@ public class CombineMesh : MonoBehaviour
     }
 
 
-    // void OnDrawGizmos() {
-    //     var mesh = GetComponent<MeshFilter>().sharedMesh;
-    //     Vector3[] vertices = mesh.vertices;
-    //     int[] triangles = mesh.triangles;
-
-    //     Matrix4x4 localToWorld = transform.localToWorldMatrix;
- 
-    //     for(int i = 0; i<mesh.vertices.Length; ++i){
-    //         Vector3 world_v = localToWorld.MultiplyPoint3x4(mesh.vertices[i]);
-    //         Debug.Log($"Vertex position is {world_v}");
-    //         // if (name == "BinIso20Bottom") {
-    //         //     Gizmos.color = Color.green;
-    //         //     Gizmos.DrawSphere(world_v, 0.1f);
-    //         // }
-    //         if (name == "BinIso20Back") {
-    //             Gizmos.color = Color.blue;
-    //             Gizmos.DrawSphere(world_v, 0.1f);
-    //         }
-    //         // if (name == "BinIso20Side") {
-    //         //     Gizmos.color = Color.red;
-    //         //     Gizmos.DrawSphere(world_v, 0.1f);
-    //         // }
-    //     }
-    // }
-
-    void OnDrawGizmos() { 
-        if (agent.verticesArray!=null)
-        {
-            foreach (Vector3 vertex in agent.verticesArray) {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawSphere(vertex, 0.2f);
-            }
-        Gizmos.color = Color.black;
-        Gizmos.DrawSphere(agent.selectedVertex, 0.2f);
-        }
-    }
-
-
-    
 
     public void MeshCombiner(MeshFilter[] meshList, GameObject parent) 
     {

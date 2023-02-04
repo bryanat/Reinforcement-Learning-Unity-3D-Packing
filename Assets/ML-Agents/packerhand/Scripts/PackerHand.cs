@@ -159,7 +159,7 @@ public class PackerHand : Agent
         // Reset agent and rewards
         SetResetParameters();
 
-        selectedVertex = new Vector3(8.25f, 0.50f, 10.50f); // refactor to select first vertex
+        selectedVertex = origin; // refactor to select first vertex
         isVertexSelected = true;
         
     }

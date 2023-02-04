@@ -2,11 +2,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using Box = Boxes.Box;
 
-// SensorCollision component to work requires:
-// - Collider component (needed for a Collision)
-// - Rigidbody component (needed for a Collision)
-//   - "the Rigidbody can be set to be 'kinematic' if you don't want the object to have physical interaction with other objects"
-// + usecase: SensorCollision component can attached to bin to detect box collisions with bin
+// Check for center of gravity
+
 public class SensorCollision : MonoBehaviour
 {
     public PackerHand agent;
@@ -69,15 +66,6 @@ public class SensorCollision : MonoBehaviour
             Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
          }
      }
-
-    //  void OnDrawGizmos()
-    // {
-    //     // Draws a 5 unit long red line in front of the object
-    //     Gizmos.color = Color.yellow;
-    //     Vector3 position =   new Vector3(transform.position.x, transform.position.y-transform.localScale.y*0.5f, transform.position.z);
-    //     Vector3 direction = transform.TransformDirection(Vector3.down) * 30f;
-    //     Gizmos.DrawRay(position, direction);
-    // }
     
      
 }
