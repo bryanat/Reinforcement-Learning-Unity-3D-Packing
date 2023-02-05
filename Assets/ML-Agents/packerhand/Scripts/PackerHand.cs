@@ -184,23 +184,23 @@ public class PackerHand : Agent
         // // array of vertices
         foreach (Vector3 vertex in verticesArray) {
             Vector3 scaled_continous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-            Debug.Log($"XYZ scaled_continous_vertex: {scaled_continous_vertex}");
+            //Debug.Log($"XYZ scaled_continous_vertex: {scaled_continous_vertex}");
             // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continous_vertex: (-0.35, -0.02, -0.18)
 
             sensor.AddObservation(vertex); //add vertices to sensor observations
         }
 
         // // array of blackboxes 
-        foreach (Blackbox blackbox in blackboxPool)
-        {
-            // float[][] blackbox_observation = new float[][]{};
-            // blackbox_observation = new float[][] {
-            //     new float[] {blackbox.size.x, blackbox.size.y, blackbox.size.z},
-            //     new float[] {blackbox.vertex.x, blackbox.vertex.y, blackbox.vertex.z},
-            // };
-            sensor.AddObservation(blackbox.size);
-            sensor.AddObservation(blackbox.vertex);
-        }
+        // foreach (Blackbox blackbox in blackboxPool)
+        // {
+        //     // float[][] blackbox_observation = new float[][]{};
+        //     // blackbox_observation = new float[][] {
+        //     //     new float[] {blackbox.size.x, blackbox.size.y, blackbox.size.z},
+        //     //     new float[] {blackbox.vertex.x, blackbox.vertex.y, blackbox.vertex.z},
+        //     // };
+        //     sensor.AddObservation(blackbox.size);
+        //     sensor.AddObservation(blackbox.vertex);
+        // }
         // sensor.AddObservation(blackboxesArray); //add vertices to sensor observations
     }
 
