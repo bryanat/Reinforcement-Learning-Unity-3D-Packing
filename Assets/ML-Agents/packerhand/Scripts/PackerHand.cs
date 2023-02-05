@@ -10,6 +10,7 @@ using Unity.Barracuda;
 using Unity.MLAgentsExamples;
 using Unity.MLAgents.Policies;
 using Box = Boxes.Box;
+using Blackbox = Boxes.Blackbox;
 using Boxes;
 
 public class PackerHand : Agent 
@@ -76,6 +77,7 @@ public class PackerHand : Agent
     public bool isBackMeshCombined;
 
     public List<Box> boxPool;
+    public List<Blackbox> blackboxPool  = new List<Blackbox>();
     public GameObject binBottom;
     public GameObject binBack;
     public GameObject binSide;
@@ -88,6 +90,11 @@ public class PackerHand : Agent
     public float percent_filled_bin_volume;
 
     public GameObject outerbinfront;
+
+    public float binscale_x;
+    public float binscale_y;
+    public float binscale_z;
+    public Vector3 origin;
 
 
     public override void Initialize()
@@ -129,12 +136,21 @@ public class PackerHand : Agent
         Renderer [] renderers = binArea.GetComponentsInChildren<Renderer>();
         areaBounds = renderers[0].bounds;
         for (var i = 1; i < renderers.Length; ++i)
+        {
             areaBounds.Encapsulate(renderers[i].bounds);
-
+        }
         Debug.Log($"BIN BOUNDS: {areaBounds}");
         // Get total bin volume from onstart
         total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
         Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
+
+
+        binscale_x = areaBounds.extents.x*2;
+        binscale_y = areaBounds.extents.y*2;
+        binscale_z = areaBounds.extents.z*2;
+        origin = new Vector3(8.25f, 0.50f, 10.50f);
+        Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
+
 
         // Make agent unaffected by collision
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
@@ -143,8 +159,7 @@ public class PackerHand : Agent
         // Reset agent and rewards
         SetResetParameters();
 
-        selectedVertex = new Vector3(8.25f, 0.50f, 10.50f); // refactor to select first vertex
-        // selectedVertex = new Vector3(where the three trimesh meet init);
+        selectedVertex = origin; // refactor to select first vertex
         isVertexSelected = true;
         
     }
@@ -155,7 +170,6 @@ public class PackerHand : Agent
     /// </summary>
     public override void CollectObservations(VectorSensor sensor) 
     {
-        /////once the box combines with the bin, we should also add bin bounds and bin volumne to observation
 
         // Add Bin size
         sensor.AddObservation(binArea.transform.localScale);
@@ -169,10 +183,24 @@ public class PackerHand : Agent
 
         // // array of vertices
         foreach (Vector3 vertex in verticesArray) {
+            Vector3 scaled_continous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+            //Debug.Log($"XYZ scaled_continous_vertex: {scaled_continous_vertex}");
+            // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continous_vertex: (-0.35, -0.02, -0.18)
+
             sensor.AddObservation(vertex); //add vertices to sensor observations
         }
 
         // // array of blackboxes 
+        // foreach (Blackbox blackbox in blackboxPool)
+        // {
+        //     // float[][] blackbox_observation = new float[][]{};
+        //     // blackbox_observation = new float[][] {
+        //     //     new float[] {blackbox.size.x, blackbox.size.y, blackbox.size.z},
+        //     //     new float[] {blackbox.vertex.x, blackbox.vertex.y, blackbox.vertex.z},
+        //     // };
+        //     sensor.AddObservation(blackbox.size);
+        //     sensor.AddObservation(blackbox.vertex);
+        // }
         // sensor.AddObservation(blackboxesArray); //add vertices to sensor observations
     }
 
@@ -188,6 +216,7 @@ public class PackerHand : Agent
         {
             //SelectVertex(); 
             SelectVertex(discreteActions[++j]);
+            //SelectBlackboxVertex();
         }
 
         if (isVertexSelected && isBoxSelected==false) 
@@ -209,11 +238,15 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        // if (StepCount >= MaxStep) 
-        // {
-        //     //wait on onepisodebegin
-        //     return;
-        // }
+        // if reaches max step or packed all boxes, reset episode 
+        if (StepCount >= MaxStep | organizedBoxes.Count == boxPool.Count)
+        {
+            if (organizedBoxes.Count == boxPool.Count) 
+            {
+                Debug.Log("TEBS FINISHED PACKING ALL BOXES IN ONE EPISODE ");
+            }
+            EndEpisode();
+        }
         // Initialize curriculum and brain
         if (curriculum_ConfigurationGlobal != -1)
         {
@@ -267,7 +300,6 @@ public class PackerHand : Agent
                     BoxReset("failedPhysicsCheck");
                 }
             }
-
         }
         //if agent drops off the box, it should pick another one
         else if (isBoxSelected==false) 
@@ -317,8 +349,6 @@ public class PackerHand : Agent
     ///</summary>
     void UpdateVerticesList() 
     {
-        ///////// this for now creates all vertices list and dictionary from scratch every time a new mesh is created/////
-        //allVerticesDictionary.Clear();
         MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
         AddVertices(mf_back.mesh.vertices, backMeshVertices);
         Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
@@ -353,16 +383,6 @@ public class PackerHand : Agent
             // convert local scale to world position
             Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
             verticesList.Add(worldVertex);
-            // Add to a counter dictionary to check for intersection
-            // reduce stage: vertex is key, value is int number which gets increased for each vertex
-            // if (allVerticesDictionary.ContainsKey(worldVertex)) 
-            // {
-            //     allVerticesDictionary[worldVertex] ++;
-            // }
-            // else 
-            // {
-            //     allVerticesDictionary.Add(worldVertex, 1);
-            // }
         }
     }
 
@@ -374,49 +394,22 @@ public class PackerHand : Agent
         var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
         var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
-        // purpose of split in 3: only need to compare tripoint_redx to sideMeshVertices (1/3 = n complexity) instead of tripoint_redx to all 3 meshes (3/3 = 3n complexity)
-        bool is_tripoint_redx_sameAsVertex = false;
-        bool is_tripoint_greeny_sameAsVertex = false;
-        bool is_tripoint_bluez_sameAsVertex = false;
+        // comment out the 4 lines below if want only 3 vertices
+        var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
+        var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
+        var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
 
-        // RED / X / SIDE-LEFTRIGHT
-        // loop over all vertexes in tripoints corresponding mesh first to check that tripoint is not an existing vertex from mf_side.mesh.vertices (which would be a bad stability score vertex)
-        foreach ( Vector3 vertex in sideMeshVertices)
-        {
-            // stateflag is_tripoint_redx_sameAsVertex set to true will prevent tripoint being added to tripoint_list since its an existing vertex from mf_side.mesh.vertices
-            if (tripoint_redx == vertex){
-                is_tripoint_redx_sameAsVertex = true;
-                break;
-            }
-        }
-        // if tripoint is not a shared vertex point add tripoint to list (effectively, creating an illegal tripoint and bad stability score placement)
-        if (!is_tripoint_redx_sameAsVertex){
-            tripoints_list.Add(tripoint_redx);
-        }
 
-        // GREEN / Y / BOTTOM-TOP
-        foreach ( Vector3 vertex in bottomMeshVertices)
-        {
-            if (tripoint_greeny == vertex){
-                is_tripoint_greeny_sameAsVertex = true;
-                break;
-            }
-        }
-        if (!is_tripoint_greeny_sameAsVertex){
-            tripoints_list.Add(tripoint_greeny);
-        }
+        tripoints_list.Add(tripoint_redx);   
+        tripoints_list.Add(tripoint_greeny);
+        tripoints_list.Add(tripoint_bluez);
 
-        // BLUE / Z / BACK-FRONT
-        foreach ( Vector3 vertex in backMeshVertices)
-        {
-            if (tripoint_bluez == vertex){
-                is_tripoint_bluez_sameAsVertex = true;
-                break;
-            }
-        }
-        if (!is_tripoint_bluez_sameAsVertex){
-            tripoints_list.Add(tripoint_bluez);
-        }
+        // comment out the 4 lines below if want only 3 vertices
+        tripoints_list.Add(tripoint_xy);
+        tripoints_list.Add(tripoint_xyz);
+        tripoints_list.Add(tripoint_xz);
+        tripoints_list.Add(tripoint_yz);
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
@@ -425,13 +418,18 @@ public class PackerHand : Agent
             if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
             if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
                 Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
-                verticesArray[VertexCount] = tripoints_list[idx];
+                // add tripoint to vertices array
+                // verticesArray[VertexCount] = tripoints_list[idx];
+                Vector3 scaled_continous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
+                // Add scaled tripoint_vertex to verticesArray
+                verticesArray[VertexCount] = scaled_continous_vertex;
                 VertexCount ++;
                 Debug.Log($"VERTEX COUNT IS {VertexCount}");
             }
             }
             }
         }
+
     }
 
 
@@ -444,49 +442,78 @@ public class PackerHand : Agent
         //     //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
         //     Vector3 closest_x_vertex = backMeshVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
         //     vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
-        //     Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
+        //     //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
 
         //     Vector3 closest_y_vertex = sideMeshVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
         //     vertex[1]<next[1] && Math.Abs(next[1]-vertex[1]) < Math.Abs(min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
-        //     Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
+        //     //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
 
         //     Vector3 closest_z_vertex = sideMeshVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
         //     vertex[2]<next[2] && Math.Abs(next[2]-vertex[2]) < Math.Abs(min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
-        //     Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
+        //     //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
 
         //     float blackbox_x_size = Math.Abs(closest_x_vertex[0] - vertex[0]);
         //     float blackbox_y_size = Math.Abs(closest_y_vertex[1] - vertex[1]);
         //     float blackbox_z_size = Math.Abs(closest_z_vertex[2] - vertex[2]);
         //     Vector3 blackbox_position = new Vector3(blackbox_x_size*0.5f+vertex[0], blackbox_y_size*0.5f+vertex[1], blackbox_z_size*0.5f+vertex[2]);
-        //     Debug.Log($"BPS BLACK BOX POSITION {blackbox_position} SIZES {blackbox_x_size}, {blackbox_y_size}, {blackbox_z_size}");
 
-        //     GameObject blackbox = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        //     blackbox.name = "blackbox";
-        //     blackbox.transform.position = blackbox_position;
-        //     blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
-        //     Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
-        //     cubeRenderer.material = clearPlastic;
+        //     if (blackbox_x_size<100f && blackbox_x_size>2f && blackbox_y_size<100f && blackbox_y_size > 2f && blackbox_z_size<100f && blackbox_z_size>2f) 
+        //     {
+        //         Debug.Log($"BPS BLACK BOX POSITION {blackbox_position} SIZES {blackbox_x_size}, {blackbox_y_size}, {blackbox_z_size}");
+        //         GameObject blackbox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        //         blackbox.name = "blackbox";
+        //         blackbox.transform.position = blackbox_position;
+        //         blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
+        //         Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
+        //         cubeRenderer.material = clearPlastic;
 
-        //     blackbox_list.Add(blackbox);
+        //         Blackbox newBlackbox = new Blackbox
+        //         {
+        //             position = blackbox_position,
+        //             size = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size),
+        //             vertex = vertex,
+        //             gameobjectBlackbox = blackbox,
+        //             volume = blackbox_x_size * blackbox_y_size * blackbox_z_size,
+        //         };
+
+        //         blackboxPool.Add(newBlackbox);
+        //     }
         // }
         isBlackboxUpdated = true;
+    }
+
+    public void SelectBlackboxVertex() 
+    {
+        
+        Blackbox smallest_blackbox = null;
+        float minVolume = float.MaxValue;
+        foreach (Blackbox blackbox in blackboxPool)
+        {
+            if (blackbox.volume < minVolume)
+            {
+                minVolume = blackbox.volume;
+                smallest_blackbox = blackbox;
+            }
+        }
+        Debug.Log($"SBV SMALLEST BLACKBOX IS: {smallest_blackbox.gameobjectBlackbox} with volume {smallest_blackbox.volume} and vertex {smallest_blackbox.vertex}");
+        smallest_blackbox.gameobjectBlackbox.GetComponent<Renderer>().material.color = Color.black;
+        selectedVertex = smallest_blackbox.vertex;
+        isVertexSelected = true;
+
     }
 
 
     public void SelectVertex(int action_SelectedVertex) 
     {
 
-        
-        
-
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
         // 
-        if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
-        {
-            // 
-            isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
-            return; // to end function call
-        }
+        // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
+        // {
+        //     // 
+        //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
+        //     return; // to end function call
+        // }
 
         // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
         if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
@@ -518,28 +545,28 @@ public class PackerHand : Agent
 
             isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
              // Punish agent for selecting a bad position
-            AddReward(-0.1f);
-            Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
+            // AddReward(-0.1f);
+            // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
             return; // to end function call
         }
 
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
-        selectedVertex = verticesArray[action_SelectedVertex];
+        var unscaled_selectedVertex = verticesArray[action_SelectedVertex];
+        selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
+        if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) {
             verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
+            // decrease vertex count 
+            VertexCount --;
         }
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
         // Range( 0f, 2*organizedBoxes.Count() ) // 2n + 1, keeping this comment in case organizedBoxes.Count() is useful later
 
         isVertexSelected = true;
-        AddReward(0.1f);
-        Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
+        // AddReward(0.1f);
+        // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
     }
-
-
-
 
 
     public void UpdateBoxPosition() 
@@ -577,21 +604,9 @@ public class PackerHand : Agent
 
 
     public void CheckBoxPlacementPhysics(Vector3 testPosition) {
-        // Collider [] hitColliders = Physics.OverlapBox(new Vector3(0, 5.5f, 0), new Vector3(boxWorldScale.x*0.5f-1f, boxWorldScale.y*0.5f-1f, boxWorldScale.z*0.5f-1f), Quaternion.identity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
-        // if (hitColliders.Length!=0)
-        // {
-        //     Debug.Log($"HIT COLLIDERS LENGTH IS : {hitColliders.Length}");
-        //     BoxReset("failedPhysicsCheck");
-        //     Debug.Log("LAP FAILED OVERLAP CHECK");
-        // }
-        // else
-        // {
         // create a clone test box to check physics of placement
         // teleported first before actual box is placed so gravity check comes before mesh combine
 
-        // extra large cardboard boxes (~6dm * 6dm * 6dm) weight 1 kg, large boxes weight 0.5 kg, medium boxes ( < 3dm * 3dm * 3dm) weight 0.1kg
-        //The maximum weights range from around 20 pounds for standard cardboard boxes to 60–150 pounds 
-        //corrugated and double-walled boxes, with some corrugated triple-walled boxes carrying up to 300 pounds
         GameObject testBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         testBox.transform.localScale = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
@@ -612,11 +627,8 @@ public class PackerHand : Agent
         // bc.material.staticFriction = 1f;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         sensorCollision = testBox.AddComponent<SensorCollision>();
-        sensorOuterCollision = testBox.AddComponent<SensorOuterCollision>();
-        // sensorOverlapCollision = testBox.AddComponent<SensorOverlapCollision>();
         // probably don't need agent  in the scripts
         sensorCollision.agent = this; // agent reference used by component to set rewards on collision
-        sensorOuterCollision.agent = this; // agent reference used by component to set rewards on collision
         testBox.name = $"testbox{targetBox.name}";
         testBox.tag = "testbox";
         
@@ -625,11 +637,13 @@ public class PackerHand : Agent
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
         testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.1f), (boxWorldScale.y - 0.1f), (boxWorldScale.z - 0.1f));
-        testBoxChild.transform.position = new Vector3(testPosition.x, testPosition.y, testPosition.z);
+        testBoxChild.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
         sensorOverlapCollision = testBoxChild.AddComponent<SensorOverlapCollision>();
+        sensorOuterCollision = testBoxChild.AddComponent<SensorOuterCollision>();
         sensorOverlapCollision.agent = this; // agent reference used by component to set rewards on collision
+        sensorOuterCollision.agent = this; // agent reference used by component to set rewards on collision
         testBoxChild.name = $"testboxChild{targetBox.name}";
         testBoxChild.tag = "testboxChild";
 
@@ -642,7 +656,7 @@ public class PackerHand : Agent
     public void SelectBox(int n) 
     {
         // Check if a box has already been selected
-        if (!organizedBoxes.Contains(n))
+        if (!organizedBoxes.Contains(n) && n < boxPool.Count)
         {
             boxIdx = n;
             Debug.Log($"Selected Box boxIdx: {boxIdx}");
@@ -1024,12 +1038,11 @@ public class PackerHand : Agent
     }
 
 
-    // BoxReset is called in SensorCollision.cs (currently bad practice not modular but will refactor when have time)
     public void BoxReset(string cause)
     {
         if (cause == "failedPhysicsCheck") 
         {
-            Debug.Log($"SCS BOX {boxIdx} RESET LOOP");
+            Debug.Log($"SCS BOX {boxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
             // detach box from agent
             targetBox.parent = null;
             // add back rigidbody and collider
@@ -1067,7 +1080,11 @@ public class PackerHand : Agent
         isRotationSelected = false;
         isPickedup = false;
         isDroppedoff = false;
-        targetBin = null;
+        //targetBin = null;
+        if (targetBin!=null)
+        {
+        DestroyImmediate(targetBin.gameObject);
+        }
         targetBox = null;
         outerbinfront.tag = "binopening";
         isStateReset = true;
@@ -1150,9 +1167,6 @@ public class PackerHand : Agent
         // Reset mesh
         MeshReset();
 
-        // Reset agent
-        AgentReset();
-
         // Reset reward
         SetReward(0f);
 
@@ -1190,6 +1204,9 @@ public class PackerHand : Agent
 
         // Reset states;
         StateReset();
+
+        // Reset agent
+        AgentReset();
     }
 
 
