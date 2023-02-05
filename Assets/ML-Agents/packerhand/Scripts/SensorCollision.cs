@@ -8,7 +8,7 @@ public class SensorCollision : MonoBehaviour
 {
     public PackerHand agent;
 
-    public float fallingThreshold = 0.5f;
+    public float fallingThreshold = 0.2f;
 
     public float distance = 0f;
 

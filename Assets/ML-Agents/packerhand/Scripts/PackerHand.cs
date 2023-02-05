@@ -241,6 +241,10 @@ public class PackerHand : Agent
         // if reaches max step or packed all boxes, reset episode 
         if (StepCount >= MaxStep | organizedBoxes.Count == boxPool.Count)
         {
+            if (organizedBoxes.Count == boxPool.Count) 
+            {
+                Debug.Log("TEBS FINISHED PACKING ALL BOXES IN ONE EPISODE ");
+            }
             EndEpisode();
         }
         // Initialize curriculum and brain
