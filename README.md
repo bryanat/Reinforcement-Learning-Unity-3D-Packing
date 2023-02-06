@@ -8,9 +8,9 @@
 # Project Members: Bryan Boyett & Yueqi Peng & Pano Evangeliou
 
 ## DRL
-![](VSCode/images/Screenshot%20from%202022-12-03%2023-56-10.png)
-![](VSCode/images/Screenshot%20from%202022-12-12%2016-40-31.png)
-![](VSCode/images/drl-unity-api-io-sensor-actuator.png)
+![](VSCode/docs/images/Screenshot%20from%202022-12-03%2023-56-10.png)
+![](VSCode/docs/images/Screenshot%20from%202022-12-12%2016-40-31.png)
+![](VSCode/docs/images/drl-unity-api-io-sensor-actuator.png)
 ### Bryan: `mlagents_envs` (environment state) RL-side of DRL (RL Simulation/Environment-driven) (red)
 ### Yueqi: `mlagents` (learning algorithms) DL-side of DRL (DL Model/Policy-driven) (blue)
 Unity ML-Agents: "`mlagents` provides a set of reinforcement and imitation learning algorithms designed to be used with Unity environments. The algorithms interface with the Python API provided by `mlagents_envs`."
@@ -25,10 +25,10 @@ Unity ML-Agents: "`mlagents` provides a set of reinforcement and imitation learn
   - #### "previous attention attempts in that, instead of using attention to blend hidden units of an encoder to a context vector at each decoder step, it uses attention as a pointer to select a member of the input sequence as the output. We call this architecture a Pointer Net (Ptr-Net)" 
   - #### [ Pointer-Network ] "uses attention as a pointer to select a member of the input sequence as the output" ... instead of [ Attention-based RNN ] "using attention to blend hidden units of an encoder to a context vector at each decoder step" 
   - #### Pointer Network
-  ![](VSCode/images/Screenshot%20from%202022-12-06%2015-45-25.png) 
+  ![](VSCode/docs/images/Screenshot%20from%202022-12-06%2015-45-25.png) 
   vs
   - #### Attention-based RNN
-  ![](VSCode/images/Screenshot%20from%202022-12-06%2015-42-33.png) 
+  ![](VSCode/docs/images/Screenshot%20from%202022-12-06%2015-42-33.png) 
   - #### MVP Evolve: compare two agents in same environment and plot performance with plotly, to show performance difference in Attention-based RNN vs. Self-Attention Transformer policies. 
     - #### MVP Evolve: after the two agents, could also throw additional agents with different models in the environment, such as hueristics, non-seq2seq models, like RL models ppo etc.
 - ### Sequence-to-Sequence (Seq2Seq) which have been applied to language translation models can also be applied to our fitting boxes model. 
@@ -147,10 +147,10 @@ Environment and Tools
 use fractional LP (relaxes constraints), add back the smaller items at the very end
 the deep mind's paper on AI winning at Atari shows clearly that they developed an expert level strategy, and right now, the bin packing strategy humans can come up with involves around those basic ideas, it'd be nice to see if the agent end up picking the bigger boxes first, or group the boxes somehow
 
-![](VSCode/images/DL-RL-Model-Script.png)
+![](VSCode/docs/images/DL-RL-Model-Script.png)
 ## Assets folder opened in Unity
 <br/>
 <br/>
 
-![](VSCode/images/git-file-structure.png)
+![](VSCode/docs/images/git-file-structure.png)
 ## picture showing git file structure (note Assets folder is previous picture above)

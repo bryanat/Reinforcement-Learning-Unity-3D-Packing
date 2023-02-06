@@ -57,7 +57,7 @@ between 0.0 and 1.0 of say (0.345, 0.134, 0.488), may better enable the
 agent to learn the relative space of the bin filled and the remaining
 unfilled bin space.
 
-![](../images/vertex-array.png)
+![](../docs/images/vertex-array.png)
 
 Furthermore our end goal is to be able to find an approach that deals
 with the variable size vertices array, and perhaps normalizing to
@@ -66,7 +66,7 @@ better suited for yet require a continuous action space and state space.
 For example, even our current implementation of PPO is suited for
 continuous state and action space:
 
-![](../images/PPO-continuous-space.png)
+![](../docs/images/PPO-continuous-space.png)
 
 <br>
 <br>
@@ -74,8 +74,8 @@ continuous state and action space:
 
 ## Document performance, interpretation, and learning in markdown
 
-![](../images/tensorboard-1.png)
-![](../images/tensorboard-2.png)
+![](../docs/images/tensorboard-1.png)
+![](../docs/images/tensorboard-2.png)
 
 This is the Tensorboard results of our training data from this week. We
 have improved our Unity environment to allow for more realistic,
