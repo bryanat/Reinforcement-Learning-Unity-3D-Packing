@@ -239,7 +239,7 @@ public class PackerHand : Agent
     void FixedUpdate() 
     {
         // if reaches max step or packed all boxes, reset episode 
-        if (StepCount >= MaxStep | organizedBoxes.Count == boxPool.Count)
+        if (StepCount >= MaxStep | (organizedBoxes.Count == boxPool.Count && isDroppedoff == true))
         {
             if (organizedBoxes.Count == boxPool.Count) 
             {
@@ -268,7 +268,7 @@ public class PackerHand : Agent
             AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
-            Debug.Log($"RWDt total bin vol: {total_bin_volume}");
+            //Debug.Log($"TBV total bin vol: {total_bin_volume}");
             Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
         }
 
@@ -293,6 +293,10 @@ public class PackerHand : Agent
             {
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
+                    // add surface area reward
+                    float total_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+                    AddReward(sensorCollision.totalContactSA/total_surface_area*10f);
+                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/total_surface_area*10f} reward from surface area");
                     DropoffBox();
                 }
                 else
@@ -351,13 +355,13 @@ public class PackerHand : Agent
     {
         MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
         AddVertices(mf_back.mesh.vertices, backMeshVertices);
-        Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
+        //Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
         MeshFilter mf_bottom = binBottom.GetComponent<MeshFilter>();
         AddVertices(mf_bottom.mesh.vertices, bottomMeshVertices);
-        Debug.Log($"OOO BOTTOM MESH VERTICES COUNT IS {bottomMeshVertices.Count()}");
+        //Debug.Log($"OOO BOTTOM MESH VERTICES COUNT IS {bottomMeshVertices.Count()}");
         MeshFilter mf_side = binSide.GetComponent<MeshFilter>();
         AddVertices(mf_side.mesh.vertices, sideMeshVertices);  
-        Debug.Log($"OOO SIDE MESH VERTICES COUNT IS {sideMeshVertices.Count()}");
+        //Debug.Log($"OOO SIDE MESH VERTICES COUNT IS {sideMeshVertices.Count()}");
     }
 
     /// <summary>
@@ -395,10 +399,10 @@ public class PackerHand : Agent
         var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
         // comment out the 4 lines below if want only 3 vertices
-        var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
-        var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
-        var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
-        var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
+        // var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
 
 
         tripoints_list.Add(tripoint_redx);   
@@ -406,10 +410,10 @@ public class PackerHand : Agent
         tripoints_list.Add(tripoint_bluez);
 
         // comment out the 4 lines below if want only 3 vertices
-        tripoints_list.Add(tripoint_xy);
-        tripoints_list.Add(tripoint_xyz);
-        tripoints_list.Add(tripoint_xz);
-        tripoints_list.Add(tripoint_yz);
+        // tripoints_list.Add(tripoint_xy);
+        // tripoints_list.Add(tripoint_xyz);
+        // tripoints_list.Add(tripoint_xz);
+        // tripoints_list.Add(tripoint_yz);
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
@@ -545,7 +549,7 @@ public class PackerHand : Agent
 
             isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
              // Punish agent for selecting a bad position
-            // AddReward(-0.1f);
+            AddReward(-1f);
             // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
             return; // to end function call
         }
@@ -564,7 +568,7 @@ public class PackerHand : Agent
         // Range( 0f, 2*organizedBoxes.Count() ) // 2n + 1, keeping this comment in case organizedBoxes.Count() is useful later
 
         isVertexSelected = true;
-        // AddReward(0.1f);
+        AddReward(1f);
         // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
     }
 
@@ -663,6 +667,7 @@ public class PackerHand : Agent
             targetBox = boxPool[boxIdx].rb.transform;
             // Add box to list so it won't be selected again
             organizedBoxes.Add(boxIdx);
+            Debug.Log($"ORG ORGANIZED BOXES LIST COUNT IS: {organizedBoxes.Count}");
             isBoxSelected = true;
         }
     }

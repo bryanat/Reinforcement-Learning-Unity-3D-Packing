@@ -60,7 +60,6 @@ public class CombineMesh : MonoBehaviour
         // Packerhand.cs  : deals parent box : position (math)
 
         // Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {name}");
-    
 
         //Debug.Log($"{name} ICC isCollidedGreen:{isCollidedGreen} isCollidedBlue:{isCollidedBlue} isCollidedRed:{isCollidedBlue}");
         
@@ -197,11 +196,6 @@ public class CombineMesh : MonoBehaviour
             return "front";
         }
     }
-
-    void GetSurfaceArea() {
-
-    }
-
 
 
     public void MeshCombiner(MeshFilter[] meshList, GameObject parent) 

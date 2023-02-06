@@ -12,6 +12,10 @@ public class SensorCollision : MonoBehaviour
 
     public float distance = 0f;
 
+    public List<string> sides_list = new List<string>();
+
+    public float totalContactSA;
+
     public bool passedGravityCheck;
 
     private RaycastHit hit;
@@ -30,6 +34,8 @@ public class SensorCollision : MonoBehaviour
     {
         Debug.Log($"OCC COLLISION OBJECT NAME IS {collision.gameObject.name}");
         GetHitDistance();
+        // get surface area of contact
+        GetSurfaceArea(collision.gameObject.name);
         // if fails gravity check
         // this loop should only be executed once
         Debug.Log($"SCS {gameObject.name} distance: {distance}");  
@@ -37,7 +43,7 @@ public class SensorCollision : MonoBehaviour
         {
             int failedBoxId = int.Parse(gameObject.name.Substring(7));
             passedGravityCheck = false;
-            // agent.AddReward(-1f);
+            agent.AddReward(-1f);
             Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedGravityCheck: {passedGravityCheck}");
             Debug.Log($"SCS {gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");  
             // destroy test box  
@@ -45,10 +51,36 @@ public class SensorCollision : MonoBehaviour
         }  
         else 
         {
+
             passedGravityCheck = true;
             Debug.Log($"SCS {gameObject.name} PASSED GRAVITY CHECK");  
             Destroy(gameObject);
         }
+    }
+
+
+    void GetSurfaceArea(string side_name)
+    {   
+        // NOTE: for this to work, has to set unit box sides from 1 to 0.95
+        if (!sides_list.Contains(side_name))
+        {
+            Debug.Log($"SSA SIDE NAME FOR SURFACE AREA  IS: {side_name}");
+            sides_list.Add(side_name);
+            if (side_name == "left" | side_name=="right" | side_name == "BinIso20Side")
+            {
+                totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.y;   
+            }
+            else if (side_name == "front" | side_name == "back" | side_name == "BinIso20Back")
+            {
+                totalContactSA += agent.boxWorldScale.x * agent.boxWorldScale.y;
+            }
+            else if (side_name == "top" | side_name=="bottom" | side_name == "BinIso20Bottom")
+            {
+                totalContactSA += agent.boxWorldScale.x * agent.boxWorldScale.z;
+            }
+            else {return;}
+        }
+
     }
 
 
