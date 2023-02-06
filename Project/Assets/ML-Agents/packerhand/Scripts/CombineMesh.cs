@@ -44,24 +44,23 @@ public class CombineMesh : MonoBehaviour
         //c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
         // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
 
-        binBottom = GameObject.Find("BinIso20Bottom");
-        binSide = GameObject.Find("BinIso20Side");
-        binBack = GameObject.Find("BinIso20Back");
+        // binBottom = GameObject.Find("BinIso20Bottom");
+        // binSide = GameObject.Find("BinIso20Side");
+        // binBack = GameObject.Find("BinIso20Back");
 
      }
 
 
 
-    void OnCollisionEnter(Collision collision) { // COLLISION IS HAPPENING FIRST BEFORE DROPOFFBOX()
-                                                 // COLLISION NEEDS TO HAPPEN AFTER DROPOFF BOX
-                                                 // NEED TO DROPOFF BOX BEFORE COLLISION
-                                                 // SET isTrigger IN DROPOFF BEFORE COLLISION USES isTrigger
+
+
+
+    void OnCollisionEnter(Collision collision) { 
+
         // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
         // Packerhand.cs  : deals parent box : position (math)
 
         // Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {name}");
-
-        //Debug.Log($"{name} ICC isCollidedGreen:{isCollidedGreen} isCollidedBlue:{isCollidedBlue} isCollidedRed:{isCollidedBlue}");
         
         // BLUE
         //Debug.Log($"{name} RRR blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
@@ -198,6 +197,58 @@ public class CombineMesh : MonoBehaviour
     }
 
 
+     public void ForceMeshComine()
+     {
+        ////// this function forces combine of all meshes even without certain side collision///////
+
+        Debug.Log("FFF MESH FORCED TO COMBINE!!!!");
+        // BLUE
+        if (name == "BinIso20Back" && agent.isBackMeshCombined==false) {
+
+            sameSideObject = GameObject.Find($"{agent.boxIdx}/back");
+            oppositeSideObject = GameObject.Find($"{agent.boxIdx}/front");
+            binBack.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBack.transform;
+            binBack.GetComponent<CombineMesh>().sameSideObject.transform.parent = binBack.transform;
+            var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
+            MeshCombiner(blueMeshList, binBack);
+            Debug.Log("FFF MESH FORCED TO BE COMBINED FOR BACK MESH");
+            //isCollidedBlue = false;
+            agent.isBackMeshCombined = true;
+            oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+            sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+        }
+        // RED
+        if (name == "BinIso20Side" && agent.isSideMeshCombined==false) {
+
+            sameSideObject = GameObject.Find($"{agent.boxIdx}/left");
+            oppositeSideObject = GameObject.Find($"{agent.boxIdx}/right");
+            binSide.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binSide.transform;
+            binSide.GetComponent<CombineMesh>().sameSideObject.transform.parent = binSide.transform;
+            var redMeshList = binSide.GetComponentsInChildren<MeshFilter>(); 
+            MeshCombiner(redMeshList, binSide);
+            Debug.Log("FFF MESH FORCED TO BE COMBINED FOR SIDE MESH");
+            //isCollidedBlue = false;
+            agent.isSideMeshCombined = true;
+            oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+            sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+        }
+        // GREEN
+        if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) {
+
+            sameSideObject = GameObject.Find($"{agent.boxIdx}/bottom");
+            oppositeSideObject = GameObject.Find($"{agent.boxIdx}/top");
+            binBottom.GetComponent<CombineMesh>().oppositeSideObject.transform.parent = binBottom.transform;
+            binBottom.GetComponent<CombineMesh>().sameSideObject.transform.parent = binBottom.transform;
+            var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
+            MeshCombiner(greenMeshList, binBottom);
+            Debug.Log("FFF MESH FORCED TO BE COMBINED FOR BOTTOM MESH");
+            //isCollidedBlue = false;
+            agent.isBottomMeshCombined = true;
+            oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+            sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+        }
+
+     }
     public void MeshCombiner(MeshFilter[] meshList, GameObject parent) 
     {
         Debug.Log("++++++++++++START OF MESHCOMBINER++++++++++++");

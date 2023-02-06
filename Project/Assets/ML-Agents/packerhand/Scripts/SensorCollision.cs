@@ -32,7 +32,7 @@ public class SensorCollision : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        Debug.Log($"OCC COLLISION OBJECT NAME IS {collision.gameObject.name}");
+        //Debug.Log($"OCC COLLISION OBJECT NAME IS {collision.gameObject.name}");
         GetHitDistance();
         // get surface area of contact
         GetSurfaceArea(collision.gameObject.name);

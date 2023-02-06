@@ -239,7 +239,7 @@ public class PackerHand : Agent
     void FixedUpdate() 
     {
         // if reaches max step or packed all boxes, reset episode 
-        if (StepCount >= MaxStep | (organizedBoxes.Count == boxPool.Count && isDroppedoff == true))
+        if (StepCount >= MaxStep) 
         {
             if (organizedBoxes.Count == boxPool.Count) 
             {
@@ -255,14 +255,31 @@ public class PackerHand : Agent
         }
 
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
-        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
+        if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
+            // if a mesh didn't combine, force combine
+            if (isBackMeshCombined==false)
+            {
+                CombineMesh backCombineMesh = binBack.GetComponent<CombineMesh>();
+                backCombineMesh.ForceMeshComine();
+            }
+            if (isSideMeshCombined == false)
+            {     
+                CombineMesh sideCombineMesh = binSide.GetComponent<CombineMesh>();
+                sideCombineMesh.ForceMeshComine();
+            }
+            if (isBottomMeshCombined == false)
+            {     
+                CombineMesh bottomCombineMesh = binBottom.GetComponent<CombineMesh>();
+                bottomCombineMesh.ForceMeshComine();
+            }
             StateReset();
             // vertices array of tripoints doesn't depend on the trimesh
             // only update vertices list and vertices array when box is placed
             UpdateVerticesArray();
             // side, back, and bottom vertices lists depends on the trimesh
-            UpdateVerticesList();
+            // should be commented out if not using blackbox for better performance
+            //UpdateVerticesList();
             // both vertices array and vertices list are used to find black boxes
             UpdateBlackBox();
             AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
@@ -270,7 +287,7 @@ public class PackerHand : Agent
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
             //Debug.Log($"TBV total bin vol: {total_bin_volume}");
             Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
-        }
+    }
 
         // if agent selects a box, it should move towards the box
         else if (isBoxSelected && isPickedup == false) 
@@ -294,9 +311,9 @@ public class PackerHand : Agent
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     // add surface area reward
-                    float total_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-                    AddReward(sensorCollision.totalContactSA/total_surface_area*10f);
-                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/total_surface_area*10f} reward from surface area");
+                    //float total_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+                    //AddReward(sensorCollision.totalContactSA/total_surface_area*10f);
+                    //Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/total_surface_area*10f} reward from surface area");
                     DropoffBox();
                 }
                 else
@@ -399,10 +416,10 @@ public class PackerHand : Agent
         var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
         // comment out the 4 lines below if want only 3 vertices
-        // var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
-        // var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
-        // var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
-        // var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
+        var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
+        var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
 
 
         tripoints_list.Add(tripoint_redx);   
@@ -410,10 +427,10 @@ public class PackerHand : Agent
         tripoints_list.Add(tripoint_bluez);
 
         // comment out the 4 lines below if want only 3 vertices
-        // tripoints_list.Add(tripoint_xy);
-        // tripoints_list.Add(tripoint_xyz);
-        // tripoints_list.Add(tripoint_xz);
-        // tripoints_list.Add(tripoint_yz);
+        tripoints_list.Add(tripoint_xy);
+        tripoints_list.Add(tripoint_xyz);
+        tripoints_list.Add(tripoint_xz);
+        tripoints_list.Add(tripoint_yz);
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
@@ -549,7 +566,7 @@ public class PackerHand : Agent
 
             isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
              // Punish agent for selecting a bad position
-            AddReward(-1f);
+            //AddReward(-1f);
             // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
             return; // to end function call
         }
@@ -618,14 +635,11 @@ public class PackerHand : Agent
         testBox.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
-        // bc.isTrigger = false;
-        // bc.center = Vector3.zero;
         // rb.mass = 300f;
         // rb.velocity = Vector3.zero;
         // rb.angularVelocity = Vector3.zero;
         // rb.drag = 1f;
-        //rb.angularDrag = 2f;
-        // rb.angularDrag = 1f;
+        // rb.angularDrag = 2f;
         // bc.material.bounciness = 0f;
         // bc.material.dynamicFriction = 1f;
         // bc.material.staticFriction = 1f;
@@ -640,8 +654,8 @@ public class PackerHand : Agent
         GameObject testBoxChild = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
-        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.1f), (boxWorldScale.y - 0.1f), (boxWorldScale.z - 0.1f));
-        testBoxChild.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
+        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.2f), (boxWorldScale.y - 0.2f), (boxWorldScale.z - 0.2f));
+        testBoxChild.transform.position = testPosition;
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
         sensorOverlapCollision = testBoxChild.AddComponent<SensorOverlapCollision>();
@@ -887,6 +901,11 @@ public class PackerHand : Agent
 
         Collider [] m_cList = targetBox.GetComponentsInChildren<Collider>();
 
+        foreach (Collider m_c in m_cList) 
+        {
+            m_c.isTrigger = false;
+            // m_c.gameObject.tag = "droppedoff";
+        }
         // Lock box position and location
         ///////////////////////COLLISION/////////////////////////
         targetBox.position = targetBin.position; // COLLISION OCCURS IMMEDIATELY AFTER SET POSITION OCCURS
@@ -895,11 +914,6 @@ public class PackerHand : Agent
         targetBox.rotation = Quaternion.Euler(rotation);
         // dont need to freeze position on the rigidbody anymore because instead we just remove the rigidbody, preventing movement from collisions
 
-        foreach (Collider m_c in m_cList) 
-        {
-            m_c.isTrigger = false;
-            // m_c.gameObject.tag = "droppedoff";
-        }
 
         isDroppedoff = true;
 
@@ -1132,39 +1146,6 @@ public class PackerHand : Agent
     }
 
 
-    /// <summary>
-    /// Agent moves according to selected action.
-    public override void Heuristic(in ActionBuffers actionsOut)
-    {
-        var discreteActionsOut = actionsOut.DiscreteActions;
-        //forward
-        if (Input.GetKey(KeyCode.W))
-        {
-            discreteActionsOut[1] = 1;
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            discreteActionsOut[1] = 2;
-        }
-        //rotate
-        if (Input.GetKey(KeyCode.D))
-        {
-            discreteActionsOut[2] = 1;
-        }
-        if (Input.GetKey(KeyCode.A))
-        {
-            discreteActionsOut[2] = 2;
-        }
-        //right
-        if (Input.GetKey(KeyCode.E))
-        {
-            discreteActionsOut[3] = 1;
-        }
-        if (Input.GetKey(KeyCode.Q))
-        {
-            discreteActionsOut[3] = 2;
-        }
-    }
 
 
     public void SetResetParameters()
@@ -1239,5 +1220,38 @@ public class PackerHand : Agent
             Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
     }
-}
 
+    /// <summary>
+    /// Agent moves according to selected action.
+    // public override void Heuristic(in ActionBuffers actionsOut)
+    // {
+    //     var discreteActionsOut = actionsOut.DiscreteActions;
+    //     //forward
+    //     if (Input.GetKey(KeyCode.W))
+    //     {
+    //         discreteActionsOut[1] = 1;
+    //     }
+    //     if (Input.GetKey(KeyCode.S))
+    //     {
+    //         discreteActionsOut[1] = 2;
+    //     }
+    //     //rotate
+    //     if (Input.GetKey(KeyCode.D))
+    //     {
+    //         discreteActionsOut[2] = 1;
+    //     }
+    //     if (Input.GetKey(KeyCode.A))
+    //     {
+    //         discreteActionsOut[2] = 2;
+    //     }
+    //     //right
+    //     if (Input.GetKey(KeyCode.E))
+    //     {
+    //         discreteActionsOut[3] = 1;
+    //     }
+    //     if (Input.GetKey(KeyCode.Q))
+    //     {
+    //         discreteActionsOut[3] = 2;
+    //     }
+    // }
+}
