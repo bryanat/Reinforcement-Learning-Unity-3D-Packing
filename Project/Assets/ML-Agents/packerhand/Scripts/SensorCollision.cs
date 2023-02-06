@@ -44,7 +44,7 @@ public class SensorCollision : MonoBehaviour
             int failedBoxId = int.Parse(gameObject.name.Substring(7));
             passedGravityCheck = false;
             agent.AddReward(-1f);
-            Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedGravityCheck: {passedGravityCheck}");
+            //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedGravityCheck: {passedGravityCheck}");
             Debug.Log($"SCS {gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");  
             // destroy test box  
             Destroy(gameObject);
@@ -95,6 +95,7 @@ public class SensorCollision : MonoBehaviour
          if (Physics.Raycast(boxBottomCenter, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, layerMask, QueryTriggerInteraction.Collide))
          {
             distance = hit.distance;
+            Debug.DrawRay(boxBottomCenter, transform.TransformDirection(Vector3.down), Color.yellow);
             Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
          }
      }
