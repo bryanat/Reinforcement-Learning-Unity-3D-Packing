@@ -65,50 +65,57 @@ public class SensorCollision : MonoBehaviour
     void GetSurfaceArea(string side_name)
     {   
         // NOTE: for this to work, has to set unit box sides from 1 to 0.95//
-        if (side_name == "BinIso20Side")
+        if (side_name == "BinIso20Side") {
+            // collision with both biniso20side and left/right happened, count only once
             if (sides_list.Contains("left") | sides_list.Contains("right"))
             {
-                // collision with both biniso20side and left/right happened, count only once
                 return;
             }
-            else
-            {
-                totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.y;   
-            }
+            totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.y;   
+        }
         else if (side_name == "left" | side_name=="right")
         {
+            // collision with both biniso20side and left/right happened, count only once
+            if (sides_list.Contains("BinIso20Side"))
+            {
+                return;
+            }
             totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.y;   
         }
         else if (side_name == "BinIso20Bottom")
         {
+            // collision with both biniso20bottom and bottom/top happened, count only once
              if (sides_list.Contains("bottom") | sides_list.Contains("top"))
             {
-                // collision with both biniso20bottom and bottom/top happened, count only once
                 return;
             }
-            else
-            {
-                totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.x;   
-            }
+            totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.x;   
         }
         else if (side_name == "bottom" | side_name == "top")
         {
+            // collision with both biniso20bottom and bottom/top happened, count only once
+            if (sides_list.Contains("BinIso20Bottom"))
+            {
+                return;
+            }
             totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.x;  
         }
         else if (side_name == "BinIso20Back")
         {
+            // collision with both biniso20back and back/front happened, count only once
              if (sides_list.Contains("back") | sides_list.Contains("front"))
             {
-                // collision with both biniso20back and back/front happened, count only once
                 return;
             }
-            else
-            {
-                totalContactSA += agent.boxWorldScale.y * agent.boxWorldScale.x;   
-            }
+            totalContactSA += agent.boxWorldScale.y * agent.boxWorldScale.x;   
         }
         else if (side_name == "back" | side_name == "front")
         {
+             // collision with both biniso20back and back/front happened, count only once
+            if (sides_list.Contains("BinIso20Back"))
+            {
+                return;
+            }
             totalContactSA += agent.boxWorldScale.y * agent.boxWorldScale.x;  
         }
         sides_list.Add(side_name);
