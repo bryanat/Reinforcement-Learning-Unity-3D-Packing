@@ -12,7 +12,7 @@ public class SensorCollision : MonoBehaviour
 
     public float distance = 0f;
 
-    public List<string> sides_list = new List<string>();
+    public HashSet<string> sides_list = new HashSet<string>();
 
     public float totalContactSA;
 
@@ -35,7 +35,10 @@ public class SensorCollision : MonoBehaviour
         //Debug.Log($"OCC COLLISION OBJECT NAME IS {collision.gameObject.name}");
         GetHitDistance();
         // get surface area of contact
-        GetSurfaceArea(collision.gameObject.name);
+        if (!sides_list.Contains(collision.gameObject.name))
+        {
+            GetSurfaceArea(collision.gameObject.name);
+        }
         // if fails gravity check
         // this loop should only be executed once
         Debug.Log($"SCS {gameObject.name} distance: {distance}");  
@@ -61,26 +64,55 @@ public class SensorCollision : MonoBehaviour
 
     void GetSurfaceArea(string side_name)
     {   
-        // NOTE: for this to work, has to set unit box sides from 1 to 0.95
-        if (!sides_list.Contains(side_name))
-        {
-            Debug.Log($"SSA SIDE NAME FOR SURFACE AREA  IS: {side_name}");
-            sides_list.Add(side_name);
-            if (side_name == "left" | side_name=="right" | side_name == "BinIso20Side")
+        // NOTE: for this to work, has to set unit box sides from 1 to 0.95//
+        if (side_name == "BinIso20Side")
+            if (sides_list.Contains("left") | sides_list.Contains("right"))
+            {
+                // collision with both biniso20side and left/right happened, count only once
+                return;
+            }
+            else
             {
                 totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.y;   
             }
-            else if (side_name == "front" | side_name == "back" | side_name == "BinIso20Back")
-            {
-                totalContactSA += agent.boxWorldScale.x * agent.boxWorldScale.y;
-            }
-            else if (side_name == "top" | side_name=="bottom" | side_name == "BinIso20Bottom")
-            {
-                totalContactSA += agent.boxWorldScale.x * agent.boxWorldScale.z;
-            }
-            else {return;}
+        else if (side_name == "left" | side_name=="right")
+        {
+            totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.y;   
         }
-
+        else if (side_name == "BinIso20Bottom")
+        {
+             if (sides_list.Contains("bottom") | sides_list.Contains("top"))
+            {
+                // collision with both biniso20bottom and bottom/top happened, count only once
+                return;
+            }
+            else
+            {
+                totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.x;   
+            }
+        }
+        else if (side_name == "bottom" | side_name == "top")
+        {
+            totalContactSA += agent.boxWorldScale.z * agent.boxWorldScale.x;  
+        }
+        else if (side_name == "BinIso20Back")
+        {
+             if (sides_list.Contains("back") | sides_list.Contains("front"))
+            {
+                // collision with both biniso20back and back/front happened, count only once
+                return;
+            }
+            else
+            {
+                totalContactSA += agent.boxWorldScale.y * agent.boxWorldScale.x;   
+            }
+        }
+        else if (side_name == "back" | side_name == "front")
+        {
+            totalContactSA += agent.boxWorldScale.y * agent.boxWorldScale.x;  
+        }
+        sides_list.Add(side_name);
+        Debug.Log($"SSA {side_name} current surface area is: {totalContactSA}");
     }
 
 

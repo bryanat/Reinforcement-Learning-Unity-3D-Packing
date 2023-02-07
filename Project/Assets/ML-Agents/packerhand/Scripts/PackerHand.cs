@@ -311,9 +311,9 @@ public class PackerHand : Agent
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     // add surface area reward
-                    //float total_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-                    //AddReward(sensorCollision.totalContactSA/total_surface_area*10f);
-                    //Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/total_surface_area*10f} reward from surface area");
+                    float total_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+                    AddReward(sensorCollision.totalContactSA/total_surface_area*10f);
+                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/total_surface_area*10f} reward from surface area");
                     DropoffBox();
                 }
                 else
