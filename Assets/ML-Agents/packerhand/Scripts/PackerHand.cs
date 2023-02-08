@@ -174,22 +174,23 @@ public class PackerHand : Agent
     {
 
         // Add Bin size
-        sensor.AddObservation(binArea.transform.localScale);
+        //sensor.AddObservation(binArea.transform.localScale);
 
         // array of all boxes
         foreach (Box box in boxPool) 
         {
-            sensor.AddObservation(box.boxSize); //add box size to sensor observations
+            Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
+            sensor.AddObservation(scaled_continuous_boxsize); //add box size to sensor observations
             // sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
         }
 
         // // array of vertices
         foreach (Vector3 vertex in verticesArray) {
-            Vector3 scaled_continous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+            Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
             //Debug.Log($"XYZ scaled_continous_vertex: {scaled_continous_vertex}");
             // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continous_vertex: (-0.35, -0.02, -0.18)
 
-            sensor.AddObservation(vertex); //add vertices to sensor observations
+            sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
         }
 
         // // array of blackboxes 
@@ -219,6 +220,9 @@ public class PackerHand : Agent
             //SelectVertex(); 
             SelectVertex(discreteActions[++j]);
             //SelectBlackboxVertex();
+            // X_space(continuousActions[++i]) // range[0, 1]
+            // Y_space(continuousActions[++i])
+            // Z_space(continuousActions[++i])
         }
 
         if (isVertexSelected && isBoxSelected==false) 
