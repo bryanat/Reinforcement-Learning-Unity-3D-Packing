@@ -180,6 +180,7 @@ public class PackerHand : Agent
         foreach (Box box in boxPool) 
         {
             Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
+            Debug.Log($"XYZ SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
             sensor.AddObservation(scaled_continuous_boxsize); //add box size to sensor observations
             // sensor.AddObservation(box.rb.rotation); // add box rotation to sensor observations
         }
@@ -187,10 +188,11 @@ public class PackerHand : Agent
         // // array of vertices
         foreach (Vector3 vertex in verticesArray) {
             Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-            //Debug.Log($"XYZ scaled_continous_vertex: {scaled_continous_vertex}");
+            Debug.Log($"XYZ scaled_continous_vertex: {scaled_continuous_vertex}");
             // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continous_vertex: (-0.35, -0.02, -0.18)
 
-            sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+            //sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+            sensor.AddObservation(vertex); //add vertices to sensor observations
         }
 
         // // array of blackboxes 
@@ -210,30 +212,30 @@ public class PackerHand : Agent
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
         var j = -1;
-        //var i = -1;
+        var i = -1;
 
         var discreteActions = actionBuffers.DiscreteActions;
-        //var continuousActions = actionBuffers.ContinuousActions;
+        var continuousActions = actionBuffers.ContinuousActions;
 
         if (isBlackboxUpdated && isVertexSelected == false) 
         {
             //SelectVertex(); 
-            SelectVertex(discreteActions[++j]);
+            //SelectVertex(discreteActions[++j]);
             //SelectBlackboxVertex();
-            // X_space(continuousActions[++i]) // range[0, 1]
-            // Y_space(continuousActions[++i])
-            // Z_space(continuousActions[++i])
+            SelectVertexContinuous(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         }
 
         if (isVertexSelected && isBoxSelected==false) 
         {
-            SelectBox(discreteActions[++j]); 
+            //SelectBox(discreteActions[++j]);           
+            SelectBoxContinuous(continuousActions[++i]);
         }
 
         if (isPickedup && isRotationSelected==false) 
         {
             j = 0; // set discrete actions incrementor to 0 in case the SelectBox if loop isnt triggered 
             SelectRotation(discreteActions[++j]);
+            //SelectRotationContinuous(continuousActions[++i]);
         }
     }
 
@@ -538,6 +540,21 @@ public class PackerHand : Agent
 
     }
 
+    public void SelectVertexContinuous(float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z)
+    {
+        Debug.Log($"SVB brain selected continuous vertex #: {action_SelectedVertex_x}, {action_SelectedVertex_y}, {action_SelectedVertex_z} ");
+
+        // action space defined between [-1, 1], need to change it to range [0, 1]
+        action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
+        action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
+        action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
+        selectedVertex =  new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
+        Debug.Log($"SVX Selected VerteX: {selectedVertex}");
+
+        isVertexSelected = true;
+
+    }
+
 
     public void SelectVertex(int action_SelectedVertex) 
     {
@@ -647,6 +664,29 @@ public class PackerHand : Agent
 
     }
 
+    public void SelectBoxContinuous(float x)
+    {
+        x = (x + 1f) * 0.5f;
+        float step_size = 1/boxPool.Count; //10 1/10, 0 -0.1 first, 0.2-0.3 third box.
+        int counter=0;
+        for (float i = 0; i<=1; i=i+step_size) 
+        {   
+            // if x is in between the range, 
+            if (x<=i && !organizedBoxes.Contains(counter)) 
+            {
+                boxIdx = counter;
+                break;
+            }
+            counter++;
+        }
+
+        Debug.Log($"Selected Box boxIdx: {boxIdx}");
+        targetBox = boxPool[boxIdx].rb.transform;
+        // Add box to list so it won't be selected again
+        organizedBoxes.Add(boxIdx);
+        Debug.Log($"ORG ORGANIZED BOXES LIST COUNT IS: {organizedBoxes.Count}");
+        isBoxSelected = true;     
+    }
 
     /// <summary>
     /// Agent selects a target box
@@ -666,6 +706,15 @@ public class PackerHand : Agent
         }
     }
 
+
+    // public void SelectRotationContinuous(float action_SelectedRot_x, float action_SelectedRot_y, float action_SelectedRot_z)
+    // {
+    //     action_SelectedRot_x = (action_SelectedRot_x + 1f) * 0.5f;
+    //     action_SelectedRot_y = (action_SelectedRot_y + 1f) * 0.5f;
+    //     action_SelectedRot_z = (action_SelectedRot_z + 1f) * 0.5f;
+        
+
+    // }
 
 
 
