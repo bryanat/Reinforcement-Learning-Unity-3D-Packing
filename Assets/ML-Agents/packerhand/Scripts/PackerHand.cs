@@ -41,8 +41,10 @@ public class PackerHand : Agent
     public List<Vector3> sideMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
     public List<Vector3> bottomMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
     public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
+    public int selectedVertexIdx = -1; 
 
     public int VertexCount = 0;
+
     public List<GameObject> blackbox_list; 
 
     public float total_x_distance; //total x distance between agent and target
@@ -239,7 +241,7 @@ public class PackerHand : Agent
     void FixedUpdate() 
     {
         // if reaches max step or packed all boxes, reset episode 
-        if (StepCount >= MaxStep | organizedBoxes.Count == boxPool.Count)
+        if (StepCount >= MaxStep) 
         {
             if (organizedBoxes.Count == boxPool.Count) 
             {
@@ -255,22 +257,39 @@ public class PackerHand : Agent
         }
 
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
-        if (isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined && isStateReset==false) 
+        if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
+            // if a mesh didn't combine, force combine
+            if (isBackMeshCombined==false)
+            {
+                CombineMesh backCombineMesh = binBack.GetComponent<CombineMesh>();
+                backCombineMesh.ForceMeshComine();
+            }
+            if (isSideMeshCombined == false)
+            {     
+                CombineMesh sideCombineMesh = binSide.GetComponent<CombineMesh>();
+                sideCombineMesh.ForceMeshComine();
+            }
+            if (isBottomMeshCombined == false)
+            {     
+                CombineMesh bottomCombineMesh = binBottom.GetComponent<CombineMesh>();
+                bottomCombineMesh.ForceMeshComine();
+            }
             StateReset();
             // vertices array of tripoints doesn't depend on the trimesh
             // only update vertices list and vertices array when box is placed
             UpdateVerticesArray();
             // side, back, and bottom vertices lists depends on the trimesh
-            UpdateVerticesList();
+            // should be commented out if not using blackbox for better performance
+            //UpdateVerticesList();
             // both vertices array and vertices list are used to find black boxes
             UpdateBlackBox();
             AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
-            Debug.Log($"RWDt total bin vol: {total_bin_volume}");
+            //Debug.Log($"TBV total bin vol: {total_bin_volume}");
             Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
-        }
+    }
 
         // if agent selects a box, it should move towards the box
         else if (isBoxSelected && isPickedup == false) 
@@ -293,6 +312,10 @@ public class PackerHand : Agent
             {
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
+                    // add surface area reward
+                    float total_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+                    AddReward(sensorCollision.totalContactSA/total_surface_area*10f);
+                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/total_surface_area*10f} reward from surface area");
                     DropoffBox();
                 }
                 else
@@ -351,13 +374,13 @@ public class PackerHand : Agent
     {
         MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
         AddVertices(mf_back.mesh.vertices, backMeshVertices);
-        Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
+        //Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
         MeshFilter mf_bottom = binBottom.GetComponent<MeshFilter>();
         AddVertices(mf_bottom.mesh.vertices, bottomMeshVertices);
-        Debug.Log($"OOO BOTTOM MESH VERTICES COUNT IS {bottomMeshVertices.Count()}");
+        //Debug.Log($"OOO BOTTOM MESH VERTICES COUNT IS {bottomMeshVertices.Count()}");
         MeshFilter mf_side = binSide.GetComponent<MeshFilter>();
         AddVertices(mf_side.mesh.vertices, sideMeshVertices);  
-        Debug.Log($"OOO SIDE MESH VERTICES COUNT IS {sideMeshVertices.Count()}");
+        //Debug.Log($"OOO SIDE MESH VERTICES COUNT IS {sideMeshVertices.Count()}");
     }
 
     /// <summary>
@@ -395,10 +418,10 @@ public class PackerHand : Agent
         var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
         // comment out the 4 lines below if want only 3 vertices
-        var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
-        var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
-        var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
-        var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
+        // var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
 
 
         tripoints_list.Add(tripoint_redx);   
@@ -406,10 +429,10 @@ public class PackerHand : Agent
         tripoints_list.Add(tripoint_bluez);
 
         // comment out the 4 lines below if want only 3 vertices
-        tripoints_list.Add(tripoint_xy);
-        tripoints_list.Add(tripoint_xyz);
-        tripoints_list.Add(tripoint_xz);
-        tripoints_list.Add(tripoint_yz);
+        // tripoints_list.Add(tripoint_xy);
+        // tripoints_list.Add(tripoint_xyz);
+        // tripoints_list.Add(tripoint_xz);
+        // tripoints_list.Add(tripoint_yz);
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
@@ -427,6 +450,15 @@ public class PackerHand : Agent
                 Debug.Log($"VERTEX COUNT IS {VertexCount}");
             }
             }
+            }
+        }
+
+        // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
+        // only removed when a box is successfully placed, if box fails physics test, selected vertex will not be removed
+        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
+            if (selectedVertexIdx != -1)
+            {
+                verticesArray[selectedVertexIdx] = new Vector3(0, 0, 0);
             }
         }
 
@@ -507,45 +539,16 @@ public class PackerHand : Agent
     {
 
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
-        // 
-        // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
-        // {
-        //     // 
-        //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
-        //     return; // to end function call
-        // }
+
+        selectedVertexIdx = action_SelectedVertex;
 
         // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
         if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
         {
            
-            
-            // give negative reward (because agent is using computationally expensive array operation as a crutch)
-            // computationally expensive array operation: denseVertixesArray = ...
-                // hey, on the next pick youre getting something that isnt zero
-                // hey, here are the picks that arent zero 
-                // all we get: 0 - 50
-                // all indexes need to be filled with non-zero values
-                // all indexes need to be filled with current vertex values
-                // dont want brain to select 000
-                // update list of non-0,0,0 elements
-                // VALUE at that index matters that agent learns from
-                //////////// COPY FILL CRUTCH /////////////////////
-                // reselection forces a pick from a dense matrix of duplicate vertex values so there are no zeros (not sparse)
-                // dense matrix is FILLED via COPY (percentage repeat) and used by agent as a CRUTCH to not pick 0's until it learns not to pick zeros
-                // can layer crutches alongside rewards with curriculum learning
-                /////////////////////////////
-                //- copy fill crutch (for bootstrapping) : does this mess with training? does the index matter since the weight is associated with the index? 
-                // but then what about the index is filled with 0s? ideally the agent will stop selecting 0s after training and inference, 
-                // so it will never use this crutch after bootstrapping up. >> would only work for pointer network as value at index changes, 
-                // aka sometimes array index element 1 sometimes is 0 and sometimes copyfill makes it (8.5, 2, 3) and sometimes copyfill makes it (10.5, 5, 6)
-                /////////////////////////////
-                // - pointer network vs. non-pointer network discrete action space :
-                // in non-pointer network array index element 1 forward remains forward through training vs. pointer network array index element 1 is sometimes vertex (3,4,5) and sometimes (6, 7, 8)
-
             isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
              // Punish agent for selecting a bad position
-            // AddReward(-0.1f);
+            //AddReward(-1f);
             // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
             return; // to end function call
         }
@@ -553,18 +556,12 @@ public class PackerHand : Agent
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
         var unscaled_selectedVertex = verticesArray[action_SelectedVertex];
         selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
-        // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) {
-            verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
-            // decrease vertex count 
-            VertexCount --;
-        }
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
         // Range( 0f, 2*organizedBoxes.Count() ) // 2n + 1, keeping this comment in case organizedBoxes.Count() is useful later
 
         isVertexSelected = true;
-        // AddReward(0.1f);
+        //AddReward(1f);
         // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
     }
 
@@ -614,14 +611,11 @@ public class PackerHand : Agent
         testBox.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
-        // bc.isTrigger = false;
-        // bc.center = Vector3.zero;
         // rb.mass = 300f;
         // rb.velocity = Vector3.zero;
         // rb.angularVelocity = Vector3.zero;
         // rb.drag = 1f;
-        //rb.angularDrag = 2f;
-        // rb.angularDrag = 1f;
+        // rb.angularDrag = 2f;
         // bc.material.bounciness = 0f;
         // bc.material.dynamicFriction = 1f;
         // bc.material.staticFriction = 1f;
@@ -636,8 +630,8 @@ public class PackerHand : Agent
         GameObject testBoxChild = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
-        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.1f), (boxWorldScale.y - 0.1f), (boxWorldScale.z - 0.1f));
-        testBoxChild.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
+        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.2f), (boxWorldScale.y - 0.2f), (boxWorldScale.z - 0.2f));
+        testBoxChild.transform.position = testPosition;
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
         sensorOverlapCollision = testBoxChild.AddComponent<SensorOverlapCollision>();
@@ -663,6 +657,7 @@ public class PackerHand : Agent
             targetBox = boxPool[boxIdx].rb.transform;
             // Add box to list so it won't be selected again
             organizedBoxes.Add(boxIdx);
+            Debug.Log($"ORG ORGANIZED BOXES LIST COUNT IS: {organizedBoxes.Count}");
             isBoxSelected = true;
         }
     }
@@ -882,6 +877,11 @@ public class PackerHand : Agent
 
         Collider [] m_cList = targetBox.GetComponentsInChildren<Collider>();
 
+        foreach (Collider m_c in m_cList) 
+        {
+            m_c.isTrigger = false;
+            // m_c.gameObject.tag = "droppedoff";
+        }
         // Lock box position and location
         ///////////////////////COLLISION/////////////////////////
         targetBox.position = targetBin.position; // COLLISION OCCURS IMMEDIATELY AFTER SET POSITION OCCURS
@@ -890,11 +890,6 @@ public class PackerHand : Agent
         targetBox.rotation = Quaternion.Euler(rotation);
         // dont need to freeze position on the rigidbody anymore because instead we just remove the rigidbody, preventing movement from collisions
 
-        foreach (Collider m_c in m_cList) 
-        {
-            m_c.isTrigger = false;
-            // m_c.gameObject.tag = "droppedoff";
-        }
 
         isDroppedoff = true;
 
@@ -1093,11 +1088,6 @@ public class PackerHand : Agent
     public void MeshReset()
     {
         
-        if (binBottom == null | binSide == null | binBack == null) {
-            binBottom = GameObject.Find("BinIso20Bottom");
-            binSide = GameObject.Find("BinIso20Side");
-            binBack = GameObject.Find("BinIso20Back");
-        }
 
         while (binBottom.transform.childCount > 2) 
         {
@@ -1127,39 +1117,6 @@ public class PackerHand : Agent
     }
 
 
-    /// <summary>
-    /// Agent moves according to selected action.
-    public override void Heuristic(in ActionBuffers actionsOut)
-    {
-        var discreteActionsOut = actionsOut.DiscreteActions;
-        //forward
-        if (Input.GetKey(KeyCode.W))
-        {
-            discreteActionsOut[1] = 1;
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            discreteActionsOut[1] = 2;
-        }
-        //rotate
-        if (Input.GetKey(KeyCode.D))
-        {
-            discreteActionsOut[2] = 1;
-        }
-        if (Input.GetKey(KeyCode.A))
-        {
-            discreteActionsOut[2] = 2;
-        }
-        //right
-        if (Input.GetKey(KeyCode.E))
-        {
-            discreteActionsOut[3] = 1;
-        }
-        if (Input.GetKey(KeyCode.Q))
-        {
-            discreteActionsOut[3] = 2;
-        }
-    }
 
 
     public void SetResetParameters()
@@ -1234,5 +1191,38 @@ public class PackerHand : Agent
             Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
     }
-}
 
+    /// <summary>
+    /// Agent moves according to selected action.
+    // public override void Heuristic(in ActionBuffers actionsOut)
+    // {
+    //     var discreteActionsOut = actionsOut.DiscreteActions;
+    //     //forward
+    //     if (Input.GetKey(KeyCode.W))
+    //     {
+    //         discreteActionsOut[1] = 1;
+    //     }
+    //     if (Input.GetKey(KeyCode.S))
+    //     {
+    //         discreteActionsOut[1] = 2;
+    //     }
+    //     //rotate
+    //     if (Input.GetKey(KeyCode.D))
+    //     {
+    //         discreteActionsOut[2] = 1;
+    //     }
+    //     if (Input.GetKey(KeyCode.A))
+    //     {
+    //         discreteActionsOut[2] = 2;
+    //     }
+    //     //right
+    //     if (Input.GetKey(KeyCode.E))
+    //     {
+    //         discreteActionsOut[3] = 1;
+    //     }
+    //     if (Input.GetKey(KeyCode.Q))
+    //     {
+    //         discreteActionsOut[3] = 2;
+    //     }
+    // }
+}
