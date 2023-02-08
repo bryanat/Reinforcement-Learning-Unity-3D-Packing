@@ -233,7 +233,7 @@ public class PackerHand : Agent
 
         if (isPickedup && isRotationSelected==false) 
         {
-            j = 0; // set discrete actions incrementor to 0 in case the SelectBox if loop isnt triggered 
+            //j = 0; // set discrete actions incrementor to 0 in case the SelectBox if loop isnt triggered 
             SelectRotation(discreteActions[++j]);
             //SelectRotationContinuous(continuousActions[++i]);
         }
@@ -667,9 +667,9 @@ public class PackerHand : Agent
     public void SelectBoxContinuous(float action_SelectedBox)
     {
         action_SelectedBox = (action_SelectedBox + 1f) * 0.5f;
-        float step_size = 1/boxPool.Count; //10 1/10, 0 -0.1 first, 0.2-0.3 third box.
+        Double step_size = Math.Round((float) (1/boxPool.Count), 2); //10 1/10, 0 -0.1 first, 0.2-0.3 third box.
         int counter=0;
-        for (float i = 0; i<=1; i=i+step_size) 
+        for (Double i = 0; i<=1; i=i+step_size+0.1) 
         {   
             // if x is in between the range, 
             if (action_SelectedBox<=i && !organizedBoxes.Contains(counter)) 
@@ -679,7 +679,7 @@ public class PackerHand : Agent
             }
             counter++;
         }
-
+        boxIdx = 0;
         Debug.Log($"Selected Box boxIdx: {boxIdx}");
         targetBox = boxPool[boxIdx].rb.transform;
         // Add box to list so it won't be selected again
