@@ -20,6 +20,7 @@ ml-agents-envs/
 *.yml
 *.editorconfig
 *.cfg
+conftest.py
 
 # Unity demo files
 *.demo
