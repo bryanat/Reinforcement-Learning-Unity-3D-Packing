@@ -664,15 +664,15 @@ public class PackerHand : Agent
 
     }
 
-    public void SelectBoxContinuous(float x)
+    public void SelectBoxContinuous(float action_SelectedBox)
     {
-        x = (x + 1f) * 0.5f;
+        action_SelectedBox = (action_SelectedBox + 1f) * 0.5f;
         float step_size = 1/boxPool.Count; //10 1/10, 0 -0.1 first, 0.2-0.3 third box.
         int counter=0;
         for (float i = 0; i<=1; i=i+step_size) 
         {   
             // if x is in between the range, 
-            if (x<=i && !organizedBoxes.Contains(counter)) 
+            if (action_SelectedBox<=i && !organizedBoxes.Contains(counter)) 
             {
                 boxIdx = counter;
                 break;
