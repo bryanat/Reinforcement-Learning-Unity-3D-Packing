@@ -24,7 +24,7 @@ behaviors:
     keep_checkpoints: 5
     max_steps: 2000000
     time_horizon: 64
-    summary_freq: 10000
+    summary_freq: 50000
 
 environment_parameters:
   regular_box:
@@ -35,7 +35,7 @@ environment_parameters:
           behavior: RegularBox
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.2
+          threshold: 1000
         value: 0.0
       - name: MySecondLesson # This is the start of the second lesson
         completion_criteria:

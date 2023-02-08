@@ -41,8 +41,10 @@ public class PackerHand : Agent
     public List<Vector3> sideMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
     public List<Vector3> bottomMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
     public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
+    public int selectedVertexIdx; 
 
     public int VertexCount = 0;
+
     public List<GameObject> blackbox_list; 
 
     public float total_x_distance; //total x distance between agent and target
@@ -416,10 +418,10 @@ public class PackerHand : Agent
         var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
         // comment out the 4 lines below if want only 3 vertices
-        var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
-        var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
-        var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
-        var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
+        // var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
 
 
         tripoints_list.Add(tripoint_redx);   
@@ -427,10 +429,10 @@ public class PackerHand : Agent
         tripoints_list.Add(tripoint_bluez);
 
         // comment out the 4 lines below if want only 3 vertices
-        tripoints_list.Add(tripoint_xy);
-        tripoints_list.Add(tripoint_xyz);
-        tripoints_list.Add(tripoint_xz);
-        tripoints_list.Add(tripoint_yz);
+        // tripoints_list.Add(tripoint_xy);
+        // tripoints_list.Add(tripoint_xyz);
+        // tripoints_list.Add(tripoint_xz);
+        // tripoints_list.Add(tripoint_yz);
         
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
@@ -528,42 +530,19 @@ public class PackerHand : Agent
     {
 
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
-        // 
-        // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
-        // {
-        //     // 
-        //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
-        //     return; // to end function call
-        // }
+
+        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
+            // this has to be the previous round's vertex 
+            if (selectedVertexIdx != -1)
+            {
+                verticesArray[selectedVertexIdx] = new Vector3(0, 0, 0);
+            }
+        }
 
         // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
         if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
         {
            
-            
-            // give negative reward (because agent is using computationally expensive array operation as a crutch)
-            // computationally expensive array operation: denseVertixesArray = ...
-                // hey, on the next pick youre getting something that isnt zero
-                // hey, here are the picks that arent zero 
-                // all we get: 0 - 50
-                // all indexes need to be filled with non-zero values
-                // all indexes need to be filled with current vertex values
-                // dont want brain to select 000
-                // update list of non-0,0,0 elements
-                // VALUE at that index matters that agent learns from
-                //////////// COPY FILL CRUTCH /////////////////////
-                // reselection forces a pick from a dense matrix of duplicate vertex values so there are no zeros (not sparse)
-                // dense matrix is FILLED via COPY (percentage repeat) and used by agent as a CRUTCH to not pick 0's until it learns not to pick zeros
-                // can layer crutches alongside rewards with curriculum learning
-                /////////////////////////////
-                //- copy fill crutch (for bootstrapping) : does this mess with training? does the index matter since the weight is associated with the index? 
-                // but then what about the index is filled with 0s? ideally the agent will stop selecting 0s after training and inference, 
-                // so it will never use this crutch after bootstrapping up. >> would only work for pointer network as value at index changes, 
-                // aka sometimes array index element 1 sometimes is 0 and sometimes copyfill makes it (8.5, 2, 3) and sometimes copyfill makes it (10.5, 5, 6)
-                /////////////////////////////
-                // - pointer network vs. non-pointer network discrete action space :
-                // in non-pointer network array index element 1 forward remains forward through training vs. pointer network array index element 1 is sometimes vertex (3,4,5) and sometimes (6, 7, 8)
-
             isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
              // Punish agent for selecting a bad position
             //AddReward(-1f);
@@ -575,17 +554,14 @@ public class PackerHand : Agent
         var unscaled_selectedVertex = verticesArray[action_SelectedVertex];
         selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) {
-            verticesArray[action_SelectedVertex] = new Vector3(0, 0, 0);
-            // decrease vertex count 
-            VertexCount --;
-        }
+        // only removed when a box is successfully placed, if box fails physics test, selected vertex will not be removed
+        selectedVertexIdx = action_SelectedVertex;
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
         // Range( 0f, 2*organizedBoxes.Count() ) // 2n + 1, keeping this comment in case organizedBoxes.Count() is useful later
 
         isVertexSelected = true;
-        AddReward(1f);
+        //AddReward(1f);
         // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
     }
 
