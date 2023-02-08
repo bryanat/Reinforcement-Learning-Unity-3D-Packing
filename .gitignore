@@ -1,3 +1,31 @@
+####### ROOT DIR ###########
+localized_docs/
+DevProject/
+colab/
+*.yamato/
+colab/
+docs/
+protobuf-definitions/
+unity-volume/
+ml-agents-plugin-examples
+com.unity.ml-agents/
+com.unity.ml-agents.extensions/
+utils/
+ml-agents-envs/
+
+*.txt
+*.json
+*.ini
+*.md
+*.yml
+*.editorconfig
+*.cfg
+
+# Unity demo files
+*.demo
+
+
+######## INSIDE PROJECT FOLDER #########
 /[Ll]ibrary/
 /Logs/
 /[Tt]emp/
@@ -14,12 +42,6 @@
 /UserSettings/
 /obj/
 Project.sln.DotSettings
-
-# models from temporary training
-results/
-
-# models from temporary training
-results/
 
 # Environemnt logfile
 *Project.log
@@ -55,6 +77,7 @@ results/
 *.exe
 *.x86_64
 *.x86
+.DS_Store
 
 # Plugins
 /Assets/VideoRecorder*
@@ -78,4 +101,14 @@ results/
 # VSCode hidden files
 *.vscode/
 
-.DS_Store
+# models from temporary training
+**/results/
+
+# models from temporary training
+results/
+
+# yaml hyperparameter files from training
+*.yaml
+
+# forked mlagents tests
+ml-agents/tests/
