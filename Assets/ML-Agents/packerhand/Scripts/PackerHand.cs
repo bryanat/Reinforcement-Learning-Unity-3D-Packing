@@ -58,7 +58,7 @@ public class PackerHand : Agent
     [HideInInspector] public SensorCollision sensorCollision;
     [HideInInspector] public SensorOuterCollision sensorOuterCollision;
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
-    
+
     [HideInInspector] public bool isBlackboxUpdated;
     [HideInInspector] public bool isVertexSelected;
     [HideInInspector] public bool isBoxSelected;
@@ -69,21 +69,23 @@ public class PackerHand : Agent
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
-
     public GameObject binArea; // The bin container, which will be manually selected in the Inspector
-    public Bounds areaBounds; // regular bin's bounds
-    public float total_bin_volume; // regular bin's volume
     public GameObject binBottom;
     public GameObject binBack;
     public GameObject binSide;
+    public GameObject outerbinfront;
+    public Material clearPlastic;
+
+    public float total_bin_volume; // regular bin's volume
+    public Bounds areaBounds; // regular bin's bounds
     public float current_bin_volume;
     public float percent_filled_bin_volume;
-    public GameObject outerbinfront;
+    public float box_surface_area;
+    public float percent_contact_surface_area;
     [HideInInspector] public float binscale_x;
     [HideInInspector] public float binscale_y;
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
-    public Material clearPlastic;
 
 
     public override void Initialize()
@@ -306,9 +308,10 @@ public class PackerHand : Agent
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     // add surface area reward
-                    float total_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-                    AddReward(sensorCollision.totalContactSA/total_surface_area*10f);
-                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/total_surface_area*10f} reward from surface area");
+                    box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+                    percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
+                    AddReward(percent_contact_surface_area*10f);
+                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/box_surface_area*10f} reward from surface area");
                     DropoffBox();
                 }
                 else
@@ -551,8 +554,6 @@ public class PackerHand : Agent
         selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
-        // Range( 0f, 2*organizedBoxes.Count() ) // 2n + 1, keeping this comment in case organizedBoxes.Count() is useful later
-
         isVertexSelected = true;
         //AddReward(1f);
         // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
@@ -603,6 +604,7 @@ public class PackerHand : Agent
         // test position has to be slightly elevated or else raycast doesn't detect the layer directly below
         testBox.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
+        // leave this in case we want to add more physics to the boxes
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
         // rb.mass = 300f;
         // rb.velocity = Vector3.zero;
@@ -1068,7 +1070,6 @@ public class PackerHand : Agent
         isRotationSelected = false;
         isPickedup = false;
         isDroppedoff = false;
-        //targetBin = null;
         if (targetBin!=null)
         {
         DestroyImmediate(targetBin.gameObject);
@@ -1081,7 +1082,6 @@ public class PackerHand : Agent
     public void MeshReset()
     {
         
-
         while (binBottom.transform.childCount > 2) 
         {
             DestroyImmediate(binBottom.transform.GetChild(binBottom.transform.childCount-1).gameObject);
@@ -1094,8 +1094,7 @@ public class PackerHand : Agent
         {
             DestroyImmediate(binBack.transform.GetChild(binBack.transform.childCount-1).gameObject);
         } 
-
-    
+   
         // // Combine meshes
         CombineMesh [] meshScripts = binArea.GetComponentsInChildren<CombineMesh>();
         foreach (CombineMesh meshScript in meshScripts) 
@@ -1125,27 +1124,22 @@ public class PackerHand : Agent
 
         // Reset organized Boxes list
         organizedBoxes.Clear();
-
+        // Destroy old boxes
         foreach (Box box in boxPool)
         {
             Debug.Log($"SRP BEFORE {box.gameobjectBox.name} IS DESTROYED");
             DestroyImmediate(box.gameobjectBox);
             Debug.Log($"SRP AFTER DESTRUCTION BOX IS: {box.gameobjectBox}");
-        }
-        
-        // for now leave the old boxes instances
+        }        
         // Reset box pool
         boxPool.Clear();
-
-
         // Reset vertices array
         Array.Clear(verticesArray, 0, verticesArray.Length);
-
         // Reset vertices list
         backMeshVertices.Clear();
         sideMeshVertices.Clear();
         bottomMeshVertices.Clear();
-
+        
         // Reset vertex count
         VertexCount = 0;
 
