@@ -195,72 +195,6 @@ public class BoxSpawner : MonoBehaviour
             // new float[] { 11.6f, 11.6f, 11.6f },
             // new float[] { 11.6f, 11.6f, 11.6f },
             ////////////////////////////////////
-
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 6.0f, 6.0f, 6.0f },
-            // new float[] { 6.0f, 6.0f, 6.0f },
-            // new float[] { 6.0f, 6.0f, 6.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 1.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 1.0f, 9.0f, 9.0f },
-            // new float[] { 9.0f, 1.0f, 9.0f },
-            //  new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 3.0f, 3.0f, 3.0f },
-            // new float[] { 6.0f, 6.0f, 6.0f },
-            // new float[] { 6.0f, 3.0f, 3.0f },
-            // new float[] { 3.0f, 6.0f, 3.0f },
-            // new float[] { 3.0f, 3.0f, 6.0f },
-            // new float[] { 6.0f, 6.0f, 3.0f },
-            // new float[] { 3.0f, 6.0f, 10.0f },
-            // new float[] { 1.0f, 3.0f, 6.0f },
-            // new float[] { 6.0f, 6.0f, 6.0f },
-            // new float[] { 1.0f, 3.0f, 9.0f },
-            // new float[] { 6.0f, 9.0f, 3.0f },
-            // new float[] { 9.0f, 3.0f, 3.0f },
-            // new float[] { 9.0f, 6.0f, 6.0f },
-            // new float[] { 9.0f, 6.0f, 3.0f },
-            // new float[] { 9.0f, 6.0f, 3.0f },
-            // new float[] { 9.0f, 6.0f, 3.0f },
             };
         var idx = 0;
         foreach(var s in sizes) 
@@ -314,17 +248,37 @@ public class BoxSpawner : MonoBehaviour
     {
         using (var inputStream = File.Open(filename, FileMode.Open)) {
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
-            var root = XElement.Load(jsonReader);
-            float length = float.Parse(root.XPathSelectElement("//Items/Length").Value);
-            float width = float.Parse(root.XPathSelectElement("//Items/Width").Value);
-            float height = float.Parse(root.XPathSelectElement("//Items/Height").Value);
-            int quantity = int.Parse(root.XPathSelectElement("//Items/Quantity").Value);
-            Debug.Log($"JSON CONTAINER LENGTH: {length}");
-            for (int n = 0; n<quantity; n++)
+            //var root = XElement.Load(jsonReader);
+            var root = XDocument.Load(jsonReader);
+            var boxes = root.XPathSelectElement("//Items").Elements();
+            foreach (XElement box in boxes)
             {
-                sizes[idx_counter].box_size = new Vector3(length, width, height);
-                idx_counter++;
+                string id = box.XPathSelectElement("./Product_id").Value;
+                float length = float.Parse(box.XPathSelectElement("./Length").Value);
+                float width = float.Parse(box.XPathSelectElement("./Width").Value);
+                float height = float.Parse(box.XPathSelectElement("./Height").Value);
+                int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
+                 Debug.Log($"JSON CONTAINER LENGTH: {length}");
+                for (int n = 0; n<quantity; n++)
+                {
+                    sizes[idx_counter].box_size = new Vector3(length, width, height);
+                    idx_counter++;
+                }
+                
             }
+
+
+            // string id = root.XPathSelectElement("//Items/Length").Value;
+            // float length = float.Parse(root.XPathSelectElement("//Items/Length").Value);
+            // float width = float.Parse(root.XPathSelectElement("//Items/Width").Value);
+            // float height = float.Parse(root.XPathSelectElement("//Items/Height").Value);
+            // int quantity = int.Parse(root.XPathSelectElement("//Items/Quantity").Value);
+            // Debug.Log($"JSON CONTAINER LENGTH: {length}");
+            // for (int n = 0; n<quantity; n++)
+            // {
+            //     sizes[idx_counter].box_size = new Vector3(length, width, height);
+            //     idx_counter++;
+            // }
         }
         
     }
@@ -333,53 +287,3 @@ public class BoxSpawner : MonoBehaviour
 }
 
 
-
-    // public class BoxList 
-    // {
-    //     public BinDimension Container { get; set; } 
-    //     public List<BoxDimension> Box { get; set; }
-    // }
-
-    // public class BinDimension
-    // {
-    //     public int Length { get; set; }
-    //     public int Width { get; set; } 
-    //     public int Height { get; set; }
-    // }
-    // public class BoxDimension
-    // {
-    //     public int Product_id { get; set; }
-    //     public int Length { get; set; }
-    //     public int Width { get; set; } 
-    //     public int Height { get; set; }
-    //     public int Quantity { get; set; }
-
-    // }
-
-    // private BoxList DeserializeUsingGenericSystemTextJson(string json)
-    // {
-    //     var company = JsonSerializer.Deserialize<BoxList>(json, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-
-    //    return company;
-
-
-        // using (var inputStream = File.Open(filename, FileMode.Open))
-        // {
-        //     var doc = XDocument.Load(JsonReaderWriterFactory.CreateJsonReader(inputStream, Encoding.UTF8, XmlDictionaryReaderQuotas.Max, null));
-        //     foreach (var classNode in doc.Root.Elements())
-        //     {
-        //         foreach (var element in classNode.Elements())
-        //         {
-        //             var defaultValue = element.Name;
-        //             foreach (var desc in element.Descendants())
-        //             {
-        //                 if (!desc.HasElements)
-        //                 {
-        //                     defaultValue = desc.Value; 
-        //                     break;
-        //                 }
-        //             }
-        //             //var defaultValue = element.Descendants().FirstOrDefault(x => !x.HasElements)?.Value ?? element.Name;
-        //         }
-        //     }
-        // }
