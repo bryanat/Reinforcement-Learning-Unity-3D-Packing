@@ -6,7 +6,7 @@ using Box = Boxes.Box;
 
 public class SensorCollision : MonoBehaviour
 {
-    public PackerHand agent;
+    [HideInInspector] public PackerHand agent;
 
     public float fallingThreshold = 0.2f;
 
@@ -18,7 +18,7 @@ public class SensorCollision : MonoBehaviour
 
     public bool passedGravityCheck;
 
-    private RaycastHit hit;
+    [HideInInspector] private RaycastHit hit;
 
 
     void Start()
@@ -35,10 +35,7 @@ public class SensorCollision : MonoBehaviour
         //Debug.Log($"OCC COLLISION OBJECT NAME IS {collision.gameObject.name}");
         GetHitDistance();
         // get surface area of contact
-        if (!sides_list.Contains(collision.gameObject.name))
-        {
-            GetSurfaceArea(collision.gameObject.name);
-        }
+        GetSurfaceArea(collision.gameObject.name);
         // if fails gravity check
         // this loop should only be executed once
         Debug.Log($"SCS {gameObject.name} distance: {distance}");  
@@ -62,6 +59,7 @@ public class SensorCollision : MonoBehaviour
     }
 
 
+    //// THIS FUNCTION NEEDS TO BE TESTED MORE////
     void GetSurfaceArea(string side_name)
     { 
 
@@ -139,6 +137,5 @@ public class SensorCollision : MonoBehaviour
             Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
          }
      }
-    
-     
+        
 }

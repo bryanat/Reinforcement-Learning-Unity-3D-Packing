@@ -16,6 +16,7 @@ using Boxes;
 public class PackerHand : Agent 
 {
     public int packSpeed = 20;
+    public int box_setup_flag;
 
     int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
     //int curriculum_ConfigurationLocal; // local reference of the above
@@ -27,45 +28,37 @@ public class PackerHand : Agent
     string m_UnitBoxBehaviorName = "UnitBox"; // 
     string m_SimilarBoxBehaviorName = "SimilarBox";
     string m_RegularBoxBehaviorName = "RegularBox";
+    EnvironmentParameters m_ResetParams; // Environment parameters
 
-    Rigidbody m_Agent; //cache agent rigidbody on initilization
+    [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
+    [HideInInspector] public Vector3 initialAgentPosition;
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
     public int boxIdx; // box selected from box pool
     public Vector3 rotation; // Rotation of box inside bin
     public Vector3 selectedVertex; // Vertex of box inside bin
+    public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
+    [HideInInspector] public int selectedVertexIdx = -1; 
+    [HideInInspector] public int VertexCount = 0;
+    [HideInInspector] public Vector3 boxWorldScale;
+    [HideInInspector] public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
+    [HideInInspector] public List<Box> boxPool;
+    [HideInInspector] public List<Blackbox> blackboxPool  = new List<Blackbox>();
 
     //public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
-    public List<Vector3> backMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
-    public List<Vector3> sideMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
-    public List<Vector3> bottomMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
-    public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
-    public int selectedVertexIdx = -1; 
-
-    public int VertexCount = 0;
-
-    public List<GameObject> blackbox_list; 
-
-    public float total_x_distance; //total x distance between agent and target
-    public float total_y_distance; //total y distance between agent and target
-    public float total_z_distance; //total z distance between agent and target
+    [HideInInspector] public List<Vector3> backMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
+    [HideInInspector] public List<Vector3> sideMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
+    [HideInInspector] public List<Vector3> bottomMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
+    [HideInInspector] public float total_x_distance; //total x distance between agent and target
+    [HideInInspector] public float total_y_distance; //total y distance between agent and target
+    [HideInInspector] public float total_z_distance; //total z distance between agent and target
     
-    public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
-
-    public GameObject binArea; // The bin container, which will be manually selected in the Inspector
-    public Bounds areaBounds; // regular bin's bounds
-    public float total_bin_volume; // regular bin's volume
-
-    EnvironmentParameters m_ResetParams; // Environment parameters
     public BoxSpawner boxSpawner; // Box Spawner
-
-    public SensorCollision sensorCollision;
-    public SensorOuterCollision sensorOuterCollision;
-    public SensorOverlapCollision sensorOverlapCollision;
-
-    [HideInInspector] public Vector3 initialAgentPosition;
-
+    [HideInInspector] public SensorCollision sensorCollision;
+    [HideInInspector] public SensorOuterCollision sensorOuterCollision;
+    [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
+    
     [HideInInspector] public bool isBlackboxUpdated;
     [HideInInspector] public bool isVertexSelected;
     [HideInInspector] public bool isBoxSelected;
@@ -73,35 +66,29 @@ public class PackerHand : Agent
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isDroppedoff;
     [HideInInspector] public bool isStateReset;
+    [HideInInspector] public bool isBottomMeshCombined;
+    [HideInInspector] public bool isSideMeshCombined;
+    [HideInInspector] public bool isBackMeshCombined;
 
-    public bool isBottomMeshCombined;
-    public bool isSideMeshCombined;
-    public bool isBackMeshCombined;
-
-    public List<Box> boxPool;
-    public List<Blackbox> blackboxPool  = new List<Blackbox>();
+    public GameObject binArea; // The bin container, which will be manually selected in the Inspector
+    public Bounds areaBounds; // regular bin's bounds
+    public float total_bin_volume; // regular bin's volume
     public GameObject binBottom;
     public GameObject binBack;
     public GameObject binSide;
-
-    public Vector3 boxWorldScale;
-
-    public Material clearPlastic;
-
     public float current_bin_volume;
     public float percent_filled_bin_volume;
-
     public GameObject outerbinfront;
-
-    public float binscale_x;
-    public float binscale_y;
-    public float binscale_z;
-    public Vector3 origin;
-    public int box_setup_flag;
+    [HideInInspector] public float binscale_x;
+    [HideInInspector] public float binscale_y;
+    [HideInInspector] public float binscale_z;
+    [HideInInspector] public Vector3 origin;
+    public Material clearPlastic;
 
 
     public override void Initialize()
     {   
+        // initialize agent position
         initialAgentPosition = this.transform.position;
 
         // Cache the agent rigidbody
@@ -124,7 +111,31 @@ public class PackerHand : Agent
             m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
         }
 
+        // initialize local reference of box pool
         boxPool = BoxSpawner.boxPool;
+
+        // Make agent unaffected by collision
+        CapsuleCollider m_c = GetComponent<CapsuleCollider>();
+        m_c.isTrigger = true;
+        
+        // Get bounds of bin
+        Renderer [] renderers = binArea.GetComponentsInChildren<Renderer>();
+        areaBounds = renderers[0].bounds;
+        for (var i = 1; i < renderers.Length; ++i)
+        {
+            areaBounds.Encapsulate(renderers[i].bounds);
+        }
+        //Debug.Log($"BIN BOUNDS: {areaBounds}");
+        // Get total bin volume from onstart
+        total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
+        //Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
+
+        // Get scale of bin
+        binscale_x = areaBounds.extents.x*2;
+        binscale_y = areaBounds.extents.y*2;
+        binscale_z = areaBounds.extents.z*2;
+        origin = new Vector3(8.25f, 0.50f, 10.50f);
+        Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
     }
 
 
@@ -139,29 +150,7 @@ public class PackerHand : Agent
         curriculum_ConfigurationGlobal = 2;
         //curriculum_ConfigurationLocal = 2; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
 
-        Renderer [] renderers = binArea.GetComponentsInChildren<Renderer>();
-        areaBounds = renderers[0].bounds;
-        for (var i = 1; i < renderers.Length; ++i)
-        {
-            areaBounds.Encapsulate(renderers[i].bounds);
-        }
-        Debug.Log($"BIN BOUNDS: {areaBounds}");
-        // Get total bin volume from onstart
-        total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
-        Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
-
-
-        binscale_x = areaBounds.extents.x*2;
-        binscale_y = areaBounds.extents.y*2;
-        binscale_z = areaBounds.extents.z*2;
-        origin = new Vector3(8.25f, 0.50f, 10.50f);
-        Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
-
-
-        // Make agent unaffected by collision
-        CapsuleCollider m_c = GetComponent<CapsuleCollider>();
-        m_c.isTrigger = true;
-
+        // Set up boxes
         // flag 1 - read box sizes from json; flag 2- manually create box sizes 
         boxSpawner.SetUpBoxes(box_setup_flag, m_ResetParams.GetWithDefault("regular_box", 0));
 
