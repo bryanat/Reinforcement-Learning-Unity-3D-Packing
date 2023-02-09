@@ -268,6 +268,7 @@ public class PackerHand : Agent
             }
             AddReward(-30f);
             EndEpisode();
+            // return;
         }
         // Initialize curriculum and brain
         if (curriculum_ConfigurationGlobal != -1)
@@ -559,6 +560,13 @@ public class PackerHand : Agent
 
     public void SelectVertex(int action_SelectedVertex) 
     {
+
+        // Mathf.Clamp(action_selectVertex[0], -1, 1);
+        // Mathf.Clamp(action_selectVertex[1], -1, 1);
+        // Mathf.Clamp(action_selectVertex[2], -1, 1);
+
+
+
 
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
 
