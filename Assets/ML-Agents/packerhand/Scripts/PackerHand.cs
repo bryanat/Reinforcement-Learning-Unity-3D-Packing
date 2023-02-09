@@ -97,6 +97,7 @@ public class PackerHand : Agent
     public float binscale_y;
     public float binscale_z;
     public Vector3 origin;
+    public int box_setup_flag;
 
 
     public override void Initialize()
@@ -131,6 +132,9 @@ public class PackerHand : Agent
     {   
         Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
 
+        // Reset agent and rewards
+        SetResetParameters();
+
         // Picks which curriculum to train
         curriculum_ConfigurationGlobal = 2;
         //curriculum_ConfigurationLocal = 2; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
@@ -158,8 +162,8 @@ public class PackerHand : Agent
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
-        // Reset agent and rewards
-        SetResetParameters();
+        // flag 1 - read box sizes from json; flag 2- manually create box sizes 
+        boxSpawner.SetUpBoxes(box_setup_flag, m_ResetParams.GetWithDefault("regular_box", 0));
 
         selectedVertex = origin; // refactor to select first vertex
         isVertexSelected = true;
@@ -1145,9 +1149,6 @@ public class PackerHand : Agent
         boxPool.Clear();
 
 
-        // Reset boxes
-        boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
-
         // Reset vertices array
         Array.Clear(verticesArray, 0, verticesArray.Length);
 
@@ -1181,7 +1182,6 @@ public class PackerHand : Agent
         }
         if (n==1) 
         {
-            // boxSpawner.SetUpBoxes(n, 1);
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
             Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }

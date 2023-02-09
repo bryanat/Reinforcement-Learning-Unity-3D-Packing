@@ -63,7 +63,8 @@ public class SensorCollision : MonoBehaviour
 
 
     void GetSurfaceArea(string side_name)
-    {   
+    { 
+
         // NOTE: for this to work, has to set unit box sides from 1 to 0.95//
         if (side_name == "BinIso20Side") {
             // collision with both biniso20side and left/right happened, count only once
