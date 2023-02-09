@@ -88,6 +88,13 @@ public class PackerHand : Agent
     [HideInInspector] public Vector3 origin;
 
 
+    public float binscale_x;
+    public float binscale_y;
+    public float binscale_z;
+    public Vector3 origin;
+    List<int> vertexIndices;
+
+
     public override void Initialize()
     {   
         // initialize agent position
@@ -161,7 +168,6 @@ public class PackerHand : Agent
         
     }
 
-
     /// <summary>
     /// Agent adds environment observations 
     /// </summary>
@@ -179,12 +185,20 @@ public class PackerHand : Agent
         }
 
         // // array of vertices
+        int i = 0;
+        vertexIndices = new List<int>();
         foreach (Vector3 vertex in verticesArray) {
             Vector3 scaled_continous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+    
             //Debug.Log($"XYZ scaled_continous_vertex: {scaled_continous_vertex}");
             // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continous_vertex: (-0.35, -0.02, -0.18)
 
             sensor.AddObservation(vertex); //add vertices to sensor observations
+            if ( scaled_continous_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
+            {
+                vertexIndices.Add(i);
+            }
+            i++;
         }
 
         // // array of blackboxes 
@@ -199,6 +213,13 @@ public class PackerHand : Agent
         //     sensor.AddObservation(blackbox.vertex);
         // }
         // sensor.AddObservation(blackboxesArray); //add vertices to sensor observations
+    }
+
+    public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
+    {
+        foreach (int vertexIdx in vertexIndices) {
+            actionMask.SetActionEnabled(0, vertexIdx, false);
+        }
     }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
@@ -242,7 +263,13 @@ public class PackerHand : Agent
             {
                 Debug.Log("TEBS FINISHED PACKING ALL BOXES IN ONE EPISODE ");
             }
+            else 
+            {
+                Debug.Log("TEBS MAX NO. OF STEPS EXCEEDED ");
+            }
+            AddReward(-30f);
             EndEpisode();
+            // return;
         }
         // Initialize curriculum and brain
         if (curriculum_ConfigurationGlobal != -1)
@@ -316,7 +343,9 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    BoxReset("failedPhysicsCheck");
+                    BoxReset("failedPhysicsCheck &&&&&&&&&& restart episode");
+                    AddReward(-30f);
+                    EndEpisode();
                 }
             }
         }
@@ -533,6 +562,13 @@ public class PackerHand : Agent
 
     public void SelectVertex(int action_SelectedVertex) 
     {
+
+        // Mathf.Clamp(action_selectVertex[0], -1, 1);
+        // Mathf.Clamp(action_selectVertex[1], -1, 1);
+        // Mathf.Clamp(action_selectVertex[2], -1, 1);
+
+
+
 
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
 
