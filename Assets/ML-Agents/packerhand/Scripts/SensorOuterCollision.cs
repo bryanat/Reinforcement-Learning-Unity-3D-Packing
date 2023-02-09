@@ -6,21 +6,9 @@ using Box = Boxes.Box;
 
 public class SensorOuterCollision : MonoBehaviour
 {
-    public PackerHand agent;
+    [HideInInspector] public PackerHand agent;
     public bool passedBoundCheck = true;
 
-
-    void Start()
-    {
-
-    }
-
-
-    void Update()
-    {
-
-    }
-    
 
     void OnCollisionEnter(Collision collision)
     {
@@ -34,11 +22,10 @@ public class SensorOuterCollision : MonoBehaviour
             // reset box
             passedBoundCheck = false;
             //agent.AddReward(-1f);
-            Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedBoundCheck: {passedBoundCheck}");
+            //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedBoundCheck: {passedBoundCheck}");
             Debug.Log($"CTU {collision.gameObject.name} box reset due to collision with outer bin side: {name} ");
         } 
         
-    }
-    
+    }  
      
 }

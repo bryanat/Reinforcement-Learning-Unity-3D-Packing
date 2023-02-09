@@ -16,6 +16,7 @@ using Boxes;
 public class PackerHand : Agent 
 {
     public int packSpeed = 20;
+    public int box_setup_flag;
 
     int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
     //int curriculum_ConfigurationLocal; // local reference of the above
@@ -27,44 +28,36 @@ public class PackerHand : Agent
     string m_UnitBoxBehaviorName = "UnitBox"; // 
     string m_SimilarBoxBehaviorName = "SimilarBox";
     string m_RegularBoxBehaviorName = "RegularBox";
+    EnvironmentParameters m_ResetParams; // Environment parameters
 
-    Rigidbody m_Agent; //cache agent rigidbody on initilization
+    [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
+    [HideInInspector] public Vector3 initialAgentPosition;
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
     public int boxIdx; // box selected from box pool
     public Vector3 rotation; // Rotation of box inside bin
     public Vector3 selectedVertex; // Vertex of box inside bin
+    public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
+    [HideInInspector] public int selectedVertexIdx = -1; 
+    [HideInInspector] public int VertexCount = 0;
+    [HideInInspector] public Vector3 boxWorldScale;
+    [HideInInspector] public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
+    [HideInInspector] public List<Box> boxPool;
+    [HideInInspector] public List<Blackbox> blackboxPool  = new List<Blackbox>();
 
     //public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
-    public List<Vector3> backMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
-    public List<Vector3> sideMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
-    public List<Vector3> bottomMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
-    public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
-    public int selectedVertexIdx = -1; 
-
-    public int VertexCount = 0;
-
-    public List<GameObject> blackbox_list; 
-
-    public float total_x_distance; //total x distance between agent and target
-    public float total_y_distance; //total y distance between agent and target
-    public float total_z_distance; //total z distance between agent and target
+    [HideInInspector] public List<Vector3> backMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
+    [HideInInspector] public List<Vector3> sideMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
+    [HideInInspector] public List<Vector3> bottomMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
+    [HideInInspector] public float total_x_distance; //total x distance between agent and target
+    [HideInInspector] public float total_y_distance; //total y distance between agent and target
+    [HideInInspector] public float total_z_distance; //total z distance between agent and target
     
-    public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
-
-    public GameObject binArea; // The bin container, which will be manually selected in the Inspector
-    public Bounds areaBounds; // regular bin's bounds
-    public float total_bin_volume; // regular bin's volume
-
-    EnvironmentParameters m_ResetParams; // Environment parameters
     public BoxSpawner boxSpawner; // Box Spawner
-
-    public SensorCollision sensorCollision;
-    public SensorOuterCollision sensorOuterCollision;
-    public SensorOverlapCollision sensorOverlapCollision;
-
-    [HideInInspector] public Vector3 initialAgentPosition;
+    [HideInInspector] public SensorCollision sensorCollision;
+    [HideInInspector] public SensorOuterCollision sensorOuterCollision;
+    [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
 
     [HideInInspector] public bool isBlackboxUpdated;
     [HideInInspector] public bool isVertexSelected;
@@ -73,25 +66,27 @@ public class PackerHand : Agent
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isDroppedoff;
     [HideInInspector] public bool isStateReset;
-
-    public bool isBottomMeshCombined;
-    public bool isSideMeshCombined;
-    public bool isBackMeshCombined;
-
-    public List<Box> boxPool;
-    public List<Blackbox> blackboxPool  = new List<Blackbox>();
+    [HideInInspector] public bool isBottomMeshCombined;
+    [HideInInspector] public bool isSideMeshCombined;
+    [HideInInspector] public bool isBackMeshCombined;
+    public GameObject binArea; // The bin container, which will be manually selected in the Inspector
     public GameObject binBottom;
     public GameObject binBack;
     public GameObject binSide;
-
-    public Vector3 boxWorldScale;
-
+    public GameObject outerbinfront;
     public Material clearPlastic;
 
+    public float total_bin_volume; // regular bin's volume
+    public Bounds areaBounds; // regular bin's bounds
     public float current_bin_volume;
     public float percent_filled_bin_volume;
+    public float box_surface_area;
+    public float percent_contact_surface_area;
+    [HideInInspector] public float binscale_x;
+    [HideInInspector] public float binscale_y;
+    [HideInInspector] public float binscale_z;
+    [HideInInspector] public Vector3 origin;
 
-    public GameObject outerbinfront;
 
     public float binscale_x;
     public float binscale_y;
@@ -102,6 +97,7 @@ public class PackerHand : Agent
 
     public override void Initialize()
     {   
+        // initialize agent position
         initialAgentPosition = this.transform.position;
 
         // Cache the agent rigidbody
@@ -124,7 +120,31 @@ public class PackerHand : Agent
             m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
         }
 
+        // initialize local reference of box pool
         boxPool = BoxSpawner.boxPool;
+
+        // Make agent unaffected by collision
+        CapsuleCollider m_c = GetComponent<CapsuleCollider>();
+        m_c.isTrigger = true;
+        
+        // Get bounds of bin
+        Renderer [] renderers = binArea.GetComponentsInChildren<Renderer>();
+        areaBounds = renderers[0].bounds;
+        for (var i = 1; i < renderers.Length; ++i)
+        {
+            areaBounds.Encapsulate(renderers[i].bounds);
+        }
+        //Debug.Log($"BIN BOUNDS: {areaBounds}");
+        // Get total bin volume from onstart
+        total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
+        //Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
+
+        // Get scale of bin
+        binscale_x = areaBounds.extents.x*2;
+        binscale_y = areaBounds.extents.y*2;
+        binscale_z = areaBounds.extents.z*2;
+        origin = new Vector3(8.25f, 0.50f, 10.50f);
+        Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
     }
 
 
@@ -132,35 +152,16 @@ public class PackerHand : Agent
     {   
         Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
 
+        // Reset agent and rewards
+        SetResetParameters();
+
         // Picks which curriculum to train
         curriculum_ConfigurationGlobal = 2;
         //curriculum_ConfigurationLocal = 2; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
 
-        Renderer [] renderers = binArea.GetComponentsInChildren<Renderer>();
-        areaBounds = renderers[0].bounds;
-        for (var i = 1; i < renderers.Length; ++i)
-        {
-            areaBounds.Encapsulate(renderers[i].bounds);
-        }
-        Debug.Log($"BIN BOUNDS: {areaBounds}");
-        // Get total bin volume from onstart
-        total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
-        Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
-
-
-        binscale_x = areaBounds.extents.x*2;
-        binscale_y = areaBounds.extents.y*2;
-        binscale_z = areaBounds.extents.z*2;
-        origin = new Vector3(8.25f, 0.50f, 10.50f);
-        Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
-
-
-        // Make agent unaffected by collision
-        CapsuleCollider m_c = GetComponent<CapsuleCollider>();
-        m_c.isTrigger = true;
-
-        // Reset agent and rewards
-        SetResetParameters();
+        // Set up boxes
+        // flag 1 - read box sizes from json; flag 2- manually create box sizes 
+        boxSpawner.SetUpBoxes(box_setup_flag, m_ResetParams.GetWithDefault("regular_box", 0));
 
         selectedVertex = origin; // refactor to select first vertex
         isVertexSelected = true;
@@ -334,9 +335,10 @@ public class PackerHand : Agent
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     // add surface area reward
-                    float total_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-                    AddReward(sensorCollision.totalContactSA/total_surface_area*10f);
-                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/total_surface_area*10f} reward from surface area");
+                    box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+                    percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
+                    AddReward(percent_contact_surface_area*10f);
+                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/box_surface_area*10f} reward from surface area");
                     DropoffBox();
                 }
                 else
@@ -588,8 +590,6 @@ public class PackerHand : Agent
         selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
-        // Range( 0f, 2*organizedBoxes.Count() ) // 2n + 1, keeping this comment in case organizedBoxes.Count() is useful later
-
         isVertexSelected = true;
         //AddReward(1f);
         // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
@@ -640,6 +640,7 @@ public class PackerHand : Agent
         // test position has to be slightly elevated or else raycast doesn't detect the layer directly below
         testBox.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
+        // leave this in case we want to add more physics to the boxes
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
         // rb.mass = 300f;
         // rb.velocity = Vector3.zero;
@@ -1105,7 +1106,6 @@ public class PackerHand : Agent
         isRotationSelected = false;
         isPickedup = false;
         isDroppedoff = false;
-        //targetBin = null;
         if (targetBin!=null)
         {
         DestroyImmediate(targetBin.gameObject);
@@ -1118,7 +1118,6 @@ public class PackerHand : Agent
     public void MeshReset()
     {
         
-
         while (binBottom.transform.childCount > 2) 
         {
             DestroyImmediate(binBottom.transform.GetChild(binBottom.transform.childCount-1).gameObject);
@@ -1131,8 +1130,7 @@ public class PackerHand : Agent
         {
             DestroyImmediate(binBack.transform.GetChild(binBack.transform.childCount-1).gameObject);
         } 
-
-    
+   
         // // Combine meshes
         CombineMesh [] meshScripts = binArea.GetComponentsInChildren<CombineMesh>();
         foreach (CombineMesh meshScript in meshScripts) 
@@ -1162,30 +1160,22 @@ public class PackerHand : Agent
 
         // Reset organized Boxes list
         organizedBoxes.Clear();
-
+        // Destroy old boxes
         foreach (Box box in boxPool)
         {
             Debug.Log($"SRP BEFORE {box.gameobjectBox.name} IS DESTROYED");
             DestroyImmediate(box.gameobjectBox);
             Debug.Log($"SRP AFTER DESTRUCTION BOX IS: {box.gameobjectBox}");
-        }
-        
-        // for now leave the old boxes instances
+        }        
         // Reset box pool
         boxPool.Clear();
-
-
-        // Reset boxes
-        boxSpawner.SetUpBoxes(2, m_ResetParams.GetWithDefault("regular_box", 0));
-
         // Reset vertices array
         Array.Clear(verticesArray, 0, verticesArray.Length);
-
         // Reset vertices list
         backMeshVertices.Clear();
         sideMeshVertices.Clear();
         bottomMeshVertices.Clear();
-
+        
         // Reset vertex count
         VertexCount = 0;
 
@@ -1211,7 +1201,6 @@ public class PackerHand : Agent
         }
         if (n==1) 
         {
-            // boxSpawner.SetUpBoxes(n, 1);
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
             Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }

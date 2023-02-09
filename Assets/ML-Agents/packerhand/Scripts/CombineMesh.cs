@@ -14,12 +14,8 @@ using Box = Boxes.Box;
 [RequireComponent(typeof(MeshRenderer))]
 public class CombineMesh : MonoBehaviour
 {
-    public Collider c; // note: don't need to drag and drop in inspector, will instantiate on line 17: c = GetComponent<Collider>();
-    // public Rigidbody rb;
-    public PackerHand agent;
-
-
-    //public MeshFilter[] meshList;
+    [HideInInspector] public PackerHand agent;
+    [HideInInspector] public MeshFilter parent_mf;
 
     public bool isCollidedGreen = false;
     public bool isCollidedBlue = false;
@@ -28,31 +24,12 @@ public class CombineMesh : MonoBehaviour
     public GameObject oppositeSideObject;
     public GameObject sameSideObject;
 
-    public MeshFilter parent_mf;
 
     public GameObject binBottom;
     public GameObject binSide;
     public GameObject binBack;
 
     public Material clearPlastic;
-
-
-
-    void Start()
-    {
-        // instantiate the Collider component
-        //c = GetComponent<Collider>(); // note: right now using the generic Collider class so anyone can experiment with mesh collisions on all objects like: BoxCollider, SphereCollider, etc.
-        // note: can get MeshCollider component from generic Collider component (MeshCollider inherits from Collider base class)
-
-        // binBottom = GameObject.Find("BinIso20Bottom");
-        // binSide = GameObject.Find("BinIso20Side");
-        // binBack = GameObject.Find("BinIso20Back");
-
-     }
-
-
-
-
 
 
     void OnCollisionEnter(Collision collision) { 
