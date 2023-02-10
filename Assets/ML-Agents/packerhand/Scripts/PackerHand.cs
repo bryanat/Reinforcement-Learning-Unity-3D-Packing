@@ -297,21 +297,18 @@ public class PackerHand : Agent
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
             // if a mesh didn't combine, force combine
-            if (isBackMeshCombined==false)
-            {
-                CombineMesh backCombineMesh = binBack.GetComponent<CombineMesh>();
-                backCombineMesh.ForceMeshComine();
-            }
-            if (isSideMeshCombined == false)
-            {     
-                CombineMesh sideCombineMesh = binSide.GetComponent<CombineMesh>();
-                sideCombineMesh.ForceMeshComine();
-            }
-            if (isBottomMeshCombined == false)
-            {     
-                CombineMesh bottomCombineMesh = binBottom.GetComponent<CombineMesh>();
-                bottomCombineMesh.ForceMeshComine();
-            }
+            // if (isBackMeshCombined==false)
+            // {
+            //     m_BackMeshScript.ForceMeshCombine();
+            // }
+            // if (isSideMeshCombined == false)
+            // {     
+            //     m_SideMeshScript.ForceMeshCombine();
+            // }
+            // if (isBottomMeshCombined == false)
+            // {     
+            //     m_SideMeshScript.ForceMeshCombine();
+            // }
             StateReset();
             // vertices array of tripoints doesn't depend on the trimesh
             // only update vertices list and vertices array when box is placed
@@ -397,8 +394,8 @@ public class PackerHand : Agent
     ///</summary>
     void UpdateTargetBox() 
     {
-        var box_x_length = targetBox.localScale.x;
-        var box_z_length = targetBox.localScale.z;
+        // var box_x_length = targetBox.localScale.x;
+        // var box_z_length = targetBox.localScale.z;
         // var dist = 0.2f; 
          // distance from agent is relative to the box size
         // targetBox.localPosition = new Vector3(box_x_length, dist, box_z_length);
