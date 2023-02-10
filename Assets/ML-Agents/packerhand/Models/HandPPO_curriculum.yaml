@@ -46,13 +46,13 @@ behaviors:
         gamma: 0.995
         strength: 1.0
     keep_checkpoints: 5
-    checkpoint_interval: 20.000
+    checkpoint_interval: 20000
     max_steps: 1000000
     time_horizon: 32
     summary_freq: 5000
-    sequence_length: 64
-    memory_size: 128
-    vis_encode_type: nature_cnn
+    # sequence_length: 64
+    # memory_size: 128
+    # vis_encode_type: nature_cnn
 
   
   # Add this section
