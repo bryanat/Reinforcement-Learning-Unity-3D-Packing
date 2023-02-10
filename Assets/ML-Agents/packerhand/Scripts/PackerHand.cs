@@ -88,11 +88,7 @@ public class PackerHand : Agent
     [HideInInspector] public Vector3 origin;
 
 
-    public float binscale_x;
-    public float binscale_y;
-    public float binscale_z;
-    public Vector3 origin;
-    List<int> vertexIndices;
+    private List<int> vertexIndices;
 
 
     public override void Initialize()
@@ -267,7 +263,7 @@ public class PackerHand : Agent
             {
                 Debug.Log("TEBS MAX NO. OF STEPS EXCEEDED ");
             }
-            AddReward(-30f);
+            AddReward(-100f);
             EndEpisode();
             // return;
         }
@@ -344,7 +340,7 @@ public class PackerHand : Agent
                 else
                 {
                     BoxReset("failedPhysicsCheck &&&&&&&&&& restart episode");
-                    AddReward(-30f);
+                    AddReward(-100f);
                     EndEpisode();
                 }
             }
