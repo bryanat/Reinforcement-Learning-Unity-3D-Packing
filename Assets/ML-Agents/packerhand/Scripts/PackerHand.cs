@@ -29,8 +29,11 @@ public class PackerHand : Agent
     string m_SimilarBoxBehaviorName = "SimilarBox";
     string m_RegularBoxBehaviorName = "RegularBox";
     EnvironmentParameters m_ResetParams; // Environment parameters
-
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
+    [HideInInspector] CombineMesh m_BackMeshScript;
+    [HideInInspector] CombineMesh m_SideMeshScript;
+    [HideInInspector] CombineMesh m_BottomMeshScript;
+
     [HideInInspector] public Vector3 initialAgentPosition;
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
@@ -101,6 +104,15 @@ public class PackerHand : Agent
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
+        // Cache meshes' scripts
+        m_BottomMeshScript = binBottom.GetComponent<CombineMesh>();
+        m_SideMeshScript = binSide.GetComponent<CombineMesh>();
+        m_BackMeshScript = binBack.GetComponent<CombineMesh>();
+        m_BottomMeshScript.agent = this;
+        m_SideMeshScript.agent = this;
+        m_BackMeshScript.agent = this;
+
+
         // Update model references if we're overriding
         var modelOverrider = GetComponent<ModelOverrider>();
         if (modelOverrider.HasOverrides)
@@ -116,6 +128,7 @@ public class PackerHand : Agent
         }
 
 
+
         // Make agent unaffected by collision
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
@@ -128,7 +141,7 @@ public class PackerHand : Agent
             areaBounds.Encapsulate(renderers[i].bounds);
         }
         //Debug.Log($"BIN BOUNDS: {areaBounds}");
-        // Get total bin volume from onstart
+        // Get total bin volume 
         total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
         //Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
 
@@ -141,6 +154,7 @@ public class PackerHand : Agent
 
         // initialize local reference of box pool
         boxPool = BoxSpawner.boxPool;
+
     }
 
 
@@ -1128,42 +1142,13 @@ public class PackerHand : Agent
         isStateReset = true;
     }
 
-    public void MeshReset()
-    {
-        
-        while (binBottom.transform.childCount > 2) 
-        {
-            DestroyImmediate(binBottom.transform.GetChild(binBottom.transform.childCount-1).gameObject);
-        }   
-        while (binSide.transform.childCount > 2) 
-        {
-            DestroyImmediate(binSide.transform.GetChild(binSide.transform.childCount-1).gameObject);
-        }  
-        while (binBack.transform.childCount > 1) 
-        {
-            DestroyImmediate(binBack.transform.GetChild(binBack.transform.childCount-1).gameObject);
-        } 
-   
-        // // Combine meshes
-        CombineMesh [] meshScripts = binArea.GetComponentsInChildren<CombineMesh>();
-        foreach (CombineMesh meshScript in meshScripts) 
-        {
-            CombineMesh meshScriptInstance = new CombineMesh();
-            var meshList = meshScript.GetComponentsInChildren<MeshFilter>();
-            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
-            meshScriptInstance.MeshCombiner(meshList, meshScript.gameObject); 
-            meshScript.agent = this;
-          
-        }
-    }
-
-
-
 
     public void SetResetParameters()
     {
-        // Reset mesh
-        MeshReset();
+        // Reset meshes
+        m_BottomMeshScript.MeshReset();
+        m_SideMeshScript.MeshReset();
+        m_BackMeshScript.MeshReset();
 
         // Reset reward
         SetReward(0f);

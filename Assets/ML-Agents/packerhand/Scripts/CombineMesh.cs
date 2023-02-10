@@ -226,6 +226,43 @@ public class CombineMesh : MonoBehaviour
         }
 
      }
+
+    public void MeshReset()
+    {
+        if (name == "BinIso20Bottom")
+        {
+            while (binBottom.transform.childCount > 2) 
+            {
+                DestroyImmediate(binBottom.transform.GetChild(binBottom.transform.childCount-1).gameObject);
+            }     
+            MeshFilter [] meshList = GetComponentsInChildren<MeshFilter>();
+            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+            MeshCombiner(meshList, binBottom);
+
+        }
+        if (name == "BinIso20Back")
+        {
+            while (binBack.transform.childCount > 1) 
+            {
+                DestroyImmediate(binSide.transform.GetChild(binSide.transform.childCount-1).gameObject);
+            }  
+            MeshFilter [] meshList = GetComponentsInChildren<MeshFilter>();
+            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+            MeshCombiner(meshList, binBack);
+        }
+        if (name == "BinIso20Side")
+        {
+            while (binSide.transform.childCount > 2) 
+            {
+                DestroyImmediate(binBack.transform.GetChild(binBack.transform.childCount-1).gameObject);
+            } 
+            MeshFilter [] meshList = GetComponentsInChildren<MeshFilter>();
+            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+            MeshCombiner(meshList, binSide);
+        }
+
+    }
+
     public void MeshCombiner(MeshFilter[] meshList, GameObject parent) 
     {
         Debug.Log("++++++++++++START OF MESHCOMBINER++++++++++++");
@@ -277,6 +314,7 @@ public class CombineMesh : MonoBehaviour
         Mesh oldmesh = parent_mf.sharedMesh;
         DestroyImmediate(oldmesh);
         parent_mf.mesh = new Mesh();
+        Debug.Log($"COMBINE INSTANCE IS: {combine.ToArray().Length}");
         parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
 
         // restore the parent pos+rot
