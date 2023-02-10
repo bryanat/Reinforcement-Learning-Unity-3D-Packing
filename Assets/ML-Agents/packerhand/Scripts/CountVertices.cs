@@ -15,7 +15,10 @@ public class VertexCounter : MonoBehaviour
     {
         
     }
-    void Update(){
+
+    
+    void Update()
+    {
         meshFilter = GetComponent<MeshFilter>();
         mesh = meshFilter.mesh;
         vertexCount = mesh.vertices.Length;

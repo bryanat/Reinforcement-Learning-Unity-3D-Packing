@@ -2,8 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Box = Boxes.Box;
 
-// Check for center of gravity
-
+// Physics check for center of gravity (box unstable vertical position that may fall to ground)
 public class SensorCollision : MonoBehaviour
 {
     [HideInInspector] public PackerHand agent;
@@ -25,9 +24,7 @@ public class SensorCollision : MonoBehaviour
     {
         // This destroys the test box 3 unity seconds after creation 
         Destroy(gameObject, 3);
-
     }
-
 
 
     void OnCollisionEnter(Collision collision)
@@ -36,12 +33,12 @@ public class SensorCollision : MonoBehaviour
         GetHitDistance();
         // get surface area of contact
         GetSurfaceArea(collision.gameObject.name);
-        // if fails gravity check
-        // this loop should only be executed once
         Debug.Log($"SCS {gameObject.name} distance: {distance}");  
+        // if fails gravity check, this loop should only be executed once
         if (distance> fallingThreshold) 
         {
             int failedBoxId = int.Parse(gameObject.name.Substring(7));
+            // reset box, through failing passedGravityCheck flag that agent uses to reset box and pickup a new box when false
             passedGravityCheck = false;
             //agent.AddReward(-1f);
             //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedGravityCheck: {passedGravityCheck}");
@@ -51,7 +48,6 @@ public class SensorCollision : MonoBehaviour
         }  
         else 
         {
-
             passedGravityCheck = true;
             Debug.Log($"SCS {gameObject.name} PASSED GRAVITY CHECK");  
             Destroy(gameObject);
@@ -62,9 +58,9 @@ public class SensorCollision : MonoBehaviour
     //// THIS FUNCTION NEEDS TO BE TESTED MORE////
     void GetSurfaceArea(string side_name)
     { 
-
         // NOTE: for this to work, has to set unit box sides from 1 to 0.95//
-        if (side_name == "BinIso20Side") {
+        if (side_name == "BinIso20Side") 
+        {
             // collision with both biniso20side and left/right happened, count only once
             if (sides_list.Contains("left") | sides_list.Contains("right"))
             {
@@ -122,20 +118,19 @@ public class SensorCollision : MonoBehaviour
     }
 
 
-
+    // Draws a Ray from bottom center of box, checking for collision, if no very short distance collision, then box is not supported by another box
     void GetHitDistance()
-     {
-         // Bit shift the index of the layer 6 to get a bit mask
+    {
+        // Bit shift the index of the layer 6 to get a bit mask
         int layerMask = 1 << 6;
         // This would cast rays only against colliders in layer 6.
         Vector3 boxBottomCenter = new Vector3(transform.position.x, transform.position.y-transform.localScale.y*0.5f, transform.position.z);
-         //Ray downRay = new Ray(boxBottomCenter, Vector3.down); // this is the downward ray from box bottom to ground
-         if (Physics.Raycast(boxBottomCenter, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, layerMask, QueryTriggerInteraction.Collide))
-         {
+        //Ray downRay = new Ray(boxBottomCenter, Vector3.down); // this is the downward ray from box bottom to ground
+        if (Physics.Raycast(boxBottomCenter, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, layerMask, QueryTriggerInteraction.Collide))
+        {
             distance = hit.distance;
             Debug.DrawRay(boxBottomCenter, transform.TransformDirection(Vector3.down), Color.yellow);
             Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
-         }
-     }
-        
+        }
+    }       
 }

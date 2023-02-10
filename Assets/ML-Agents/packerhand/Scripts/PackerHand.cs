@@ -111,7 +111,6 @@ public class PackerHand : Agent
         m_SideMeshScript.agent = this;
         m_BackMeshScript.agent = this;
 
-
         // Update model references if we're overriding
         var modelOverrider = GetComponent<ModelOverrider>();
         if (modelOverrider.HasOverrides)
@@ -125,8 +124,6 @@ public class PackerHand : Agent
             regularBoxBrain = modelOverrider.GetModelForBehaviorName(m_RegularBoxBehaviorName);
             m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
         }
-
-
 
         // Make agent unaffected by collision
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
@@ -153,7 +150,6 @@ public class PackerHand : Agent
 
         // initialize local reference of box pool
         boxPool = BoxSpawner.boxPool;
-
     }
 
 
@@ -178,12 +174,12 @@ public class PackerHand : Agent
         
     }
 
+
     /// <summary>
     /// Agent adds environment observations 
     /// </summary>
     public override void CollectObservations(VectorSensor sensor) 
     {
-
         // Add updated bin volume
         sensor.AddObservation(current_bin_volume);
 
@@ -196,7 +192,8 @@ public class PackerHand : Agent
         // Add array of vertices (selected vertices are 0s)
         int i = 0;
         vertexIndices = new List<int>();
-        foreach (Vector3 vertex in verticesArray) {
+        foreach (Vector3 vertex in verticesArray) 
+        {
             Vector3 scaled_continous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
     
             //Debug.Log($"XYZ scaled_continous_vertex: {scaled_continous_vertex}");
@@ -224,10 +221,12 @@ public class PackerHand : Agent
         // sensor.AddObservation(blackboxesArray); //add vertices to sensor observations
     }
 
+
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        foreach (int vertexIdx in vertexIndices) {
+        foreach (int vertexIdx in vertexIndices) 
+        {
             actionMask.SetActionEnabled(0, vertexIdx, false);
         }
 
@@ -237,6 +236,7 @@ public class PackerHand : Agent
             actionMask.SetActionEnabled(1, boxIdx, false);
         }
     }
+
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
@@ -263,7 +263,6 @@ public class PackerHand : Agent
             SelectRotation(discreteActions[++j]);
         }
     }
-
 
 
     /// <summary>
@@ -322,7 +321,7 @@ public class PackerHand : Agent
             AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
             //Debug.Log($"TBV total bin vol: {total_bin_volume}");
             Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
-    }
+        }
 
         // if agent selects a box, it should move towards the box
         else if (isBoxSelected && isPickedup == false) 
@@ -360,6 +359,7 @@ public class PackerHand : Agent
                 }
             }
         }
+
         //if agent drops off the box, it should pick another one
         else if (isBoxSelected==false) 
         {
@@ -402,6 +402,7 @@ public class PackerHand : Agent
         // stop box from rotating
         targetBox.rotation = Quaternion.identity;
     }
+
 
     /// <summary>
     /// Updates the vertices every time a new mesh is created
@@ -448,7 +449,6 @@ public class PackerHand : Agent
 
     void UpdateVerticesArray() 
     {
-
         List<Vector3> tripoints_list = new List<Vector3>();
         var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
         var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
@@ -570,7 +570,6 @@ public class PackerHand : Agent
 
     public void SelectVertex(int action_SelectedVertex) 
     {
-
         // Mathf.Clamp(action_selectVertex[0], -1, 1);
         // Mathf.Clamp(action_selectVertex[1], -1, 1);
         // Mathf.Clamp(action_selectVertex[2], -1, 1);
@@ -635,7 +634,8 @@ public class PackerHand : Agent
     }
 
 
-    public void CheckBoxPlacementPhysics(Vector3 testPosition) {
+    public void CheckBoxPlacementPhysics(Vector3 testPosition) 
+    {
         // create a clone test box to check physics of placement
         // teleported first before actual box is placed so gravity check comes before mesh combine
 
@@ -676,7 +676,6 @@ public class PackerHand : Agent
         sensorOuterCollision.agent = this; // agent reference used by component to set rewards on collision
         testBoxChild.name = $"testboxChild{targetBox.name}";
         testBoxChild.tag = "testboxChild";
-
     }
 
 
@@ -700,9 +699,6 @@ public class PackerHand : Agent
         organizedBoxes.Add(boxIdx);
         isBoxSelected = true;
     }
-
-
-
 
 
     /// <summary>
@@ -885,7 +881,6 @@ public class PackerHand : Agent
     /// </summary>
     public void PickupBox() 
     {
-            
         // Attach the box as a child of the agent parent, effectively attaching the box's movement to the agent's movement  
         targetBox.parent = this.transform;
 
@@ -928,7 +923,6 @@ public class PackerHand : Agent
 
         targetBox.rotation = Quaternion.Euler(rotation);
         // dont need to freeze position on the rigidbody anymore because instead we just remove the rigidbody, preventing movement from collisions
-
 
         isDroppedoff = true;
 
@@ -1106,13 +1100,16 @@ public class PackerHand : Agent
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
     }
+
+
     public void StateReset() 
     {
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
         // remove consumed boxIdx from boxPool (since the same box cannot be selected again)
         // only removed when a box is successfully placed, if box fails physics test, selected vertex and box idx will not be removed
         // conditional check can be removed if failing physics test = end of episode
-        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
+        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
+        {
             if (selectedVertexIdx != -1)
             {
                 verticesArray[selectedVertexIdx] = new Vector3(0, 0, 0);
@@ -1188,7 +1185,6 @@ public class PackerHand : Agent
     /// </summary>
     void ConfigureAgent(int n) 
     {
-
         if (n==0) 
         {
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);

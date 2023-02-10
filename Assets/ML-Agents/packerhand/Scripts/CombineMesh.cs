@@ -5,12 +5,7 @@ using System.Linq;
 using Box = Boxes.Box;
 
 
-// SensorCollision component to work requires:
-// - Collider component (needed for a Collision)
-// - Rigidbody component (needed for a Collision)
-//   - "the Rigidbody can be set to be 'kinematic' if you don't want the object to have physical interaction with other objects"
-// + usecase: SensorCollision component can attached to bin to detect box collisions with bin
-// [RequireComponent(typeof(MeshFilter))]
+// Trimesh
 [RequireComponent(typeof(MeshRenderer))]
 public class CombineMesh : MonoBehaviour
 {
@@ -23,7 +18,6 @@ public class CombineMesh : MonoBehaviour
 
     public GameObject oppositeSideObject;
     public GameObject sameSideObject;
-
 
     public GameObject binBottom;
     public GameObject binSide;
@@ -50,8 +44,8 @@ public class CombineMesh : MonoBehaviour
     }
 
 
-    void OnCollisionEnter(Collision collision) { 
-
+    void OnCollisionEnter(Collision collision) 
+    { 
         // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
         // Packerhand.cs  : deals parent box : position (math)
 
@@ -60,7 +54,8 @@ public class CombineMesh : MonoBehaviour
         // BLUE
         //Debug.Log($"{name} RRR blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
         // if this mesh is Back Blue mesh and a box collides with it then set isCollidedBlue collision property to true
-        if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox" && collision.gameObject.name == "back"){
+        if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox" && collision.gameObject.name == "back")
+        {
         //if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox"){
             // set mesh property isCollidedBlue to true, used when all three colors are true then combinemeshes
             isCollidedBlue = true;
@@ -76,6 +71,7 @@ public class CombineMesh : MonoBehaviour
 
             sameSideObject = collision.gameObject;
         }
+
         // GREEN
         //Debug.Log($"{name} RRR green {isCollidedGreen == false}, {name == "BinIso20Bottom"}, {collision.gameObject.tag == "pickupbox"}, {collision.gameObject.name == "bottom"} | collision side:{collision.gameObject.name} AAA isCollidedGreen: {isCollidedGreen == false} name == BinIso20Bottom: {name == "BinIso20Bottom"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
         // if this mesh is Bottom Green mesh and a box collides with it then set isCollidedGreen collision property to true
@@ -101,7 +97,6 @@ public class CombineMesh : MonoBehaviour
         //Debug.Log($"{name} RRR red {isCollidedRed == false}, {name == "BinIso20Side"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedRed: {isCollidedRed == false} name == BinIso20Side: {name == "BinIso20Side"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
         // if this mesh is Side Red mesh and a box collides with it then set isCollidedRed collision property to true
         if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickupbox" && (collision.gameObject.name=="left" | collision.gameObject.name=="right"))
-        //if (isCollidedRed == false && name == "BinIso20Side" && collision.gameObject.tag == "pickupbox")
         {
             // set mesh property isCollidedRed to true, used when all three colors are true then combinemeshes
             isCollidedRed = true;
@@ -127,7 +122,8 @@ public class CombineMesh : MonoBehaviour
             Debug.Log("ENTERED SECOND LOOP");
         
             // BLUE
-            if (name == "BinIso20Back" && agent.isBackMeshCombined==false) {
+            if (name == "BinIso20Back" && agent.isBackMeshCombined==false) 
+            {
 
                 m_BackMeshScript.oppositeSideObject.transform.parent = binBack.transform;
                 m_BackMeshScript.sameSideObject.transform.parent = binBack.transform;
@@ -139,8 +135,10 @@ public class CombineMesh : MonoBehaviour
                 oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
                 sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
             }
+
             // GREEN
-            if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) {
+            if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) 
+            {
 
                 m_BottomMeshScript.oppositeSideObject.transform.parent = binBottom.transform;
                 m_BottomMeshScript.sameSideObject.transform.parent = binBottom.transform;                
@@ -152,8 +150,10 @@ public class CombineMesh : MonoBehaviour
                 oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
                 sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;  
             }
+
             // RED
-            if (name == "BinIso20Side" && agent.isSideMeshCombined==false) {
+            if (name == "BinIso20Side" && agent.isSideMeshCombined==false) 
+            {
 
                 m_SideMeshScript.oppositeSideObject.transform.parent = binSide.transform;
                 m_SideMeshScript.sameSideObject.transform.parent = binSide.transform;
@@ -171,19 +171,24 @@ public class CombineMesh : MonoBehaviour
 
     string GetOppositeSide(Transform side) 
     {
-        if (side.name == "left") {
+        if (side.name == "left") 
+        {
             return "right";
         }
-        else if (side.name == "right") {
+        else if (side.name == "right") 
+        {
             return "left";
         }
-        else if (side.name == "top") {
+        else if (side.name == "top") 
+        {
             return "bottom";
         }
-        else if (side.name == "bottom") {
+        else if (side.name == "bottom") 
+        {
             return "top";
         }
-        else if (side.name == "front") {
+        else if (side.name == "front") 
+        {
             return "back";
         }
         else {
@@ -198,7 +203,8 @@ public class CombineMesh : MonoBehaviour
 
         Debug.Log("FFF MESH FORCED TO COMBINE!!!!");
         // BLUE
-        if (name == "BinIso20Back" && agent.isBackMeshCombined==false) {
+        if (name == "BinIso20Back" && agent.isBackMeshCombined==false) 
+        {
 
             sameSideObject = GameObject.Find($"{agent.boxIdx}/back");
             oppositeSideObject = GameObject.Find($"{agent.boxIdx}/front");
@@ -213,7 +219,8 @@ public class CombineMesh : MonoBehaviour
             sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
         }
         // RED
-        if (name == "BinIso20Side" && agent.isSideMeshCombined==false) {
+        if (name == "BinIso20Side" && agent.isSideMeshCombined==false) 
+        {
 
             sameSideObject = GameObject.Find($"{agent.boxIdx}/left");
             oppositeSideObject = GameObject.Find($"{agent.boxIdx}/right");
@@ -228,7 +235,8 @@ public class CombineMesh : MonoBehaviour
             sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
         }
         // GREEN
-        if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) {
+        if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) 
+        {
 
             sameSideObject = GameObject.Find($"{agent.boxIdx}/bottom");
             oppositeSideObject = GameObject.Find($"{agent.boxIdx}/top");
@@ -242,8 +250,8 @@ public class CombineMesh : MonoBehaviour
             oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
             sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
         }
-
      }
+
 
     public void MeshReset()
     {
@@ -294,7 +302,7 @@ public class CombineMesh : MonoBehaviour
         parent.transform.position = Vector3.zero;
         parent.transform.rotation = Quaternion.identity;
 
-         for (int i = 0; i < meshList.Length; i++)
+        for (int i = 0; i < meshList.Length; i++)
         {
             // Get the mesh and its transform component
             Mesh mesh = meshList[i].GetComponent<MeshFilter>().mesh;
@@ -324,7 +332,8 @@ public class CombineMesh : MonoBehaviour
         
          // Add mesh fileter if doesn't exist
         parent_mf = parent.gameObject.GetComponent<MeshFilter>();
-        if (!parent_mf)  {
+        if (!parent_mf)
+        {
             parent_mf = parent.gameObject.AddComponent<MeshFilter>();
         }
 
@@ -341,7 +350,8 @@ public class CombineMesh : MonoBehaviour
 
         // Create a mesh collider if doesn't exist
         MeshCollider parent_mc = parent.gameObject.GetComponent<MeshCollider>(); // create parent_mc mesh collider 
-        if (!parent_mc) {
+        if (!parent_mc) 
+        {
             parent_mc = parent.gameObject.AddComponent<MeshCollider>();
             parent_mc.material.bounciness = 0f;
             parent_mc.material.dynamicFriction = 1f;
@@ -349,7 +359,6 @@ public class CombineMesh : MonoBehaviour
         }
         parent_mc.convex = true;
         parent_mc.sharedMesh = parent_mf.mesh; // add the mesh shape (from the parent mesh) to the mesh collider
-
 
         Debug.Log("+++++++++++END OF MESH COMBINER+++++++++++++");
     }

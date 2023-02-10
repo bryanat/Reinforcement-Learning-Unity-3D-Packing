@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Box = Boxes.Box;
 
-// Checks for overlap
+// Physics check for overlap (box unrealistic placement overlapping with another box)
 public class SensorOverlapCollision : MonoBehaviour
 {
     [HideInInspector] public PackerHand agent;
@@ -14,6 +14,8 @@ public class SensorOverlapCollision : MonoBehaviour
         Destroy(gameObject, 3);
     }
 
+
+    // if box 
     void OnCollisionEnter(Collision collision)
     {
         Debug.Log($"CBO {collision.gameObject.name}               |          overlap with side: {name} ");
@@ -22,12 +24,12 @@ public class SensorOverlapCollision : MonoBehaviour
         // for overlap check to work, mesh has to have certain thickness
         if (collision.gameObject.tag == "bin" | collision.gameObject.tag == "pickupbox") 
         {
+            // reset box, through failing passedOverlapCheck flag that agent uses to reset box and pickup a new box when false
             passedOverlapCheck = false;
             //agent.AddReward(-1f);
             //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedOverlapCheck: {passedOverlapCheck}");
             Debug.Log($"CBOx {name} with SensorOverlapCollision script reset due to collision with: {collision.gameObject.name}");
             Destroy(gameObject);
         }         
-    }
-         
+    }  
 }

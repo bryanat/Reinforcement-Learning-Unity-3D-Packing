@@ -29,8 +29,8 @@ public class Box
     public Vector3 boxSize; 
 
     public GameObject gameobjectBox;
-
 }
+
 
 public class Blackbox
 {
@@ -40,9 +40,8 @@ public class Blackbox
     public Vector3 size;
 
     public GameObject gameobjectBlackbox;
-
-
 }
+
 
 [System.Serializable]
 public class BoxSize
@@ -50,10 +49,11 @@ public class BoxSize
     public Vector3 box_size;
 }
 
+
+// Spawns in boxes with sizes from a json file
 public class BoxSpawner : MonoBehaviour 
 {
     [HideInInspector] public static List<Box> boxPool = new List<Box>();
-
 
     // The box area, which will be set manually in the Inspector
     public GameObject boxArea;
@@ -64,9 +64,10 @@ public class BoxSpawner : MonoBehaviour
 
     [HideInInspector] public int idx_counter = 0;
 
+
     public void SetUpBoxes(float size) 
     {
-    // read from file if boxes has not been imported from file
+        // read from file if boxes has not been imported from file
         if (sizes[0].box_size[0]==0) {
             ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes.json");
             // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_412.json");
@@ -110,7 +111,6 @@ public class BoxSpawner : MonoBehaviour
     }
 
 
-
     public Vector3 GetRandomSpawnPos()
     {
         var areaBounds = boxArea.GetComponent<Collider>().bounds;
@@ -121,6 +121,9 @@ public class BoxSpawner : MonoBehaviour
     }
 
 
+    // Read from json file and construct box, then add box to sizes array of boxes
+        // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },
+        // Schema of .json: { "Product_id": 0, "Length": 7.7, "Width": 7.8, "Height": 11.7, "Quantity": 20 },
     public void ReadJson(string filename) 
     {
         using (var inputStream = File.Open(filename, FileMode.Open)) {
@@ -140,15 +143,11 @@ public class BoxSpawner : MonoBehaviour
                 {
                     sizes[idx_counter].box_size = new Vector3(width, height, length);
                     idx_counter++;
-                }
-                
+                }   
             }
-
         }
-        
     }
 }
 
+
 }
-
-
