@@ -16,7 +16,6 @@ using Boxes;
 public class PackerHand : Agent 
 {
     public int packSpeed = 20;
-    public int box_setup_flag;
 
     int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
     //int curriculum_ConfigurationLocal; // local reference of the above
@@ -171,7 +170,7 @@ public class PackerHand : Agent
 
         // Set up boxes
         // flag 1 - read box sizes from json; flag 2- manually create box sizes 
-        boxSpawner.SetUpBoxes(box_setup_flag, m_ResetParams.GetWithDefault("regular_box", 0));
+        boxSpawner.SetUpBoxes(m_ResetParams.GetWithDefault("regular_box", 0));
 
 
         selectedVertex = origin; // refactor to select first vertex
