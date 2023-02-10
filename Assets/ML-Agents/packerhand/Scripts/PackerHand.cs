@@ -43,7 +43,7 @@ public class PackerHand : Agent
     [HideInInspector] public List<Vector3> historicalVerticesLog;
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] public int VertexCount = 0;
-    [HideInInspector] List<int> vertexIndices;
+    [HideInInspector] private List<int> vertexIndices;
     [HideInInspector] public Vector3 boxWorldScale;
     [HideInInspector] public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
     [HideInInspector] public List<Box> boxPool;
@@ -89,7 +89,6 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_y;
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
-
 
 
     public override void Initialize()
@@ -266,7 +265,7 @@ public class PackerHand : Agent
             {
                 Debug.Log("TEBS MAX NO. OF STEPS EXCEEDED ");
             }
-            AddReward(-30f);
+            AddReward(-100f);
             EndEpisode();
             // return;
         }
@@ -343,7 +342,7 @@ public class PackerHand : Agent
                 else
                 {
                     BoxReset("failedPhysicsCheck &&&&&&&&&& restart episode");
-                    AddReward(-30f);
+                    AddReward(-100f);
                     EndEpisode();
                 }
             }
