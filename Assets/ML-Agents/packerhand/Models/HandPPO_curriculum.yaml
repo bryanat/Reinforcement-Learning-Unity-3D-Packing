@@ -30,7 +30,9 @@ behaviors:
       buffer_size: 4096
       learning_rate: 0.001
       beta: 0.005
+      beta_schedule: linear
       epsilon: 0.2
+      epsilon_schedule: linear
       lambd: 0.95
       num_epoch: 6
       learning_rate_schedule: linear
@@ -44,9 +46,13 @@ behaviors:
         gamma: 0.995
         strength: 1.0
     keep_checkpoints: 5
-    max_steps: 30000000
-    time_horizon: 2048
+    checkpoint_interval: 20.000
+    max_steps: 1000000
+    time_horizon: 32
     summary_freq: 5000
+    sequence_length: 64
+    memory_size: 128
+    vis_encode_type: nature_cnn
 
   
   # Add this section
