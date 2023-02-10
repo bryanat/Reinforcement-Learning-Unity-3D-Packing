@@ -2,10 +2,17 @@
     "Items": [
         {
             "Product_id": 0,
-            "Length": 5.825,
-            "Width": 29.45,
-            "Height": 23.85,
-            "Quantity": 8
+            "Length": 7.8,
+            "Width": 7.9,
+            "Height": 11.8,
+            "Quantity": 20
+        },
+        {
+            "Product_id": 1,
+            "Length": 7.8,
+            "Width": 7.9,
+            "Height": 11.8,
+            "Quantity": 25
         }
     ]
 }

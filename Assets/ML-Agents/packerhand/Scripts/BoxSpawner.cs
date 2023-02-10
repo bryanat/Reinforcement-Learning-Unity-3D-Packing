@@ -69,7 +69,7 @@ public class BoxSpawner : MonoBehaviour
         if (flag ==1) {
             if (sizes[0].box_size[0]==0) {
                 ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes.json");
-                // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_test412.json");
+                // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_412.json");
             }
             var idx = 0;
             foreach(BoxSize s in sizes) 
