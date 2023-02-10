@@ -37,7 +37,7 @@ public class CombineMesh : MonoBehaviour
         // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
         // Packerhand.cs  : deals parent box : position (math)
 
-        // Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {name}");
+        Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {name}");
         
         // BLUE
         //Debug.Log($"{name} RRR blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
@@ -46,7 +46,7 @@ public class CombineMesh : MonoBehaviour
         //if (isCollidedBlue == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox"){
             // set mesh property isCollidedBlue to true, used when all three colors are true then combinemeshes
             isCollidedBlue = true;
-            //Debug.Log($"{name}: BCA isCollidedBlue triggered, value of isCollidedBlue: {isCollidedBlue}");
+            Debug.Log($"{name}: BCA isCollidedBlue triggered, value of isCollidedBlue: {isCollidedBlue}");
 
             // get the name of the opposite side using the collision gameObject 
             string blue_opposite_side_name = GetOppositeSide(collision.transform); // back => front
@@ -66,7 +66,7 @@ public class CombineMesh : MonoBehaviour
         {
             // set mesh property isCollidedGreen to true, used when all three colors are true then combinemeshes
             isCollidedGreen = true;
-            //Debug.Log($"{name}: BCA isCollidedGreen triggered, value of isCollidedGreen: {isCollidedGreen}");
+            Debug.Log($"{name}: BCA isCollidedGreen triggered, value of isCollidedGreen: {isCollidedGreen}");
 
             // get the name of the opposite side using the collision gameObject
             string green_opposite_side_name = GetOppositeSide(collision.transform); // bottom => top
@@ -88,7 +88,7 @@ public class CombineMesh : MonoBehaviour
             // set mesh property isCollidedRed to true, used when all three colors are true then combinemeshes
             isCollidedRed = true;
 
-            //Debug.Log($"{name}: BCA isCollidedRed triggered, value of isCollidedRed: {isCollidedRed}");
+            Debug.Log($"{name}: BCA isCollidedRed triggered, value of isCollidedRed: {isCollidedRed}");
 
             // get the name of the opposite side using the collision gameObject // right
             string red_opposite_side_name = GetOppositeSide(collision.transform); // left => right
@@ -104,7 +104,7 @@ public class CombineMesh : MonoBehaviour
 
         // if all three meshes have contact, then allow combining meshes 
         // only entered for the last one mesh 
-        if (binBottom.GetComponent<CombineMesh>().isCollidedGreen && binBack.GetComponent<CombineMesh>().isCollidedBlue && binSide.GetComponent<CombineMesh>().isCollidedRed)
+        if (binBottom.GetComponent<CombineMesh>().isCollidedGreen & binBack.GetComponent<CombineMesh>().isCollidedBlue & binSide.GetComponent<CombineMesh>().isCollidedRed)
         {
         
             // BLUE

@@ -173,7 +173,7 @@ public class PackerHand : Agent
     {
 
         // Add Bin size
-        sensor.AddObservation(binArea.transform.localScale);
+        sensor.AddObservation(current_bin_volume);
 
         // array of all boxes
         foreach (Box box in boxPool) 
@@ -217,6 +217,11 @@ public class PackerHand : Agent
     {
         foreach (int vertexIdx in vertexIndices) {
             actionMask.SetActionEnabled(0, vertexIdx, false);
+        }
+
+        foreach (int boxIdx in organizedBoxes)
+        {
+            actionMask.SetActionEnabled(1, boxIdx, false);
         }
     }
 
@@ -265,7 +270,6 @@ public class PackerHand : Agent
             {
                 Debug.Log("TEBS MAX NO. OF STEPS EXCEEDED ");
             }
-            AddReward(-100f);
             EndEpisode();
             // return;
         }
@@ -304,9 +308,9 @@ public class PackerHand : Agent
             //UpdateVerticesList();
             // both vertices array and vertices list are used to find black boxes
             UpdateBlackBox();
-            AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
+            AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
             //Debug.Log($"TBV total bin vol: {total_bin_volume}");
             Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
     }
@@ -476,7 +480,7 @@ public class PackerHand : Agent
             if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
                 // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
                 // Vector3 scaled_continous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
-                Vector3 scaled_continous_vertex = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 3), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 3), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 3));
+                Vector3 scaled_continous_vertex = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
                 Debug.Log($"VACx historicalVerticesList.Exists(element => element == scaled_continous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continous_vertex) == false} | scaled_continous_vertex: {scaled_continous_vertex} ");
                 if ( historicalVerticesLog.Exists(element => element == scaled_continous_vertex) == false )
                 {
