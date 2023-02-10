@@ -38,6 +38,7 @@ public class PackerHand : Agent
     public int boxIdx; // box selected from box pool
     public Vector3 rotation; // Rotation of box inside bin
     public Vector3 selectedVertex; // Vertex of box inside bin
+    public List<Vector3> tripoints_list; ///////////////// DELETE ME /////////////////////
     public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] public int VertexCount = 0;
@@ -86,6 +87,8 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_y;
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
+
+    public List<Vector3> historicalVerticesLog;
 
 
     public float binscale_x;
@@ -154,6 +157,8 @@ public class PackerHand : Agent
 
         // Reset agent and rewards
         SetResetParameters();
+
+        historicalVerticesLog.Clear();
 
         // Picks which curriculum to train
         curriculum_ConfigurationGlobal = 2;
@@ -437,46 +442,6 @@ public class PackerHand : Agent
 
     void UpdateVerticesArray() 
     {
-        List<Vector3> tripoints_list = new List<Vector3>();
-        var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
-        var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
-        var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
-
-        // comment out the 4 lines below if want only 3 vertices
-        // var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
-        // var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
-        // var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
-        // var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
-
-
-        tripoints_list.Add(tripoint_redx);   
-        tripoints_list.Add(tripoint_greeny);
-        tripoints_list.Add(tripoint_bluez);
-
-        // comment out the 4 lines below if want only 3 vertices
-        // tripoints_list.Add(tripoint_xy);
-        // tripoints_list.Add(tripoint_xyz);
-        // tripoints_list.Add(tripoint_xz);
-        // tripoints_list.Add(tripoint_yz);
-        
-        for (int idx = 0; idx<tripoints_list.Count(); idx++) 
-        {
-            Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
-            if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
-            if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
-            if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
-                Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
-                // add tripoint to vertices array
-                // verticesArray[VertexCount] = tripoints_list[idx];
-                Vector3 scaled_continous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
-                // Add scaled tripoint_vertex to verticesArray
-                verticesArray[VertexCount] = scaled_continous_vertex;
-                VertexCount ++;
-                Debug.Log($"VERTEX COUNT IS {VertexCount}");
-            }
-            }
-            }
-        }
 
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
         // only removed when a box is successfully placed, if box fails physics test, selected vertex will not be removed
@@ -486,6 +451,117 @@ public class PackerHand : Agent
                 verticesArray[selectedVertexIdx] = new Vector3(0, 0, 0);
             }
         }
+
+
+        tripoints_list = new List<Vector3>();
+        var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
+        var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
+        var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
+
+        tripoints_list.Add(tripoint_redx);   
+        tripoints_list.Add(tripoint_greeny);
+        tripoints_list.Add(tripoint_bluez);
+
+        // comment out the 4 lines below if want only 3 vertices
+        // var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
+        // var tripoint_xyz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_xz = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z);
+        // var tripoint_yz = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z+boxWorldScale.z);
+
+        // comment out the 4 lines below if want only 3 vertices
+        // tripoints_list.Add(tripoint_xy);
+        // tripoints_list.Add(tripoint_xyz);
+        // tripoints_list.Add(tripoint_xz);
+        // tripoints_list.Add(tripoint_yz);
+        
+
+
+
+
+        ///////////////////////////////////
+
+        // // purpose of split in 3: only need to compare tripoint_redx to sideMeshVertices (1/3 = n complexity) instead of tripoint_redx to all 3 meshes (3/3 = 3n complexity)
+        // bool is_tripoint_redx_sameAsVertex = false;
+        // bool is_tripoint_greeny_sameAsVertex = false;
+        // bool is_tripoint_bluez_sameAsVertex = false;
+
+        // // RED / X / SIDE-LEFTRIGHT
+        // // loop over all vertexes in tripoints corresponding mesh first to check that tripoint is not an existing vertex from mf_side.mesh.vertices (which would be a bad stability score vertex)
+        // foreach ( Vector3 vertex in verticesArray)
+        // {
+        //     // stateflag is_tripoint_redx_sameAsVertex set to true will prevent tripoint being added to tripoint_list since its an existing vertex from mf_side.mesh.vertices
+        //     if (tripoint_redx == vertex){
+        //         is_tripoint_redx_sameAsVertex = true;
+        //         break;
+        //     }
+        // }
+        // // if tripoint is not a shared vertex point add tripoint to list (effectively, creating an illegal tripoint and bad stability score placement)
+        // if (!is_tripoint_redx_sameAsVertex){
+        //     tripoints_list.Add(tripoint_redx);
+        // }
+
+        // // GREEN / Y / BOTTOM-TOP
+        // foreach ( Vector3 vertex in verticesArray)
+        // {
+        //     if (tripoint_greeny == vertex){
+        //         is_tripoint_greeny_sameAsVertex = true;
+        //         break;
+        //     }
+        // }
+        // if (!is_tripoint_greeny_sameAsVertex){
+        //     tripoints_list.Add(tripoint_greeny);
+        // }
+
+        // // BLUE / Z / BACK-FRONT
+        // foreach ( Vector3 vertex in verticesArray)
+        // {
+        //     if (tripoint_bluez == vertex){
+        //         is_tripoint_bluez_sameAsVertex = true;
+        //         break;
+        //     }
+        // }
+        // if (!is_tripoint_bluez_sameAsVertex){
+        //     tripoints_list.Add(tripoint_bluez);
+        // }
+
+
+
+
+
+    
+
+        //////////////////////////
+
+        for (int idx = 0; idx<tripoints_list.Count(); idx++) 
+        {
+            Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
+            if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
+            if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
+            if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
+                // only if verticesArray doesnt already contain the tripoint, add it to the verticesArray
+                // if ( verticesArray.Contains<Vector3>(tripoints_list[idx]) == false )
+                // Vector3 scaled_continous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
+                Vector3 scaled_continous_vertex = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 3), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 3), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 3));
+                Debug.Log($"VACx historicalVerticesList.Exists(element => element == scaled_continous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continous_vertex) == false} | scaled_continous_vertex: {scaled_continous_vertex} ");
+                if ( historicalVerticesLog.Exists(element => element == scaled_continous_vertex) == false )
+                {
+                    Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
+                    // add tripoint to vertices array
+                    // verticesArray[VertexCount] = tripoints_list[idx];
+                    // Add scaled tripoint_vertex to verticesArray
+                    verticesArray[VertexCount] = scaled_continous_vertex;
+                    historicalVerticesLog.Add(scaled_continous_vertex);
+                    VertexCount ++;
+                    Debug.Log($"VERTEX COUNT IS {VertexCount}");
+
+                    // also add to historicCerticesArray and Array.Exists vs historicalVerticesArray
+                }
+            }
+            }
+            }
+        }
+
+        
 
     }
 

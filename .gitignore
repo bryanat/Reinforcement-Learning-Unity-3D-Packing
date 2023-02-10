@@ -22,8 +22,6 @@ ml-agents-envs/
 *.cfg
 conftest.py
 
-!Boxes.json
-
 # Unity demo files
 *.demo
 
