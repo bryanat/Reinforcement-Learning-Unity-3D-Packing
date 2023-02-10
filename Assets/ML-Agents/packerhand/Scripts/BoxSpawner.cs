@@ -54,6 +54,7 @@ public class BoxSpawner : MonoBehaviour
 {
     [HideInInspector] public static List<Box> boxPool = new List<Box>();
 
+
     // The box area, which will be set manually in the Inspector
     public GameObject boxArea;
     
