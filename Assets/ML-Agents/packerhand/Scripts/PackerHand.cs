@@ -38,15 +38,14 @@ public class PackerHand : Agent
     public int boxIdx; // box selected from box pool
     public Vector3 rotation; // Rotation of box inside bin
     public Vector3 selectedVertex; // Vertex of box inside bin
-    public List<Vector3> tripoints_list; ///////////////// DELETE ME /////////////////////
     public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
+    public List<Box> boxPool; // space: num boxes
     [HideInInspector] public List<Vector3> historicalVerticesLog;
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] public int VertexCount = 0;
     [HideInInspector] private List<int> vertexIndices;
     [HideInInspector] public Vector3 boxWorldScale;
     [HideInInspector] public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
-    [HideInInspector] public List<Box> boxPool;
     [HideInInspector] public List<Blackbox> blackboxPool  = new List<Blackbox>();
 
     //public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
@@ -151,8 +150,6 @@ public class PackerHand : Agent
         // Reset agent and rewards
         SetResetParameters();
 
-        historicalVerticesLog.Clear();
-
         // Picks which curriculum to train
         curriculum_ConfigurationGlobal = 2;
         //curriculum_ConfigurationLocal = 2; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
@@ -235,7 +232,6 @@ public class PackerHand : Agent
 
         if (isBlackboxUpdated && isVertexSelected == false) 
         {
-            //SelectVertex(); 
             SelectVertex(discreteActions[++j]);
             //SelectBlackboxVertex();
         }
@@ -440,17 +436,7 @@ public class PackerHand : Agent
     void UpdateVerticesArray() 
     {
 
-        // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        // only removed when a box is successfully placed, if box fails physics test, selected vertex will not be removed
-        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
-            if (selectedVertexIdx != -1)
-            {
-                verticesArray[selectedVertexIdx] = new Vector3(0, 0, 0);
-            }
-        }
-
-
-        tripoints_list = new List<Vector3>();
+        List<Vector3> tripoints_list = new List<Vector3>();
         var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
         var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
         var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
@@ -576,9 +562,6 @@ public class PackerHand : Agent
         // Mathf.Clamp(action_selectVertex[1], -1, 1);
         // Mathf.Clamp(action_selectVertex[2], -1, 1);
 
-
-
-
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
 
         selectedVertexIdx = action_SelectedVertex;
@@ -687,19 +670,22 @@ public class PackerHand : Agent
     /// <summary>
     /// Agent selects a target box
     ///</summary>
-    public void SelectBox(int n) 
+    public void SelectBox(int action_SelectedBox) 
     {
-        // Check if a box has already been selected
-        if (!organizedBoxes.Contains(n) && n < boxPool.Count)
-        {
-            boxIdx = n;
-            Debug.Log($"Selected Box boxIdx: {boxIdx}");
-            targetBox = boxPool[boxIdx].rb.transform;
-            // Add box to list so it won't be selected again
-            organizedBoxes.Add(boxIdx);
-            Debug.Log($"ORG ORGANIZED BOXES LIST COUNT IS: {organizedBoxes.Count}");
-            isBoxSelected = true;
+        if (boxPool[action_SelectedBox].boxSize == new Vector3(0, 0, 0))
+        {      
+            isBoxSelected = false; 
+            //AddReward(-1f);
+            // Debug.Log($"REWARD NEGATIVE SELECTED ORGANIZED BOX!!! Total reward: {GetCumulativeReward()}");
+            return; // to end function call
         }
+        // Check if a box has already been selected
+        boxIdx = action_SelectedBox;
+        Debug.Log($"Selected Box boxIdx: {boxIdx}");
+        targetBox = boxPool[boxIdx].rb.transform;
+        // Add box to organized list so action idx can be masked
+        organizedBoxes.Add(boxIdx);
+        isBoxSelected = true;
     }
 
 
@@ -1109,6 +1095,21 @@ public class PackerHand : Agent
     }
     public void StateReset() 
     {
+        // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
+        // remove consumed boxIdx from boxPool (since the same box cannot be selected again)
+        // only removed when a box is successfully placed, if box fails physics test, selected vertex and box idx will not be removed
+        // conditional check can be removed if failing physics test = end of episode
+        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) {
+            if (selectedVertexIdx != -1)
+            {
+                verticesArray[selectedVertexIdx] = new Vector3(0, 0, 0);
+                
+            }
+            if (boxIdx!=-2)
+            {
+                boxPool[boxIdx].boxSize = new Vector3(0, 0, 0);
+            }
+        }
         isBlackboxUpdated = false;
         isVertexSelected = false;
         isBoxSelected = false;
@@ -1117,7 +1118,7 @@ public class PackerHand : Agent
         isDroppedoff = false;
         if (targetBin!=null)
         {
-        DestroyImmediate(targetBin.gameObject);
+            DestroyImmediate(targetBin.gameObject);
         }
         targetBox = null;
         outerbinfront.tag = "binopening";
@@ -1184,6 +1185,7 @@ public class PackerHand : Agent
         backMeshVertices.Clear();
         sideMeshVertices.Clear();
         bottomMeshVertices.Clear();
+        historicalVerticesLog.Clear();
         
         // Reset vertex count
         VertexCount = 0;
