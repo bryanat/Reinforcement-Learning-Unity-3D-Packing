@@ -335,14 +335,14 @@ public class PackerHand : Agent
                     // add surface area reward
                     box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
                     percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
-                    AddReward(percent_contact_surface_area*20f);
-                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/box_surface_area*20f} reward from surface area");
+                    AddReward(percent_contact_surface_area*100f);
+                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/box_surface_area*100f} reward from surface area");
                     DropoffBox();
                 }
                 else
                 {
                     BoxReset("failedPhysicsCheck &&&&&&&&&& restart episode");
-                    AddReward(-100f);
+                    AddReward(-500f);
                     EndEpisode();
                 }
             }
