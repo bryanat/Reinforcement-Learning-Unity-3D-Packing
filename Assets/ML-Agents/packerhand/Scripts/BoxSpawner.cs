@@ -547,7 +547,7 @@ public class BoxSpawner : MonoBehaviour
                  Debug.Log($"JSON CONTAINER LENGTH: {length}");
                 for (int n = 0; n<quantity; n++)
                 {
-                    sizes[idx_counter].box_size = new Vector3(length, width, height);
+                    sizes[idx_counter].box_size = new Vector3(width, height, length);
                     idx_counter++;
                 }
                 
