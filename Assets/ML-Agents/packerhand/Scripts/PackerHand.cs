@@ -326,10 +326,16 @@ public class PackerHand : Agent
             //UpdateVerticesList();
             // both vertices array and vertices list are used to find black boxes
             UpdateBlackBox();
+
+            // Add surface area reward
+            box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+            percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
+            AddReward(percent_contact_surface_area*50f);
+            Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/box_surface_area*10f} reward from surface area");
+            // Add volume reward
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
             AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
-            //Debug.Log($"TBV total bin vol: {total_bin_volume}");
             Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
         }
 
@@ -354,18 +360,13 @@ public class PackerHand : Agent
             {
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
-                    // add surface area reward
-                    box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-                    percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
-                    AddReward(percent_contact_surface_area*50f);
-                    Debug.Log($"RWDSA {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/box_surface_area*10f} reward from surface area");
                     DropoffBox();
                 }
                 else
                 {
-                    BoxReset("failedPhysicsCheck");
+                    //BoxReset("failedPhysicsCheck");
                     AddReward(-100f);
-                    //EndEpisode();
+                    EndEpisode();
                 }
             }
         }
@@ -489,14 +490,16 @@ public class PackerHand : Agent
             if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
                 // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
                 // Vector3 scaled_continuous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
-                Vector3 scaled_continuous_vertex = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 2), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 2), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 2));
-                Debug.Log($"VACx historicalVerticesList.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
-                if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
+                //Vector3  = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
+                Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
+                Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
+                Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
+                if ( historicalVerticesLog.Exists(element => element == rounded_scaled_vertex) == false )
                 {
                     Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
                     // Add scaled tripoint_vertex to verticesArray
                     verticesArray[VertexCount] = scaled_continuous_vertex;
-                    historicalVerticesLog.Add(scaled_continuous_vertex);
+                    historicalVerticesLog.Add(rounded_scaled_vertex);
                     VertexCount ++;
                     Debug.Log($"VERTEX COUNT IS {VertexCount}");
 
@@ -586,7 +589,6 @@ public class PackerHand : Agent
 
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
 
-        selectedVertexIdx = action_SelectedVertex;
 
         // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
         if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
@@ -600,6 +602,7 @@ public class PackerHand : Agent
         }
 
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
+        selectedVertexIdx = action_SelectedVertex;
         var unscaled_selectedVertex = verticesArray[action_SelectedVertex];
         selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
@@ -676,7 +679,7 @@ public class PackerHand : Agent
         GameObject testBoxChild = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
-        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.2f), (boxWorldScale.y - 0.2f), (boxWorldScale.z - 0.2f));
+        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.5f), (boxWorldScale.y - 0.5f), (boxWorldScale.z - 0.5f));
         testBoxChild.transform.position = testPosition;
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
@@ -694,7 +697,7 @@ public class PackerHand : Agent
     ///</summary>
     public void SelectBox(int action_SelectedBox) 
     {
-        Debug.Log($"SBP boxPool count is: {boxPool.Count()}, action_selectedbox is {action_SelectedBox}");
+        Debug.Log($"SBB boxPool count is: {boxPool.Count()}, action_selectedbox is {action_SelectedBox}");
         if (boxPool[action_SelectedBox].boxSize == new Vector3(0, 0, 0))
         {      
             isBoxSelected = false; 
@@ -1130,20 +1133,23 @@ public class PackerHand : Agent
         // remove consumed boxIdx from boxPool (since the same box cannot be selected again)
         // only removed when a box is successfully placed, if box fails physics test, selected vertex and box idx will not be removed
         // conditional check can be removed if failing physics test = end of episode
-        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
+        if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) 
         {
             if (selectedVertexIdx != -1)
             {
+                Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
                 Vector3 default_vertex = Vector3.zero;
                 verticesArray[selectedVertexIdx] = default_vertex;               
             }
             if (boxIdx!=-2)
             {
+                Debug.Log($"SRS SELECTED BOX IDX {boxIdx} RESET");
                 Vector3 default_size = Vector3.zero;
                 boxPool[boxIdx].boxSize = default_size;
             }
             if (rotation!= new Vector3(90, 90, 90))
             {
+                Debug.Log($"SRS SELECTED ROTATION {rotation} RESET");
                 Quaternion default_rotation = Quaternion.identity;
                 default_rotation[3] = 0;
                 boxPool[boxIdx].boxRot = default_rotation;
@@ -1183,9 +1189,7 @@ public class PackerHand : Agent
         // Destroy old boxes
         foreach (Box box in boxPool)
         {
-            Debug.Log($"SRP BEFORE {box.gameobjectBox.name} IS DESTROYED");
             DestroyImmediate(box.gameobjectBox);
-            Debug.Log($"SRP AFTER DESTRUCTION BOX IS: {box.gameobjectBox}");
         }        
         // Reset box pool
         boxPool.Clear();

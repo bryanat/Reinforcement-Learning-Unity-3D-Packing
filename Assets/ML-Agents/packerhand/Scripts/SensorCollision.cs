@@ -33,23 +33,23 @@ public class SensorCollision : MonoBehaviour
         GetHitDistance();
         // get surface area of contact
         GetSurfaceArea(collision.gameObject.name);
-        Debug.Log($"SCS {gameObject.name} distance: {distance}");  
+        Debug.Log($"SCD {name} distance: {distance}");  
         // if fails gravity check, this loop should only be executed once
         if (distance> fallingThreshold) 
         {
-            int failedBoxId = int.Parse(gameObject.name.Substring(7));
+            int failedBoxId = int.Parse(name.Substring(7));
             // reset box, through failing passedGravityCheck flag that agent uses to reset box and pickup a new box when false
             passedGravityCheck = false;
             //agent.AddReward(-1f);
             //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedGravityCheck: {passedGravityCheck}");
-            Debug.Log($"SCS {gameObject.name} FAILED GRAVITY CHECK --- RESET TO SPAWN POSITION");  
+            Debug.Log($"SCS {name} FAILED GRAVITY CHECK");  
             // destroy test box  
             Destroy(gameObject);
         }  
         else 
         {
             passedGravityCheck = true;
-            Debug.Log($"SCS {gameObject.name} PASSED GRAVITY CHECK");  
+            Debug.Log($"SCS {name} PASSED GRAVITY CHECK");  
             Destroy(gameObject);
         }
     }

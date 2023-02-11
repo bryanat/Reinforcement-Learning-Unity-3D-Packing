@@ -11,7 +11,7 @@ public class SensorOverlapCollision : MonoBehaviour
     void Start()
     {
         // This destroys the test box 3 unity seconds after creation 
-        Destroy(gameObject, 2);
+        Destroy(gameObject, 10);
     }
 
 
@@ -28,7 +28,7 @@ public class SensorOverlapCollision : MonoBehaviour
             passedOverlapCheck = false;
             //agent.AddReward(-1f);
             //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedOverlapCheck: {passedOverlapCheck}");
-            Debug.Log($"CBOx {name} with SensorOverlapCollision script reset due to collision with: {collision.gameObject.name}");
+            Debug.Log($"SCS {name} FAILED OVERLAP CHECK");
             Destroy(gameObject);
         }         
     }  
