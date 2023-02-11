@@ -729,6 +729,7 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             rotation = new Vector3(90, 0, 0);
             boxWorldScale = new Vector3(boxWorldScale[0], boxWorldScale[2], boxWorldScale[1]); // actual rotation of object transform
+            boxPool[boxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -756,6 +757,7 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             rotation = new Vector3(0, 90, 0);
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[1], boxWorldScale[0]); // actual rotation of object transform
+            boxPool[boxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -783,6 +785,7 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             rotation = new Vector3(0, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[0], boxWorldScale[2]); // actual rotation of object transform
+            boxPool[boxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -810,6 +813,7 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             rotation = new Vector3(0, 90, 90 ); 
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[0], boxWorldScale[1]); // actual rotation of object transform
+            boxPool[boxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -845,6 +849,7 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             rotation = new Vector3(90, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[2], boxWorldScale[0]); // actual rotation of object transform
+            boxPool[boxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
