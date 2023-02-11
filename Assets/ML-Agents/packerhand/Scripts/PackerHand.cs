@@ -37,14 +37,14 @@ public class PackerHand : Agent
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
-    public int boxIdx; // box selected from box pool
-    public Vector3 rotation; // Rotation of box inside bin
-    public Vector3 selectedVertex; // Vertex of box inside bin
+    public int boxIdx = -2; // Box selected 
+    public Vector3 rotation = new Vector3(90, 90, 90); // Rotation selected
+    public Vector3 selectedVertex; // Vertex selected
     public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
+    [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] private List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> vertexIndices;
     [HideInInspector] public List<Vector3> historicalVerticesLog;
-    [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] public int VertexCount = 0;
     [HideInInspector] public Vector3 boxWorldScale;
     [HideInInspector] public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
@@ -185,14 +185,17 @@ public class PackerHand : Agent
 
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
-        {
-                Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
-                Debug.Log($"XYW SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
-                // Box [x,y,z]/[w,h,l] dimensions added to state vector
-                sensor.AddObservation(scaled_continuous_boxsize);
-                // Box [volume]/[w*h*l] added to state vector
-                sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
-                // sensor.AddObservation(box.boxSize); //add box size to sensor observations
+        {       
+            // Add updated box rotation
+            sensor.AddObservation(box.boxRot);
+            //Debug.Log($"XYY BOX ROTATION IS: {box.boxRot}");
+            Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
+            //Debug.Log($"XYW SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
+            // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
+            sensor.AddObservation(scaled_continuous_boxsize);
+            // Add updated [volume]/[w*h*l] added to state vector
+            sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
+            // sensor.AddObservation(box.boxSize); //add box size to sensor observations
         }
 
         // Add array of vertices (selected vertices are 0s)
@@ -201,7 +204,7 @@ public class PackerHand : Agent
         foreach (Vector3 vertex in verticesArray) 
         {
             Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-            Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
+            //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
             sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
             // sensor.AddObservation(vertex); //add vertices to sensor observations
 
@@ -729,6 +732,7 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             rotation = new Vector3(90, 0, 0);
             boxWorldScale = new Vector3(boxWorldScale[0], boxWorldScale[2], boxWorldScale[1]); // actual rotation of object transform
+            boxPool[boxIdx].boxRot = Quaternion.Euler(rotation);
             boxPool[boxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
@@ -757,6 +761,7 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             rotation = new Vector3(0, 90, 0);
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[1], boxWorldScale[0]); // actual rotation of object transform
+            boxPool[boxIdx].boxRot = Quaternion.Euler(rotation);
             boxPool[boxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
@@ -785,6 +790,7 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             rotation = new Vector3(0, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[0], boxWorldScale[2]); // actual rotation of object transform
+            boxPool[boxIdx].boxRot = Quaternion.Euler(rotation);
             boxPool[boxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
@@ -813,6 +819,7 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             rotation = new Vector3(0, 90, 90 ); 
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[0], boxWorldScale[1]); // actual rotation of object transform
+            boxPool[boxIdx].boxRot = Quaternion.Euler(rotation);
             boxPool[boxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
@@ -849,6 +856,7 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             rotation = new Vector3(90, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[2], boxWorldScale[0]); // actual rotation of object transform
+            boxPool[boxIdx].boxRot = Quaternion.Euler(rotation);
             boxPool[boxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
@@ -1126,12 +1134,19 @@ public class PackerHand : Agent
         {
             if (selectedVertexIdx != -1)
             {
-                verticesArray[selectedVertexIdx] = new Vector3(0, 0, 0);
-                
+                Vector3 default_vertex = Vector3.zero;
+                verticesArray[selectedVertexIdx] = default_vertex;               
             }
             if (boxIdx!=-2)
             {
-                boxPool[boxIdx].boxSize = new Vector3(0, 0, 0);
+                Vector3 default_size = Vector3.zero;
+                boxPool[boxIdx].boxSize = default_size;
+            }
+            if (rotation!= new Vector3(90, 90, 90))
+            {
+                Quaternion default_rotation = Quaternion.identity;
+                default_rotation[3] = 0;
+                boxPool[boxIdx].boxRot = default_rotation;
             }
         }
         isBlackboxUpdated = false;
