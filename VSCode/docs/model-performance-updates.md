@@ -22,8 +22,5 @@ Note the dropoff in cumulative reward at the end was due to a bug, where the age
 ## -10f (orange) vs -50f (blue) reward
 ![](./images/runidfffffffvs123uniqueaaaaaa.png)
 <br>
-When comparing metrics between the model tuned with two separate reward schedules, -10f (orange) and -50f (blue) for a failed box placement, we observe a ....
-
-"increased penalty from -10f to -50f"
-episode length is smaller due to a higher penalty, learning faster
+When comparing metrics between the model tuned with two separate reward schedules, -10f (orange) and -50f (blue) for a failed box placement, we observe a decreased episode length due to a higher penalty, leading to faster initial learning (reaching the same cumulative reward in less timesteps). Conclusions cannot be drawn about later learning after 100k timestep yet.
 
