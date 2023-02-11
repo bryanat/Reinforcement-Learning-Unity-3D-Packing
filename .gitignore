@@ -113,3 +113,6 @@ results/
 
 # forked mlagents tests
 ml-agents/tests/
+
+# hyperparameter.yaml file at root dir for convenience
+HandPPO_curriculum.yaml

@@ -11,7 +11,7 @@ public class SensorOverlapCollision : MonoBehaviour
     void Start()
     {
         // This destroys the test box 3 unity seconds after creation 
-        Destroy(gameObject, 3);
+        Destroy(gameObject, 2);
     }
 
 

@@ -186,7 +186,13 @@ public class PackerHand : Agent
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
         {
-            sensor.AddObservation(box.boxSize); //add box size to sensor observations
+                Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
+                Debug.Log($"XYW SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
+                // Box [x,y,z]/[w,h,l] dimensions added to state vector
+                sensor.AddObservation(scaled_continuous_boxsize);
+                // Box [volume]/[w*h*l] added to state vector
+                sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
+                // sensor.AddObservation(box.boxSize); //add box size to sensor observations
         }
 
         // Add array of vertices (selected vertices are 0s)
@@ -194,13 +200,13 @@ public class PackerHand : Agent
         vertexIndices = new List<int>();
         foreach (Vector3 vertex in verticesArray) 
         {
-            Vector3 scaled_continous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-    
-            //Debug.Log($"XYZ scaled_continous_vertex: {scaled_continous_vertex}");
-            // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continous_vertex: (-0.35, -0.02, -0.18)
-            sensor.AddObservation(vertex); //add vertices to sensor observations
+            Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+            Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
+            sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+            // sensor.AddObservation(vertex); //add vertices to sensor observations
 
-            if ( scaled_continous_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
+            // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
+            if ( scaled_continuous_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
             {
                 vertexIndices.Add(i);
             }
@@ -353,9 +359,9 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    //BoxReset("failedPhysicsCheck &&&&&&&&&& restart episode");
+                    BoxReset("failedPhysicsCheck");
                     AddReward(-100f);
-                    EndEpisode();
+                    // EndEpisode();
                 }
             }
         }
@@ -478,15 +484,15 @@ public class PackerHand : Agent
             if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
             if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
                 // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
-                // Vector3 scaled_continous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
-                Vector3 scaled_continous_vertex = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
-                Debug.Log($"VACx historicalVerticesList.Exists(element => element == scaled_continous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continous_vertex) == false} | scaled_continous_vertex: {scaled_continous_vertex} ");
-                if ( historicalVerticesLog.Exists(element => element == scaled_continous_vertex) == false )
+                // Vector3 scaled_continuous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
+                Vector3 scaled_continuous_vertex = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
+                Debug.Log($"VACx historicalVerticesList.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
+                if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
                 {
                     Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
                     // Add scaled tripoint_vertex to verticesArray
-                    verticesArray[VertexCount] = scaled_continous_vertex;
-                    historicalVerticesLog.Add(scaled_continous_vertex);
+                    verticesArray[VertexCount] = scaled_continuous_vertex;
+                    historicalVerticesLog.Add(scaled_continuous_vertex);
                     VertexCount ++;
                     Debug.Log($"VERTEX COUNT IS {VertexCount}");
 
@@ -930,168 +936,168 @@ public class PackerHand : Agent
     }
 
 
-    // public void ReverseSideNames(int id) 
-    // {
-    //     var childrenList = boxPool[id].rb.gameObject.GetComponentsInChildren<Transform>();
-    //     if (rotation==new Vector3(90, 0, 0))
-    //     {
-    //         foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
-    //         {
-    //             if (child.name=="bottom") 
-    //             {
-    //                 child.name = "front";
-    //             }
-    //             else if (child.name == "back") 
-    //             {
-    //                 child.name = "bottom";
-    //             }
+    public void ReverseSideNames(int id) 
+    {
+        var childrenList = boxPool[id].rb.gameObject.GetComponentsInChildren<Transform>();
+        if (rotation==new Vector3(90, 0, 0))
+        {
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="bottom") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "bottom";
+                }
 
-    //             else if (child.name == "top") 
-    //             {
-    //                 child.name = "back";
-    //             }
-    //             else if (child.name == "front") 
-    //             {
-    //                 child.name = "top";
-    //             }
-    //         }
-    //     }
-    //     else if (rotation == new Vector3(0, 90, 0)) 
-    //     {
-    //         foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
-    //         {
-    //             if (child.name=="left") 
-    //             {
-    //                 child.name = "front";
-    //             }
-    //             else if (child.name == "back") 
-    //             {
-    //                 child.name = "left";
-    //             }
+                else if (child.name == "top") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "top";
+                }
+            }
+        }
+        else if (rotation == new Vector3(0, 90, 0)) 
+        {
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="left") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "left";
+                }
 
-    //             else if (child.name == "right") 
-    //             {
-    //                 child.name = "back";
-    //             }
-    //             else if (child.name == "front") 
-    //             {
-    //                 child.name = "right";
-    //             }
-    //         }        
-    //     }
-    //     else if (rotation == new Vector3(0, 0, 90))
-    //     {
-    //         foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
-    //         {
-    //             if (child.name=="left") 
-    //             {
-    //                 child.name = "bottom";
-    //             }
-    //             else if (child.name == "top") 
-    //             {
-    //                 child.name = "left";
-    //             }
+                else if (child.name == "right") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "right";
+                }
+            }        
+        }
+        else if (rotation == new Vector3(0, 0, 90))
+        {
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="left") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "left";
+                }
 
-    //             else if (child.name == "right") 
-    //             {
-    //                 child.name = "top";
-    //             }
-    //             else if (child.name == "bottom") 
-    //             {
-    //                 child.name = "right";
-    //             }
-    //         }                
-    //     }
-    //     else if (rotation == new Vector3(0, 90, 90)) 
-    //     {
-    //         foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
-    //         {
-    //             if (child.name=="back") 
-    //             {
-    //                 child.name = "bottom";
-    //             }
-    //             else if (child.name == "right") 
-    //             {
-    //                 child.name = "back";
-    //             }
-    //             else if (child.name == "top") 
-    //             {
-    //                 child.name = "left";
-    //             }
-    //             else if (child.name == "front") 
-    //             {
-    //                 child.name = "top";
-    //             }
-    //             else if (child.name == "left") 
-    //             {
-    //                 child.name = "front";
-    //             }
-    //             else if (child.name == "bottom") 
-    //             {
-    //                 child.name = "right";
-    //             }
+                else if (child.name == "right") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "right";
+                }
+            }                
+        }
+        else if (rotation == new Vector3(0, 90, 90)) 
+        {
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="back") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "right") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "left";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "left") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "right";
+                }
 
-    //         }      
-    //     }
-    //     else if (rotation == new Vector3(90, 0, 90))
-    //     {
-    //         foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
-    //         {
-    //            if (child.name=="top") 
-    //             {
-    //                 child.name = "back";
-    //             }
-    //             else if (child.name == "left") 
-    //             {
-    //                 child.name = "bottom";
-    //             }
-    //             else if (child.name == "front") 
-    //             {
-    //                 child.name = "left";
-    //             }
-    //             else if (child.name == "bottom") 
-    //             {
-    //                 child.name = "front";
-    //             }
-    //             else if (child.name == "right") 
-    //             {
-    //                 child.name = "top";
-    //             }
-    //             else if (child.name == "back") 
-    //             {
-    //                 child.name = "right";
-    //             }
-    //          }      
-    //     }
-    // }
+            }      
+        }
+        else if (rotation == new Vector3(90, 0, 90))
+        {
+            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            {
+               if (child.name=="top") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "left") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "left";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "right") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "right";
+                }
+             }      
+        }
+    }
 
 
-    // public void BoxReset(string cause)
-    // {
-    //     if (cause == "failedPhysicsCheck") 
-    //     {
-    //         Debug.Log($"SCS BOX {boxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
-    //         // detach box from agent
-    //         targetBox.parent = null;
-    //         // add back rigidbody and collider
-    //         Rigidbody rb = boxPool[boxIdx].rb;
-    //         BoxCollider bc = boxPool[boxIdx].rb.gameObject.AddComponent<BoxCollider>();
-    //         // not be affected by forces or collisions, position and rotation will be controlled directly through script
-    //         rb.isKinematic = true;
-    //         // reset to starting position
-    //         ReverseSideNames(boxIdx);
-    //         rb.transform.rotation = boxPool[boxIdx].startingRot;
-    //         rb.transform.position = boxPool[boxIdx].startingPos;
-    //         // remove from organized list to be picked again
-    //         organizedBoxes.Remove(boxIdx);
-    //         // reset states
-    //         StateReset();
-    //         // settting isBlackboxUpdated to true allows another vertex to be selected
-    //         isBlackboxUpdated = true;
-    //         // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
-    //         // isVertexSelected = true;
-    //     }
-    // }
+    public void BoxReset(string cause)
+    {
+        if (cause == "failedPhysicsCheck") 
+        {
+            Debug.Log($"SCS BOX {boxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
+            // detach box from agent
+            targetBox.parent = null;
+            // add back rigidbody and collider
+            Rigidbody rb = boxPool[boxIdx].rb;
+            BoxCollider bc = boxPool[boxIdx].rb.gameObject.AddComponent<BoxCollider>();
+            // not be affected by forces or collisions, position and rotation will be controlled directly through script
+            rb.isKinematic = true;
+            // reset to starting position
+            ReverseSideNames(boxIdx);
+            rb.transform.rotation = boxPool[boxIdx].startingRot;
+            rb.transform.position = boxPool[boxIdx].startingPos;
+            // remove from organized list to be picked again
+            organizedBoxes.Remove(boxIdx);
+            // reset states
+            StateReset();
+            // settting isBlackboxUpdated to true allows another vertex to be selected
+            isBlackboxUpdated = true;
+            // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
+            // isVertexSelected = true;
+        }
+    }
 
 
     public void AgentReset() 
