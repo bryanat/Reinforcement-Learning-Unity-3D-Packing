@@ -572,7 +572,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 0}
-  parent_mf: {fileID: 0}
   isCollidedGreen: 0
   isCollidedBlue: 0
   isCollidedRed: 0
@@ -748,7 +747,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 0}
-  parent_mf: {fileID: 0}
   isCollidedGreen: 0
   isCollidedBlue: 0
   isCollidedRed: 0
@@ -1217,7 +1215,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: MaxStep
-      value: 15000
+      value: 5000
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1247,7 +1245,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: packSpeed
-      value: 2
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1442,7 +1440,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 0}
-  parent_mf: {fileID: 0}
   isCollidedGreen: 0
   isCollidedBlue: 0
   isCollidedRed: 0

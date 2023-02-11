@@ -360,9 +360,9 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    BoxReset("failedPhysicsCheck");
+                    //BoxReset("failedPhysicsCheck");
                     AddReward(-100f);
-                    // EndEpisode();
+                    EndEpisode();
                 }
             }
         }
@@ -486,7 +486,7 @@ public class PackerHand : Agent
             if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
                 // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
                 // Vector3 scaled_continuous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
-                Vector3 scaled_continuous_vertex = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
+                Vector3 scaled_continuous_vertex = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 2), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 2), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 2));
                 Debug.Log($"VACx historicalVerticesList.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
                 if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
                 {
