@@ -364,9 +364,9 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    //BoxReset("failedPhysicsCheck");
+                    BoxReset("failedPhysicsCheck");
                     AddReward(-100f);
-                    EndEpisode();
+                    //EndEpisode();
                 }
             }
         }
@@ -1141,19 +1141,13 @@ public class PackerHand : Agent
                 Vector3 default_vertex = Vector3.zero;
                 verticesArray[selectedVertexIdx] = default_vertex;               
             }
-            if (boxIdx!=-2)
-            {
-                Debug.Log($"SRS SELECTED BOX IDX {boxIdx} RESET");
-                Vector3 default_size = Vector3.zero;
-                boxPool[boxIdx].boxSize = default_size;
-            }
-            if (rotation!= new Vector3(90, 90, 90))
-            {
-                Debug.Log($"SRS SELECTED ROTATION {rotation} RESET");
-                Quaternion default_rotation = Quaternion.identity;
-                default_rotation[3] = 0;
-                boxPool[boxIdx].boxRot = default_rotation;
-            }
+            Debug.Log($"SRS SELECTED BOX IDX {boxIdx} RESET");
+            Vector3 default_size = Vector3.zero;
+            boxPool[boxIdx].boxSize = default_size;
+            Debug.Log($"SRS SELECTED ROTATION {rotation} RESET");
+            Quaternion default_rotation = Quaternion.identity;
+            default_rotation[3] = 0;
+            boxPool[boxIdx].boxRot = default_rotation;
         }
         isBlackboxUpdated = false;
         isVertexSelected = false;
@@ -1177,6 +1171,10 @@ public class PackerHand : Agent
         m_BottomMeshScript.MeshReset();
         m_SideMeshScript.MeshReset();
         m_BackMeshScript.MeshReset();
+
+        isBackMeshCombined = false;
+        isSideMeshCombined = false;
+        isBottomMeshCombined = false;
 
         // Reset reward
         SetReward(0f);
