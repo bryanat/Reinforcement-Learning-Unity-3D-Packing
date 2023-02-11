@@ -6,13 +6,6 @@
             "Width": 7.8,
             "Height": 11.7,
             "Quantity": 20
-        },
-        {
-            "Product_id": 1,
-            "Length": 11.7,
-            "Width": 7.7,
-            "Height": 7.8,
-            "Quantity": 25
         }
     ]
 }

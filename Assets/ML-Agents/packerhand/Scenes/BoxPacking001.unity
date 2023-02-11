@@ -572,7 +572,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 0}
-  parent_mf: {fileID: 0}
   isCollidedGreen: 0
   isCollidedBlue: 0
   isCollidedRed: 0
@@ -748,7 +747,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 0}
-  parent_mf: {fileID: 0}
   isCollidedGreen: 0
   isCollidedBlue: 0
   isCollidedRed: 0
@@ -1217,7 +1215,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: MaxStep
-      value: 15000
+      value: 5000
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1277,7 +1275,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: verticesArray.Array.size
-      value: 240
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1317,12 +1315,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 721
+    VectorObservationSize: 341
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
-      BranchSizes: 870000002d00000006000000
-    VectorActionSize: 870000002d00000006000000
+      BranchSizes: 3c0000001400000006000000
+    VectorActionSize: 3c0000001400000006000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -1442,7 +1440,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 0}
-  parent_mf: {fileID: 0}
   isCollidedGreen: 0
   isCollidedBlue: 0
   isCollidedRed: 0
@@ -2158,31 +2155,6 @@ MonoBehaviour:
   boxArea: {fileID: 868628914}
   unitBox: {fileID: 9098616314326610961}
   sizes:
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
