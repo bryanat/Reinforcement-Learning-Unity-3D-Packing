@@ -54,7 +54,7 @@ public class CombineMesh : MonoBehaviour
         // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
         // Packerhand.cs  : deals parent box : position (math)
 
-        Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {name}");
+        //Debug.Log($"ENTERED COLLISION for BOX {collision.gameObject.name} AND MESH {name}");
         
         // BLUE
         //Debug.Log($"{name} RRR blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
@@ -124,7 +124,6 @@ public class CombineMesh : MonoBehaviour
         // only entered for the last one mesh 
         if (m_BottomMeshScript.isCollidedGreen & m_BackMeshScript.isCollidedBlue & m_SideMeshScript.isCollidedRed)
         {
-            Debug.Log("ENTERED SECOND LOOP");
         
             // BLUE
             if (name == "BinIso20Back" && agent.isBackMeshCombined==false) 
@@ -326,13 +325,16 @@ public class CombineMesh : MonoBehaviour
 
         //MeshRenderer parent_mr = gameObject.GetComponent<MeshRenderer>();
         // Set the materials of the new mesh to the materials of the original meshes
-        Material[] materials = new Material[meshList.Length];
+        //Material[] materials = new Material[meshList.Length];
+        Material[] materials = new Material[1];
 
-        for (int i = 0; i < meshList.Length; i++)
-        {
-            materials[i] = meshList[0].GetComponent<Renderer>().material;
-        }
+        // for (int i = 0; i < meshList.Length; i++)
+        // {
+        //     materials[i] = meshList[0].GetComponent<Renderer>().material;
+        // }
 
+        // parent_mr.materials = materials;
+        materials[0] = meshList[0].GetComponent<Renderer>().material;
         parent_mr.materials = materials;
         
          // Add mesh fileter if doesn't exist

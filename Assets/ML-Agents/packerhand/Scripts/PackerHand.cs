@@ -181,12 +181,14 @@ public class PackerHand : Agent
     public override void CollectObservations(VectorSensor sensor) 
     {
         // Add updated bin volume
-        sensor.AddObservation(current_bin_volume);
+        ///sensor.AddObservation(current_bin_volume);
 
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
         {
-            sensor.AddObservation(box.boxSize); //add box size to sensor observations
+            //sensor.AddObservation(box.boxSize); //add box size to sensor observations
+            sensor.AddObservation(new Vector3(box.boxSize.x/binscale_x, box.boxSize.y/binscale_y, box.boxSize.z/binscale_z));
+            Debug.Log($"SCO scaled box size:  {box.boxSize.x/binscale_x}, {box.boxSize.y/binscale_y}, {box.boxSize.z/binscale_z}");
         }
 
         // Add array of vertices (selected vertices are 0s)
@@ -254,7 +256,7 @@ public class PackerHand : Agent
 
         if (isVertexSelected && isBoxSelected==false) 
         {
-            j=0; // set discrete actions incrementor to 0 in case the SelectVertex if loop isnt triggered 
+            j = 0; // set discrete actions incrementor to 0 in case the SelectVertex if loop isnt triggered 
             SelectBox(discreteActions[++j]); 
         }
 
