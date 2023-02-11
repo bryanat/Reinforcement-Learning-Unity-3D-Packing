@@ -364,9 +364,9 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    BoxReset("failedPhysicsCheck");
+                    //BoxReset("failedPhysicsCheck");
                     AddReward(-100f);
-                    //EndEpisode();
+                    EndEpisode();
                 }
             }
         }
