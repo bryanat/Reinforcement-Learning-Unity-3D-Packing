@@ -181,7 +181,7 @@ public class PackerHand : Agent
     public override void CollectObservations(VectorSensor sensor) 
     {
         // Add updated bin volume
-        sensor.AddObservation(current_bin_volume);
+        ///sensor.AddObservation(current_bin_volume);
 
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
@@ -260,6 +260,7 @@ public class PackerHand : Agent
 
         if (isVertexSelected && isBoxSelected==false) 
         {
+            j = 0; // set discrete actions incrementor to 0 in case the SelectVertex if loop isnt triggered 
             SelectBox(discreteActions[++j]); 
         }
 
@@ -690,6 +691,7 @@ public class PackerHand : Agent
     ///</summary>
     public void SelectBox(int action_SelectedBox) 
     {
+        Debug.Log($"SBP boxPool count is: {boxPool.Count()}, action_selectedbox is {action_SelectedBox}");
         if (boxPool[action_SelectedBox].boxSize == new Vector3(0, 0, 0))
         {      
             isBoxSelected = false; 
