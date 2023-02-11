@@ -22,11 +22,15 @@ public class Box
 {
     public Rigidbody rb;
 
-    public Vector3 startingPos;
+    public Vector3 startingPos; // for box reset, constant 
 
-    public Quaternion startingRot;
+    public Quaternion startingRot; // for box reset, constant
 
-    public Vector3 boxSize; 
+    public Vector3 startingSize; // for box reset, constant 
+
+    public Vector3 boxSize; // for sensor, changes after selected action
+
+    public Quaternion boxRot; // for sensor, changes after selected action
 
     public GameObject gameobjectBox;
 }
@@ -98,7 +102,9 @@ public class BoxSpawner : MonoBehaviour
                 rb = box.GetComponent<Rigidbody>(), 
                 startingPos = box.transform.position,
                 startingRot = box.transform.rotation,
+                startingSize = box.transform.localScale,
                 boxSize = box.transform.localScale,
+                boxRot = box.transform.rotation,
                 gameobjectBox = box,
             };
             // Add box to box pool

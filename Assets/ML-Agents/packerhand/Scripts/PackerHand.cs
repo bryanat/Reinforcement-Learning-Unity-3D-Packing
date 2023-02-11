@@ -181,7 +181,7 @@ public class PackerHand : Agent
     public override void CollectObservations(VectorSensor sensor) 
     {
         // Add updated bin volume
-        ///sensor.AddObservation(current_bin_volume);
+        sensor.AddObservation(current_bin_volume);
 
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
@@ -360,9 +360,9 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    //BoxReset("failedPhysicsCheck");
+                    BoxReset("failedPhysicsCheck");
                     AddReward(-100f);
-                    EndEpisode();
+                    //EndEpisode();
                 }
             }
         }
@@ -1092,9 +1092,10 @@ public class PackerHand : Agent
             // not be affected by forces or collisions, position and rotation will be controlled directly through script
             rb.isKinematic = true;
             // reset to starting position
-            ReverseSideNames(boxIdx);
+            rb.transform.localScale = boxPool[boxIdx].startingSize;
             rb.transform.rotation = boxPool[boxIdx].startingRot;
             rb.transform.position = boxPool[boxIdx].startingPos;
+            ReverseSideNames(boxIdx);
             // remove from organized list to be picked again
             organizedBoxes.Remove(boxIdx);
             // reset states
