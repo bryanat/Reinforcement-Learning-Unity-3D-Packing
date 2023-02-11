@@ -254,6 +254,7 @@ public class PackerHand : Agent
 
         if (isVertexSelected && isBoxSelected==false) 
         {
+            j=0; // set discrete actions incrementor to 0 in case the SelectVertex if loop isnt triggered 
             SelectBox(discreteActions[++j]); 
         }
 
@@ -684,6 +685,7 @@ public class PackerHand : Agent
     ///</summary>
     public void SelectBox(int action_SelectedBox) 
     {
+        Debug.Log($"SBP boxPool count is: {boxPool.Count()}, action_selectedbox is {action_SelectedBox}");
         if (boxPool[action_SelectedBox].boxSize == new Vector3(0, 0, 0))
         {      
             isBoxSelected = false; 

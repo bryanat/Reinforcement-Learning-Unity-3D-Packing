@@ -10,7 +10,6 @@ using Box = Boxes.Box;
 public class CombineMesh : MonoBehaviour
 {
     [HideInInspector] public PackerHand agent;
-    [HideInInspector] public MeshFilter parent_mf;
 
     public bool isCollidedGreen = false;
     public bool isCollidedBlue = false;
@@ -26,6 +25,9 @@ public class CombineMesh : MonoBehaviour
     [HideInInspector] CombineMesh m_BackMeshScript; // cache combine mesh script
     [HideInInspector] CombineMesh m_SideMeshScript; // cache combine mesh script
     [HideInInspector] CombineMesh m_BottomMeshScript; // cache combine mesh script
+    [HideInInspector] MeshRenderer parent_mr;
+    [HideInInspector] MeshFilter parent_mf;
+    [HideInInspector] MeshCollider parent_mc;
     // [HideInInspector] MeshFilter [] m_BackMeshFilterList; 
     // [HideInInspector] MeshFilter [] m_SideMeshFilterList; 
     // [HideInInspector] MeshFilter [] m_BottomMeshFilterList; 
@@ -37,6 +39,9 @@ public class CombineMesh : MonoBehaviour
         m_BackMeshScript = binBack.GetComponent<CombineMesh>();
         m_SideMeshScript = binSide.GetComponent<CombineMesh>();
         m_BottomMeshScript = binBottom.GetComponent<CombineMesh>();
+        parent_mr = gameObject.GetComponent<MeshRenderer>();
+        parent_mf = gameObject.GetComponent<MeshFilter>();
+        parent_mc = gameObject.GetComponent<MeshCollider>(); 
         // m_BackMeshFilterList =  binBack.GetComponentsInChildren<MeshFilter>();
         // m_SideMeshFilterList =  binSide.GetComponentsInChildren<MeshFilter>();
         // m_BottomMeshFilterList =  binBottom.GetComponentsInChildren<MeshFilter>();
@@ -128,7 +133,7 @@ public class CombineMesh : MonoBehaviour
                 m_BackMeshScript.oppositeSideObject.transform.parent = binBack.transform;
                 m_BackMeshScript.sameSideObject.transform.parent = binBack.transform;
                 var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
-                MeshCombiner(blueMeshList, binBack);
+                MeshCombiner(blueMeshList);
                 Debug.Log("MMM MESH COMBINED FOR BACK MESH");
                 isCollidedBlue = true;
                 agent.isBackMeshCombined = true;
@@ -143,7 +148,7 @@ public class CombineMesh : MonoBehaviour
                 m_BottomMeshScript.oppositeSideObject.transform.parent = binBottom.transform;
                 m_BottomMeshScript.sameSideObject.transform.parent = binBottom.transform;                
                 var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
-                MeshCombiner(greenMeshList, binBottom);
+                MeshCombiner(greenMeshList);
                 Debug.Log("MMM MESH COMBINED FOR BOTTOM MESH");
                 isCollidedGreen = true;
                 agent.isBottomMeshCombined = true;  
@@ -158,7 +163,7 @@ public class CombineMesh : MonoBehaviour
                 m_SideMeshScript.oppositeSideObject.transform.parent = binSide.transform;
                 m_SideMeshScript.sameSideObject.transform.parent = binSide.transform;
                 var redMeshList = binSide.GetComponentsInChildren<MeshFilter>(); 
-                MeshCombiner(redMeshList, binSide);
+                MeshCombiner(redMeshList);
                 Debug.Log("MMM MESH COMBINED FOR SIDE MESH");
                 isCollidedRed = true;
                 agent.isSideMeshCombined = true;
@@ -197,60 +202,60 @@ public class CombineMesh : MonoBehaviour
     }
 
 
-     public void ForceMeshCombine()
-     {
-        ////// this function forces combine of all meshes even without certain side collision///////
+    //  public void ForceMeshCombine()
+    //  {
+    //     ////// this function forces combine of all meshes even without certain side collision///////
 
-        Debug.Log("FFF MESH FORCED TO COMBINE!!!!");
-        // BLUE
-        if (name == "BinIso20Back" && agent.isBackMeshCombined==false) 
-        {
+    //     Debug.Log("FFF MESH FORCED TO COMBINE!!!!");
+    //     // BLUE
+    //     if (name == "BinIso20Back" && agent.isBackMeshCombined==false) 
+    //     {
 
-            sameSideObject = GameObject.Find($"{agent.boxIdx}/back");
-            oppositeSideObject = GameObject.Find($"{agent.boxIdx}/front");
-            m_BackMeshScript.oppositeSideObject.transform.parent = binBack.transform;
-            m_BackMeshScript.sameSideObject.transform.parent = binBack.transform;
-            var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
-            MeshCombiner(blueMeshList, binBack);
-            Debug.Log("FFF MESH FORCED TO BE COMBINED FOR BACK MESH");
-            isCollidedBlue = false;
-            agent.isBackMeshCombined = true;
-            oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-            sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-        }
-        // RED
-        if (name == "BinIso20Side" && agent.isSideMeshCombined==false) 
-        {
+    //         sameSideObject = GameObject.Find($"{agent.boxIdx}/back");
+    //         oppositeSideObject = GameObject.Find($"{agent.boxIdx}/front");
+    //         m_BackMeshScript.oppositeSideObject.transform.parent = binBack.transform;
+    //         m_BackMeshScript.sameSideObject.transform.parent = binBack.transform;
+    //         var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
+    //         MeshCombiner(blueMeshList);
+    //         Debug.Log("FFF MESH FORCED TO BE COMBINED FOR BACK MESH");
+    //         isCollidedBlue = false;
+    //         agent.isBackMeshCombined = true;
+    //         oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+    //         sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+    //     }
+    //     // RED
+    //     if (name == "BinIso20Side" && agent.isSideMeshCombined==false) 
+    //     {
 
-            sameSideObject = GameObject.Find($"{agent.boxIdx}/left");
-            oppositeSideObject = GameObject.Find($"{agent.boxIdx}/right");
-            m_SideMeshScript.oppositeSideObject.transform.parent = binSide.transform;
-            m_SideMeshScript.sameSideObject.transform.parent = binSide.transform;
-            var redMeshList = binSide.GetComponentsInChildren<MeshFilter>(); 
-            MeshCombiner(redMeshList, binSide);
-            Debug.Log("FFF MESH FORCED TO BE COMBINED FOR SIDE MESH");
-            isCollidedRed = false;
-            agent.isSideMeshCombined = true;
-            oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-            sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-        }
-        // GREEN
-        if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) 
-        {
+    //         sameSideObject = GameObject.Find($"{agent.boxIdx}/left");
+    //         oppositeSideObject = GameObject.Find($"{agent.boxIdx}/right");
+    //         m_SideMeshScript.oppositeSideObject.transform.parent = binSide.transform;
+    //         m_SideMeshScript.sameSideObject.transform.parent = binSide.transform;
+    //         var redMeshList = binSide.GetComponentsInChildren<MeshFilter>(); 
+    //         MeshCombiner(redMeshList);
+    //         Debug.Log("FFF MESH FORCED TO BE COMBINED FOR SIDE MESH");
+    //         isCollidedRed = false;
+    //         agent.isSideMeshCombined = true;
+    //         oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+    //         sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+    //     }
+    //     // GREEN
+    //     if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) 
+    //     {
 
-            sameSideObject = GameObject.Find($"{agent.boxIdx}/bottom");
-            oppositeSideObject = GameObject.Find($"{agent.boxIdx}/top");
-            m_BottomMeshScript.oppositeSideObject.transform.parent = binBottom.transform;
-            m_BottomMeshScript.sameSideObject.transform.parent = binBottom.transform;
-            var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
-            MeshCombiner(greenMeshList, binBottom);
-            Debug.Log("FFF MESH FORCED TO BE COMBINED FOR BOTTOM MESH");
-            isCollidedGreen = false;
-            agent.isBottomMeshCombined = true;
-            oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-            sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-        }
-     }
+    //         sameSideObject = GameObject.Find($"{agent.boxIdx}/bottom");
+    //         oppositeSideObject = GameObject.Find($"{agent.boxIdx}/top");
+    //         m_BottomMeshScript.oppositeSideObject.transform.parent = binBottom.transform;
+    //         m_BottomMeshScript.sameSideObject.transform.parent = binBottom.transform;
+    //         var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
+    //         MeshCombiner(greenMeshList);
+    //         Debug.Log("FFF MESH FORCED TO BE COMBINED FOR BOTTOM MESH");
+    //         isCollidedGreen = false;
+    //         agent.isBottomMeshCombined = true;
+    //         oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+    //         sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
+    //     }
+    //  }
 
 
     public void MeshReset()
@@ -262,8 +267,8 @@ public class CombineMesh : MonoBehaviour
                 DestroyImmediate(binBottom.transform.GetChild(binBottom.transform.childCount-1).gameObject);
             }     
             MeshFilter [] meshList = binBottom.GetComponentsInChildren<MeshFilter>();
-            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
-            MeshCombiner(meshList, binBottom);
+            //Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+            MeshCombiner(meshList);
 
         }
         if (name == "BinIso20Back")
@@ -273,8 +278,8 @@ public class CombineMesh : MonoBehaviour
                 DestroyImmediate(binBack.transform.GetChild(binBack.transform.childCount-1).gameObject);
             }  
             MeshFilter [] meshList = binBack.GetComponentsInChildren<MeshFilter>();
-            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
-            MeshCombiner(meshList, binBack);
+            //Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+            MeshCombiner(meshList);
         }
         if (name == "BinIso20Side")
         {
@@ -283,24 +288,24 @@ public class CombineMesh : MonoBehaviour
                 DestroyImmediate(binSide.transform.GetChild(binSide.transform.childCount-1).gameObject);
             } 
             MeshFilter [] meshList = binSide.GetComponentsInChildren<MeshFilter>();
-            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
-            MeshCombiner(meshList, binSide);
+            //Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+            MeshCombiner(meshList);
         }
 
     }
 
-    public void MeshCombiner(MeshFilter[] meshList, GameObject parent) 
+    public void MeshCombiner(MeshFilter[] meshList) 
     {
         Debug.Log("++++++++++++START OF MESHCOMBINER++++++++++++");
         List<CombineInstance> combine = new List<CombineInstance>();
 
         // save the parent pos+rot
-        Vector3 position = parent.transform.position;
-        Quaternion rotation = parent.transform.rotation;
+        Vector3 position = transform.position;
+        Quaternion rotation = transform.rotation;
 
         // move to the origin for combining
-        parent.transform.position = Vector3.zero;
-        parent.transform.rotation = Quaternion.identity;
+        transform.position = Vector3.zero;
+        transform.rotation = Quaternion.identity;
 
         for (int i = 0; i < meshList.Length; i++)
         {
@@ -319,7 +324,7 @@ public class CombineMesh : MonoBehaviour
             combine.Add(ci);
         }
 
-        MeshRenderer parent_mr = parent.gameObject.GetComponent<MeshRenderer>();
+        //MeshRenderer parent_mr = gameObject.GetComponent<MeshRenderer>();
         // Set the materials of the new mesh to the materials of the original meshes
         Material[] materials = new Material[meshList.Length];
 
@@ -331,10 +336,10 @@ public class CombineMesh : MonoBehaviour
         parent_mr.materials = materials;
         
          // Add mesh fileter if doesn't exist
-        parent_mf = parent.gameObject.GetComponent<MeshFilter>();
+        //parent_mf = gameObject.GetComponent<MeshFilter>();
         if (!parent_mf)
         {
-            parent_mf = parent.gameObject.AddComponent<MeshFilter>();
+            parent_mf = gameObject.AddComponent<MeshFilter>();
         }
 
         // Destroy old mesh and combine new mesh
@@ -345,14 +350,14 @@ public class CombineMesh : MonoBehaviour
         parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
 
         // restore the parent pos+rot
-        parent.transform.position = position;
-        parent.transform.rotation = rotation;
+        transform.position = position;
+        transform.rotation = rotation;
 
         // Create a mesh collider if doesn't exist
-        MeshCollider parent_mc = parent.gameObject.GetComponent<MeshCollider>(); // create parent_mc mesh collider 
+        //MeshCollider parent_mc = gameObject.GetComponent<MeshCollider>(); // create parent_mc mesh collider 
         if (!parent_mc) 
         {
-            parent_mc = parent.gameObject.AddComponent<MeshCollider>();
+            parent_mc = gameObject.AddComponent<MeshCollider>();
             parent_mc.material.bounciness = 0f;
             parent_mc.material.dynamicFriction = 1f;
             parent_mc.material.staticFriction = 1f;
