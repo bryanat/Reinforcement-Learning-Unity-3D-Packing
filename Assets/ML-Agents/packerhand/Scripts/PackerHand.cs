@@ -325,10 +325,11 @@ public class PackerHand : Agent
         {
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
+            Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
             GetComponent<Agent>().RequestDecision();
+            Debug.Log("BEFORE ENVIRONEMTN STEP IN FIRST ROUND");    
             Academy.Instance.EnvironmentStep();
             Debug.Log("AFTER ENVIRONMENT STEP IN FIRST ROUND");
-            OnEpisodeBegin();
         }
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
@@ -402,9 +403,9 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    BoxReset("failedPhysicsCheck");
+                    //BoxReset("failedPhysicsCheck");
                     AddReward(-100f);
-                    //EndEpisode();
+                    EndEpisode();
                 }
             }
         }
@@ -1241,7 +1242,7 @@ public class PackerHand : Agent
         VertexCount = 0;
 
         // Reset states;
-        StateReset();
+        //StateReset();
 
         // Reset agent
         AgentReset();
