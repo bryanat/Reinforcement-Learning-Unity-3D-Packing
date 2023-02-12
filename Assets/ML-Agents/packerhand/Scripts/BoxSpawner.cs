@@ -144,7 +144,7 @@ public class BoxSpawner : MonoBehaviour
                 float width = float.Parse(box.XPathSelectElement("./Width").Value);
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
                 int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
-                 Debug.Log($"JSON CONTAINER LENGTH: {length}");
+                Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
                 for (int n = 0; n<quantity; n++)
                 {
                     sizes[idx_counter].box_size = new Vector3(width, height, length);

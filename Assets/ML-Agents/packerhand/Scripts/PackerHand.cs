@@ -64,6 +64,7 @@ public class PackerHand : Agent
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
 
     public bool isEpisodeStart;
+    public bool isAfterOriginVertexSelected;
     [HideInInspector] public bool isBlackboxUpdated;
     [HideInInspector] public bool isVertexSelected;
     [HideInInspector] public bool isBoxSelected;
@@ -172,13 +173,8 @@ public class PackerHand : Agent
         // Set up boxes
         boxSpawner.SetUpBoxes(m_ResetParams.GetWithDefault("regular_box", 0));
 
-
-        // Add first vertex to verticesArray
-        // verticesArray[0] = origin;
-        // VertexCount++;
-
         selectedVertex = origin; // refactor to select first vertex
-        //isVertexSelected = true;
+        isVertexSelected = true;
         
         //SetResetParameters(); 
 
@@ -214,13 +210,14 @@ public class PackerHand : Agent
         foreach (Vector3 vertex in verticesArray) 
         {   
             Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-            //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
+            Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
             sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
             // sensor.AddObservation(vertex); //add vertices to sensor observations
-
+            Vector3 rounded_scaled_vertex =  new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.z, 2));
             // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
-            if ( scaled_continuous_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
+            if (rounded_scaled_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
             {
+                Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
                 vertexIndices.Add(i);
             }
             i++;
@@ -244,14 +241,17 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        foreach (int vertexIdx in vertexIndices) 
-        {
-            actionMask.SetActionEnabled(0, vertexIdx, false);
+        if (isAfterOriginVertexSelected) {
+            foreach (int vertexIdx in vertexIndices) 
+            {
+                Debug.Log($"MASK VERTEX {vertexIdx}");
+                actionMask.SetActionEnabled(0, vertexIdx, false);
+            }
         }
-
         // box action mask
         foreach (int selectedBoxIdx in organizedBoxes)
         {
+            Debug.Log($"MASK BOX {selectedBoxIdx}");
             actionMask.SetActionEnabled(1, selectedBoxIdx, false);
         }
     }
@@ -269,26 +269,20 @@ public class PackerHand : Agent
         Debug.Log($"ON ACTION RECEIVED ACTION TWO: {discreteActions[2]}");
         //var continuousActions = actionBuffers.ContinuousActions;
 
-        // if (isBlackboxUpdated && isVertexSelected == false) 
+        //if (isBlackboxUpdated && isVertexSelected == false) 
         // {
-            // GetComponent<Agent>().RequestDecision();
-            // Academy.Instance.EnvironmentStep();
-            SelectVertex(discreteActions[++j]);
+            SelectVertex(discreteActions[++j]);   
             //SelectBlackboxVertex();
        // }
 
         // if (isVertexSelected && isBoxSelected==false) 
         // {
-            // GetComponent<Agent>().RequestDecision();
-            // Academy.Instance.EnvironmentStep();
             //j = 0; // set discrete actions incrementor to 0 in case the SelectVertex if loop isnt triggered 
             SelectBox(discreteActions[++j]); 
         // }
 
         // if (isPickedup && isRotationSelected==false) 
         // {
-            // GetComponent<Agent>().RequestDecision();
-            // Academy.Instance.EnvironmentStep();
             //j = 0; // set discrete actions incrementor to 0 in case the SelectBox if loop isnt triggered 
             SelectRotation(discreteActions[++j]);
         // }
@@ -325,6 +319,7 @@ public class PackerHand : Agent
         {
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
+            isAfterOriginVertexSelected = false;
             Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
             GetComponent<Agent>().RequestDecision();
             Debug.Log("BEFORE ENVIRONEMTN STEP IN FIRST ROUND");    
@@ -334,6 +329,7 @@ public class PackerHand : Agent
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
+             isAfterOriginVertexSelected = true;
         // if (isStateReset==false) 
         // {
 
@@ -406,6 +402,7 @@ public class PackerHand : Agent
                     //BoxReset("failedPhysicsCheck");
                     AddReward(-100f);
                     EndEpisode();
+                    isEpisodeStart = true;
                 }
             }
         }
@@ -632,7 +629,6 @@ public class PackerHand : Agent
         // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
         // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
         // {
-           
         //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
         //      // Punish agent for selecting a bad position
         //     //AddReward(-1f);
@@ -1242,7 +1238,7 @@ public class PackerHand : Agent
         VertexCount = 0;
 
         // Reset states;
-        //StateReset();
+        StateReset();
 
         // Reset agent
         AgentReset();
