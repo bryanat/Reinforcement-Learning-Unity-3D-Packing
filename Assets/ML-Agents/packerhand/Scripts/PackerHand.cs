@@ -305,23 +305,17 @@ public class PackerHand : Agent
     {
         if (organizedBoxes.Count == boxPool.Count)
         {
-            //Agent.Done();
+            EndEpisode();
+            isEpisodeStart = true;
+            Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER MAXIMUM STEP REACHED");
         }
         // if reaches max step or packed all boxes, reset episode 
         if (StepCount >= MaxStep) 
         {
-            isEpisodeStart = true;
-            Debug.Log("EPISODE START TRUE AFTER MAXIMUM STEP");
-
-            if (organizedBoxes.Count == boxPool.Count) 
-            {
-                Debug.Log("TEBS FINISHED PACKING ALL BOXES IN ONE EPISODE ");
-            }
-            else 
-            {
-                Debug.Log("TEBS MAX NO. OF STEPS EXCEEDED ");
-            }
+            Debug.Log("TEBS MAX NO. OF STEPS EXCEEDED ");
             EndEpisode();
+            isEpisodeStart = true;
+            Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
         }
         // Initialize curriculum and brain
         if (curriculum_ConfigurationGlobal != -1)
@@ -335,11 +329,11 @@ public class PackerHand : Agent
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
             isAfterOriginVertexSelected = false;
-            Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
+            //Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
             GetComponent<Agent>().RequestDecision();
-            Debug.Log("BEFORE ENVIRONEMTN STEP IN FIRST ROUND");    
+            //Debug.Log("BEFORE ENVIRONEMTN STEP IN FIRST ROUND");    
             Academy.Instance.EnvironmentStep();
-            Debug.Log("AFTER ENVIRONMENT STEP IN FIRST ROUND");
+            //Debug.Log("AFTER ENVIRONMENT STEP IN FIRST ROUND");
         }
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
@@ -386,8 +380,7 @@ public class PackerHand : Agent
            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
-
-            Debug.Log("AFTER ENVIRONMENT STEP IN NEXT ROUND");
+            //Debug.Log("AFTER ENVIRONMENT STEP IN NEXT ROUND");
         }
 
         // if agent selects a box, it should move towards the box
@@ -419,7 +412,7 @@ public class PackerHand : Agent
                     AddReward(-100f);
                     EndEpisode();
                     isEpisodeStart = true;
-                    Debug.Log("EPISODE START TRUE AFTER FAILING PHYSICS TEST");
+                    Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
                 }
             }
         }
