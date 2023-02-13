@@ -44,10 +44,10 @@ public class PackerHand : Agent
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] private List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> vertexIndices;
+    [HideInInspector] public List<int> organizedBoxes; // list of organzed box indices
     [HideInInspector] public List<Vector3> historicalVerticesLog;
     [HideInInspector] public int VertexCount = 0;
-    [HideInInspector] public Vector3 boxWorldScale = Vector3.zero;
-    [HideInInspector] public List<int> organizedBoxes = new List<int>(); // list of organzed box indices
+    [HideInInspector] public Vector3 boxWorldScale;
    // [HideInInspector] public List<Blackbox> blackboxPool  = new List<Blackbox>();
 
     //public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
@@ -63,8 +63,8 @@ public class PackerHand : Agent
     [HideInInspector] public SensorOuterCollision sensorOuterCollision;
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
 
-    public bool isEpisodeStart;
-    public bool isAfterOriginVertexSelected;
+    [HideInInspector] public bool isEpisodeStart;
+    [HideInInspector] public bool isAfterOriginVertexSelected;
     [HideInInspector] public bool isBlackboxUpdated;
     [HideInInspector] public bool isVertexSelected;
     [HideInInspector] public bool isBoxSelected;
@@ -220,7 +220,7 @@ public class PackerHand : Agent
             //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
             sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
             // sensor.AddObservation(vertex); //add vertices to sensor observations
-            Vector3 rounded_scaled_vertex =  new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.z, 2));
+            //Vector3 rounded_scaled_vertex =  new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.z, 2));
             // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
             //if (rounded_scaled_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
             if (vertex == Vector3.zero)
@@ -544,14 +544,14 @@ public class PackerHand : Agent
                 // Vector3 scaled_continuous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
                 //Vector3  = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
                 Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
-                Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
+                //Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
                 Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
-                if ( historicalVerticesLog.Exists(element => element == rounded_scaled_vertex) == false )
+                if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
                 {
                     Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
                     // Add scaled tripoint_vertex to verticesArray
                     verticesArray[VertexCount] = scaled_continuous_vertex;
-                    historicalVerticesLog.Add(rounded_scaled_vertex);
+                    historicalVerticesLog.Add(scaled_continuous_vertex);
                     VertexCount ++;
                     Debug.Log($"VERTEX COUNT IS {VertexCount}");
 
