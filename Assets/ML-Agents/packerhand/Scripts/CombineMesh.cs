@@ -309,7 +309,7 @@ public class CombineMesh : MonoBehaviour
         transform.position = Vector3.zero;
         transform.rotation = Quaternion.identity;
 
-        for (int i = 0; i < meshList.Length; i++)
+        for (int i = 1; i < meshList.Length; i++)
         {
             // Get the mesh and its transform component
             Mesh mesh = meshList[i].GetComponent<MeshFilter>().mesh;

@@ -2,9 +2,9 @@
     "Items": [
         {
             "Product_id": 0,
-            "Length": 1,
-            "Width": 1,
-            "Height": 5,
+            "Length": 5.825,
+            "Width": 29.45,
+            "Height": 23.85,
             "Quantity": 8
         }
     ]

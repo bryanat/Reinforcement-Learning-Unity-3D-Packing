@@ -307,7 +307,7 @@ public class PackerHand : Agent
         {
             EndEpisode();
             isEpisodeStart = true;
-            Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER MAXIMUM STEP REACHED");
+            Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
         }
         // if reaches max step or packed all boxes, reset episode 
         if (StepCount >= MaxStep) 
