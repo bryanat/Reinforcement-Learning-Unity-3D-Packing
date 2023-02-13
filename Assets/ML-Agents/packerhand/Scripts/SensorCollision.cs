@@ -130,7 +130,7 @@ public class SensorCollision : MonoBehaviour
         {
             distance = hit.distance;
             Debug.DrawRay(boxBottomCenter, transform.TransformDirection(Vector3.down), Color.yellow);
-            Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
+            //Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
         }
     }       
 }

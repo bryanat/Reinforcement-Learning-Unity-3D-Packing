@@ -2,8 +2,8 @@
     "Items": [
         {
             "Product_id": 0,
-            "Length": 5,
-            "Width": 5,
+            "Length": 1,
+            "Width": 1,
             "Height": 5,
             "Quantity": 8
         }
