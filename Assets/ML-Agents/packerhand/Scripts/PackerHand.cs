@@ -65,16 +65,16 @@ public class PackerHand : Agent
 
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
-    [HideInInspector] public bool isBlackboxUpdated;
-    [HideInInspector] public bool isVertexSelected;
-    [HideInInspector] public bool isBoxSelected;
-    [HideInInspector] public bool isRotationSelected;
-    [HideInInspector] public bool isPickedup;
-    [HideInInspector] public bool isDroppedoff;
-    [HideInInspector] public bool isStateReset;
-    [HideInInspector] public bool isBottomMeshCombined;
-    [HideInInspector] public bool isSideMeshCombined;
-    [HideInInspector] public bool isBackMeshCombined;
+    //[HideInInspector] public bool isBlackboxUpdated;
+    public bool isVertexSelected;
+    public bool isBoxSelected;
+    public bool isRotationSelected;
+    public bool isPickedup;
+    public bool isDroppedoff;
+    public bool isStateReset;
+    public bool isBottomMeshCombined;
+    public bool isSideMeshCombined;
+    public bool isBackMeshCombined;
     public GameObject binArea; // The bin container, which will be manually selected in the Inspector
     public GameObject binBottom;
     public GameObject binBack;
@@ -207,8 +207,9 @@ public class PackerHand : Agent
             if (box.boxSize == Vector3.zero)
             {
                 organizedBoxes.Add(j);
-                Debug.Log("ORGANIZED BOX LIST SELECTED BOX IS: {j}");
+                Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
             }
+            j++;
         }
 
         // Add array of vertices (selected vertices are 0s)
@@ -563,9 +564,9 @@ public class PackerHand : Agent
     }
 
 
-    public void UpdateBlackBox() 
-    {
-        Debug.Log($"UBX Update BlackboX running");
+    // public void UpdateBlackBox() 
+    // {
+    //     Debug.Log($"UBX Update BlackboX running");
 
         // foreach (Vector3 vertex in verticesArray) 
         // {
@@ -609,8 +610,8 @@ public class PackerHand : Agent
         //         blackboxPool.Add(newBlackbox);
         //     }
         // }
-        isBlackboxUpdated = true;
-    }
+        // isBlackboxUpdated = true;
+    // }
 
     // public void SelectBlackboxVertex() 
     // {
@@ -1163,8 +1164,11 @@ public class PackerHand : Agent
             organizedBoxes.Remove(selectedBoxIdx);
             // reset states
             StateReset();
+            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+            GetComponent<Agent>().RequestDecision();
+            Academy.Instance.EnvironmentStep();
             // settting isBlackboxUpdated to true allows another vertex to be selected
-            isBlackboxUpdated = true;
+            //isBlackboxUpdated = true;
             // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
             // isVertexSelected = true;
         }
