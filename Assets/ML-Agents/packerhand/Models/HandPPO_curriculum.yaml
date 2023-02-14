@@ -48,8 +48,8 @@ behaviors:
     keep_checkpoints: 5
     checkpoint_interval: 20000
     max_steps: 1000000
-    time_horizon: 32
-    summary_freq: 500
+    time_horizon: 128
+    summary_freq: 2000
     # sequence_length: 64
     # memory_size: 128
     # vis_encode_type: nature_cnn
