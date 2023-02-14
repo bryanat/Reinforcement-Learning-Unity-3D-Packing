@@ -73,8 +73,9 @@ public class BoxSpawner : MonoBehaviour
     {
         // read from file if boxes has not been imported from file
         if (sizes[0].box_size[0]==0) {
-            //ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes.json");
-            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_412.json");
+            // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes.json");
+            // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_412.json");
+            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30.json");
         }
         var idx = 0;
         foreach(BoxSize s in sizes) 
@@ -145,10 +146,13 @@ public class BoxSpawner : MonoBehaviour
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
                 int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
                 Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
+                // Debug.Log($"idx_counter A ================ {idx_counter}");
                 for (int n = 0; n<quantity; n++)
                 {
+                    // Debug.Log($"n           B ================ {n}");
                     sizes[idx_counter].box_size = new Vector3(width, height, length);
                     idx_counter++;
+                    // Debug.Log($"idx_counter B ================ {idx_counter}");
                 }   
             }
         }
