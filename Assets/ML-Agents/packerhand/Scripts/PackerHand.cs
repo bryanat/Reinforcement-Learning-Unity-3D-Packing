@@ -325,28 +325,25 @@ public class PackerHand : Agent
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
-        // if (isStateReset==false) 
-        // {
-
             // if a mesh didn't combine, force combine
-            // if (isBackMeshCombined==false)
-            // {
-            //     m_BackMeshScript.ForceMeshCombine();
-            // }
-            // if (isSideMeshCombined == false)
-            // {     
-            //     m_SideMeshScript.ForceMeshCombine();
-            // }
-            // if (isBottomMeshCombined == false)
-            // {     
-            //     m_SideMeshScript.ForceMeshCombine();
-            // }
+            if (isBackMeshCombined==false)
+            {
+                m_BackMeshScript.ForceMeshCombine();
+            }
+            if (isSideMeshCombined == false)
+            {     
+                m_SideMeshScript.ForceMeshCombine();
+            }
+            if (isBottomMeshCombined == false)
+            {     
+                m_SideMeshScript.ForceMeshCombine();
+            }
             StateReset();
 
-            isAfterOriginVertexSelected = true;
+            //isAfterOriginVertexSelected = true;
             // vertices array of tripoints doesn't depend on the trimesh
             // only update vertices list and vertices array when box is placed
-            UpdateVerticesArray();
+            //UpdateVerticesArray();
             // side, back, and bottom vertices lists depends on the trimesh
             // should be commented out if not using blackbox for better performance
             //UpdateVerticesList();
@@ -491,16 +488,16 @@ public class PackerHand : Agent
     // }
 
 
-    void UpdateVerticesArray() 
-    {
-        List<Vector3> tripoints_list = new List<Vector3>();
-        var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
-        var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
-        var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
+    // void UpdateVerticesArray() 
+    // {
+    //     List<Vector3> tripoints_list = new List<Vector3>();
+    //     var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
+    //     var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
+    //     var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
-        tripoints_list.Add(tripoint_redx);   
-        tripoints_list.Add(tripoint_greeny);
-        tripoints_list.Add(tripoint_bluez);
+    //     tripoints_list.Add(tripoint_redx);   
+    //     tripoints_list.Add(tripoint_greeny);
+    //     tripoints_list.Add(tripoint_bluez);
 
         // comment out the 4 lines below if want only 3 vertices
         // var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
@@ -515,33 +512,33 @@ public class PackerHand : Agent
         // tripoints_list.Add(tripoint_yz);
     
 
-        for (int idx = 0; idx<tripoints_list.Count(); idx++) 
-        {
-            Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
-            if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
-            if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
-            if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
-                // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
-                // Vector3 scaled_continuous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
-                //Vector3  = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
-                Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
-                //Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
-                Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
-                if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
-                {
-                    Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
-                    // Add scaled tripoint_vertex to verticesArray
-                    verticesArray[VertexCount] = scaled_continuous_vertex;
-                    historicalVerticesLog.Add(scaled_continuous_vertex);
-                    VertexCount ++;
-                    Debug.Log($"VERTEX COUNT IS {VertexCount}");
+    //     for (int idx = 0; idx<tripoints_list.Count(); idx++) 
+    //     {
+    //         Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
+    //         if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
+    //         if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
+    //         if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
+    //             // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
+    //             // Vector3 scaled_continuous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
+    //             //Vector3  = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
+    //             Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
+    //             //Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
+    //             Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
+    //             if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
+    //             {
+    //                 Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
+    //                 // Add scaled tripoint_vertex to verticesArray
+    //                 verticesArray[VertexCount] = scaled_continuous_vertex;
+    //                 historicalVerticesLog.Add(scaled_continuous_vertex);
+    //                 VertexCount ++;
+    //                 Debug.Log($"VERTEX COUNT IS {VertexCount}");
 
-                }
-            }
-            }
-            }
-        }
-    }
+    //             }
+    //         }
+    //         }
+    //         }
+    //     }
+    // }
 
 
     // public void UpdateBlackBox() 
@@ -1192,13 +1189,13 @@ public class PackerHand : Agent
         if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) 
         {
             //if (selectedVertexIdx != -1)
-            if (isAfterOriginVertexSelected)
-            {
-                Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
-                Vector3 default_vertex = Vector3.zero;
-                verticesArray[selectedVertexIdx] = default_vertex;               
-            }
-            Debug.Log($"SRS SELECTED BOX IDX {selectedBoxIdx} RESET");
+            // if (isAfterOriginVertexSelected)
+            // {
+            //     Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
+            //     Vector3 default_vertex = Vector3.zero;
+            //     verticesArray[selectedVertexIdx] = default_vertex;               
+            // }
+            // Debug.Log($"SRS SELECTED BOX IDX {selectedBoxIdx} RESET");
             Vector3 default_size = Vector3.zero;
             boxPool[selectedBoxIdx].boxSize = default_size;
             Debug.Log($"SRS SELECTED ROTATION {selectedRotation} RESET");
