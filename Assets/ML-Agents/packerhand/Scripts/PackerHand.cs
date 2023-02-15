@@ -173,8 +173,8 @@ public class PackerHand : Agent
         // Set up boxes
         boxSpawner.SetUpBoxes(m_ResetParams.GetWithDefault("regular_box", 0));
 
-        selectedVertex = origin; // refactor to select first vertex
-        isVertexSelected = true;
+        //selectedVertex = origin; // refactor to select first vertex
+        //isVertexSelected = true;
         
         //SetResetParameters(); 
 
@@ -213,24 +213,24 @@ public class PackerHand : Agent
         }
 
         // Add array of vertices (selected vertices are 0s)
-        int i = 0;
-        vertexIndices = new List<int>();
-        foreach (Vector3 vertex in verticesArray) 
-        {   
-            Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-            //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
-            sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
-            // sensor.AddObservation(vertex); //add vertices to sensor observations
-            //Vector3 rounded_scaled_vertex =  new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.z, 2));
-            // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
-            //if (rounded_scaled_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
-            if (vertex == Vector3.zero)
-            {
-                //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
-                vertexIndices.Add(i);
-            }
-            i++;
-        }
+        // int i = 0;
+        // vertexIndices = new List<int>();
+        // foreach (Vector3 vertex in verticesArray) 
+        // {   
+        //     Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+        //     //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
+        //     sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+        //     // sensor.AddObservation(vertex); //add vertices to sensor observations
+        //     //Vector3 rounded_scaled_vertex =  new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.z, 2));
+        //     // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
+        //     //if (rounded_scaled_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
+        //     if (vertex == Vector3.zero)
+        //     {
+        //         //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
+        //         vertexIndices.Add(i);
+        //     }
+        //     i++;
+        // }
 
         // // array of blackboxes 
         // foreach (Blackbox blackbox in blackboxPool)
@@ -250,18 +250,18 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (isAfterOriginVertexSelected) {
-            foreach (int vertexIdx in vertexIndices) 
-            {
-                //Debug.Log($"MASK VERTEX {vertexIdx}");
-                actionMask.SetActionEnabled(0, vertexIdx, false);
-            }
-        }
+        // if (isAfterOriginVertexSelected) {
+        //     foreach (int vertexIdx in vertexIndices) 
+        //     {
+        //         //Debug.Log($"MASK VERTEX {vertexIdx}");
+        //         actionMask.SetActionEnabled(0, vertexIdx, false);
+        //     }
+        // }
         // box action mask
         foreach (int selectedBoxIdx in organizedBoxes)
         {
             //Debug.Log($"MASK BOX {selectedBoxIdx}");
-            actionMask.SetActionEnabled(1, selectedBoxIdx, false);
+            actionMask.SetActionEnabled(0, selectedBoxIdx, false);
         }
     }
 
@@ -622,7 +622,7 @@ public class PackerHand : Agent
         if (curriculum_ConfigurationLocal==1)
         {
             // fix box scale so box always packs from bottom up
-            float y = boxWorldScale.y * 0.5f + 0.5f;
+            //float y = boxWorldScale.y * 0.5f + 0.5f;
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
             Debug.Log($"SVX Selected VerteX: {selectedVertex}");
         }
@@ -1280,7 +1280,7 @@ public class PackerHand : Agent
         }
         if (n==1) 
         {
-            SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);
+            SetModel(m_RegularBoxBehaviorName, regularBoxBrain);
             Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
         else 
