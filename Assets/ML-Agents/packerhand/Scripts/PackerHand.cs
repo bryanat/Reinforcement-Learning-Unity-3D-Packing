@@ -167,8 +167,8 @@ public class PackerHand : Agent
         SetResetParameters();
 
         // Picks which curriculum to train
-        curriculum_ConfigurationGlobal = 2;
-        curriculum_ConfigurationLocal = 2; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
+        curriculum_ConfigurationGlobal = 1;
+        curriculum_ConfigurationLocal = 1; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
 
         // Set up boxes
         boxSpawner.SetUpBoxes(m_ResetParams.GetWithDefault("regular_box", 0));
@@ -269,32 +269,19 @@ public class PackerHand : Agent
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
         var j = -1;
-        //var i = -1;
+        var i = -1;
 
         var discreteActions = actionBuffers.DiscreteActions;
 
         Debug.Log($"ON ACTION RECEIVED ACTION ZERO: {discreteActions[0]}");
         Debug.Log($"ON ACTION RECEIVED ACTION ONE: {discreteActions[1]}");
-        Debug.Log($"ON ACTION RECEIVED ACTION TWO: {discreteActions[2]}");
-        //var continuousActions = actionBuffers.ContinuousActions;
+        // Debug.Log($"ON ACTION RECEIVED ACTION TWO: {discreteActions[2]}");
+        var continuousActions = actionBuffers.ContinuousActions;
 
-        //if (isBlackboxUpdated && isVertexSelected == false) 
-        // {
-            SelectVertex(discreteActions[++j]);   
-            //SelectBlackboxVertex();
-       // }
-
-        // if (isVertexSelected && isBoxSelected==false) 
-        // {
-            //j = 0; // set discrete actions incrementor to 0 in case the SelectVertex if loop isnt triggered 
-            SelectBox(discreteActions[++j]); 
-        // }
-
-        // if (isPickedup && isRotationSelected==false) 
-        // {
-            //j = 0; // set discrete actions incrementor to 0 in case the SelectBox if loop isnt triggered 
-            SelectRotation(discreteActions[++j]);
-        // }
+        //SelectVertex(discreteActions[++j]);   
+        SelectBox(discreteActions[++j]); 
+        SelectRotation(discreteActions[++j]);
+        SelectContinuousVertex(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
     }
 
 
@@ -627,16 +614,21 @@ public class PackerHand : Agent
     // }
 
 
-    public void SelectContinuousVertex(int action_SelectedVertex_x, int action_SelectedVertex_y, int action_SelectedVertex_z)
+    public void SelectContinuousVertex(float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z)
     {
+        action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
+        action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
+        action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
         if (curriculum_ConfigurationLocal==1)
         {
-            float y = boxWorldScale.y * 0.5f; // fix box scale so box always passes gravity check for first bottom layer of boxes
-            selectedVertex = new Vector3(action_SelectedVertex_x, y, action_SelectedVertex_z);
+            // fix box scale so box always packs from bottom up
+            float y = boxWorldScale.y * 0.5f + 0.5f;
+            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
+            Debug.Log($"SVX Selected VerteX: {selectedVertex}");
         }
         else if (curriculum_ConfigurationLocal==2)
         {
-            selectedVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
         }
         isVertexSelected = true;
     }
