@@ -18,7 +18,7 @@ public class PackerHand : Agent
     public int packSpeed = 20;
 
     int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
-    //int curriculum_ConfigurationLocal; // local reference of the above
+    int curriculum_ConfigurationLocal; // local reference of the above
 
     public NNModel unitBoxBrain;   // Brain to use when all boxes are 1 by 1 by 1
     public NNModel similarBoxBrain;     // Brain to use when boxes are of similar sizes
@@ -168,7 +168,7 @@ public class PackerHand : Agent
 
         // Picks which curriculum to train
         curriculum_ConfigurationGlobal = 2;
-        //curriculum_ConfigurationLocal = 2; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
+        curriculum_ConfigurationLocal = 2; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
 
         // Set up boxes
         boxSpawner.SetUpBoxes(m_ResetParams.GetWithDefault("regular_box", 0));
@@ -625,6 +625,21 @@ public class PackerHand : Agent
     //     isVertexSelected = true;
 
     // }
+
+
+    public void SelectContinuousVertex(int action_SelectedVertex_x, int action_SelectedVertex_y, int action_SelectedVertex_z)
+    {
+        if (curriculum_ConfigurationLocal==1)
+        {
+            float y = boxWorldScale.y * 0.5f; // fix box scale so box always passes gravity check for first bottom layer of boxes
+            selectedVertex = new Vector3(action_SelectedVertex_x, y, action_SelectedVertex_z);
+        }
+        else if (curriculum_ConfigurationLocal==2)
+        {
+            selectedVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+        }
+        isVertexSelected = true;
+    }
 
 
     public void SelectVertex(int action_SelectedVertex) 
