@@ -326,18 +326,21 @@ public class PackerHand : Agent
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
             // if a mesh didn't combine, force combine
-            if (isBackMeshCombined==false)
-            {
-                m_BackMeshScript.ForceMeshCombine();
-            }
-            if (isSideMeshCombined == false)
-            {     
-                m_SideMeshScript.ForceMeshCombine();
-            }
-            if (isBottomMeshCombined == false)
-            {     
-                m_SideMeshScript.ForceMeshCombine();
-            }
+            // if (isBackMeshCombined==false)
+            // {
+            //     Debug.Log("FFF BACK MESH NOT COMBINED, NEED TO BE COMBINED!");
+            //     m_BackMeshScript.ForceMeshCombine();
+            // }
+            // if (isSideMeshCombined == false)
+            // {   
+            //     Debug.Log("FFF SIDE MESH NOT COMBINED, NEED TO BE COMBINED!");
+            //     m_SideMeshScript.ForceMeshCombine();
+            // }
+            // if (isBottomMeshCombined == false)
+            // {    
+            //     Debug.Log("FFF BOTTOM MESH NOT COMBINED, NEED TO BE COMBINED!");
+            //     m_BottomMeshScript.ForceMeshCombine();
+            // }
             StateReset();
 
             //isAfterOriginVertexSelected = true;
@@ -631,35 +634,35 @@ public class PackerHand : Agent
     }
 
 
-    public void SelectVertex(int action_SelectedVertex) 
-    {
-        // Mathf.Clamp(action_selectVertex[0], -1, 1);
-        // Mathf.Clamp(action_selectVertex[1], -1, 1);
-        // Mathf.Clamp(action_selectVertex[2], -1, 1);
+    // public void SelectVertex(int action_SelectedVertex) 
+    // {
+    //     // Mathf.Clamp(action_selectVertex[0], -1, 1);
+    //     // Mathf.Clamp(action_selectVertex[1], -1, 1);
+    //     // Mathf.Clamp(action_selectVertex[2], -1, 1);
 
-        Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
+    //     Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
 
 
-        // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
-        // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
-        // {
-        //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
-        //      // Punish agent for selecting a bad position
-        //     //AddReward(-1f);
-        //     // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
-        //     return; // to end function call
-        // }
+    //     // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
+    //     // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
+    //     // {
+    //     //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
+    //     //      // Punish agent for selecting a bad position
+    //     //     //AddReward(-1f);
+    //     //     // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
+    //     //     return; // to end function call
+    //     // }
 
-        // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
-        selectedVertexIdx = action_SelectedVertex;
-        var unscaled_selectedVertex = verticesArray[action_SelectedVertex];
-        selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
-        Debug.Log($"SVX Selected VerteX: {selectedVertex}");
+    //     // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
+    //     selectedVertexIdx = action_SelectedVertex;
+    //     var unscaled_selectedVertex = verticesArray[action_SelectedVertex];
+    //     selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
+    //     Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
-        isVertexSelected = true;
-        //AddReward(1f);
-        // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
-    }
+    //     isVertexSelected = true;
+    //     //AddReward(1f);
+    //     // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
+    // }
 
 
     public void UpdateBoxPosition() 
