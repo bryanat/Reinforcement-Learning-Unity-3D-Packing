@@ -323,24 +323,9 @@ public class PackerHand : Agent
             //Debug.Log("AFTER ENVIRONMENT STEP IN FIRST ROUND");
         }
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
-        if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
+        if ((isBackMeshCombined & isBottomMeshCombined & isSideMeshCombined) && isStateReset==false) 
         {
-            // if a mesh didn't combine, force combine
-            // if (isBackMeshCombined==false)
-            // {
-            //     Debug.Log("FFF BACK MESH NOT COMBINED, NEED TO BE COMBINED!");
-            //     m_BackMeshScript.ForceMeshCombine();
-            // }
-            // if (isSideMeshCombined == false)
-            // {   
-            //     Debug.Log("FFF SIDE MESH NOT COMBINED, NEED TO BE COMBINED!");
-            //     m_SideMeshScript.ForceMeshCombine();
-            // }
-            // if (isBottomMeshCombined == false)
-            // {    
-            //     Debug.Log("FFF BOTTOM MESH NOT COMBINED, NEED TO BE COMBINED!");
-            //     m_BottomMeshScript.ForceMeshCombine();
-            // }
+
             StateReset();
 
             //isAfterOriginVertexSelected = true;
