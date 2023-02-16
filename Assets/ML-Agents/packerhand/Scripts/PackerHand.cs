@@ -43,7 +43,7 @@ public class PackerHand : Agent
     public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] private List<Box> boxPool; // space: num boxes
-    [HideInInspector] private List<int> vertexIndices;
+    [HideInInspector] private List<int> maskedVertexIndices;
     [HideInInspector] public List<int> organizedBoxes; // list of organzed box indices
     [HideInInspector] public List<Vector3> historicalVerticesLog;
     [HideInInspector] public int VertexCount = 0;
@@ -66,7 +66,7 @@ public class PackerHand : Agent
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
     //[HideInInspector] public bool isBlackboxUpdated;
-    public bool isVertexSelected;
+    // public bool isVertexSelected;
     public bool isBoxSelected;
     public bool isRotationSelected;
     public bool isPickedup;
@@ -92,6 +92,8 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_y;
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
+
+    private bool discreteSolution = false;
 
 
     public override void Initialize()
@@ -173,10 +175,11 @@ public class PackerHand : Agent
         // Set up boxes
         boxSpawner.SetUpBoxes(m_ResetParams.GetWithDefault("regular_box", 0));
 
-        //selectedVertex = origin; // refactor to select first vertex
-        //isVertexSelected = true;
-        
-        //SetResetParameters(); 
+        if(discreteSolution){
+            selectedVertex = origin; // refactor to select first vertex
+            // isVertexSelected = true;
+            //SetResetParameters(); 
+        }        
 
     }
 
@@ -213,24 +216,26 @@ public class PackerHand : Agent
         }
 
         // Add array of vertices (selected vertices are 0s)
-        // int i = 0;
-        // vertexIndices = new List<int>();
-        // foreach (Vector3 vertex in verticesArray) 
-        // {   
-        //     Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-        //     //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
-        //     sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
-        //     // sensor.AddObservation(vertex); //add vertices to sensor observations
-        //     //Vector3 rounded_scaled_vertex =  new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.z, 2));
-        //     // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
-        //     //if (rounded_scaled_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
-        //     if (vertex == Vector3.zero)
-        //     {
-        //         //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
-        //         vertexIndices.Add(i);
-        //     }
-        //     i++;
-        // }
+        if (discreteSolution){
+            int i = 0;
+            maskedVertexIndices = new List<int>();
+            foreach (Vector3 vertex in verticesArray) 
+            {   
+                Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+                //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
+                sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+                // sensor.AddObservation(vertex); //add vertices to sensor observations
+                //Vector3 rounded_scaled_vertex =  new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.z, 2));
+                // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
+                //if (rounded_scaled_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
+                if (vertex == Vector3.zero)
+                {
+                    //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
+                    maskedVertexIndices.Add(i);
+                }
+                i++;
+            }
+        }
 
         // // array of blackboxes 
         // foreach (Blackbox blackbox in blackboxPool)
@@ -250,18 +255,25 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        // if (isAfterOriginVertexSelected) {
-        //     foreach (int vertexIdx in vertexIndices) 
-        //     {
-        //         //Debug.Log($"MASK VERTEX {vertexIdx}");
-        //         actionMask.SetActionEnabled(0, vertexIdx, false);
-        //     }
-        // }
+        if (discreteSolution){
+            if (isAfterOriginVertexSelected) {
+                foreach (int vertexIdx in maskedVertexIndices) 
+                {
+                    //Debug.Log($"MASK VERTEX {vertexIdx}");
+                    actionMask.SetActionEnabled(0, vertexIdx, false);
+                }
+            }
+        }
         // box action mask
         foreach (int selectedBoxIdx in organizedBoxes)
         {
             //Debug.Log($"MASK BOX {selectedBoxIdx}");
-            actionMask.SetActionEnabled(0, selectedBoxIdx, false);
+            if (discreteSolution){
+                actionMask.SetActionEnabled(1, selectedBoxIdx, false);
+            }
+            else {
+                actionMask.SetActionEnabled(0, selectedBoxIdx, false);
+            }
         }
     }
 
@@ -275,13 +287,19 @@ public class PackerHand : Agent
 
         Debug.Log($"ON ACTION RECEIVED ACTION ZERO: {discreteActions[0]}");
         Debug.Log($"ON ACTION RECEIVED ACTION ONE: {discreteActions[1]}");
-        // Debug.Log($"ON ACTION RECEIVED ACTION TWO: {discreteActions[2]}");
-        var continuousActions = actionBuffers.ContinuousActions;
-
-        //SelectVertex(discreteActions[++j]);   
-        SelectBox(discreteActions[++j]); 
-        SelectRotation(discreteActions[++j]);
-        SelectContinuousVertex(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        if (discreteSolution){
+            Debug.Log($"ON ACTION RECEIVED ACTION TWO: {discreteActions[2]}");
+            SelectVertex(discreteActions[++j]);      
+            SelectBox(discreteActions[++j]); 
+            SelectRotation(discreteActions[++j]);
+        }
+        else {
+            var continuousActions = actionBuffers.ContinuousActions;
+        
+            SelectBox(discreteActions[++j]); 
+            SelectRotation(discreteActions[++j]);
+            SelectContinuousVertex(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        }
     }
 
 
@@ -315,7 +333,9 @@ public class PackerHand : Agent
         {
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
-            isAfterOriginVertexSelected = false;
+            if (discreteSolution){ 
+                isAfterOriginVertexSelected = false;
+            }
             //Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
             GetComponent<Agent>().RequestDecision();
             //Debug.Log("BEFORE ENVIRONEMTN STEP IN FIRST ROUND");    
@@ -328,10 +348,13 @@ public class PackerHand : Agent
 
             StateReset();
 
-            //isAfterOriginVertexSelected = true;
-            // vertices array of tripoints doesn't depend on the trimesh
-            // only update vertices list and vertices array when box is placed
-            //UpdateVerticesArray();
+            if (discreteSolution){
+                isAfterOriginVertexSelected = true;
+                // vertices array of tripoints doesn't depend on the trimesh
+                // only update vertices list and vertices array when box is placed
+                UpdateVerticesArray();
+            }
+
             // side, back, and bottom vertices lists depends on the trimesh
             // should be commented out if not using blackbox for better performance
             //UpdateVerticesList();
@@ -476,16 +499,16 @@ public class PackerHand : Agent
     // }
 
 
-    // void UpdateVerticesArray() 
-    // {
-    //     List<Vector3> tripoints_list = new List<Vector3>();
-    //     var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
-    //     var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
-    //     var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
+    void UpdateVerticesArray() 
+    {
+        List<Vector3> tripoints_list = new List<Vector3>();
+        var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
+        var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
+        var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
-    //     tripoints_list.Add(tripoint_redx);   
-    //     tripoints_list.Add(tripoint_greeny);
-    //     tripoints_list.Add(tripoint_bluez);
+        tripoints_list.Add(tripoint_redx);   
+        tripoints_list.Add(tripoint_greeny);
+        tripoints_list.Add(tripoint_bluez);
 
         // comment out the 4 lines below if want only 3 vertices
         // var tripoint_xy = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z);
@@ -500,33 +523,33 @@ public class PackerHand : Agent
         // tripoints_list.Add(tripoint_yz);
     
 
-    //     for (int idx = 0; idx<tripoints_list.Count(); idx++) 
-    //     {
-    //         Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
-    //         if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
-    //         if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
-    //         if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
-    //             // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
-    //             // Vector3 scaled_continuous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
-    //             //Vector3  = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
-    //             Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
-    //             //Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
-    //             Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
-    //             if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
-    //             {
-    //                 Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
-    //                 // Add scaled tripoint_vertex to verticesArray
-    //                 verticesArray[VertexCount] = scaled_continuous_vertex;
-    //                 historicalVerticesLog.Add(scaled_continuous_vertex);
-    //                 VertexCount ++;
-    //                 Debug.Log($"VERTEX COUNT IS {VertexCount}");
+        for (int idx = 0; idx<tripoints_list.Count(); idx++) 
+        {
+            Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
+            if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
+            if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
+            if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
+                // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
+                // Vector3 scaled_continuous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
+                //Vector3  = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
+                Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
+                //Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
+                Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
+                if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
+                {
+                    Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
+                    // Add scaled tripoint_vertex to verticesArray
+                    verticesArray[VertexCount] = scaled_continuous_vertex;
+                    historicalVerticesLog.Add(scaled_continuous_vertex);
+                    VertexCount ++;
+                    Debug.Log($"VERTEX COUNT IS {VertexCount}");
 
-    //             }
-    //         }
-    //         }
-    //         }
-    //     }
-    // }
+                }
+            }
+            }
+            }
+        }
+    }
 
 
     // public void UpdateBlackBox() 
@@ -615,39 +638,39 @@ public class PackerHand : Agent
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
         }
-        isVertexSelected = true;
+        // isVertexSelected = true;
     }
 
 
-    // public void SelectVertex(int action_SelectedVertex) 
-    // {
-    //     // Mathf.Clamp(action_selectVertex[0], -1, 1);
-    //     // Mathf.Clamp(action_selectVertex[1], -1, 1);
-    //     // Mathf.Clamp(action_selectVertex[2], -1, 1);
+    public void SelectVertex(int action_SelectedVertex) 
+    {
+        // Mathf.Clamp(action_selectVertex[0], -1, 1);
+        // Mathf.Clamp(action_selectVertex[1], -1, 1);
+        // Mathf.Clamp(action_selectVertex[2], -1, 1);
 
-    //     Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
+        Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
 
 
-    //     // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
-    //     // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
-    //     // {
-    //     //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
-    //     //      // Punish agent for selecting a bad position
-    //     //     //AddReward(-1f);
-    //     //     // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
-    //     //     return; // to end function call
-    //     // }
+        // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
+        // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
+        // {
+        //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
+        //      // Punish agent for selecting a bad position
+        //     //AddReward(-1f);
+        //     // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
+        //     return; // to end function call
+        // }
 
-    //     // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
-    //     selectedVertexIdx = action_SelectedVertex;
-    //     var unscaled_selectedVertex = verticesArray[action_SelectedVertex];
-    //     selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
-    //     Debug.Log($"SVX Selected VerteX: {selectedVertex}");
+        // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
+        selectedVertexIdx = action_SelectedVertex;
+        var unscaled_selectedVertex = verticesArray[action_SelectedVertex];
+        selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
+        Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
-    //     isVertexSelected = true;
-    //     //AddReward(1f);
-    //     // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
-    // }
+        // isVertexSelected = true;
+        //AddReward(1f);
+        // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
+    }
 
 
     public void UpdateBoxPosition() 
@@ -1128,36 +1151,38 @@ public class PackerHand : Agent
     }
 
 
-    public void BoxReset(string cause)
-    {
-        if (cause == "failedPhysicsCheck") 
-        {
-            Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
-            // detach box from agent
-            targetBox.parent = null;
-            // add back rigidbody and collider
-            Rigidbody rb = boxPool[selectedBoxIdx].rb;
-            BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
-            // not be affected by forces or collisions, position and rotation will be controlled directly through script
-            rb.isKinematic = true;
-            // reset to starting position
-            rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
-            rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
-            rb.transform.position = boxPool[selectedBoxIdx].startingPos;
-            ReverseSideNames(selectedBoxIdx);
-            // remove from organized list to be picked again
-            organizedBoxes.Remove(selectedBoxIdx);
-            // reset states
-            StateReset();
-            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
-            GetComponent<Agent>().RequestDecision();
-            Academy.Instance.EnvironmentStep();
-            // settting isBlackboxUpdated to true allows another vertex to be selected
-            //isBlackboxUpdated = true;
-            // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
-            // isVertexSelected = true;
-        }
-    }
+//     public void BoxReset(string cause)
+//     {
+//         if (cause == "failedPhysicsCheck") 
+//         {
+//             Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
+//             // detach box from agent
+//             targetBox.parent = null;
+//             // add back rigidbody and collider
+//             Rigidbody rb = boxPool[selectedBoxIdx].rb;
+//             BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
+//             // not be affected by forces or collisions, position and rotation will be controlled directly through script
+//             rb.isKinematic = true;
+//             // reset to starting position
+//             rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
+//             rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
+//             rb.transform.position = boxPool[selectedBoxIdx].startingPos;
+//             ReverseSideNames(selectedBoxIdx);
+//             // remove from organized list to be picked again
+// // to "be picked again" means to be added back to the boxPool??
+//             organizedBoxes.Remove(selectedBoxIdx);
+//             // reset states
+//             StateReset();
+//             // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+// // Why is the DecisionRequester() still active in the Hand gameObject?
+//             GetComponent<Agent>().RequestDecision();
+//             Academy.Instance.EnvironmentStep();
+//             // settting isBlackboxUpdated to true allows another vertex to be selected
+//             //isBlackboxUpdated = true;
+//             // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
+//             // isVertexSelected = true;
+//         }
+//     }
 
 
     public void AgentReset() 
@@ -1177,13 +1202,16 @@ public class PackerHand : Agent
         if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) 
         {
             //if (selectedVertexIdx != -1)
-            // if (isAfterOriginVertexSelected)
-            // {
-            //     Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
-            //     Vector3 default_vertex = Vector3.zero;
-            //     verticesArray[selectedVertexIdx] = default_vertex;               
-            // }
+            if (discreteSolution){
+                if (isAfterOriginVertexSelected)
+                {
+                    Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
+                    Vector3 default_vertex = Vector3.zero;
+                    verticesArray[selectedVertexIdx] = default_vertex;               
+                }
+            }
             // Debug.Log($"SRS SELECTED BOX IDX {selectedBoxIdx} RESET");
+
             Vector3 default_size = Vector3.zero;
             boxPool[selectedBoxIdx].boxSize = default_size;
             Debug.Log($"SRS SELECTED ROTATION {selectedRotation} RESET");
@@ -1192,7 +1220,7 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].boxRot = default_rotation;
         }
         //isBlackboxUpdated = false;
-        isVertexSelected = false;
+        // isVertexSelected = false;
         isBoxSelected = false;
         isRotationSelected = false;
         isPickedup = false;
@@ -1270,7 +1298,7 @@ public class PackerHand : Agent
         }
         else 
         {
-            SetModel(m_RegularBoxBehaviorName, regularBoxBrain);    
+            SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);    
             Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
     }
