@@ -43,7 +43,7 @@ public class PackerHand : Agent
     public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] private List<Box> boxPool; // space: num boxes
-    [HideInInspector] private List<int> vertexIndices;
+    [HideInInspector] private List<int> maskedVertexIndices;
     [HideInInspector] public List<int> organizedBoxes; // list of organzed box indices
     [HideInInspector] public List<Vector3> historicalVerticesLog;
     [HideInInspector] public int VertexCount = 0;
@@ -66,7 +66,7 @@ public class PackerHand : Agent
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
     //[HideInInspector] public bool isBlackboxUpdated;
-    public bool isVertexSelected;
+    // public bool isVertexSelected;
     public bool isBoxSelected;
     public bool isRotationSelected;
     public bool isPickedup;
@@ -174,7 +174,7 @@ public class PackerHand : Agent
         boxSpawner.SetUpBoxes(m_ResetParams.GetWithDefault("regular_box", 0));
 
         selectedVertex = origin; // refactor to select first vertex
-        isVertexSelected = true;
+        // isVertexSelected = true;
         
         //SetResetParameters(); 
 
@@ -214,7 +214,7 @@ public class PackerHand : Agent
 
         // Add array of vertices (selected vertices are 0s)
         int i = 0;
-        vertexIndices = new List<int>();
+        maskedVertexIndices = new List<int>();
         foreach (Vector3 vertex in verticesArray) 
         {   
             Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
@@ -227,7 +227,7 @@ public class PackerHand : Agent
             if (vertex == Vector3.zero)
             {
                 //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
-                vertexIndices.Add(i);
+                maskedVertexIndices.Add(i);
             }
             i++;
         }
@@ -251,7 +251,7 @@ public class PackerHand : Agent
     {
         // vertices action mask
         if (isAfterOriginVertexSelected) {
-            foreach (int vertexIdx in vertexIndices) 
+            foreach (int vertexIdx in maskedVertexIndices) 
             {
                 //Debug.Log($"MASK VERTEX {vertexIdx}");
                 actionMask.SetActionEnabled(0, vertexIdx, false);
@@ -652,7 +652,7 @@ public class PackerHand : Agent
         selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
-        isVertexSelected = true;
+        // isVertexSelected = true;
         //AddReward(1f);
         // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
     }
@@ -1136,36 +1136,38 @@ public class PackerHand : Agent
     }
 
 
-    public void BoxReset(string cause)
-    {
-        if (cause == "failedPhysicsCheck") 
-        {
-            Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
-            // detach box from agent
-            targetBox.parent = null;
-            // add back rigidbody and collider
-            Rigidbody rb = boxPool[selectedBoxIdx].rb;
-            BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
-            // not be affected by forces or collisions, position and rotation will be controlled directly through script
-            rb.isKinematic = true;
-            // reset to starting position
-            rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
-            rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
-            rb.transform.position = boxPool[selectedBoxIdx].startingPos;
-            ReverseSideNames(selectedBoxIdx);
-            // remove from organized list to be picked again
-            organizedBoxes.Remove(selectedBoxIdx);
-            // reset states
-            StateReset();
-            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
-            GetComponent<Agent>().RequestDecision();
-            Academy.Instance.EnvironmentStep();
-            // settting isBlackboxUpdated to true allows another vertex to be selected
-            //isBlackboxUpdated = true;
-            // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
-            // isVertexSelected = true;
-        }
-    }
+//     public void BoxReset(string cause)
+//     {
+//         if (cause == "failedPhysicsCheck") 
+//         {
+//             Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
+//             // detach box from agent
+//             targetBox.parent = null;
+//             // add back rigidbody and collider
+//             Rigidbody rb = boxPool[selectedBoxIdx].rb;
+//             BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
+//             // not be affected by forces or collisions, position and rotation will be controlled directly through script
+//             rb.isKinematic = true;
+//             // reset to starting position
+//             rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
+//             rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
+//             rb.transform.position = boxPool[selectedBoxIdx].startingPos;
+//             ReverseSideNames(selectedBoxIdx);
+//             // remove from organized list to be picked again
+// // to "be picked again" means to be added back to the boxPool??
+//             organizedBoxes.Remove(selectedBoxIdx);
+//             // reset states
+//             StateReset();
+//             // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+// // Why is the DecisionRequester() still active in the Hand gameObject?
+//             GetComponent<Agent>().RequestDecision();
+//             Academy.Instance.EnvironmentStep();
+//             // settting isBlackboxUpdated to true allows another vertex to be selected
+//             //isBlackboxUpdated = true;
+//             // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
+//             // isVertexSelected = true;
+//         }
+//     }
 
 
     public void AgentReset() 
@@ -1200,7 +1202,7 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].boxRot = default_rotation;
         }
         //isBlackboxUpdated = false;
-        isVertexSelected = false;
+        // isVertexSelected = false;
         isBoxSelected = false;
         isRotationSelected = false;
         isPickedup = false;
