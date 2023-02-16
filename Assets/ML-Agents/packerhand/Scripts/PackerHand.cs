@@ -63,6 +63,7 @@ public class PackerHand : Agent
     [HideInInspector] public SensorOuterCollision sensorOuterCollision;
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
 
+    public bool isdiscreteSolution = false;
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
     //[HideInInspector] public bool isBlackboxUpdated;
@@ -93,7 +94,6 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
 
-    private bool discreteSolution = false;
 
 
     public override void Initialize()
@@ -175,10 +175,9 @@ public class PackerHand : Agent
         // Set up boxes
         boxSpawner.SetUpBoxes(m_ResetParams.GetWithDefault("regular_box", 0));
 
-        if(discreteSolution){
+        if(isdiscreteSolution){
             selectedVertex = origin; // refactor to select first vertex
             // isVertexSelected = true;
-            //SetResetParameters(); 
         }        
 
     }
@@ -216,25 +215,21 @@ public class PackerHand : Agent
         }
 
         // Add array of vertices (selected vertices are 0s)
-        if (discreteSolution){
-            int i = 0;
-            maskedVertexIndices = new List<int>();
-            foreach (Vector3 vertex in verticesArray) 
-            {   
-                Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-                //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
-                sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
-                // sensor.AddObservation(vertex); //add vertices to sensor observations
-                //Vector3 rounded_scaled_vertex =  new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.z, 2));
-                // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
-                //if (rounded_scaled_vertex == new Vector3(-0.35f, -0.02f, -0.18f))
-                if (vertex == Vector3.zero)
-                {
-                    //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
-                    maskedVertexIndices.Add(i);
-                }
-                i++;
+        int i = 0;
+        maskedVertexIndices = new List<int>();
+        foreach (Vector3 vertex in verticesArray) 
+        {   
+            Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+            //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
+            sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+            // sensor.AddObservation(vertex); //add vertices to sensor observations
+            // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
+            if (vertex == Vector3.zero)
+            {
+                //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
+                maskedVertexIndices.Add(i);
             }
+            i++;
         }
 
         // // array of blackboxes 
@@ -255,7 +250,7 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (discreteSolution){
+        if (isdiscreteSolution){
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
                 {
@@ -268,12 +263,7 @@ public class PackerHand : Agent
         foreach (int selectedBoxIdx in organizedBoxes)
         {
             //Debug.Log($"MASK BOX {selectedBoxIdx}");
-            if (discreteSolution){
-                actionMask.SetActionEnabled(1, selectedBoxIdx, false);
-            }
-            else {
-                actionMask.SetActionEnabled(0, selectedBoxIdx, false);
-            }
+            actionMask.SetActionEnabled(1, selectedBoxIdx, false);
         }
     }
 
@@ -284,22 +274,15 @@ public class PackerHand : Agent
         var i = -1;
 
         var discreteActions = actionBuffers.DiscreteActions;
+        var continuousActions = actionBuffers.ContinuousActions;
 
-        Debug.Log($"ON ACTION RECEIVED ACTION ZERO: {discreteActions[0]}");
-        Debug.Log($"ON ACTION RECEIVED ACTION ONE: {discreteActions[1]}");
-        if (discreteSolution){
-            Debug.Log($"ON ACTION RECEIVED ACTION TWO: {discreteActions[2]}");
-            SelectVertex(discreteActions[++j]);      
-            SelectBox(discreteActions[++j]); 
-            SelectRotation(discreteActions[++j]);
-        }
-        else {
-            var continuousActions = actionBuffers.ContinuousActions;
-        
-            SelectBox(discreteActions[++j]); 
-            SelectRotation(discreteActions[++j]);
-            SelectContinuousVertex(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
-        }
+        // Debug.Log($"ON ACTION RECEIVED ACTION ZERO: {discreteActions[0]}");
+        // Debug.Log($"ON ACTION RECEIVED ACTION ONE: {discreteActions[1]}");
+        // Debug.Log($"ON ACTION RECEIVED ACTION TWO: {discreteActions[2]}");
+        SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);      
+        //SelectContinuousVertex(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        SelectBox(discreteActions[++j]); 
+        SelectRotation(discreteActions[++j]);
     }
 
 
@@ -333,7 +316,7 @@ public class PackerHand : Agent
         {
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
-            if (discreteSolution){ 
+            if (isdiscreteSolution){ 
                 isAfterOriginVertexSelected = false;
             }
             //Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
@@ -348,7 +331,7 @@ public class PackerHand : Agent
 
             StateReset();
 
-            if (discreteSolution){
+            if (isdiscreteSolution){
                 isAfterOriginVertexSelected = true;
                 // vertices array of tripoints doesn't depend on the trimesh
                 // only update vertices list and vertices array when box is placed
@@ -629,8 +612,6 @@ public class PackerHand : Agent
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
         if (curriculum_ConfigurationLocal==1)
         {
-            // fix box scale so box always packs from bottom up
-            //float y = boxWorldScale.y * 0.5f + 0.5f;
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
             Debug.Log($"SVX Selected VerteX: {selectedVertex}");
         }
@@ -642,34 +623,51 @@ public class PackerHand : Agent
     }
 
 
-    public void SelectVertex(int action_SelectedVertex) 
+    public void SelectVertex(int action_SelectedVertexIdx, float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
     {
         // Mathf.Clamp(action_selectVertex[0], -1, 1);
         // Mathf.Clamp(action_selectVertex[1], -1, 1);
         // Mathf.Clamp(action_selectVertex[2], -1, 1);
+        if (isdiscreteSolution)
+        {
+            Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
+            // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
+            // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
+            // {
+            //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
+            //      // Punish agent for selecting a bad position
+            //     //AddReward(-1f);
+            //     // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
+            //     return; // to end function call
+            // }
 
-        Debug.Log($"SVB brain selected vertex #: {action_SelectedVertex} ");
+            // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
+            selectedVertexIdx = action_SelectedVertexIdx;
+            var unscaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
+            selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
+            Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
+            // isVertexSelected = true;
+            //AddReward(1f);
+            // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
+        }
+        else
+        {
+            action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
+            action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
+            action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
+            if (curriculum_ConfigurationLocal==1)
+            {
+                selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
+                Debug.Log($"SVX Selected VerteX: {selectedVertex}");
+            }
+            else if (curriculum_ConfigurationLocal==2)
+            {
+                selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
+            }
+            // isVertexSelected = true;
+        }
 
-        // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
-        // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
-        // {
-        //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
-        //      // Punish agent for selecting a bad position
-        //     //AddReward(-1f);
-        //     // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
-        //     return; // to end function call
-        // }
-
-        // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
-        selectedVertexIdx = action_SelectedVertex;
-        var unscaled_selectedVertex = verticesArray[action_SelectedVertex];
-        selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
-        Debug.Log($"SVX Selected VerteX: {selectedVertex}");
-
-        // isVertexSelected = true;
-        //AddReward(1f);
-        // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
     }
 
 
@@ -1201,8 +1199,7 @@ public class PackerHand : Agent
         // conditional check can be removed if failing physics test = end of episode
         if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) 
         {
-            //if (selectedVertexIdx != -1)
-            if (discreteSolution){
+            if (isdiscreteSolution){
                 if (isAfterOriginVertexSelected)
                 {
                     Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
@@ -1210,8 +1207,7 @@ public class PackerHand : Agent
                     verticesArray[selectedVertexIdx] = default_vertex;               
                 }
             }
-            // Debug.Log($"SRS SELECTED BOX IDX {selectedBoxIdx} RESET");
-
+            Debug.Log($"SRS SELECTED BOX IDX {selectedBoxIdx} RESET");
             Vector3 default_size = Vector3.zero;
             boxPool[selectedBoxIdx].boxSize = default_size;
             Debug.Log($"SRS SELECTED ROTATION {selectedRotation} RESET");
