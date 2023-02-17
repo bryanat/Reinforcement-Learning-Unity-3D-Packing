@@ -44,7 +44,7 @@ public class PackerHand : Agent
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] private List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices;
-    [HideInInspector] public List<int> organizedBoxes; // list of organzed box indices
+    [HideInInspector] public List<int> maskedBoxIndices; // list of organzed box indices
     [HideInInspector] public List<Vector3> historicalVerticesLog;
     [HideInInspector] public int VertexCount = 0;
     [HideInInspector] public Vector3 boxWorldScale;
@@ -63,7 +63,7 @@ public class PackerHand : Agent
     [HideInInspector] public SensorOuterCollision sensorOuterCollision;
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
 
-    public bool isdiscreteSolution = false;
+    //public bool isdiscreteSolution = false;
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
     //[HideInInspector] public bool isBlackboxUpdated;
@@ -175,7 +175,7 @@ public class PackerHand : Agent
         // Set up boxes
         boxSpawner.SetUpBoxes(m_ResetParams.GetWithDefault("regular_box", 0));
 
-        if(isdiscreteSolution){
+        if(curriculum_ConfigurationLocal==0){
             selectedVertex = origin; // refactor to select first vertex
             // isVertexSelected = true;
         }        
@@ -192,7 +192,7 @@ public class PackerHand : Agent
         sensor.AddObservation(current_bin_volume);
 
         int j = 0;
-        organizedBoxes = new List<int>();
+        maskedBoxIndices = new List<int>();
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
         {   
@@ -208,7 +208,7 @@ public class PackerHand : Agent
             // sensor.AddObservation(box.boxSize); //add box size to sensor observations
             if (box.boxSize == Vector3.zero)
             {
-                organizedBoxes.Add(j);
+                maskedBoxIndices.Add(j);
                 Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
             }
             j++;
@@ -250,7 +250,7 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (isdiscreteSolution){
+        if (curriculum_ConfigurationLocal==0){
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
                 {
@@ -260,7 +260,7 @@ public class PackerHand : Agent
             }
         }
         // box action mask
-        foreach (int selectedBoxIdx in organizedBoxes)
+        foreach (int selectedBoxIdx in maskedBoxIndices)
         {
             //Debug.Log($"MASK BOX {selectedBoxIdx}");
             actionMask.SetActionEnabled(1, selectedBoxIdx, false);
@@ -291,7 +291,7 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        if (organizedBoxes.Count == boxPool.Count)
+        if (maskedBoxIndices.Count == boxPool.Count)
         {
             EndEpisode();
             isEpisodeStart = true;
@@ -316,7 +316,7 @@ public class PackerHand : Agent
         {
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
-            if (isdiscreteSolution){ 
+            if (curriculum_ConfigurationLocal==0){ 
                 isAfterOriginVertexSelected = false;
             }
             //Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
@@ -344,7 +344,7 @@ public class PackerHand : Agent
 
             StateReset();
 
-            if (isdiscreteSolution){
+            if (curriculum_ConfigurationLocal==0){
                 isAfterOriginVertexSelected = true;
                 // vertices array of tripoints doesn't depend on the trimesh
                 // only update vertices list and vertices array when box is placed
@@ -617,22 +617,22 @@ public class PackerHand : Agent
     // }
 
 
-    public void SelectContinuousVertex(float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z)
-    {
-        action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
-        action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
-        action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
-        if (curriculum_ConfigurationLocal==1)
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
-            Debug.Log($"SVX Selected VerteX: {selectedVertex}");
-        }
-        else if (curriculum_ConfigurationLocal==2)
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-        }
-        // isVertexSelected = true;
-    }
+    // public void SelectContinuousVertex(float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z)
+    // {
+    //     action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
+    //     action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
+    //     action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
+    //     if (curriculum_ConfigurationLocal==1)
+    //     {
+    //         selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
+    //         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
+    //     }
+    //     else if (curriculum_ConfigurationLocal==2)
+    //     {
+    //         selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
+    //     }
+    //     // isVertexSelected = true;
+    // }
 
 
     public void SelectVertex(int action_SelectedVertexIdx, float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
@@ -640,19 +640,9 @@ public class PackerHand : Agent
         // Mathf.Clamp(action_selectVertex[0], -1, 1);
         // Mathf.Clamp(action_selectVertex[1], -1, 1);
         // Mathf.Clamp(action_selectVertex[2], -1, 1);
-        if (isdiscreteSolution)
+        Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
+        if (curriculum_ConfigurationLocal == 0)
         {
-            Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
-            // Don't select empty vertex (0,0,0) from actionBuffer. Punish to teach it to learn not to pick empty ~ give negative reward and force to repick.
-            // if (verticesArray[action_SelectedVertex] == new Vector3(0, 0, 0))
-            // {
-            //     isVertexSelected = false; // to make repick SelectVertex(discreteActions[++j])
-            //      // Punish agent for selecting a bad position
-            //     //AddReward(-1f);
-            //     // Debug.Log($"REWARD NEGATIVE SELECTED ZERO VERTEX!!! Total reward: {GetCumulativeReward()}");
-            //     return; // to end function call
-            // }
-
             // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
             selectedVertexIdx = action_SelectedVertexIdx;
             var unscaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
@@ -663,22 +653,22 @@ public class PackerHand : Agent
             //AddReward(1f);
             // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
         }
-        else
+        else if (curriculum_ConfigurationLocal == 1)
+        {
+            action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
+            action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
+            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
+            Debug.Log($"SVX Selected VerteX: {selectedVertex}");
+        }
+        else if (curriculum_ConfigurationLocal==2)
         {
             action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
             action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
             action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
-            if (curriculum_ConfigurationLocal==1)
-            {
-                selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
-                Debug.Log($"SVX Selected VerteX: {selectedVertex}");
-            }
-            else if (curriculum_ConfigurationLocal==2)
-            {
-                selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-            }
-            // isVertexSelected = true;
+            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
+            Debug.Log($"SVX Selected VerteX: {selectedVertex}");
         }
+            // isVertexSelected = true;
 
     }
 
@@ -1177,7 +1167,7 @@ public class PackerHand : Agent
             rb.transform.position = boxPool[selectedBoxIdx].startingPos;
             ReverseSideNames(selectedBoxIdx);
             // remove from organized list to be picked again
-            organizedBoxes.Remove(selectedBoxIdx);
+            maskedBoxIndices.Remove(selectedBoxIdx);
             // reset states
             StateReset();
             // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
@@ -1208,7 +1198,7 @@ public class PackerHand : Agent
         // conditional check can be removed if failing physics test = end of episode
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
-            if (isdiscreteSolution){
+            if (curriculum_ConfigurationLocal==0){
                 if (isAfterOriginVertexSelected)
                 {
                     Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
@@ -1257,8 +1247,6 @@ public class PackerHand : Agent
         // Reset current bin volume
         current_bin_volume = total_bin_volume;
 
-        // Reset organized Boxes list
-        //organizedBoxes.Clear();
         // Destroy old boxes
         foreach (Box box in boxPool)
         {
