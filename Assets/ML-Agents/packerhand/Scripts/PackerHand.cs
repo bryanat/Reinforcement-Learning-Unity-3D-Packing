@@ -326,8 +326,22 @@ public class PackerHand : Agent
             //Debug.Log("AFTER ENVIRONMENT STEP IN FIRST ROUND");
         }
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
-        if ((isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined) && isStateReset==false) 
+        if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
+            // If a mesh didn't combine, force combine
+            if (isBackMeshCombined==false)
+            {
+                m_BackMeshScript.ForceMeshCombine();
+            }
+            if (isSideMeshCombined == false)
+            {     
+                m_SideMeshScript.ForceMeshCombine();
+            }
+            if (isBottomMeshCombined == false)
+            {     
+                m_SideMeshScript.ForceMeshCombine();
+            }
+
             StateReset();
 
             if (isdiscreteSolution){
@@ -357,23 +371,6 @@ public class PackerHand : Agent
            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
-        }
-
-        else if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false)
-        {
-            // If a mesh didn't combine, force combine
-            if (isBackMeshCombined==false)
-            {
-                m_BackMeshScript.ForceMeshCombine();
-            }
-            if (isSideMeshCombined == false)
-            {     
-                m_SideMeshScript.ForceMeshCombine();
-            }
-            if (isBottomMeshCombined == false)
-            {     
-                m_SideMeshScript.ForceMeshCombine();
-            }
         }
 
         // if agent selects a box, it should move towards the box
