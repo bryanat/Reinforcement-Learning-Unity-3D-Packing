@@ -18,7 +18,7 @@ public class PackerHand : Agent
     public int packSpeed = 20;
 
     int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
-    int curriculum_ConfigurationLocal; // local reference of the above
+    //int curriculum_ConfigurationLocal; // local reference of the above
 
     public NNModel unitBoxBrain;   // Brain to use when all boxes are 1 by 1 by 1
     public NNModel similarBoxBrain;     // Brain to use when boxes are of similar sizes
@@ -93,6 +93,8 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_y;
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
+
+    public float lesson_flag = 0.0f;
 
 
 
@@ -170,16 +172,18 @@ public class PackerHand : Agent
 
         // Picks which curriculum to train
         curriculum_ConfigurationGlobal = 1;
-        curriculum_ConfigurationLocal = 1; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
+        //curriculum_ConfigurationLocal = 1; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
+
+        //Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag);
 
         // Set up boxes
-        boxSpawner.SetUpBoxes(m_ResetParams.GetWithDefault("regular_box", 0));
+        boxSpawner.SetUpBoxes();
 
-        if(curriculum_ConfigurationLocal==0){
+        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
+        {
             selectedVertex = origin; // refactor to select first vertex
             // isVertexSelected = true;
         }        
-
     }
 
 
@@ -250,7 +254,8 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (curriculum_ConfigurationLocal==0){
+        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
+        {
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
                 {
@@ -316,7 +321,8 @@ public class PackerHand : Agent
         {
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
-            if (curriculum_ConfigurationLocal==0){ 
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
+            { 
                 isAfterOriginVertexSelected = false;
             }
             //Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
@@ -344,7 +350,8 @@ public class PackerHand : Agent
 
             StateReset();
 
-            if (curriculum_ConfigurationLocal==0){
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
+            {
                 isAfterOriginVertexSelected = true;
                 // vertices array of tripoints doesn't depend on the trimesh
                 // only update vertices list and vertices array when box is placed
@@ -641,7 +648,7 @@ public class PackerHand : Agent
         // Mathf.Clamp(action_selectVertex[1], -1, 1);
         // Mathf.Clamp(action_selectVertex[2], -1, 1);
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
-        if (curriculum_ConfigurationLocal == 0)
+        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
         {
             // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
             selectedVertexIdx = action_SelectedVertexIdx;
@@ -653,14 +660,14 @@ public class PackerHand : Agent
             //AddReward(1f);
             // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
         }
-        else if (curriculum_ConfigurationLocal == 1)
+        else if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 1.0f)
         {
             action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
             action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
             Debug.Log($"SVX Selected VerteX: {selectedVertex}");
         }
-        else if (curriculum_ConfigurationLocal==2)
+        else if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 2.0f)
         {
             action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
             action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
@@ -1198,7 +1205,7 @@ public class PackerHand : Agent
         // conditional check can be removed if failing physics test = end of episode
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
-            if (curriculum_ConfigurationLocal==0){
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f){
                 if (isAfterOriginVertexSelected)
                 {
                     Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");

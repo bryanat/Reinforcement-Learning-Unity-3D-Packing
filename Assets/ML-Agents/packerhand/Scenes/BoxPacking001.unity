@@ -1215,7 +1215,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: MaxStep
-      value: 10000
+      value: 5000
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1245,7 +1245,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: packSpeed
-      value: 200
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1275,7 +1275,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: isdiscreteSolution
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1326,11 +1326,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 601
+    VectorObservationSize: 335
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
-      BranchSizes: 5a0000001e00000006000000
+      BranchSizes: 180000000800000006000000
     VectorActionSize: 
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
@@ -2166,28 +2166,6 @@ MonoBehaviour:
   boxArea: {fileID: 868628914}
   unitBox: {fileID: 9098616314326610961}
   sizes:
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
-  - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
