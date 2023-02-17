@@ -326,9 +326,8 @@ public class PackerHand : Agent
             //Debug.Log("AFTER ENVIRONMENT STEP IN FIRST ROUND");
         }
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
-        if ((isBackMeshCombined & isBottomMeshCombined & isSideMeshCombined) && isStateReset==false) 
+        if ((isBackMeshCombined && isBottomMeshCombined && isSideMeshCombined) && isStateReset==false) 
         {
-
             StateReset();
 
             if (isdiscreteSolution){
@@ -358,7 +357,23 @@ public class PackerHand : Agent
            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
-            //Debug.Log("AFTER ENVIRONMENT STEP IN NEXT ROUND");
+        }
+
+        else if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false)
+        {
+            // If a mesh didn't combine, force combine
+            if (isBackMeshCombined==false)
+            {
+                m_BackMeshScript.ForceMeshCombine();
+            }
+            if (isSideMeshCombined == false)
+            {     
+                m_SideMeshScript.ForceMeshCombine();
+            }
+            if (isBottomMeshCombined == false)
+            {     
+                m_SideMeshScript.ForceMeshCombine();
+            }
         }
 
         // if agent selects a box, it should move towards the box
@@ -712,7 +727,7 @@ public class PackerHand : Agent
 
         GameObject testBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
-        testBox.transform.localScale = new Vector3(boxWorldScale.x, boxWorldScale.y, boxWorldScale.z);
+        testBox.transform.localScale = boxWorldScale;
         // test position has to be slightly elevated or else raycast doesn't detect the layer directly below
         testBox.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
@@ -767,8 +782,6 @@ public class PackerHand : Agent
         selectedBoxIdx = action_SelectedBox;
         Debug.Log($"Selected Box selectedBoxIdx: {selectedBoxIdx}");
         targetBox = boxPool[selectedBoxIdx].rb.transform;
-        // Add box to organized list so action idx can be masked
-        //organizedBoxes.Add(selectedBoxIdx);
         isBoxSelected = true;
     }
 
@@ -1149,38 +1162,37 @@ public class PackerHand : Agent
     }
 
 
-//     public void BoxReset(string cause)
-//     {
-//         if (cause == "failedPhysicsCheck") 
-//         {
-//             Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
-//             // detach box from agent
-//             targetBox.parent = null;
-//             // add back rigidbody and collider
-//             Rigidbody rb = boxPool[selectedBoxIdx].rb;
-//             BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
-//             // not be affected by forces or collisions, position and rotation will be controlled directly through script
-//             rb.isKinematic = true;
-//             // reset to starting position
-//             rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
-//             rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
-//             rb.transform.position = boxPool[selectedBoxIdx].startingPos;
-//             ReverseSideNames(selectedBoxIdx);
-//             // remove from organized list to be picked again
-// // to "be picked again" means to be added back to the boxPool??
-//             organizedBoxes.Remove(selectedBoxIdx);
-//             // reset states
-//             StateReset();
-//             // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
-// // Why is the DecisionRequester() still active in the Hand gameObject?
-//             GetComponent<Agent>().RequestDecision();
-//             Academy.Instance.EnvironmentStep();
-//             // settting isBlackboxUpdated to true allows another vertex to be selected
-//             //isBlackboxUpdated = true;
-//             // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
-//             // isVertexSelected = true;
-//         }
-//     }
+    public void BoxReset(string cause)
+    {
+        if (cause == "failedPhysicsCheck") 
+        {
+            Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
+            // detach box from agent
+            targetBox.parent = null;
+            // add back rigidbody and collider
+            Rigidbody rb = boxPool[selectedBoxIdx].rb;
+            BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
+            // not be affected by forces or collisions, position and rotation will be controlled directly through script
+            rb.isKinematic = true;
+            // reset to starting position
+            rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
+            rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
+            rb.transform.position = boxPool[selectedBoxIdx].startingPos;
+            ReverseSideNames(selectedBoxIdx);
+            // remove from organized list to be picked again
+            organizedBoxes.Remove(selectedBoxIdx);
+            // reset states
+            StateReset();
+            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+// Why is the DecisionRequester() still active in the Hand gameObject?
+            GetComponent<Agent>().RequestDecision();
+            Academy.Instance.EnvironmentStep();
+            // settting isBlackboxUpdated to true allows another vertex to be selected
+            //isBlackboxUpdated = true;
+            // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
+            // isVertexSelected = true;
+        }
+    }
 
 
     public void AgentReset() 
@@ -1197,7 +1209,7 @@ public class PackerHand : Agent
         // remove consumed selectedBoxIdx from boxPool (since the same box cannot be selected again)
         // only removed when a box is successfully placed, if box fails physics test, selected vertex and box idx will not be removed
         // conditional check can be removed if failing physics test = end of episode
-        if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) 
+        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
             if (isdiscreteSolution){
                 if (isAfterOriginVertexSelected)
