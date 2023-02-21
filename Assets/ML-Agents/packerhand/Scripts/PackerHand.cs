@@ -364,11 +364,15 @@ public class PackerHand : Agent
             // both vertices array and vertices list are used to find black boxes
             //UpdateBlackBox();
 
-            // Add surface area reward
-            // box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-            // percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
-            // AddReward(percent_contact_surface_area*50f);
-            // Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {sensorCollision.totalContactSA/box_surface_area*10f} reward from surface area");
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) != 0.0f)
+            {
+                // Add surface area reward
+                box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+                percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
+                AddReward(percent_contact_surface_area * 50f);
+                Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
+            }
+
             // Add volume reward
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
@@ -644,15 +648,21 @@ public class PackerHand : Agent
 
     public void SelectVertex(int action_SelectedVertexIdx, float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
     {
-        // Mathf.Clamp(action_selectVertex[0], -1, 1);
-        // Mathf.Clamp(action_selectVertex[1], -1, 1);
-        // Mathf.Clamp(action_selectVertex[2], -1, 1);
+        action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
+        action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
+        action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
         if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
         {
             // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
             selectedVertexIdx = action_SelectedVertexIdx;
             var unscaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
+            // reward_dense = inverse of exponential distance between discreteVertex and continuousVertex 
+            // reward_dense = 1/((discreteVertex - continuousVertex)**2)
+            float reward_dense_distance = (float) 
+            (1/(Math.Pow(action_SelectedVertex_x - unscaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - unscaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - unscaled_selectedVertex.z, 2)));
+            AddReward(reward_dense_distance);
+            Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
             selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
             Debug.Log($"SVX Selected VerteX: {selectedVertex}");
 
@@ -662,16 +672,11 @@ public class PackerHand : Agent
         }
         else if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 1.0f)
         {
-            action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
-            action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
             Debug.Log($"SVX Selected VerteX: {selectedVertex}");
         }
         else if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 2.0f)
         {
-            action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
-            action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
-            action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
             Debug.Log($"SVX Selected VerteX: {selectedVertex}");
         }
@@ -693,6 +698,7 @@ public class PackerHand : Agent
             float magnitudeX = boxWorldScale.x * 0.5f; 
             float magnitudeY = boxWorldScale.y * 0.5f; 
             float magnitudeZ = boxWorldScale.z * 0.5f; 
+
 
             // 2: Direction
             int directionX = 1; 
