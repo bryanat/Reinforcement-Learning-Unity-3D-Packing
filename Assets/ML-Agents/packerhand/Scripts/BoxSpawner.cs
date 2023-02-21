@@ -32,6 +32,8 @@ public class Box
 
     public Quaternion boxRot; // for sensor, changes after selected action
 
+    public bool isOrganized = false; 
+
     public GameObject gameobjectBox;
 }
 

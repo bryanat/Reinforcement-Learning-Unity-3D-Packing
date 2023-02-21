@@ -41,6 +41,7 @@ public class PackerHand : Agent
     public Vector3 selectedRotation; // selectedRotation selected
     public Vector3 selectedVertex; // Vertex selected
     public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
+    public Vector3 [] continuousVerticesArray;
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] private List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices;
@@ -94,7 +95,7 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
 
-    public float lesson_flag = 0.0f;
+
 
 
 
@@ -174,12 +175,10 @@ public class PackerHand : Agent
         curriculum_ConfigurationGlobal = 1;
         //curriculum_ConfigurationLocal = 1; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
 
-        //Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag);
-
         // Set up boxes
         boxSpawner.SetUpBoxes();
 
-        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
+        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
         {
             selectedVertex = origin; // refactor to select first vertex
             // isVertexSelected = true;
@@ -210,7 +209,8 @@ public class PackerHand : Agent
             // Add updated [volume]/[w*h*l] added to state vector
             sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
             // sensor.AddObservation(box.boxSize); //add box size to sensor observations
-            if (box.boxSize == Vector3.zero)
+            sensor.AddObservation(continuousVerticesArray[int.Parse(box.rb.name)]);
+            if (box.isOrganized)
             {
                 maskedBoxIndices.Add(j);
                 Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
@@ -235,6 +235,7 @@ public class PackerHand : Agent
             }
             i++;
         }
+        
 
         // // array of blackboxes 
         // foreach (Blackbox blackbox in blackboxPool)
@@ -254,7 +255,7 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
+        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
         {
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
@@ -321,7 +322,7 @@ public class PackerHand : Agent
         {
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
             { 
                 isAfterOriginVertexSelected = false;
             }
@@ -350,7 +351,7 @@ public class PackerHand : Agent
 
             StateReset();
 
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
             {
                 isAfterOriginVertexSelected = true;
                 // vertices array of tripoints doesn't depend on the trimesh
@@ -364,7 +365,7 @@ public class PackerHand : Agent
             // both vertices array and vertices list are used to find black boxes
             //UpdateBlackBox();
 
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) != 0.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) != 0.0f)
             {
                 // Add surface area reward
                 box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
@@ -652,7 +653,7 @@ public class PackerHand : Agent
         action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
-        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f)
+        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
         {
             // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
             selectedVertexIdx = action_SelectedVertexIdx;
@@ -670,14 +671,18 @@ public class PackerHand : Agent
             //AddReward(1f);
             // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
         }
-        else if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 1.0f)
+        else if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 1.0f)
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
+            ///// this selected vertex should be added back to the observation////
+            ////each box will have its own vertex 
+            continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Selected VerteX: {selectedVertex}");
         }
-        else if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 2.0f)
+        else if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 2.0f)
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
+            continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Selected VerteX: {selectedVertex}");
         }
             // isVertexSelected = true;
@@ -807,8 +812,8 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             selectedRotation = new Vector3(90, 0, 0);
             boxWorldScale = new Vector3(boxWorldScale[0], boxWorldScale[2], boxWorldScale[1]); // actual rotation of object transform
-            // boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
-            // boxPool[selectedBoxIdx].boxSize = boxWorldScale;
+            boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+            boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -836,8 +841,8 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             selectedRotation = new Vector3(0, 90, 0);
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[1], boxWorldScale[0]); // actual rotation of object transform
-            // boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
-            // boxPool[selectedBoxIdx].boxSize = boxWorldScale;
+            boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+            boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -865,8 +870,8 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             selectedRotation = new Vector3(0, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[0], boxWorldScale[2]); // actual rotation of object transform
-            // boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
-            // boxPool[selectedBoxIdx].boxSize = boxWorldScale;
+            boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+            boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -894,8 +899,8 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             selectedRotation = new Vector3(0, 90, 90 ); 
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[0], boxWorldScale[1]); // actual rotation of object transform
-            // boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
-            // boxPool[selectedBoxIdx].boxSize = boxWorldScale;
+            boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+            boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -931,8 +936,8 @@ public class PackerHand : Agent
             Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             selectedRotation = new Vector3(90, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[2], boxWorldScale[0]); // actual rotation of object transform
-            // boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
-            // boxPool[selectedBoxIdx].boxSize = boxWorldScale;
+            boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+            boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -1211,7 +1216,7 @@ public class PackerHand : Agent
         // conditional check can be removed if failing physics test = end of episode
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", lesson_flag) == 0.0f){
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f){
                 if (isAfterOriginVertexSelected)
                 {
                     Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
@@ -1219,13 +1224,7 @@ public class PackerHand : Agent
                     verticesArray[selectedVertexIdx] = default_vertex;               
                 }
             }
-            Debug.Log($"SRS SELECTED BOX IDX {selectedBoxIdx} RESET");
-            Vector3 default_size = Vector3.zero;
-            boxPool[selectedBoxIdx].boxSize = default_size;
-            Debug.Log($"SRS SELECTED ROTATION {selectedRotation} RESET");
-            Quaternion default_rotation = Quaternion.identity;
-            default_rotation[3] = 0;
-            boxPool[selectedBoxIdx].boxRot = default_rotation;
+            boxPool[selectedBoxIdx].isOrganized = true;
         }
         //isBlackboxUpdated = false;
         // isVertexSelected = false;
