@@ -1294,6 +1294,11 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 1644c0cb0c67e314194579be857f87da, type: 2}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: curriculum_ConfigurationGlobal
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: continuousVerticesArray.Array.size
       value: 8
       objectReference: {fileID: 0}

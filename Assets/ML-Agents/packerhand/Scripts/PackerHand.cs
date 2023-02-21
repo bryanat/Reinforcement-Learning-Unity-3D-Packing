@@ -15,11 +15,9 @@ using Boxes;
 
 public class PackerHand : Agent 
 {
+    public int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
+    int curriculum_ConfigurationLocal; // local reference of the above
     public int packSpeed = 20;
-
-    int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
-    //int curriculum_ConfigurationLocal; // local reference of the above
-
     public NNModel unitBoxBrain;   // Brain to use when all boxes are 1 by 1 by 1
     public NNModel similarBoxBrain;     // Brain to use when boxes are of similar sizes
     public NNModel regularBoxBrain;     // Brain to use when boxes size vary
@@ -102,6 +100,9 @@ public class PackerHand : Agent
     public override void Initialize()
     {   
         Academy.Instance.AutomaticSteppingEnabled = false;
+
+        curriculum_ConfigurationLocal = curriculum_ConfigurationGlobal; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
+        
         // initialize agent position
         initialAgentPosition = this.transform.position;
 
@@ -167,18 +168,13 @@ public class PackerHand : Agent
     {   
         Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
 
-        //Academy.Instance.AutomaticSteppingEnabled = false;
         // Reset agent and rewards
         SetResetParameters();
-
-        // Picks which curriculum to train
-        curriculum_ConfigurationGlobal = 1;
-        //curriculum_ConfigurationLocal = 1; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
 
         // Set up boxes
         boxSpawner.SetUpBoxes();
 
-        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+        if (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
         {
             selectedVertex = origin; // refactor to select first vertex
             // isVertexSelected = true;
@@ -255,7 +251,7 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+        if (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
         {
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
@@ -322,7 +318,7 @@ public class PackerHand : Agent
         {
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+            if (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
             { 
                 isAfterOriginVertexSelected = false;
             }
@@ -351,7 +347,7 @@ public class PackerHand : Agent
 
             StateReset();
 
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+            if (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
             {
                 isAfterOriginVertexSelected = true;
                 // vertices array of tripoints doesn't depend on the trimesh
@@ -365,7 +361,7 @@ public class PackerHand : Agent
             // both vertices array and vertices list are used to find black boxes
             //UpdateBlackBox();
 
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) != 0.0f)
+            if (curriculum_ConfigurationLocal != 1 | Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) != 0.0f)
             {
                 // Add surface area reward
                 box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
@@ -653,7 +649,7 @@ public class PackerHand : Agent
         action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
-        if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+        if (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
         {
             // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
             selectedVertexIdx = action_SelectedVertexIdx;
@@ -665,25 +661,27 @@ public class PackerHand : Agent
             AddReward(reward_dense_distance);
             Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
             selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
-            Debug.Log($"SVX Selected VerteX: {selectedVertex}");
+            Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
 
             // isVertexSelected = true;
             //AddReward(1f);
             // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
         }
-        else if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 1.0f)
+        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 1.0f) == 1.0f) |
+            (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 1.0f) == 1.0f))
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
             ///// this selected vertex should be added back to the observation////
             ////each box will have its own vertex 
             continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Selected VerteX: {selectedVertex}");
+            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
-        else if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 2.0f)
+        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 2.0f) == 2.0f) |
+        (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 2.0f) == 2.0f))
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
             continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Selected VerteX: {selectedVertex}");
+            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
             // isVertexSelected = true;
 
@@ -1216,7 +1214,7 @@ public class PackerHand : Agent
         // conditional check can be removed if failing physics test = end of episode
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f){
+            if (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f){
                 if (isAfterOriginVertexSelected)
                 {
                     Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
@@ -1294,17 +1292,14 @@ public class PackerHand : Agent
         if (n==0) 
         {
             SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
-            Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
         if (n==1) 
         {
             SetModel(m_RegularBoxBehaviorName, regularBoxBrain);
-            Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
         else 
         {
             SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);    
-            Debug.Log($"BOX POOL SIZE: {boxPool.Count}");
         }
     }
 
