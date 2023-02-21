@@ -68,7 +68,7 @@ environment_parameters:
           behavior: RegularBox
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0
+          threshold: 900
         value: 0.0
       - name: EasyContinuousLesson # This is the start of the second lesson
         completion_criteria:
