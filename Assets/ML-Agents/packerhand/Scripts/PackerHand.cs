@@ -93,6 +93,10 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
 
+    [HideInInspector] private bool useAttention;
+    BufferSensorComponent m_BufferSensor;
+
+
 
     public override void Initialize()
     {   
@@ -154,6 +158,8 @@ public class PackerHand : Agent
         // initialize local reference of box pool
         boxPool = BoxSpawner.boxPool;
 
+        m_BufferSensor = GetComponent<BufferSensorComponent>();
+
         isEpisodeStart = true;
     }
 
@@ -197,17 +203,29 @@ public class PackerHand : Agent
             // Add updated box rotation
             sensor.AddObservation(box.boxRot);
             //Debug.Log($"XYY BOX ROTATION IS: {box.boxRot}");
+
+            // Used for variable size observations
+            float[] listVarObservation = new float[4];
+
             Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
             //Debug.Log($"XYW SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
             // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-            sensor.AddObservation(scaled_continuous_boxsize);
+            listVarObservation[0] = scaled_continuous_boxsize.x;
+            listVarObservation[1] = scaled_continuous_boxsize.y;
+            listVarObservation[2] = scaled_continuous_boxsize.z;
+            // sensor.AddObservation(scaled_continuous_boxsize);
+
             // Add updated [volume]/[w*h*l] added to state vector
-            sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
-            // sensor.AddObservation(box.boxSize); //add box size to sensor observations
+            listVarObservation[3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
+            // sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
+
             if (box.boxSize == Vector3.zero)
             {
                 organizedBoxes.Add(j);
                 Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
+            }
+            else {
+                m_BufferSensor.AppendObservation(listVarObservation);
             }
             j++;
         }
