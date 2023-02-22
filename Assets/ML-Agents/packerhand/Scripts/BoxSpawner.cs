@@ -32,7 +32,7 @@ public class Box
 
     public Quaternion boxRot; // for sensor, changes after selected action
 
-    public Vector3 unscaledVertex; // for sensor, changes after selected action
+    public Vector3 boxVertex; // for sensor, changes after selected action
 
     public bool isOrganized = false; 
 

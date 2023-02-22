@@ -18,6 +18,8 @@ public class PackerHand : Agent
     public int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
     int curriculum_ConfigurationLocal; // local reference of the above
     public int packSpeed = 20;
+    public bool useAttention=true; // use attention by default (default = true)
+    BufferSensorComponent m_BufferSensor;
     public NNModel unitBoxBrain;   // Brain to use when all boxes are 1 by 1 by 1
     public NNModel similarBoxBrain;     // Brain to use when boxes are of similar sizes
     public NNModel regularBoxBrain;     // Brain to use when boxes size vary
@@ -92,10 +94,6 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_y;
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
-
-    public bool useAttention=false;
-    BufferSensorComponent m_BufferSensor;
-
 
 
 
@@ -221,10 +219,11 @@ public class PackerHand : Agent
                 listVarObservation[boxPool.Count+2] = scaled_continuous_boxsize.z;
                 // Add updated [volume]/[w*h*l] added to state vector
                 listVarObservation[boxPool.Count+3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
-                Debug.Log($"UNSCALED VERTEX {box.unscaledVertex}");
-                listVarObservation[boxPool.Count+4] = box.unscaledVertex.x;
-                listVarObservation[boxPool.Count+5] = box.unscaledVertex.y;
-                listVarObservation[boxPool.Count+6] = box.unscaledVertex.z;
+                Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
+                Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
+                listVarObservation[boxPool.Count+4] = box.boxVertex.x;
+                listVarObservation[boxPool.Count+5] = box.boxVertex.y;
+                listVarObservation[boxPool.Count+6] = box.boxVertex.z;
 
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
@@ -264,8 +263,6 @@ public class PackerHand : Agent
             i++;
         }
         
-
-
         // // array of blackboxes 
         // foreach (Blackbox blackbox in blackboxPool)
         // {
@@ -687,7 +684,7 @@ public class PackerHand : Agent
             // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
             selectedVertexIdx = action_SelectedVertexIdx;
             var unscaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
-            boxPool[selectedBoxIdx].unscaledVertex = unscaled_selectedVertex;
+            boxPool[selectedBoxIdx].boxVertex = unscaled_selectedVertex;
             // reward_dense = inverse of exponential distance between discreteVertex and continuousVertex 
             // reward_dense = 1/((discreteVertex - continuousVertex)**2)
             // float reward_dense_distance = (float) 
@@ -705,7 +702,7 @@ public class PackerHand : Agent
             (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 1.0f) == 1.0f))
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
-            boxPool[selectedBoxIdx].unscaledVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+            boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             ///// this selected vertex should be added back to the observation////
             //continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
@@ -714,7 +711,7 @@ public class PackerHand : Agent
         (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 2.0f) == 2.0f))
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-            boxPool[selectedBoxIdx].unscaledVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+            boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             //continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
