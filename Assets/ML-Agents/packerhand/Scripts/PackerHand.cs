@@ -41,7 +41,6 @@ public class PackerHand : Agent
     public Vector3 selectedRotation; // selectedRotation selected
     public Vector3 selectedVertex; // Vertex selected
     public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
-    public Vector3 [] continuousVerticesArray;
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] private List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices;
@@ -208,11 +207,10 @@ public class PackerHand : Agent
 
             if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[boxPool.Count+7];
+                float[] listVarObservation = new float[boxPool.Count+8];
                 int boxNum = int.Parse(box.rb.name);
-                //Debug.Log($"XYW SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
+                // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
-            
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
                 listVarObservation[boxPool.Count] = scaled_continuous_boxsize.x;
                 listVarObservation[boxPool.Count+1] = scaled_continuous_boxsize.y;
@@ -221,20 +219,21 @@ public class PackerHand : Agent
                 listVarObservation[boxPool.Count+3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
                 Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
                 Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
+                // Add updated box placement vertex
                 listVarObservation[boxPool.Count+4] = box.boxVertex.x;
                 listVarObservation[boxPool.Count+5] = box.boxVertex.y;
                 listVarObservation[boxPool.Count+6] = box.boxVertex.z;
-
+                // Add if box is placed already: 1 if placed already and 0 otherwise
+                listVarObservation[boxPool.Count+7] = box.isOrganized ? 1.0f : 0.0f;;
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
-                //Debug.Log($"XYW SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
+
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
                 sensor.AddObservation(scaled_continuous_boxsize);
                 // Add updated [volume]/[w*h*l] added to state vector
                 sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
-                // sensor.AddObservation(box.boxSize); //add box size to sensor observations
-                //sensor.AddObservation(continuousVerticesArray[int.Parse(box.rb.name)]);
+                sensor.AddObservation (box.boxVertex);
             }
             
             if (box.isOrganized)
@@ -308,9 +307,6 @@ public class PackerHand : Agent
         var discreteActions = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
 
-        // Debug.Log($"ON ACTION RECEIVED ACTION ZERO: {discreteActions[0]}");
-        // Debug.Log($"ON ACTION RECEIVED ACTION ONE: {discreteActions[1]}");
-        // Debug.Log($"ON ACTION RECEIVED ACTION TWO: {discreteActions[2]}");
         //SelectContinuousVertex(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         SelectBox(discreteActions[++j]); 
         SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);      
@@ -444,12 +440,6 @@ public class PackerHand : Agent
                 }
             }
         }
-
-        //if agent drops off the box, it should pick another one
-        // else if (isBoxSelected==false) 
-        // {
-        //     AgentReset();
-        // }
 
         else { return;}
     }
@@ -693,8 +683,6 @@ public class PackerHand : Agent
             // Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
             selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
             Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
-
-            // isVertexSelected = true;
             //AddReward(1f);
             // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
         }
@@ -703,8 +691,6 @@ public class PackerHand : Agent
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            ///// this selected vertex should be added back to the observation////
-            //continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
         else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 2.0f) == 2.0f) |
@@ -712,7 +698,6 @@ public class PackerHand : Agent
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            //continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
             // isVertexSelected = true;
@@ -805,17 +790,8 @@ public class PackerHand : Agent
     ///</summary>
     public void SelectBox(int action_SelectedBox) 
     {
-        Debug.Log($"SBB boxPool count is: {boxPool.Count()}, action_selectedbox is {action_SelectedBox}");
-        // if (boxPool[action_SelectedBox].boxSize == new Vector3(0, 0, 0))
-        // {      
-        //     isBoxSelected = false; 
-        //     //AddReward(-1f);
-        //     // Debug.Log($"REWARD NEGATIVE SELECTED ORGANIZED BOX!!! Total reward: {GetCumulativeReward()}");
-        //     return; // to end function call
-        // }
-        // Check if a box has already been selected
         selectedBoxIdx = action_SelectedBox;
-        Debug.Log($"Selected Box selectedBoxIdx: {selectedBoxIdx}");
+        Debug.Log($"SBB Selected Box selectedBoxIdx: {selectedBoxIdx}");
         targetBox = boxPool[selectedBoxIdx].rb.transform;
         isBoxSelected = true;
     }
@@ -828,7 +804,6 @@ public class PackerHand : Agent
     {   
         var childrenList = targetBox.GetComponentsInChildren<Transform>();
         boxWorldScale = targetBox.localScale;
-        Debug.Log($"BOXWORLDSCALE IS {boxWorldScale}");
         if (action == 0 ) 
         {
             selectedRotation = new Vector3(0, 0, 0);
