@@ -20,11 +20,11 @@ public class PackerHand : Agent
     public int packSpeed = 20;
     public bool useAttention=true; // use attention by default (default = true)
     BufferSensorComponent m_BufferSensor;
-    public NNModel unitBoxBrain;   // Brain to use when all boxes are 1 by 1 by 1
+    public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
     public NNModel similarBoxBrain;     // Brain to use when boxes are of similar sizes
     public NNModel regularBoxBrain;     // Brain to use when boxes size vary
 
-    string m_UnitBoxBehaviorName = "UnitBox"; // 
+    string m_DiscreteBehaviorName = "Discrete"; // 
     string m_SimilarBoxBehaviorName = "SimilarBox";
     string m_RegularBoxBehaviorName = "RegularBox";
     EnvironmentParameters m_ResetParams; // Environment parameters
@@ -123,8 +123,8 @@ public class PackerHand : Agent
         var modelOverrider = GetComponent<ModelOverrider>();
         if (modelOverrider.HasOverrides)
         {
-            unitBoxBrain = modelOverrider.GetModelForBehaviorName(m_UnitBoxBehaviorName);
-            m_UnitBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_UnitBoxBehaviorName);
+            discreteBrain = modelOverrider.GetModelForBehaviorName(m_DiscreteBehaviorName);
+            m_DiscreteBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_DiscreteBehaviorName);
 
             similarBoxBrain = modelOverrider.GetModelForBehaviorName(m_SimilarBoxBehaviorName);
             m_SimilarBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_SimilarBoxBehaviorName);
@@ -177,9 +177,9 @@ public class PackerHand : Agent
         // Set up boxes
         boxSpawner.SetUpBoxes();
 
-        if (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+        if (curriculum_ConfigurationLocal == 0 |
+        (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
         {
-
             selectedVertex = origin; // refactor to select first vertex
             // isVertexSelected = true;
         }        
@@ -280,7 +280,8 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+        if (curriculum_ConfigurationLocal == 0 |
+            (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
         {
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
@@ -344,7 +345,8 @@ public class PackerHand : Agent
         {
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
-            if (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+            if (curriculum_ConfigurationLocal == 0 |
+                (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
             { 
                 isAfterOriginVertexSelected = false;
             }
@@ -373,7 +375,8 @@ public class PackerHand : Agent
 
             StateReset();
 
-            if (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+            if (curriculum_ConfigurationLocal == 0 |
+                (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
             {
                 isAfterOriginVertexSelected = true;
                 // vertices array of tripoints doesn't depend on the trimesh
@@ -669,18 +672,21 @@ public class PackerHand : Agent
         action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
-        if (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+        if (curriculum_ConfigurationLocal == 0 |
+            (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
         {
             // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
             selectedVertexIdx = action_SelectedVertexIdx;
             var unscaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
             boxPool[selectedBoxIdx].boxVertex = unscaled_selectedVertex;
-            // reward_dense = inverse of exponential distance between discreteVertex and continuousVertex 
-            // reward_dense = 1/((discreteVertex - continuousVertex)**2)
-            // float reward_dense_distance = (float) 
-            // (1/(Math.Pow(action_SelectedVertex_x - unscaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - unscaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - unscaled_selectedVertex.z, 2)));
-            // AddReward(reward_dense_distance);
-            // Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
+            if (curriculum_ConfigurationLocal == 1)
+            {
+                // reward_dense = inverse of exponential distance between discreteVertex and continuousVertex 
+                float reward_dense_distance = (float) 
+                (1/(Math.Pow(action_SelectedVertex_x - unscaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - unscaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - unscaled_selectedVertex.z, 2)));
+                AddReward(reward_dense_distance);
+                Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
+            }
             selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
             Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
             //AddReward(1f);
@@ -1221,7 +1227,9 @@ public class PackerHand : Agent
         // conditional check can be removed if failing physics test = end of episode
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
-            if (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f){
+            if (curriculum_ConfigurationLocal == 0 |
+                (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
+            {
                 if (isAfterOriginVertexSelected)
                 {
                     Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
@@ -1298,7 +1306,7 @@ public class PackerHand : Agent
     {
         if (n==0) 
         {
-            SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
+            SetModel(m_DiscreteBehaviorName, discreteBrain);
         }
         if (n==1) 
         {
