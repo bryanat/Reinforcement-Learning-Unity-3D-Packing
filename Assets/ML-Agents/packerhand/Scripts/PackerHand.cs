@@ -93,10 +93,8 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
 
-    public bool useAttention;
+    public bool useAttention=false;
     BufferSensorComponent m_BufferSensor;
-
-
 
 
 
