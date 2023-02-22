@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.4465785, g: 0.49641252, b: 0.574817, a: 1}
+  m_IndirectSpecularColor: {r: 0.44658822, g: 0.49642307, b: 0.5748253, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1259,6 +1259,11 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: ec99cc74da6543b459e71a51834b037d, type: 2}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: useAttention
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: outerbinfront
       value: 
       objectReference: {fileID: 1080092759}
@@ -1285,7 +1290,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: verticesArray.Array.size
-      value: 120
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1316,6 +1321,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 684828981271533026}
+    - targetCorrespondingSourceObject: {fileID: 3887830302607068171, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 684828981271533033}
   m_SourcePrefab: {fileID: 100100000, guid: 2f2c1469c0f2c8453ab01d6d68f6526f, type: 3}
 --- !u!4 &684828981271533017 stripped
 Transform:
@@ -1336,11 +1345,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 161
+    VectorObservationSize: 391
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
-      BranchSizes: 780000001e00000006000000
+      BranchSizes: 1e0000005a00000006000000
     VectorActionSize: 
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
@@ -1350,7 +1359,7 @@ MonoBehaviour:
   m_BehaviorType: 0
   m_BehaviorName: RegularBox
   TeamId: 0
-  m_UseChildSensors: 1
+  m_UseChildSensors: 0
   m_UseChildActuators: 1
   m_DeterministicInference: 0
   m_ObservableAttributeHandling: 0
@@ -1379,6 +1388,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6280f8969a359ef99f5ea05467a83f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &684828981271533033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1062051028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd8012d5925524537b27131fef517017, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SensorName: BufferSensor
+  m_ObservableSize: 37
+  m_MaxNumObservables: 37
 --- !u!54 &702327117403966051
 Rigidbody:
   m_ObjectHideFlags: 0

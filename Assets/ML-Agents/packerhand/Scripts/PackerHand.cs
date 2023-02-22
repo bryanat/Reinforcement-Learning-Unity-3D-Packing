@@ -208,17 +208,25 @@ public class PackerHand : Agent
             
             Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
 
-            // Used for variable size observations
-            float[] listVarObservation = new float[4];
             if (useAttention){
+                // Used for variable size observations
+                float[] listVarObservation = new float[boxPool.Count+7];
+                int boxNum = int.Parse(box.rb.name);
                 //Debug.Log($"XYW SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
+                listVarObservation[boxNum] = 1.0f;
+            
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                listVarObservation[0] = scaled_continuous_boxsize.x;
-                listVarObservation[1] = scaled_continuous_boxsize.y;
-                listVarObservation[2] = scaled_continuous_boxsize.z;
-
+                listVarObservation[boxPool.Count] = scaled_continuous_boxsize.x;
+                listVarObservation[boxPool.Count+1] = scaled_continuous_boxsize.y;
+                listVarObservation[boxPool.Count+2] = scaled_continuous_boxsize.z;
                 // Add updated [volume]/[w*h*l] added to state vector
-                listVarObservation[3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
+                listVarObservation[boxPool.Count+3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
+                Debug.Log($"UNSCALED VERTEX {box.unscaledVertex}");
+                listVarObservation[boxPool.Count+4] = box.unscaledVertex.x;
+                listVarObservation[boxPool.Count+5] = box.unscaledVertex.y;
+                listVarObservation[boxPool.Count+6] = box.unscaledVertex.z;
+
+                m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
                 //Debug.Log($"XYW SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
@@ -227,16 +235,13 @@ public class PackerHand : Agent
                 // Add updated [volume]/[w*h*l] added to state vector
                 sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
                 // sensor.AddObservation(box.boxSize); //add box size to sensor observations
-                sensor.AddObservation(continuousVerticesArray[int.Parse(box.rb.name)]);
+                //sensor.AddObservation(continuousVerticesArray[int.Parse(box.rb.name)]);
             }
             
             if (box.isOrganized)
             {
                 maskedBoxIndices.Add(j);
                 Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
-            }
-            else if (useAttention){
-                m_BufferSensor.AppendObservation(listVarObservation);
             }
             j++;
         }
@@ -285,7 +290,7 @@ public class PackerHand : Agent
                 foreach (int vertexIdx in maskedVertexIndices) 
                 {
                     //Debug.Log($"MASK VERTEX {vertexIdx}");
-                    actionMask.SetActionEnabled(0, vertexIdx, false);
+                    actionMask.SetActionEnabled(1, vertexIdx, false);
                 }
             }
         }
@@ -293,7 +298,7 @@ public class PackerHand : Agent
         foreach (int selectedBoxIdx in maskedBoxIndices)
         {
             //Debug.Log($"MASK BOX {selectedBoxIdx}");
-            actionMask.SetActionEnabled(1, selectedBoxIdx, false);
+            actionMask.SetActionEnabled(0, selectedBoxIdx, false);
         }
     }
 
@@ -309,9 +314,9 @@ public class PackerHand : Agent
         // Debug.Log($"ON ACTION RECEIVED ACTION ZERO: {discreteActions[0]}");
         // Debug.Log($"ON ACTION RECEIVED ACTION ONE: {discreteActions[1]}");
         // Debug.Log($"ON ACTION RECEIVED ACTION TWO: {discreteActions[2]}");
-        SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);      
         //SelectContinuousVertex(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         SelectBox(discreteActions[++j]); 
+        SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);      
         SelectRotation(discreteActions[++j]);
     }
 
@@ -389,14 +394,14 @@ public class PackerHand : Agent
             // both vertices array and vertices list are used to find black boxes
             //UpdateBlackBox();
 
-            if (curriculum_ConfigurationLocal != 1 | Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) != 0.0f)
-            {
-                // Add surface area reward
-                box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-                percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
-                AddReward(percent_contact_surface_area * 50f);
-                Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
-            }
+            // if (curriculum_ConfigurationLocal != 1 | Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) != 0.0f)
+            // {
+            //     // Add surface area reward
+            //     box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+            //     percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
+            //     AddReward(percent_contact_surface_area * 50f);
+            //     Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
+            // }
 
             // Add volume reward
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
@@ -682,12 +687,13 @@ public class PackerHand : Agent
             // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
             selectedVertexIdx = action_SelectedVertexIdx;
             var unscaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
+            boxPool[selectedBoxIdx].unscaledVertex = unscaled_selectedVertex;
             // reward_dense = inverse of exponential distance between discreteVertex and continuousVertex 
             // reward_dense = 1/((discreteVertex - continuousVertex)**2)
-            float reward_dense_distance = (float) 
-            (1/(Math.Pow(action_SelectedVertex_x - unscaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - unscaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - unscaled_selectedVertex.z, 2)));
-            AddReward(reward_dense_distance);
-            Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
+            // float reward_dense_distance = (float) 
+            // (1/(Math.Pow(action_SelectedVertex_x - unscaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - unscaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - unscaled_selectedVertex.z, 2)));
+            // AddReward(reward_dense_distance);
+            // Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
             selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
             Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
 
@@ -699,35 +705,17 @@ public class PackerHand : Agent
             (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 1.0f) == 1.0f))
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
+            boxPool[selectedBoxIdx].unscaledVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             ///// this selected vertex should be added back to the observation////
-            ////each box will have its own vertex 
-            continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+            //continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
         else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 2.0f) == 2.0f) |
         (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 2.0f) == 2.0f))
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-            continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
-        }
-            // isVertexSelected = true;
-
-    
-        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 1.0f) == 1.0f) |
-            (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 1.0f) == 1.0f))
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
-            ///// this selected vertex should be added back to the observation////
-            ////each box will have its own vertex 
-            continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
-        }
-        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 2.0f) == 2.0f) |
-        (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 2.0f) == 2.0f))
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-            continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+            boxPool[selectedBoxIdx].unscaledVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+            //continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
             // isVertexSelected = true;
