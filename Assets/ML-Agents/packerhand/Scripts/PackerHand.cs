@@ -66,6 +66,7 @@ public class PackerHand : Agent
     //public bool isdiscreteSolution = false;
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
+    public bool isDiscrete;
     //[HideInInspector] public bool isBlackboxUpdated;
     // public bool isVertexSelected;
     public bool isBoxSelected;
@@ -85,6 +86,7 @@ public class PackerHand : Agent
 
     public float total_bin_volume; // regular bin's volume
     public Bounds areaBounds; // regular bin's bounds
+    public int boxes_packed = 0;
     public float current_bin_volume;
     public float percent_filled_bin_volume;
     public float box_surface_area;
@@ -149,17 +151,17 @@ public class PackerHand : Agent
         {
             areaBounds.Encapsulate(renderers[i].bounds);
         }
-        Debug.Log($"BIN BOUNDS: {areaBounds}");
+        //Debug.Log($"BIN BOUNDS: {areaBounds}");
         // Get total bin volume 
         total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
-        Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
+        //Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
 
         // Get scale of bin
         binscale_x = areaBounds.extents.x*2;
         binscale_y = areaBounds.extents.y*2;
         binscale_z = areaBounds.extents.z*2;
         origin = new Vector3(8.25f, 0.50f, 10.50f);
-        Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
+        //Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
 
         // initialize local reference of box pool
         boxPool = BoxSpawner.boxPool;
@@ -182,8 +184,9 @@ public class PackerHand : Agent
         // Set up boxes
         boxSpawner.SetUpBoxes();
 
-        if (curriculum_ConfigurationLocal == 0 |
-        (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+        // if (curriculum_ConfigurationLocal == 0 |
+        // (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+        if (isDiscrete)
         {
             selectedVertex = origin; // refactor to select first vertex
             // isVertexSelected = true;
@@ -212,7 +215,7 @@ public class PackerHand : Agent
 
             if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[boxPool.Count+8];
+                float[] listVarObservation = new float[boxPool.Count+12];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
@@ -224,12 +227,18 @@ public class PackerHand : Agent
                 listVarObservation[boxPool.Count+3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
                 Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
                 Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
+                Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
                 // Add updated box placement vertex
                 listVarObservation[boxPool.Count+4] = box.boxVertex.x;
                 listVarObservation[boxPool.Count+5] = box.boxVertex.y;
                 listVarObservation[boxPool.Count+6] = box.boxVertex.z;
+                // Add updated box rotation
+                listVarObservation[boxPool.Count+7] = box.boxRot[0];
+                listVarObservation[boxPool.Count+8] = box.boxRot[1];
+                listVarObservation[boxPool.Count+9] = box.boxRot[2];
+                listVarObservation[boxPool.Count+10] = box.boxRot[3];
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[boxPool.Count+7] = box.isOrganized ? 1.0f : 0.0f;;
+                listVarObservation[boxPool.Count+11] = box.isOrganized ? 1.0f : 0.0f;;
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
@@ -285,8 +294,9 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (curriculum_ConfigurationLocal == 0 |
-            (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+        // if (curriculum_ConfigurationLocal == 0 |
+        //     (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+        if (isDiscrete)
         {
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
@@ -328,6 +338,7 @@ public class PackerHand : Agent
         if (maskedBoxIndices.Count == boxPool.Count)
         {
             EndEpisode();
+            curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
             isEpisodeStart = true;
             Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
         }
@@ -336,25 +347,33 @@ public class PackerHand : Agent
         {
             Debug.Log("TEBS MAX NO. OF STEPS EXCEEDED ");
             EndEpisode();
+            curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
             isEpisodeStart = true;
             Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
         }
-        // Initialize curriculum and brain
-        if (curriculum_ConfigurationGlobal != -1)
-        {
-            ConfigureAgent(curriculum_ConfigurationGlobal);
-            curriculum_ConfigurationGlobal = -1;
-        }
+        // // Initialize curriculum and brain
+        // if (curriculum_ConfigurationGlobal != -1)
+        // {
+        //     ConfigureAgent(curriculum_ConfigurationGlobal);
+        //     curriculum_ConfigurationGlobal = -1;
+        // }
         // start of episode
         if (isEpisodeStart)
         {
             isEpisodeStart = false;
-            // REQUEST DECISION FOR FIRST ROUND OF PICKING
-            if (curriculum_ConfigurationLocal == 0 |
-                (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+            // Initialize curriculum and brain
+            if (curriculum_ConfigurationGlobal != -1)
+            {
+                ConfigureAgent(curriculum_ConfigurationGlobal);
+                curriculum_ConfigurationGlobal = -1;
+            }
+            // if (curriculum_ConfigurationLocal == 0 |
+            //     (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+            if (isDiscrete)
             { 
                 isAfterOriginVertexSelected = false;
             }
+            // REQUEST DECISION FOR FIRST ROUND OF PICKING
             //Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
             GetComponent<Agent>().RequestDecision();
             //Debug.Log("BEFORE ENVIRONEMTN STEP IN FIRST ROUND");    
@@ -380,8 +399,9 @@ public class PackerHand : Agent
 
             StateReset();
 
-            if (curriculum_ConfigurationLocal == 0 |
-                (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+            // if (curriculum_ConfigurationLocal == 0 |
+            //     (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+            if (isDiscrete)
             {
                 isAfterOriginVertexSelected = true;
                 // vertices array of tripoints doesn't depend on the trimesh
@@ -440,12 +460,14 @@ public class PackerHand : Agent
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     DropoffBox();
+                    boxes_packed++;
                 }
                 else
                 {
                     //BoxReset("failedPhysicsCheck");
                     AddReward(-100f);
                     EndEpisode();
+                    curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
                     isEpisodeStart = true;
                     Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
                 }
@@ -680,8 +702,9 @@ public class PackerHand : Agent
         action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
-        if (curriculum_ConfigurationLocal == 0 |
-            (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+        // if (curriculum_ConfigurationLocal == 0 |
+        //     (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+        if (isDiscrete)
         {
             // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
             selectedVertexIdx = action_SelectedVertexIdx;
@@ -1235,14 +1258,15 @@ public class PackerHand : Agent
         // conditional check can be removed if failing physics test = end of episode
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
-            if (curriculum_ConfigurationLocal == 0 |
-                (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+            // if (curriculum_ConfigurationLocal == 0 |
+            //     (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
+            if (isDiscrete)
             {
                 if (isAfterOriginVertexSelected)
                 {
                     Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
-                    Vector3 default_vertex = Vector3.zero;
-                    verticesArray[selectedVertexIdx] = default_vertex;               
+                    //Vector3 default_vertex = Vector3.zero;
+                    verticesArray[selectedVertexIdx] = Vector3.zero;               
                 }
             }
             boxPool[selectedBoxIdx].isOrganized = true;
@@ -1276,6 +1300,9 @@ public class PackerHand : Agent
 
         // Reset reward
         SetReward(0f);
+
+        // Reset number of packed boxes
+        boxes_packed = 0;
 
         // Reset current bin volume
         current_bin_volume = total_bin_volume;
@@ -1315,11 +1342,16 @@ public class PackerHand : Agent
         if (n==0) 
         {
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
+            isDiscrete = true;
             SetModel(m_DiscreteBehaviorName, discreteBrain);
         }
         else if (n==1) 
         {
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_MixBehaviorName}");
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f)
+            {
+                isDiscrete = true;
+            }
             SetModel(m_MixBehaviorName, mixBrain);
         }
         else if (n==2)
