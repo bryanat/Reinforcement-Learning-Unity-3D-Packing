@@ -21,12 +21,12 @@ public class PackerHand : Agent
     public bool useAttention=true; // use attention by default (default = true)
     BufferSensorComponent m_BufferSensor;
     public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
-    public NNModel similarBoxBrain;     // Brain to use when boxes are of similar sizes
-    public NNModel regularBoxBrain;     // Brain to use when boxes size vary
+    public NNModel continuousBrain;     // Brain to use when boxes are of similar sizes
+    public NNModel mixBrain;     // Brain to use when boxes size vary
 
     string m_DiscreteBehaviorName = "Discrete"; // 
-    string m_SimilarBoxBehaviorName = "SimilarBox";
-    string m_RegularBoxBehaviorName = "RegularBox";
+    string m_ContinuousBehaviorName = "Continuous";
+    string m_MixBehaviorName = "Mix";
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
     [HideInInspector] CombineMesh m_BackMeshScript;
@@ -131,11 +131,11 @@ public class PackerHand : Agent
             discreteBrain = modelOverrider.GetModelForBehaviorName(m_DiscreteBehaviorName);
             m_DiscreteBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_DiscreteBehaviorName);
 
-            similarBoxBrain = modelOverrider.GetModelForBehaviorName(m_SimilarBoxBehaviorName);
-            m_SimilarBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_SimilarBoxBehaviorName);
+            continuousBrain = modelOverrider.GetModelForBehaviorName(m_ContinuousBehaviorName);
+            m_ContinuousBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_ContinuousBehaviorName);
 
-            regularBoxBrain = modelOverrider.GetModelForBehaviorName(m_RegularBoxBehaviorName);
-            m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
+            mixBrain = modelOverrider.GetModelForBehaviorName(m_MixBehaviorName);
+            m_MixBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_MixBehaviorName);
         }
 
         // Make agent unaffected by collision
@@ -183,7 +183,7 @@ public class PackerHand : Agent
         boxSpawner.SetUpBoxes();
 
         if (curriculum_ConfigurationLocal == 0 |
-        (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
+        (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
         {
             selectedVertex = origin; // refactor to select first vertex
             // isVertexSelected = true;
@@ -205,7 +205,7 @@ public class PackerHand : Agent
         foreach (Box box in boxPool) 
         {   
             // Add updated box rotation
-            sensor.AddObservation(box.boxRot);
+            //sensor.AddObservation(box.boxRot);
             //Debug.Log($"XYY BOX ROTATION IS: {box.boxRot}");
             
             Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
@@ -286,7 +286,7 @@ public class PackerHand : Agent
     {
         // vertices action mask
         if (curriculum_ConfigurationLocal == 0 |
-            (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
+            (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
         {
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
@@ -351,7 +351,7 @@ public class PackerHand : Agent
             isEpisodeStart = false;
             // REQUEST DECISION FOR FIRST ROUND OF PICKING
             if (curriculum_ConfigurationLocal == 0 |
-                (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
+                (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
             { 
                 isAfterOriginVertexSelected = false;
             }
@@ -381,7 +381,7 @@ public class PackerHand : Agent
             StateReset();
 
             if (curriculum_ConfigurationLocal == 0 |
-                (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
+                (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
             {
                 isAfterOriginVertexSelected = true;
                 // vertices array of tripoints doesn't depend on the trimesh
@@ -395,7 +395,7 @@ public class PackerHand : Agent
             // both vertices array and vertices list are used to find black boxes
             //UpdateBlackBox();
 
-            // if (curriculum_ConfigurationLocal != 1 | Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) != 0.0f)
+            // if (curriculum_ConfigurationLocal != 1 | Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) != 0.0f)
             // {
             //     // Add surface area reward
             //     box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
@@ -681,7 +681,7 @@ public class PackerHand : Agent
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
         if (curriculum_ConfigurationLocal == 0 |
-            (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
+            (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
         {
             // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
             selectedVertexIdx = action_SelectedVertexIdx;
@@ -700,15 +700,15 @@ public class PackerHand : Agent
             //AddReward(1f);
             // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
         }
-        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 1.0f) == 1.0f) |
-            (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 1.0f) == 1.0f))
+        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 1.0f) == 1.0f) |
+            (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 1.0f) == 1.0f))
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
-        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 2.0f) == 2.0f) |
-        (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 2.0f) == 2.0f))
+        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 2.0f) == 2.0f) |
+        (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 2.0f) == 2.0f))
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
@@ -1236,7 +1236,7 @@ public class PackerHand : Agent
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
             if (curriculum_ConfigurationLocal == 0 |
-                (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f))
+                (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
             {
                 if (isAfterOriginVertexSelected)
                 {
@@ -1314,15 +1314,18 @@ public class PackerHand : Agent
     {
         if (n==0) 
         {
+            Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
             SetModel(m_DiscreteBehaviorName, discreteBrain);
         }
-        if (n==1) 
+        else if (n==1) 
         {
-            SetModel(m_RegularBoxBehaviorName, regularBoxBrain);
+            Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_MixBehaviorName}");
+            SetModel(m_MixBehaviorName, mixBrain);
         }
-        else 
+        else if (n==2)
         {
-            SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);    
+            Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_ContinuousBehaviorName}");
+            SetModel(m_ContinuousBehaviorName, continuousBrain);    
         }
     }
 

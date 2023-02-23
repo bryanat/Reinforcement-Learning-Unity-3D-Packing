@@ -25,8 +25,8 @@ behaviors:
     checkpoint_interval: 20000
     max_steps: 1000000
     time_horizon: 128
-    summary_freq: 100
-  RegularBox:
+    summary_freq: 2000
+  Mix:
     trainer_type: ppo
     hyperparameters:
       batch_size: 512
@@ -52,11 +52,8 @@ behaviors:
     checkpoint_interval: 20000
     max_steps: 1000000
     time_horizon: 128
-    summary_freq: 100
-    # sequence_length: 64
-    # memory_size: 128
-    # vis_encode_type: nature_cnn
-  SimilarBox:
+    summary_freq: 2000
+  Continuous:
     trainer_type: ppo
     hyperparameters:
       batch_size: 512
@@ -82,27 +79,27 @@ behaviors:
     checkpoint_interval: 20000
     max_steps: 1000000
     time_horizon: 128
-    summary_freq: 100
+    summary_freq: 2000
 
   
   # Add this section
 environment_parameters:
-  discrete_box:
+  discrete:
     curriculum:
       - name: EasyDiscreteLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
-          behavior: RegularBox
+          behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 900
         value: 0.0
-  regular_box:
+  mix:
     curriculum:
       - name: EasyDiscreteLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
-          behavior: RegularBox
+          behavior: Mix
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 900
@@ -110,7 +107,7 @@ environment_parameters:
       - name: EasyContinuousLesson # This is the start of the second lesson
         completion_criteria:
           measure: reward
-          behavior: RegularBox
+          behavior: Mix
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 500
@@ -118,15 +115,15 @@ environment_parameters:
         value: 1.0
       - name: HardContinuousLesson
         value: 2.0
-  similar_box:
+  continuous:
     curriculum:
       - name: EasyContinuousLesson # This is the start of the second lesson
         completion_criteria:
           measure: reward
-          behavior: SimilarBox
+          behavior: Continuous
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 100
+          threshold: 500
           require_reset: true
         value: 1.0
       - name: HardContinuousLesson
