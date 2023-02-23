@@ -67,6 +67,8 @@ public class PackerHand : Agent
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
     public bool isDiscrete;
+    public bool isFirstLayerContinuous;
+    public bool isAllContinuous;
     //[HideInInspector] public bool isBlackboxUpdated;
     // public bool isVertexSelected;
     public bool isBoxSelected;
@@ -723,15 +725,17 @@ public class PackerHand : Agent
             //AddReward(1f);
             // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
         }
-        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 1.0f) == 1.0f) |
-            (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 1.0f) == 1.0f))
+        // else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 1.0f) == 1.0f) |
+        //     (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 1.0f) == 1.0f))
+        else if (isFirstLayerContinuous)
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
-        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 2.0f) == 2.0f) |
-        (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 2.0f) == 2.0f))
+        // else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 2.0f) == 2.0f) |
+        // (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 2.0f) == 2.0f))
+        else if (isAllContinuous)
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
@@ -1352,11 +1356,27 @@ public class PackerHand : Agent
             {
                 isDiscrete = true;
             }
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 1.0f) == 1.0f)
+            {
+                isFirstLayerContinuous = true;
+            }
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 2.0f) == 2.0f)
+            {
+                isAllContinuous = true;
+            }
             SetModel(m_MixBehaviorName, mixBrain);
         }
         else if (n==2)
         {
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_ContinuousBehaviorName}");
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 1.0f) == 1.0f)
+            {
+                isFirstLayerContinuous = true;
+            }
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 2.0f) == 2.0f)
+            {
+                isAllContinuous = true;
+            }
             SetModel(m_ContinuousBehaviorName, continuousBrain);    
         }
     }
