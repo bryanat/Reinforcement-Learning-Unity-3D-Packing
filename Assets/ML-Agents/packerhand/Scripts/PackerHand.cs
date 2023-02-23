@@ -94,6 +94,8 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
 
+    StatsRecorder m_statsRecorder; // adds stats to tensorboard
+
 
 
     public override void Initialize()
@@ -102,6 +104,9 @@ public class PackerHand : Agent
 
         curriculum_ConfigurationLocal = curriculum_ConfigurationGlobal; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
         
+        // initialize stats recorder to add stats to tensorboard
+        m_statsRecorder = Academy.Instance.StatsRecorder;
+
         // initialize agent position
         initialAgentPosition = this.transform.position;
 
@@ -404,7 +409,10 @@ public class PackerHand : Agent
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
             AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
             Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
-        
+            
+            // Increment stats recorder to match reward
+            m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
+
            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
