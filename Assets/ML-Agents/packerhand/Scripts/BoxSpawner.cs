@@ -72,8 +72,6 @@ public class BoxSpawner : MonoBehaviour
 
     public BoxSize [] sizes;
 
-    //[HideInInspector] public List<Vector3> sizes = new List<Vector3>();
-
     [HideInInspector] public int idx_counter = 0;
 
 
@@ -81,7 +79,6 @@ public class BoxSpawner : MonoBehaviour
     {
         // read from file if boxes has not been imported from file
         if (sizes[0].box_size[0]==0) {
-        //if (sizes[0][0]==0) {
             // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes.json");
             if (flag == 0)
             {
@@ -97,7 +94,6 @@ public class BoxSpawner : MonoBehaviour
         }
         var idx = 0;
         foreach(BoxSize s in sizes) 
-        //foreach(Vector3 size in sizes) 
         {
             Vector3 box_size = new Vector3(s.box_size.x, s.box_size.y, s.box_size.z);
             // if box is not of size zeros
@@ -107,7 +103,6 @@ public class BoxSpawner : MonoBehaviour
                 var position = GetRandomSpawnPos();
                 GameObject box = Instantiate(unitBox, position, Quaternion.identity);
                 box.transform.localScale = box_size;
-                //box.transform.localScale = size;
                 box.transform.position = position;
                 // Add compoments to GameObject box
                 box.AddComponent<Rigidbody>();
@@ -158,6 +153,7 @@ public class BoxSpawner : MonoBehaviour
         // Schema of .json: { "Product_id": 0, "Length": 7.7, "Width": 7.8, "Height": 11.7, "Quantity": 20 },
     public void ReadJson(string filename) 
     {
+        idx_counter = 0;
         using (var inputStream = File.Open(filename, FileMode.Open)) {
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
             //var root = XElement.Load(jsonReader);
@@ -170,13 +166,12 @@ public class BoxSpawner : MonoBehaviour
                 float width = float.Parse(box.XPathSelectElement("./Width").Value);
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
                 int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
-                Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
+                //Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
                 // Debug.Log($"idx_counter A ================ {idx_counter}");
                 for (int n = 0; n<quantity; n++)
                 {
                     // Debug.Log($"n           B ================ {n}");
                     sizes[idx_counter].box_size = new Vector3(width, height, length);
-                    //sizes.Add(new Vector3(width, height, length));
                     idx_counter++;
                     // Debug.Log($"idx_counter B ================ {idx_counter}");
                 }   
@@ -189,7 +184,7 @@ public class BoxSpawner : MonoBehaviour
         for (int m=idx_counter; m<maxBoxQuantity; m++)
         {
             // pad with zeros
-            sizes[idx_counter].box_size = Vector3.zero;
+            sizes[m].box_size = Vector3.zero;
         }
     }
 }

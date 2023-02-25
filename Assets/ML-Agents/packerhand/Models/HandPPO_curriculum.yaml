@@ -86,14 +86,22 @@ behaviors:
 environment_parameters:
   discrete:
     curriculum:
-      - name: EasyDiscreteLesson # The '-' is important as this is a list
+      - name: 8BoxDiscreteLesson # The '-' is important as this is a list
+        completion_criteria:
+          measure: reward
+          behavior: Discrete
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 500
+        value: 0.0
+      - name: 30BoxDiscreteLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 900
-        value: 0.0
+        value: 1.0
   # mix:
   #   curriculum:
   #     - name: EasyDiscreteLesson # The '-' is important as this is a list

@@ -187,6 +187,18 @@ public class PackerHand : Agent
 
         // // Set up boxes
         // boxSpawner.SetUpBoxes();
+        if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
+        {
+            // Set up easy boxes
+            boxSpawner.SetUpBoxes(0);
+            Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
+        }
+        else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
+        {
+            // Set up hard boxes
+            boxSpawner.SetUpBoxes(1);
+            Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
+        }
 
         if (isDiscreteSolution)
         {
@@ -261,8 +273,9 @@ public class PackerHand : Agent
         }
 
         // add all zero padded boxes to action mask
-        for (int m=j; m< boxSpawner.maxBoxQuantity; m++)
+        for (int m=boxPool.Count(); m< boxSpawner.maxBoxQuantity; m++)
         {
+            Debug.Log($"MASK ZERO PADDING {m}");
             maskedBoxIndices.Add(m);
         }
 
@@ -1319,18 +1332,6 @@ public class PackerHand : Agent
         {
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
             isDiscreteSolution = true;
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
-            {
-                // Set up easy boxes
-                boxSpawner.SetUpBoxes(1);
-                Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
-            }
-            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
-            {
-                // Set up hard boxes
-                boxSpawner.SetUpBoxes(1);
-                Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
-            }
             SetModel(m_DiscreteBehaviorName, discreteBrain);
         }
         else if (n==1) 
@@ -1348,7 +1349,6 @@ public class PackerHand : Agent
             {
                 isAllContinuous = true;
             }
-            boxSpawner.SetUpBoxes(1);
             SetModel(m_MixBehaviorName, mixBrain);
         }
         else if (n==2)
@@ -1362,7 +1362,6 @@ public class PackerHand : Agent
             {
                 isAllContinuous = true;
             }
-            boxSpawner.SetUpBoxes(1);
             SetModel(m_ContinuousBehaviorName, continuousBrain);    
         }
     }
