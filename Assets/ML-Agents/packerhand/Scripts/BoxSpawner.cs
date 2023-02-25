@@ -78,7 +78,7 @@ public class BoxSpawner : MonoBehaviour
     public void SetUpBoxes(int flag) 
     {
         // read from file if boxes has not been imported from file
-        if (sizes[0].box_size[0]==0) {
+        //if (sizes[0].box_size[0]==0) {
             // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes.json");
             if (flag == 0)
             {
@@ -91,7 +91,7 @@ public class BoxSpawner : MonoBehaviour
                 PadZeros();
             }
             // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30_test.json");
-        }
+        //}
         var idx = 0;
         foreach(BoxSize s in sizes) 
         {

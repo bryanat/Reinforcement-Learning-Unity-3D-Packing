@@ -1345,8 +1345,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
-    NumStackedVectorObservations: 3
+    VectorObservationSize: 451
+    NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
       BranchSizes: 320000009600000006000000
@@ -1401,7 +1401,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 16
+  m_ObservableSize: 18
   m_MaxNumObservables: 58
 --- !u!54 &702327117403966051
 Rigidbody:

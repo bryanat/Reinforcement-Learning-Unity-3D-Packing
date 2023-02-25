@@ -19,14 +19,12 @@ public class PackerHand : Agent
     int curriculum_ConfigurationLocal; // local reference of the above
     public int packSpeed = 20;
     public bool useAttention=true; // use attention by default (default = true)
-    
     public bool useVerticesArray=true;
-    public bool useDifferentBoxSets = true;
     BufferSensorComponent m_BufferSensor;
+
     public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
     public NNModel continuousBrain;     // Brain to use when boxes are of similar sizes
     public NNModel mixBrain;     // Brain to use when boxes size vary
-
     string m_DiscreteBehaviorName = "Discrete"; // 
     string m_ContinuousBehaviorName = "Continuous";
     string m_MixBehaviorName = "Mix";
@@ -187,16 +185,18 @@ public class PackerHand : Agent
 
         // // Set up boxes
         // boxSpawner.SetUpBoxes();
-        if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
+        if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
         {
             // Set up easy boxes
             boxSpawner.SetUpBoxes(0);
+            m_BufferSensor.ObservableSize = boxPool.Count+8;
             Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
         }
-        else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
+        else if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
         {
             // Set up hard boxes
             boxSpawner.SetUpBoxes(1);
+            m_BufferSensor.ObservableSize = boxPool.Count+8;
             Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
         }
 
@@ -275,7 +275,7 @@ public class PackerHand : Agent
         // add all zero padded boxes to action mask
         for (int m=boxPool.Count(); m< boxSpawner.maxBoxQuantity; m++)
         {
-            Debug.Log($"MASK ZERO PADDING {m}");
+            //Debug.Log($"MASK ZERO PADDING {m}");
             maskedBoxIndices.Add(m);
         }
 
