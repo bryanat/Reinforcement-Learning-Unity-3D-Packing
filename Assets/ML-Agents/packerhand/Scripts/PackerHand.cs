@@ -19,6 +19,9 @@ public class PackerHand : Agent
     int curriculum_ConfigurationLocal; // local reference of the above
     public int packSpeed = 20;
     public bool useAttention=true; // use attention by default (default = true)
+    
+    public bool useVerticesArray=true;
+    public bool useDifferentBoxSets = true;
     BufferSensorComponent m_BufferSensor;
     public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
     public NNModel continuousBrain;     // Brain to use when boxes are of similar sizes
@@ -182,8 +185,8 @@ public class PackerHand : Agent
         // Reset agent and rewards
         SetResetParameters();
 
-        // Set up boxes
-        boxSpawner.SetUpBoxes();
+        // // Set up boxes
+        // boxSpawner.SetUpBoxes();
 
         if (isDiscreteSolution)
         {
@@ -224,9 +227,9 @@ public class PackerHand : Agent
                 listVarObservation[boxPool.Count+2] = scaled_continuous_boxsize.z;
                 // Add updated [volume]/[w*h*l] added to state vector
                 listVarObservation[boxPool.Count+3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
-                Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
-                Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
-                Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
+                //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
+                //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
+                //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
                 // Add updated box placement vertex
                 listVarObservation[boxPool.Count+4] = box.boxVertex.x;
                 listVarObservation[boxPool.Count+5] = box.boxVertex.y;
@@ -248,13 +251,19 @@ public class PackerHand : Agent
                 sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
                 sensor.AddObservation (box.boxVertex);
             }
-            
+            // add placed boxes to action ask
             if (box.isOrganized)
             {
                 maskedBoxIndices.Add(j);
                 Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
             }
             j++;
+        }
+
+        // add all zero padded boxes to action mask
+        for (int m=j; m< boxSpawner.maxBoxQuantity; m++)
+        {
+            maskedBoxIndices.Add(m);
         }
 
         // Add array of vertices (selected vertices are 0s)
@@ -264,8 +273,10 @@ public class PackerHand : Agent
         {   
             Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
             //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
-            sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
-            // sensor.AddObservation(vertex); //add vertices to sensor observations
+            if (useVerticesArray)
+            {
+                sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+            }
             // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
             if (vertex == Vector3.zero)
             {
@@ -357,8 +368,6 @@ public class PackerHand : Agent
                 ConfigureAgent(curriculum_ConfigurationGlobal);
                 curriculum_ConfigurationGlobal = -1;
             }
-            // if (curriculum_ConfigurationLocal == 0 |
-            //     (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
             if (isDiscreteSolution)
             { 
                 isAfterOriginVertexSelected = false;
@@ -405,14 +414,14 @@ public class PackerHand : Agent
             // both vertices array and vertices list are used to find black boxes
             //UpdateBlackBox();
 
-            // if (curriculum_ConfigurationLocal != 1 | Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) != 0.0f)
-            // {
-            //     // Add surface area reward
-            //     box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-            //     percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
-            //     AddReward(percent_contact_surface_area * 50f);
-            //     Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
-            // }
+            if (!isDiscreteSolution)
+            {
+                // Add surface area reward
+                box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+                percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
+                AddReward(percent_contact_surface_area * 50f);
+                Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
+            }
 
             // Add volume reward
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
@@ -1233,7 +1242,6 @@ public class PackerHand : Agent
                 if (isAfterOriginVertexSelected)
                 {
                     Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
-                    //Vector3 default_vertex = Vector3.zero;
                     verticesArray[selectedVertexIdx] = Vector3.zero;               
                 }
             }
@@ -1311,6 +1319,18 @@ public class PackerHand : Agent
         {
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
             isDiscreteSolution = true;
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
+            {
+                // Set up easy boxes
+                boxSpawner.SetUpBoxes(1);
+                Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
+            }
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
+            {
+                // Set up hard boxes
+                boxSpawner.SetUpBoxes(1);
+                Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
+            }
             SetModel(m_DiscreteBehaviorName, discreteBrain);
         }
         else if (n==1) 
@@ -1328,6 +1348,7 @@ public class PackerHand : Agent
             {
                 isAllContinuous = true;
             }
+            boxSpawner.SetUpBoxes(1);
             SetModel(m_MixBehaviorName, mixBrain);
         }
         else if (n==2)
@@ -1341,6 +1362,7 @@ public class PackerHand : Agent
             {
                 isAllContinuous = true;
             }
+            boxSpawner.SetUpBoxes(1);
             SetModel(m_ContinuousBehaviorName, continuousBrain);    
         }
     }
