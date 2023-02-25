@@ -1300,7 +1300,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: curriculum_ConfigurationGlobal
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1346,7 +1346,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_BrainParameters:
     VectorObservationSize: 271
-    NumStackedVectorObservations: 1
+    NumStackedVectorObservations: 3
     m_ActionSpec:
       m_NumContinuousActions: 3
       BranchSizes: 1e0000005a00000006000000
@@ -1401,8 +1401,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 42
-  m_MaxNumObservables: 42
+  m_ObservableSize: 38
+  m_MaxNumObservables: 48
 --- !u!54 &702327117403966051
 Rigidbody:
   m_ObjectHideFlags: 0

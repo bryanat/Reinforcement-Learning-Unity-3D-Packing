@@ -1,5 +1,5 @@
 behaviors:
-  RegularBox:
+  Discrete:
     trainer_type: sac
     hyperparameters:
       learning_rate: 0.0003
@@ -27,15 +27,15 @@ behaviors:
     summary_freq: 10000
 
 environment_parameters:
-  regular_box:
+  discrete:
     curriculum:
-      - name: MyFirstLesson # The '-' is important as this is a list
+      - name: EasyDiscreteLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
           behavior: RegularBox
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.2
+          threshold: 500
         value: 0.0
       - name: MySecondLesson # This is the start of the second lesson
         completion_criteria:
@@ -43,12 +43,8 @@ environment_parameters:
           behavior: RegularBox
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.6
+          threshold: 700
           require_reset: true
-        value:
-          sampler_type: uniform
-          sampler_parameters:
-            min_value: 4.0
-            max_value: 7.0
+        value: 1.0
       - name: MyLastLesson
-        value: 8.0
+        value: 2.0
