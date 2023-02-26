@@ -336,7 +336,7 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        if (boxPool.Count!=0 && maskedBoxIndices.Count == boxPool.Count)
+        if (boxPool.Count!=0 && maskedBoxIndices.Count == maxBoxNum)
         {
             EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
