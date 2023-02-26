@@ -129,6 +129,11 @@ public class BoxSpawner : MonoBehaviour
             // Delete the created json file to reuse the name next iteration
             File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json");
         }
+        if (flag == 3)
+        {
+            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30.json", true);
+            PadZeros();
+        }
 
         // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30_test.json");
         var idx = 0;
@@ -190,7 +195,7 @@ public class BoxSpawner : MonoBehaviour
     // Read from json file and construct box, then add box to sizes array of boxes
         // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },
         // Schema of .json: { "Product_id": 0, "Length": 7.7, "Width": 7.8, "Height": 11.7, "Quantity": 20 },
-    public void ReadJson(string filename) 
+    public void ReadJson(string filename, bool randomNumberOfBoxes = false) 
     {
         idx_counter = 0;
         using (var inputStream = File.Open(filename, FileMode.Open)) {
@@ -204,7 +209,16 @@ public class BoxSpawner : MonoBehaviour
                 float length = float.Parse(box.XPathSelectElement("./Length").Value);
                 float width = float.Parse(box.XPathSelectElement("./Width").Value);
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
-                int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
+                int quantity;
+                if(randomNumberOfBoxes) 
+                {
+                    quantity = UnityEngine.Random.Range(5,10);
+                }
+                // if calling ReadJson with randomNumberOfBoxes parameter set to true the random number of boxes
+                else
+                {
+                    quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
+                }
                 //Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
                 // Debug.Log($"idx_counter A ================ {idx_counter}");
                 for (int n = 0; n<quantity; n++)
