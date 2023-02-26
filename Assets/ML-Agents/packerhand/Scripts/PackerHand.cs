@@ -64,6 +64,7 @@ public class PackerHand : Agent
     [HideInInspector] public SensorOuterCollision sensorOuterCollision;
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
 
+    public bool isInitialization = true;
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
     public bool isDiscreteSolution;
@@ -234,30 +235,31 @@ public class PackerHand : Agent
 
             if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[boxPool.Count+8];
+                int maxBoxNum = boxSpawner.maxBoxQuantity;
+                float[] listVarObservation = new float[maxBoxNum+8];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                listVarObservation[boxPool.Count] = scaled_continuous_boxsize.x;
-                listVarObservation[boxPool.Count+1] = scaled_continuous_boxsize.y;
-                listVarObservation[boxPool.Count+2] = scaled_continuous_boxsize.z;
+                listVarObservation[maxBoxNum]  = scaled_continuous_boxsize.x;
+                listVarObservation[maxBoxNum +1] = scaled_continuous_boxsize.y;
+                listVarObservation[maxBoxNum +2] = scaled_continuous_boxsize.z;
                 // Add updated [volume]/[w*h*l] added to state vector
-                listVarObservation[boxPool.Count+3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
+                listVarObservation[maxBoxNum +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
                 //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
                 //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
                 //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
                 // Add updated box placement vertex
-                listVarObservation[boxPool.Count+4] = box.boxVertex.x;
-                listVarObservation[boxPool.Count+5] = box.boxVertex.y;
-                listVarObservation[boxPool.Count+6] = box.boxVertex.z;
+                listVarObservation[maxBoxNum +4] = box.boxVertex.x;
+                listVarObservation[maxBoxNum +5] = box.boxVertex.y;
+                listVarObservation[maxBoxNum +6] = box.boxVertex.z;
                 // Add updated box rotation
                 // listVarObservation[boxPool.Count+7] = box.boxRot[0];
                 // listVarObservation[boxPool.Count+8] = box.boxRot[1];
                 // listVarObservation[boxPool.Count+9] = box.boxRot[2];
                 // listVarObservation[boxPool.Count+10] = box.boxRot[3];
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[boxPool.Count+7] = box.isOrganized ? 1.0f : 0.0f;;
+                listVarObservation[maxBoxNum +7] = box.isOrganized ? 1.0f : 0.0f;;
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
@@ -385,31 +387,20 @@ public class PackerHand : Agent
             // Reset agent and rewards
             SetResetParameters();
 
-            if (isDiscreteSolution)
-            { 
-                selectedVertex = origin;
-                isAfterOriginVertexSelected = false;
-            }
-             if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
-            {
-                // Set up easy boxes
-                boxSpawner.SetUpBoxes(0);
-                m_BufferSensor.ObservableSize = boxPool.Count+8;
-                if (curriculum_ConfigurationGlobal!=-1)
-                {
-                    Debug.Log("BUFFER SENSOR CREATED");
-                    m_BufferSensor.CreateSensors();
-                }
-                Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
-                Debug.Log($"BSO BUFFER SENSOR OBSERVATION SIZE: {m_BufferSensor.ObservableSize}");
-            }
-
             // Initialize curriculum and brain
             if (curriculum_ConfigurationGlobal != -1)
             {
                 ConfigureAgent(curriculum_ConfigurationGlobal);
                 curriculum_ConfigurationGlobal = -1;
+                isInitialization = false;
             }
+
+            if (isDiscreteSolution)
+            { 
+                selectedVertex = origin;
+                isAfterOriginVertexSelected = false;
+            }
+
 
             Debug.Log("REQUEST DECISION AT START OF EPISODE");
             //Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
@@ -1356,12 +1347,25 @@ public class PackerHand : Agent
     {
         if (n==0) 
         {
+            if (isInitialization)
+            {
+                SetModel(m_DiscreteBehaviorName, discreteBrain);
+            }
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
             isDiscreteSolution = true;
-            SetModel(m_DiscreteBehaviorName, discreteBrain);
+            if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
+            {
+                // Set up easy boxes
+                boxSpawner.SetUpBoxes(0);
+                Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+            }
         }
         else if (n==1) 
         {
+            if (isInitialization)
+            {
+                SetModel(m_MixBehaviorName, mixBrain);
+            }
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_MixBehaviorName}");
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f)
             {
@@ -1375,11 +1379,14 @@ public class PackerHand : Agent
             {
                 isAllContinuous = true;
             }
-            SetModel(m_MixBehaviorName, mixBrain);
         }
         else if (n==2)
         {
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_ContinuousBehaviorName}");
+            if (isInitialization)
+            {
+                SetModel(m_ContinuousBehaviorName, continuousBrain);  
+            }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 1.0f) == 1.0f)
             {
                 isFirstLayerContinuous = true;
@@ -1387,8 +1394,7 @@ public class PackerHand : Agent
             else if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 2.0f) == 2.0f)
             {
                 isAllContinuous = true;
-            }
-            SetModel(m_ContinuousBehaviorName, continuousBrain);    
+            }  
         }
     }
 
