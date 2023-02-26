@@ -186,15 +186,7 @@ public class PackerHand : Agent
     public override void OnEpisodeBegin()
     {   
         Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
-
-        // Reset agent and rewards
-        //SetResetParameters();
-
-        // if (isDiscreteSolution)
-        // {
-        //     selectedVertex = origin; // refactor to select first vertex
-        //     // isVertexSelected = true;
-        // }        
+      
     }
 
 
@@ -601,7 +593,7 @@ public class PackerHand : Agent
                 //Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
                 if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
                 {
-                    Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
+                    // Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
                     // Add scaled tripoint_vertex to verticesArray
                     verticesArray[VertexCount] = scaled_continuous_vertex;
                     historicalVerticesLog.Add(scaled_continuous_vertex);

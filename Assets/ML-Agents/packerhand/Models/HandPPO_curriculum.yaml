@@ -92,7 +92,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0
+          threshold: 900
         value: 0.0
       - name: 30BoxDiscreteLesson # The '-' is important as this is a list
         completion_criteria:
@@ -100,7 +100,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 900
+          threshold: 600
         value: 1.0
       - name: VariableBoxDiscreteLesson # The '-' is important as this is a list
         completion_criteria:
