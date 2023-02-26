@@ -186,25 +186,6 @@ public class PackerHand : Agent
         // Reset agent and rewards
         //SetResetParameters();
 
-        // // Set up boxes
-        // boxSpawner.SetUpBoxes();
-        // if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
-        // {
-        //     // Set up easy boxes
-        //     boxSpawner.SetUpBoxes(0);
-        //     m_BufferSensor.ObservableSize = boxPool.Count+8;
-        //     Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
-        // }
-        // else if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
-        // {
-        //     // Set up hard boxes
-        //     boxSpawner.SetUpBoxes(1);
-        //     Debug.Log("AFTER SETUP BOXES");
-        //     m_BufferSensor.ObservableSize = boxPool.Count+8;
-        //     Debug.Log("AFTER BUFFER SENSOR SIZE RESET");
-        //     Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
-        // }
-
         // if (isDiscreteSolution)
         // {
         //     selectedVertex = origin; // refactor to select first vertex
@@ -227,10 +208,7 @@ public class PackerHand : Agent
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
         {   
-            // Add updated box rotation
-            //sensor.AddObservation(box.boxRot);
-            //Debug.Log($"XYY BOX ROTATION IS: {box.boxRot}");
-            
+
             Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
 
             if (useAttention){
@@ -1357,6 +1335,12 @@ public class PackerHand : Agent
             {
                 // Set up easy boxes
                 boxSpawner.SetUpBoxes(0);
+                Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+            }
+            if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
+            {
+                // Set up hard boxes
+                boxSpawner.SetUpBoxes(1);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
         }
