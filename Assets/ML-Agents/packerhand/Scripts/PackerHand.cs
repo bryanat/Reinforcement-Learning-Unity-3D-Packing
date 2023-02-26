@@ -173,6 +173,8 @@ public class PackerHand : Agent
         }
 
         isEpisodeStart = true;
+
+        Debug.Log("INITIALIZE ENDS");
     }
 
 
@@ -181,30 +183,32 @@ public class PackerHand : Agent
         Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
 
         // Reset agent and rewards
-        SetResetParameters();
+        //SetResetParameters();
 
         // // Set up boxes
         // boxSpawner.SetUpBoxes();
-        if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
-        {
-            // Set up easy boxes
-            boxSpawner.SetUpBoxes(0);
-            m_BufferSensor.ObservableSize = boxPool.Count+8;
-            Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
-        }
-        else if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
-        {
-            // Set up hard boxes
-            boxSpawner.SetUpBoxes(1);
-            m_BufferSensor.ObservableSize = boxPool.Count+8;
-            Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
-        }
+        // if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
+        // {
+        //     // Set up easy boxes
+        //     boxSpawner.SetUpBoxes(0);
+        //     m_BufferSensor.ObservableSize = boxPool.Count+8;
+        //     Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
+        // }
+        // else if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
+        // {
+        //     // Set up hard boxes
+        //     boxSpawner.SetUpBoxes(1);
+        //     Debug.Log("AFTER SETUP BOXES");
+        //     m_BufferSensor.ObservableSize = boxPool.Count+8;
+        //     Debug.Log("AFTER BUFFER SENSOR SIZE RESET");
+        //     Debug.Log($"BXS BOX POOL COUNT IS {boxPool.Count}");
+        // }
 
-        if (isDiscreteSolution)
-        {
-            selectedVertex = origin; // refactor to select first vertex
-            // isVertexSelected = true;
-        }        
+        // if (isDiscreteSolution)
+        // {
+        //     selectedVertex = origin; // refactor to select first vertex
+        //     // isVertexSelected = true;
+        // }        
     }
 
 
@@ -213,6 +217,7 @@ public class PackerHand : Agent
     /// </summary>
     public override void CollectObservations(VectorSensor sensor) 
     {
+        Debug.Log("OBSERVATION");
         // Add updated bin volume
         sensor.AddObservation(current_bin_volume);
 
@@ -275,7 +280,7 @@ public class PackerHand : Agent
         // add all zero padded boxes to action mask
         for (int m=boxPool.Count(); m< boxSpawner.maxBoxQuantity; m++)
         {
-            //Debug.Log($"MASK ZERO PADDING {m}");
+            // Debug.Log($"MASK ZERO PADDING {m}");
             maskedBoxIndices.Add(m);
         }
 
@@ -338,6 +343,7 @@ public class PackerHand : Agent
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
+        Debug.Log("ACTION");
         var j = -1;
         var i = -1;
 
@@ -355,7 +361,7 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        if (maskedBoxIndices.Count == boxPool.Count)
+        if (boxPool.Count!=0 && maskedBoxIndices.Count == boxPool.Count)
         {
             EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
@@ -375,22 +381,42 @@ public class PackerHand : Agent
         if (isEpisodeStart)
         {
             isEpisodeStart = false;
+
+            // Reset agent and rewards
+            SetResetParameters();
+
+            if (isDiscreteSolution)
+            { 
+                selectedVertex = origin;
+                isAfterOriginVertexSelected = false;
+            }
+             if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
+            {
+                // Set up easy boxes
+                boxSpawner.SetUpBoxes(0);
+                m_BufferSensor.ObservableSize = boxPool.Count+8;
+                if (curriculum_ConfigurationGlobal!=-1)
+                {
+                    Debug.Log("BUFFER SENSOR CREATED");
+                    m_BufferSensor.CreateSensors();
+                }
+                Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                Debug.Log($"BSO BUFFER SENSOR OBSERVATION SIZE: {m_BufferSensor.ObservableSize}");
+            }
+
             // Initialize curriculum and brain
             if (curriculum_ConfigurationGlobal != -1)
             {
                 ConfigureAgent(curriculum_ConfigurationGlobal);
                 curriculum_ConfigurationGlobal = -1;
             }
-            if (isDiscreteSolution)
-            { 
-                isAfterOriginVertexSelected = false;
-            }
-            // REQUEST DECISION FOR FIRST ROUND OF PICKING
+
+            Debug.Log("REQUEST DECISION AT START OF EPISODE");
             //Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
             GetComponent<Agent>().RequestDecision();
             //Debug.Log("BEFORE ENVIRONEMTN STEP IN FIRST ROUND");    
             Academy.Instance.EnvironmentStep();
-            //Debug.Log("AFTER ENVIRONMENT STEP IN FIRST ROUND");
+
         }
         // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
