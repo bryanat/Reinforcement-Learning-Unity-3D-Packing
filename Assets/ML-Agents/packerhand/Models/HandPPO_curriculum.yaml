@@ -102,6 +102,14 @@ environment_parameters:
           min_lesson_length: 100
           threshold: 900
         value: 1.0
+      - name: VariableBoxDiscreteLesson # The '-' is important as this is a list
+        completion_criteria:
+          measure: reward
+          behavior: Discrete
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 900
+        value: 2.0
   # mix:
   #   curriculum:
   #     - name: EasyDiscreteLesson # The '-' is important as this is a list

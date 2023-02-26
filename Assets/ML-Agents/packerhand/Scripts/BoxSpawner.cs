@@ -11,6 +11,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Runtime.Serialization.Json;
+using Newtonsoft.Json;
 
 
 
@@ -57,6 +58,15 @@ public class BoxSize
     public Vector3 box_size;
 }
 
+public class Item
+{
+    public int Product_id { get; set; }
+    public double Length { get; set; }
+    public double Width { get; set; }
+    public double Height { get; set; }
+    public int Quantity { get; set; }
+}
+
 
 // Spawns in boxes with sizes from a json file
 public class BoxSpawner : MonoBehaviour 
@@ -90,6 +100,37 @@ public class BoxSpawner : MonoBehaviour
                 ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30.json");
                 PadZeros();
             }
+            // Random boxes for attempting to train attention mechanism to learn different number and sizes of boxes
+            if (flag == 2)
+            {
+                
+                List<Item> items = new List<Item>();
+                items.Add(new Item
+                {
+                    Product_id = 0,
+                    Length = 5.825,
+                    Width = 6.45,
+                    Height = 10.85,
+                    Quantity = UnityEngine.Random.Range(10,20)
+                });
+
+                // Create a new object with the Items list
+                var data = new { Items = items };
+
+                // Serialize the object to json
+                var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
+
+                // Write the json to a file
+                File.WriteAllText("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json", json);
+
+                // Read random boxes using existing ReadJson function
+                ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json");
+                PadZeros();
+
+                // Delete the created json file to reuse the name next iteration
+                File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json");
+            }
+
             // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30_test.json");
         //}
         var idx = 0;
