@@ -71,7 +71,7 @@ public class Item
 // Spawns in boxes with sizes from a json file
 public class BoxSpawner : MonoBehaviour 
 {
-    [HideInInspector] public static List<Box> boxPool = new List<Box>();
+    [HideInInspector] public List<Box> boxPool = new List<Box>();
 
     // The box area, which will be set manually in the Inspector
     public GameObject boxArea;
@@ -87,52 +87,50 @@ public class BoxSpawner : MonoBehaviour
 
     public void SetUpBoxes(int flag) 
     {
-        // read from file if boxes has not been imported from file
-        //if (sizes[0].box_size[0]==0) {
-            // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes.json");
-            if (flag == 0)
+        // read from file 
+        // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes.json");
+        if (flag == 0)
+        {
+            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_412.json");
+            PadZeros();
+        }
+        if (flag == 1)
+        {
+            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30.json");
+            PadZeros();
+        }
+        // Random boxes for attempting to train attention mechanism to learn different number and sizes of boxes
+        if (flag == 2)
+        {
+            
+            List<Item> items = new List<Item>();
+            items.Add(new Item
             {
-                ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_412.json");
-                PadZeros();
-            }
-            if (flag == 1)
-            {
-                ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30.json");
-                PadZeros();
-            }
-            // Random boxes for attempting to train attention mechanism to learn different number and sizes of boxes
-            if (flag == 2)
-            {
-                
-                List<Item> items = new List<Item>();
-                items.Add(new Item
-                {
-                    Product_id = 0,
-                    Length = 5.825,
-                    Width = 6.45,
-                    Height = 10.85,
-                    Quantity = UnityEngine.Random.Range(10,20)
-                });
+                Product_id = 0,
+                Length = 5.825,
+                Width = 6.45,
+                Height = 10.85,
+                Quantity = UnityEngine.Random.Range(10,20)
+            });
 
-                // Create a new object with the Items list
-                var data = new { Items = items };
+            // Create a new object with the Items list
+            var data = new { Items = items };
 
-                // Serialize the object to json
-                var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
+            // Serialize the object to json
+            var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
 
-                // Write the json to a file
-                File.WriteAllText("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json", json);
+            // Write the json to a file
+            File.WriteAllText("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json", json);
 
-                // Read random boxes using existing ReadJson function
-                ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json");
-                PadZeros();
+            // Read random boxes using existing ReadJson function
+            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json");
+            PadZeros();
 
-                // Delete the created json file to reuse the name next iteration
-                File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json");
-            }
+            // Delete the created json file to reuse the name next iteration
+            File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json");
+        }
 
-            // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30_test.json");
-        //}
+        // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30_test.json");
         var idx = 0;
         foreach(BoxSize s in sizes) 
         {

@@ -18,6 +18,7 @@ public class PackerHand : Agent
     public int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
     int curriculum_ConfigurationLocal; // local reference of the above
     public int packSpeed = 20;
+
     public bool useAttention=true; // use attention by default (default = true)
     public bool useVerticesArray=true;
     BufferSensorComponent m_BufferSensor;
@@ -49,6 +50,7 @@ public class PackerHand : Agent
     [HideInInspector] public List<Vector3> historicalVerticesLog;
     [HideInInspector] public int VertexCount = 0;
     [HideInInspector] public Vector3 boxWorldScale;
+    [HideInInspector] public int maxBoxNum;
    // [HideInInspector] public List<Blackbox> blackboxPool  = new List<Blackbox>();
 
     //public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
@@ -167,7 +169,9 @@ public class PackerHand : Agent
         //Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
 
         // initialize local reference of box pool
-        boxPool = BoxSpawner.boxPool;
+        boxPool = boxSpawner.boxPool;
+
+        maxBoxNum = boxSpawner.maxBoxQuantity;
 
         if (useAttention){
             m_BufferSensor = GetComponent<BufferSensorComponent>();
@@ -213,7 +217,6 @@ public class PackerHand : Agent
 
             if (useAttention){
                 // Used for variable size observations
-                int maxBoxNum = boxSpawner.maxBoxQuantity;
                 float[] listVarObservation = new float[maxBoxNum+8];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
@@ -258,7 +261,7 @@ public class PackerHand : Agent
         }
 
         // add all zero padded boxes to action mask
-        for (int m=boxPool.Count(); m< boxSpawner.maxBoxQuantity; m++)
+        for (int m=boxPool.Count(); m< maxBoxNum; m++)
         {
             // Debug.Log($"MASK ZERO PADDING {m}");
             maskedBoxIndices.Add(m);
@@ -406,8 +409,6 @@ public class PackerHand : Agent
 
             StateReset();
 
-            // if (curriculum_ConfigurationLocal == 0 |
-            //     (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f))
             if (isDiscreteSolution)
             {
                 isAfterOriginVertexSelected = true;
@@ -440,7 +441,7 @@ public class PackerHand : Agent
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
-           // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+            Debug.Log("REQUEST DECISION AT NEXT ROUND OF OF PICKING");
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
         }
@@ -588,7 +589,7 @@ public class PackerHand : Agent
 
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
-            Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
+            //Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
             if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
             if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
             if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
@@ -597,7 +598,7 @@ public class PackerHand : Agent
                 //Vector3  = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
                 Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
                 //Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
-                Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
+                //Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
                 if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
                 {
                     Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
