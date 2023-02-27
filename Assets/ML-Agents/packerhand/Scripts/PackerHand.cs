@@ -10,7 +10,7 @@ using Unity.Barracuda;
 using Unity.MLAgentsExamples;
 using Unity.MLAgents.Policies;
 using Box = Boxes.Box;
-using Blackbox = Boxes.Blackbox;
+//using Blackbox = Boxes.Blackbox;
 using Boxes;
 
 public class PackerHand : Agent 
@@ -1324,23 +1324,22 @@ public class PackerHand : Agent
             }
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
             isDiscreteSolution = true;
-            if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
                 // Set up easy boxes
-                boxSpawner.SetUpBoxes(0);
+                boxSpawner.SetUpBoxes("uniform_random", 0);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
-            if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
             {
                 // Set up hard boxes
-                boxSpawner.SetUpBoxes(1);
+                boxSpawner.SetUpBoxes("uniform_random", 1);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
-            if (curriculum_ConfigurationLocal == 0 && Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
             {
-                Debug.Log($"BXSx random box configuration ran");
                 // Set up hard boxes
-                boxSpawner.SetUpBoxes(2); // HERE
+                boxSpawner.SetUpBoxes("uniform_random", 2);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
         }

@@ -41,15 +41,15 @@ public class Box
 }
 
 
-public class Blackbox
-{
-    public Vector3 position;
-    public Vector3 vertex;
-    public float volume;
-    public Vector3 size;
+// public class Blackbox
+// {
+//     public Vector3 position;
+//     public Vector3 vertex;
+//     public float volume;
+//     public Vector3 size;
 
-    public GameObject gameobjectBlackbox;
-}
+//     public GameObject gameobjectBlackbox;
+// }
 
 
 [System.Serializable]
@@ -85,57 +85,41 @@ public class BoxSpawner : MonoBehaviour
     [HideInInspector] public int idx_counter = 0;
 
 
-    public void SetUpBoxes(int flag) 
+    public void SetUpBoxes(string flag, int seed) 
     {
         // read from file 
         // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes.json");
-        if (flag == 0)
+        if (flag == "box_412")
         {
             ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_412.json");
             PadZeros();
         }
-        if (flag == 1)
+        if (flag == "box_30")
         {
             ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30.json");
             PadZeros();
         }
         // Random boxes for attempting to train attention mechanism to learn different number and sizes of boxes
-        if (flag == 2)
+        if (flag == "uniform_random")
         {
-            
-            List<Item> items = new List<Item>();
-            items.Add(new Item
-            {
-                Product_id = 0,
-                Length = 5.825,
-                Width = 6.45,
-                Height = 10.85,
-                Quantity = UnityEngine.Random.Range(10,20)
-            });
-
-            // Create a new object with the Items list
-            var data = new { Items = items };
-
-            // Serialize the object to json
-            var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
-
-            // Write the json to a file
-            File.WriteAllText("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json", json);
-
+            RandomBoxGenerator("uniform_random", seed);
             // Read random boxes using existing ReadJson function
-            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json");
+            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomUniform.json");
             PadZeros();
-
             // Delete the created json file to reuse the name next iteration
-            File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_Random.json");
+            File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomUniform.json");
+
         }
-        if (flag == 3)
+        if (flag == "mix_random")
         {
-            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30.json", true);
+            RandomBoxGenerator("mix_random", seed);
+            // Read random boxes using existing ReadJson function
+            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomMix.json");
             PadZeros();
+            // Delete the created json file to reuse the name next iteration
+            File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomMix.json");
         }
 
-        // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30_test.json");
         var idx = 0;
         foreach(BoxSize s in sizes) 
         {
@@ -191,6 +175,45 @@ public class BoxSpawner : MonoBehaviour
         return randomSpawnPos;
     }
 
+    public void RandomBoxGenerator(string flag, int seed)
+    {
+        if (flag == "uniform_random") 
+        {
+            //// ADD A BOX GENERATOR//// 
+            float bin_z = 59f;
+            float bin_x = 23.5f;
+            float bin_y = 23.9f;
+            UnityEngine.Random.InitState(seed);
+            int random_num_x =  UnityEngine.Random.Range(1, 4);
+            int random_num_y =  UnityEngine.Random.Range(1, 4);
+            int random_num_z =  UnityEngine.Random.Range(1, 6);
+            float x_dimension =  (float)Math.Floor(bin_x/random_num_x * 100)/100;
+            float y_dimension =  (float)Math.Floor(bin_y/random_num_y * 100)/100;
+            float z_dimension = (float)Math.Floor(bin_z/random_num_z * 100)/100;
+            Debug.Log($"RUF RANDOM UNIFORM BOX NUM: {random_num_x*random_num_y*random_num_z} | x:{x_dimension} y:{y_dimension} z:{z_dimension}");
+
+            List<Item> items = new List<Item>();
+            items.Add(new Item
+            {
+                Product_id = 0,
+                Length = z_dimension,
+                Width = x_dimension,
+                Height = y_dimension,
+                Quantity = random_num_x*random_num_y*random_num_z
+            });
+
+            // Create a new object with the Items list
+            var data = new { Items = items };
+
+
+            // Serialize the object to json
+            var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
+
+            // Write the json to a file
+            File.WriteAllText("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomUniform.json", json);
+        }
+    }
+
 
     // Read from json file and construct box, then add box to sizes array of boxes
         // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },
@@ -209,16 +232,16 @@ public class BoxSpawner : MonoBehaviour
                 float length = float.Parse(box.XPathSelectElement("./Length").Value);
                 float width = float.Parse(box.XPathSelectElement("./Width").Value);
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
-                int quantity;
-                if(randomNumberOfBoxes) 
-                {
-                    quantity = UnityEngine.Random.Range(5,10);
-                }
-                // if calling ReadJson with randomNumberOfBoxes parameter set to true the random number of boxes
-                else
-                {
-                    quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
-                }
+                // int quantity;
+                // if(randomNumberOfBoxes) 
+                // {
+                //     quantity = UnityEngine.Random.Range(5,10);
+                // }
+                // // if calling ReadJson with randomNumberOfBoxes parameter set to true the random number of boxes
+                // else
+                // {
+                int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
+                //}
                 //Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
                 // Debug.Log($"idx_counter A ================ {idx_counter}");
                 for (int n = 0; n<quantity; n++)
