@@ -92,7 +92,7 @@ behaviors:
 environment_parameters:
   discrete:
     curriculum:
-      - name: 1iscreteLesson # The '-' is important as this is a list
+      - name: 1DiscreteLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
           behavior: Discrete

@@ -1239,6 +1239,11 @@ PrefabInstance:
       objectReference: {fileID: 3859897799094903641}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: box_file
+      value: Boxes_30
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: binBottom
       value: 
       objectReference: {fileID: 4143240950512903988}
@@ -1269,13 +1274,28 @@ PrefabInstance:
       objectReference: {fileID: 1080092759}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: useCurriculum
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: box_setup_flag
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      propertyPath: useDenseReward
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: regularBoxBrain
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      propertyPath: isDiscreteSolution
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}

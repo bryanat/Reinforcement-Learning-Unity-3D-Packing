@@ -85,22 +85,21 @@ public class BoxSpawner : MonoBehaviour
     [HideInInspector] public int idx_counter = 0;
 
 
-    public void SetUpBoxes(string flag, int seed) 
+    public void SetUpBoxes(string box_type, int seed=123) 
     {
         // read from file 
-        // ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes.json");
-        if (flag == "box_412")
-        {
-            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_412.json");
-            PadZeros();
-        }
-        if (flag == "box_30")
-        {
-            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30.json");
-            PadZeros();
-        }
+        // if (flag == "box_412")
+        // {
+        //     ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_412.json");
+        //     PadZeros();
+        // }
+        // if (flag == "box_30")
+        // {
+        //     ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30.json");
+        //     PadZeros();
+        // }
         // Random boxes for attempting to train attention mechanism to learn different number and sizes of boxes
-        if (flag == "uniform_random")
+        if (box_type == "uniform_random")
         {
             RandomBoxGenerator("uniform_random", seed);
             // Read random boxes using existing ReadJson function
@@ -110,7 +109,7 @@ public class BoxSpawner : MonoBehaviour
             File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomUniform.json");
 
         }
-        if (flag == "mix_random")
+        else if (box_type == "mix_random")
         {
             RandomBoxGenerator("mix_random", seed);
             // Read random boxes using existing ReadJson function
@@ -118,6 +117,11 @@ public class BoxSpawner : MonoBehaviour
             PadZeros();
             // Delete the created json file to reuse the name next iteration
             File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomMix.json");
+        }
+        else
+        {
+            ReadJson($"Assets/ML-Agents/packerhand/Scripts/{box_type}.json");
+            PadZeros();
         }
 
         var idx = 0;
@@ -175,9 +179,9 @@ public class BoxSpawner : MonoBehaviour
         return randomSpawnPos;
     }
 
-    public void RandomBoxGenerator(string flag, int seed)
+    public void RandomBoxGenerator(string box_type, int seed)
     {
-        if (flag == "uniform_random") 
+        if (box_type == "uniform_random") 
         {
             float bin_z = 59f;
             float bin_x = 23.5f;
@@ -208,7 +212,7 @@ public class BoxSpawner : MonoBehaviour
             // Write the json to a file
             File.WriteAllText("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomUniform.json", json);
         }
-        if (flag == "mix_random")
+        if (box_type == "mix_random")
         {
             int bin_z = 59;
             int bin_x = 23;
@@ -275,8 +279,7 @@ public class BoxSpawner : MonoBehaviour
 
 
     // Read from json file and construct box, then add box to sizes array of boxes
-        // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },
-        // Schema of .json: { "Product_id": 0, "Length": 7.7, "Width": 7.8, "Height": 11.7, "Quantity": 20 },
+    // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },
     public void ReadJson(string filename, bool randomNumberOfBoxes = false) 
     {
         idx_counter = 0;
