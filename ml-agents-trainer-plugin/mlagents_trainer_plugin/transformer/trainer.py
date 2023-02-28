@@ -6,6 +6,10 @@ import time
 
 class Trainer:
 
+    # MODEL: DECISION TRANSFORMER
+    # OPTIMIZER: ADAM
+    # LOSS_FN: CROSS ENTROPY LOSS
+    #
     def __init__(self, model, optimizer, batch_size, get_batch, loss_fn, scheduler=None, eval_fns=None):
         self.model = model
         self.optimizer = optimizer

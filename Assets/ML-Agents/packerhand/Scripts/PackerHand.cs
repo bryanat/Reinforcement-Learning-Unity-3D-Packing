@@ -1327,19 +1327,19 @@ public class PackerHand : Agent
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
                 // Set up easy boxes
-                boxSpawner.SetUpBoxes("uniform_random", 0);
+                boxSpawner.SetUpBoxes("mix_random", 0);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
             {
                 // Set up hard boxes
-                boxSpawner.SetUpBoxes("uniform_random", 1);
+                boxSpawner.SetUpBoxes("mix_random", 1);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
             {
                 // Set up hard boxes
-                boxSpawner.SetUpBoxes("uniform_random", 2);
+                boxSpawner.SetUpBoxes("mix_random", 2);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
         }
