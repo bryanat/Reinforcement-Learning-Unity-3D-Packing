@@ -87,40 +87,28 @@ public class BoxSpawner : MonoBehaviour
 
     public void SetUpBoxes(string box_type, int seed=123) 
     {
-        // read from file 
-        // if (flag == "box_412")
-        // {
-        //     ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_412.json");
-        //     PadZeros();
-        // }
-        // if (flag == "box_30")
-        // {
-        //     ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_30.json");
-        //     PadZeros();
-        // }
-        // Random boxes for attempting to train attention mechanism to learn different number and sizes of boxes
         if (box_type == "uniform_random")
         {
             RandomBoxGenerator("uniform_random", seed);
             // Read random boxes using existing ReadJson function
-            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomUniform.json");
+            ReadJson("~/Unity/data/Boxes_RandomUniform.json");
             PadZeros();
             // Delete the created json file to reuse the name next iteration
-            File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomUniform.json");
+            File.Delete("~/Unity/data/Boxes_RandomUniform.json");
 
         }
         else if (box_type == "mix_random")
         {
             RandomBoxGenerator("mix_random", seed);
             // Read random boxes using existing ReadJson function
-            ReadJson("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomMix.json");
+            ReadJson("~/Unity/data/Boxes_RandomMix.json");
             PadZeros();
             // Delete the created json file to reuse the name next iteration
-            File.Delete("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomMix.json");
+            File.Delete("~/Unity/data/Boxes_RandomMix.json");
         }
         else
         {
-            ReadJson($"Assets/ML-Agents/packerhand/Scripts/{box_type}.json");
+            ReadJson($"~/Unity/data/{box_type}.json");
             PadZeros();
         }
 
@@ -210,7 +198,7 @@ public class BoxSpawner : MonoBehaviour
             // Serialize the object to json
             var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
             // Write the json to a file
-            File.WriteAllText("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomUniform.json", json);
+            File.WriteAllText("~/Unity/data/Boxes_RandomUniform.json", json);
         }
         if (box_type == "mix_random")
         {
@@ -273,7 +261,7 @@ public class BoxSpawner : MonoBehaviour
             // Serialize the object to json
             var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
             // Write the json to a file
-            File.WriteAllText("Assets/ML-Agents/packerhand/Scripts/Boxes_RandomMix.json", json);           
+            File.WriteAllText("~/Unity/data/Boxes_RandomMix.json", json);           
         }
     }
 
