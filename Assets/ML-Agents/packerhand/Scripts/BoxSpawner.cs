@@ -131,7 +131,7 @@ public class BoxSpawner : MonoBehaviour
                 var position = GetRandomSpawnPos();
                 GameObject box = Instantiate(unitBox, position, Quaternion.identity);
                 box.transform.localScale = box_size;
-                box.transform.position = position;
+                box.transform.localPosition = position;
                 // Add compoments to GameObject box
                 box.AddComponent<Rigidbody>();
                 box.AddComponent<BoxCollider>();
@@ -148,7 +148,7 @@ public class BoxSpawner : MonoBehaviour
                 var newBox = new Box
                 {
                     rb = box.GetComponent<Rigidbody>(), 
-                    startingPos = box.transform.position,
+                    startingPos = box.transform.localPosition,
                     startingRot = box.transform.rotation,
                     startingSize = box.transform.localScale,
                     boxSize = box.transform.localScale,
