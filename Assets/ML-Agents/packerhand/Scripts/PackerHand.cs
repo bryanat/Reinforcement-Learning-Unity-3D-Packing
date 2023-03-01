@@ -26,7 +26,7 @@ public class PackerHand : Agent
     public bool useVerticesArray=true;
     public bool useDenseReward=true;
     public bool useSurfaceAreaReward = false;
-    public bool isDiscreteSolution;
+    public bool isDiscreteSolution = true;
     public bool isFirstLayerContinuous;
     public bool isAllContinuous;
 
@@ -1345,7 +1345,8 @@ public class PackerHand : Agent
                 SetModel(m_DiscreteBehaviorName, discreteBrain);
             }
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
-            isDiscreteSolution = true;
+            // isDiscreteSolution is true by default
+            // isDiscreteSolution = true;
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
                 boxSpawner.SetUpBoxes("mix_random", seed);
@@ -1371,16 +1372,19 @@ public class PackerHand : Agent
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_MixBehaviorName}");
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f)
             {
-                isDiscreteSolution = true;
+                // isDiscreteSolution = true;
             }
             else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 1.0f) == 1.0f)
             {
+                isDiscreteSolution = false;
                 isFirstLayerContinuous = true;
                 useSurfaceAreaReward = true;
                 useVerticesArray = false;
             }
             else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 2.0f) == 2.0f)
             {
+                isDiscreteSolution = false;
+                isFirstLayerContinuous = false;
                 isAllContinuous = true;
                 useSurfaceAreaReward = true;
                 useVerticesArray = false;
@@ -1395,6 +1399,7 @@ public class PackerHand : Agent
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 1.0f) == 1.0f)
             {
+                isDiscreteSolution = false;
                 isFirstLayerContinuous = true;
                 useSurfaceAreaReward = true;
                 useVerticesArray = false;
@@ -1402,6 +1407,8 @@ public class PackerHand : Agent
             }
             else if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 2.0f) == 2.0f)
             {
+                isDiscreteSolution = false;
+                isFirstLayerContinuous = false;
                 isAllContinuous = true;
                 useSurfaceAreaReward = true;
                 useVerticesArray = false;
