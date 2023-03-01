@@ -54,7 +54,7 @@ public class PackerHand : Agent
     public Vector3 selectedVertex; // Vertex selected
     public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
     [HideInInspector] public int selectedVertexIdx = -1; 
-    [HideInInspector] private List<Box> boxPool; // space: num boxes
+    [HideInInspector] public List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices;
     [HideInInspector] public List<int> maskedBoxIndices; // list of organzed box indices
     [HideInInspector] public List<Vector3> historicalVerticesLog;

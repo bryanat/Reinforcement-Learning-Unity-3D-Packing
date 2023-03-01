@@ -213,8 +213,10 @@ public class CombineMesh : MonoBehaviour
         if (name == "BinIso20Back" && agent.isBackMeshCombined==false) 
         {
 
-            sameSideObject = GameObject.Find($"{agent.selectedBoxIdx}/back");
-            oppositeSideObject = GameObject.Find($"{agent.selectedBoxIdx}/front");
+            // sameSideObject = GameObject.Find($"{agent.selectedBoxIdx}/back");
+            // oppositeSideObject = GameObject.Find($"{agent.selectedBoxIdx}/front");
+            sameSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("back").gameObject;
+            oppositeSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("front").gameObject;
             m_BackMeshScript.oppositeSideObject.transform.parent = binBack.transform;
             m_BackMeshScript.sameSideObject.transform.parent = binBack.transform;
             var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
@@ -228,8 +230,10 @@ public class CombineMesh : MonoBehaviour
         if (name == "BinIso20Side" && agent.isSideMeshCombined==false) 
         {
 
-            sameSideObject = GameObject.Find($"{agent.selectedBoxIdx}/left");
-            oppositeSideObject = GameObject.Find($"{agent.selectedBoxIdx}/right");
+            // sameSideObject = GameObject.Find($"{agent.selectedBoxIdx}/left");
+            // oppositeSideObject = GameObject.Find($"{agent.selectedBoxIdx}/right");
+            sameSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("left").gameObject;
+            oppositeSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("right").gameObject;
             m_SideMeshScript.oppositeSideObject.transform.parent = binSide.transform;
             m_SideMeshScript.sameSideObject.transform.parent = binSide.transform;
             var redMeshList = binSide.GetComponentsInChildren<MeshFilter>(); 
@@ -243,8 +247,10 @@ public class CombineMesh : MonoBehaviour
         if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) 
         {
 
-            sameSideObject = GameObject.Find($"{agent.selectedBoxIdx}/bottom");
-            oppositeSideObject = GameObject.Find($"{agent.selectedBoxIdx}/top");
+            // sameSideObject = GameObject.Find($"{agent.selectedBoxIdx}/bottom");
+            // oppositeSideObject = GameObject.Find($"{agent.selectedBoxIdx}/top");
+            sameSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("bottom").gameObject;
+            oppositeSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("top").gameObject;
             m_BottomMeshScript.oppositeSideObject.transform.parent = binBottom.transform;
             m_BottomMeshScript.sameSideObject.transform.parent = binBottom.transform;
             var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
