@@ -84,6 +84,13 @@ public class BoxSpawner : MonoBehaviour
 
     [HideInInspector] public int idx_counter = 0;
 
+    string homeDir;
+
+
+    public void Start()
+    {
+        homeDir = Environment.GetEnvironmentVariable("HOME");
+    }
 
     public void SetUpBoxes(string box_type, int seed=123) 
     {
@@ -91,24 +98,25 @@ public class BoxSpawner : MonoBehaviour
         {
             RandomBoxGenerator("uniform_random", seed);
             // Read random boxes using existing ReadJson function
-            ReadJson("~/Unity/data/Boxes_RandomUniform.json");
+            ReadJson($"{homeDir}/Unity/data/Boxes_RandomUniform.json");
             PadZeros();
             // Delete the created json file to reuse the name next iteration
-            File.Delete("~/Unity/data/Boxes_RandomUniform.json");
+            File.Delete($"{homeDir}/Unity/data/Boxes_RandomUniform.json");
 
         }
         else if (box_type == "mix_random")
         {
             RandomBoxGenerator("mix_random", seed);
             // Read random boxes using existing ReadJson function
-            ReadJson("~/Unity/data/Boxes_RandomMix.json");
+            Debug.Log($"ahhhhh {homeDir}/Unity/data/Boxes_RandomMix.json");
+            ReadJson($"{homeDir}/Unity/data/Boxes_RandomMix.json");
             PadZeros();
             // Delete the created json file to reuse the name next iteration
-            File.Delete("~/Unity/data/Boxes_RandomMix.json");
+            File.Delete($"{homeDir}/Unity/data/Boxes_RandomMix.json");
         }
         else
         {
-            ReadJson($"~/Unity/data/{box_type}.json");
+            ReadJson($"{homeDir}/Unity/data/{box_type}.json");
             PadZeros();
         }
 
@@ -198,7 +206,7 @@ public class BoxSpawner : MonoBehaviour
             // Serialize the object to json
             var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
             // Write the json to a file
-            File.WriteAllText("~/Unity/data/Boxes_RandomUniform.json", json);
+            File.WriteAllText($"{homeDir}/Unity/data/Boxes_RandomUniform.json", json);
         }
         if (box_type == "mix_random")
         {
@@ -261,7 +269,7 @@ public class BoxSpawner : MonoBehaviour
             // Serialize the object to json
             var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
             // Write the json to a file
-            File.WriteAllText("~/Unity/data/Boxes_RandomMix.json", json);           
+            File.WriteAllText($"{homeDir}/Unity/data/Boxes_RandomMix.json", json);           
         }
     }
 
