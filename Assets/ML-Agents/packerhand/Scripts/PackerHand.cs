@@ -46,8 +46,8 @@ public class PackerHand : Agent
     [HideInInspector] CombineMesh m_BottomMeshScript;
 
     [HideInInspector] public Vector3 initialAgentPosition;
-    public Transform targetBox; // target box selected by agent
-    public Transform targetBin; // phantom target bin object where the box will be placed
+    [HideInInspector] public Transform targetBox; // target box selected by agent
+    [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
     public int selectedBoxIdx; // Box selected 
     public Vector3 selectedRotation; // selectedRotation selected
@@ -83,8 +83,8 @@ public class PackerHand : Agent
     // public bool isVertexSelected;
     [HideInInspector] public bool isBoxSelected;
     [HideInInspector] public bool isRotationSelected;
-    public bool isPickedup;
-    public bool isDroppedoff;
+    [HideInInspector] public bool isPickedup;
+    [HideInInspector] public bool isDroppedoff;
     [HideInInspector] public bool isStateReset;
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
@@ -121,9 +121,6 @@ public class PackerHand : Agent
         
         // initialize stats recorder to add stats to tensorboard
         m_statsRecorder = Academy.Instance.StatsRecorder;
-
-        // initialize agent position
-        //initialAgentPosition = this.transform.localPosition;
 
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
@@ -400,7 +397,6 @@ public class PackerHand : Agent
             if (isDiscreteSolution)
             { 
                 selectedVertex = origin;
-                Debug.Log($"VERTEX FIRST ROUND IS {selectedVertex}");
                 isAfterOriginVertexSelected = false;
             }
 
@@ -522,22 +518,12 @@ public class PackerHand : Agent
     ///</summary>
     void UpdateAgentPosition(Transform target) 
     {
-        // Debug.Log($"PLATFORM 2 UPDATE AGENT POSITION TARGET AT {target.position}");
         total_x_distance = target.position.x- m_Agent.position.x;
         total_y_distance = target.position.y- m_Agent.position.y;
         total_z_distance = target.position.z- m_Agent.position.z;
         var current_agent_x = m_Agent.position.x;
         var current_agent_y = m_Agent.position.y;
         var current_agent_z = m_Agent.position.z;   
-        // Debug.Log($"m_AGENT POSITION {m_Agent.position}");
-        // Debug.Log($"PLATFORM UPDATE AGENT POSITION TARGET AT {target.localPosition}");
-        // total_x_distance = target.localPosition.x-this.transform.localPosition.x;
-        // total_y_distance = target.localPosition.y-this.transform.localPosition.y;
-        // total_z_distance = target.localPosition.z-this.transform.localPosition.z;
-        // var current_agent_x = this.transform.localPosition.x;
-        // var current_agent_y = this.transform.localPosition.y;
-        // var current_agent_z = this.transform.localPosition.z;  
-        // Debug.Log($"AGENT POSITION {this.transform.localPosition}"); 
         this.transform.position = new Vector3(current_agent_x + total_x_distance/packSpeed, 
         target.position.y, current_agent_z + total_z_distance/packSpeed);   
 
@@ -785,13 +771,17 @@ public class PackerHand : Agent
             int directionY = 1;
             int directionZ = 1;
                 
+            // var directionX = blackbox.position.x > 0 : 1 : -1; 
+            // var directionY = blackbox.position.y > 0 : 1 : -1;
+            // var directionZ = blackbox.position.z > 0 : 1 : -1;
+                
             // 3: Calc Position
             Vector3 position = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
             Debug.Log($"UVP Updated Vertex Position position: {position}");
 
             CheckBoxPlacementPhysics(position);
 
-            targetBin.localPosition = position;
+            targetBin.position = position;
         }
     }
 
@@ -805,7 +795,7 @@ public class PackerHand : Agent
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         testBox.transform.localScale = boxWorldScale;
         // test position has to be slightly elevated or else raycast doesn't detect the layer directly below
-        testBox.transform.localPosition = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
+        testBox.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
         // leave this in case we want to add more physics to the boxes
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
@@ -829,7 +819,7 @@ public class PackerHand : Agent
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
         testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.5f), (boxWorldScale.y - 0.5f), (boxWorldScale.z - 0.5f));
-        testBoxChild.transform.localPosition = testPosition;
+        testBoxChild.transform.position = testPosition;
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
         sensorOverlapCollision = testBoxChild.AddComponent<SensorOverlapCollision>();
@@ -1050,9 +1040,6 @@ public class PackerHand : Agent
         Destroy(targetBox.GetComponent<BoxCollider>());  
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
-        // GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen = false;
-        // GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().isCollidedBlue = false;
-        // GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().isCollidedRed = false;
         m_BackMeshScript.isCollidedBlue = false;
         m_BottomMeshScript.isCollidedGreen = false;
         m_SideMeshScript.isCollidedRed = false;
@@ -1245,7 +1232,7 @@ public class PackerHand : Agent
             // reset to starting position
             rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
             rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
-            rb.transform.localPosition = boxPool[selectedBoxIdx].startingPos;
+            rb.transform.position = boxPool[selectedBoxIdx].startingPos;
             ReverseSideNames(selectedBoxIdx);
             // remove from organized list to be picked again
             maskedBoxIndices.Remove(selectedBoxIdx);
@@ -1258,14 +1245,13 @@ public class PackerHand : Agent
             // settting isBlackboxUpdated to true allows another vertex to be selected
             //isBlackboxUpdated = true;
             // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
-            // isVertexSelected = true;S
+            // isVertexSelected = true;
         }
     }
 
 
     public void AgentReset() 
     {
-        //this.transform.localPosition = initialAgentPosition; // Vector3 of agents initial transform.position
         m_Agent.position = initialAgentPosition;
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
