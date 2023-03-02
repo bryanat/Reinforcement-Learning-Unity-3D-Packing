@@ -126,7 +126,7 @@ public class PackerHand : Agent
         m_Agent = GetComponent<Rigidbody>();
 
         initialAgentPosition = m_Agent.position;
-        Debug.Log($"INITIAL AGENT POSITION {initialAgentPosition}");
+        //Debug.Log($"INITIAL AGENT POSITION {initialAgentPosition}");
 
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
@@ -256,7 +256,7 @@ public class PackerHand : Agent
             if (box.isOrganized)
             {
                 maskedBoxIndices.Add(j);
-                Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
+                //Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
             }
             j++;
         }
@@ -401,7 +401,7 @@ public class PackerHand : Agent
             }
 
 
-            Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
+            //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
             Academy.Instance.EnvironmentStep();
 
@@ -460,7 +460,7 @@ public class PackerHand : Agent
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
-            Debug.Log("REQUEST DECISION AT NEXT ROUND OF OF PICKING");
+            //Debug.Log("REQUEST DECISION AT NEXT ROUND OF OF PICKING");
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
         }
@@ -626,7 +626,7 @@ public class PackerHand : Agent
                     verticesArray[VertexCount] = scaled_continuous_vertex;
                     historicalVerticesLog.Add(scaled_continuous_vertex);
                     VertexCount ++;
-                    Debug.Log($"VERTEX COUNT IS {VertexCount}");
+                    //Debug.Log($"VERTEX COUNT IS {VertexCount}");
 
                 }
             }
@@ -1048,7 +1048,7 @@ public class PackerHand : Agent
         isSideMeshCombined = false;
         isStateReset = false; // should be refactored into a end state reset function with isBlankMeshCombined's
 
-        Debug.Log("PDB end of PickupBox()");
+        //Debug.Log("PDB end of PickupBox()");
     }
 
 
@@ -1077,7 +1077,7 @@ public class PackerHand : Agent
 
         isDroppedoff = true;
 
-        Debug.Log($"PDB Box(): end of droppedoff function");
+        //Debug.Log($"PDB Box(): end of droppedoff function");
     }
 
 
@@ -1269,7 +1269,7 @@ public class PackerHand : Agent
             {
                 if (isAfterOriginVertexSelected)
                 {
-                    Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
+                    //Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
                     verticesArray[selectedVertexIdx] = Vector3.zero;               
                 }
             }
