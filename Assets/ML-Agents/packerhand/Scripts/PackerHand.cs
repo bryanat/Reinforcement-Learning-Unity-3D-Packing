@@ -123,10 +123,13 @@ public class PackerHand : Agent
         m_statsRecorder = Academy.Instance.StatsRecorder;
 
         // initialize agent position
-        initialAgentPosition = this.transform.localPosition;
+        //initialAgentPosition = this.transform.localPosition;
 
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
+
+        initialAgentPosition = m_Agent.position;
+        Debug.Log($"INITIAL AGENT POSITION {initialAgentPosition}");
 
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
@@ -520,25 +523,23 @@ public class PackerHand : Agent
     void UpdateAgentPosition(Transform target) 
     {
         // Debug.Log($"PLATFORM 2 UPDATE AGENT POSITION TARGET AT {target.position}");
-        // total_x_distance = target.position.x- m_Agent.position.x;
-        // total_y_distance = target.position.y- m_Agent.position.y;
-        // total_z_distance = target.position.z- m_Agent.position.z;
-        // var current_agent_x = m_Agent.position.x;
-        // var current_agent_y = m_Agent.position.y;
-        // var current_agent_z = m_Agent.position.z;   
+        total_x_distance = target.position.x- m_Agent.position.x;
+        total_y_distance = target.position.y- m_Agent.position.y;
+        total_z_distance = target.position.z- m_Agent.position.z;
+        var current_agent_x = m_Agent.position.x;
+        var current_agent_y = m_Agent.position.y;
+        var current_agent_z = m_Agent.position.z;   
         // Debug.Log($"m_AGENT POSITION {m_Agent.position}");
-        // m_Agent.MovePosition(new Vector3(current_agent_x + total_x_distance/packSpeed, 
-        // target.position.y, current_agent_z+total_z_distance/packSpeed));  
-        Debug.Log($"PLATFORM UPDATE AGENT POSITION TARGET AT {target.localPosition}");
-        total_x_distance = target.localPosition.x-this.transform.localPosition.x;
-        total_y_distance = target.localPosition.y-this.transform.localPosition.y;
-        total_z_distance = target.localPosition.z-this.transform.localPosition.z;
-        var current_agent_x = this.transform.localPosition.x;
-        var current_agent_y = this.transform.localPosition.y;
-        var current_agent_z = this.transform.localPosition.z;  
-        Debug.Log($"AGENT POSITION {this.transform.localPosition}"); 
-        this.transform.localPosition = new Vector3(current_agent_x + total_x_distance/packSpeed, 
-        target.localPosition.y, current_agent_z+total_z_distance/packSpeed);   
+        // Debug.Log($"PLATFORM UPDATE AGENT POSITION TARGET AT {target.localPosition}");
+        // total_x_distance = target.localPosition.x-this.transform.localPosition.x;
+        // total_y_distance = target.localPosition.y-this.transform.localPosition.y;
+        // total_z_distance = target.localPosition.z-this.transform.localPosition.z;
+        // var current_agent_x = this.transform.localPosition.x;
+        // var current_agent_y = this.transform.localPosition.y;
+        // var current_agent_z = this.transform.localPosition.z;  
+        // Debug.Log($"AGENT POSITION {this.transform.localPosition}"); 
+        this.transform.position = new Vector3(current_agent_x + total_x_distance/packSpeed, 
+        target.position.y, current_agent_z + total_z_distance/packSpeed);   
 
     }
 
@@ -1041,7 +1042,8 @@ public class PackerHand : Agent
     public void PickupBox() 
     {
         // Attach the box as a child of the agent parent, effectively attaching the box's movement to the agent's movement  
-        targetBox.parent = this.transform;
+        //targetBox.parent = this.transform;
+        targetBox.parent = m_Agent.transform;
 
         isPickedup = true;
 
@@ -1253,14 +1255,15 @@ public class PackerHand : Agent
             // settting isBlackboxUpdated to true allows another vertex to be selected
             //isBlackboxUpdated = true;
             // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
-            // isVertexSelected = true;
+            // isVertexSelected = true;S
         }
     }
 
 
     public void AgentReset() 
     {
-        this.transform.localPosition = initialAgentPosition; // Vector3 of agents initial transform.position
+        //this.transform.localPosition = initialAgentPosition; // Vector3 of agents initial transform.position
+        m_Agent.position = initialAgentPosition;
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
     }

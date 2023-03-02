@@ -28,9 +28,7 @@ public class CombineMesh : MonoBehaviour
     [HideInInspector] MeshRenderer parent_mr;
     [HideInInspector] MeshFilter parent_mf;
     [HideInInspector] MeshCollider parent_mc;
-    // [HideInInspector] MeshFilter [] m_BackMeshFilterList; 
-    // [HideInInspector] MeshFilter [] m_SideMeshFilterList; 
-    // [HideInInspector] MeshFilter [] m_BottomMeshFilterList; 
+
 
     public Material clearPlastic;
 
@@ -41,10 +39,7 @@ public class CombineMesh : MonoBehaviour
         m_BottomMeshScript = binBottom.GetComponent<CombineMesh>();
         parent_mr = gameObject.GetComponent<MeshRenderer>();
         parent_mf = gameObject.GetComponent<MeshFilter>();
-        parent_mc = gameObject.GetComponent<MeshCollider>(); 
-        // m_BackMeshFilterList =  binBack.GetComponentsInChildren<MeshFilter>();
-        // m_SideMeshFilterList =  binSide.GetComponentsInChildren<MeshFilter>();
-        // m_BottomMeshFilterList =  binBottom.GetComponentsInChildren<MeshFilter>();
+        parent_mc = gameObject.GetComponent<MeshCollider>();
 
     }
 
@@ -207,8 +202,6 @@ public class CombineMesh : MonoBehaviour
      public void ForceMeshCombine()
      {
         ////// this function forces combine of all meshes even without certain side collision///////
-
-        Debug.Log("FFF MESH FORCED TO COMBINE!!!!");
         // BLUE
         if (name == "BinIso20Back" && agent.isBackMeshCombined==false) 
         {
@@ -272,7 +265,7 @@ public class CombineMesh : MonoBehaviour
                 DestroyImmediate(binBottom.transform.GetChild(binBottom.transform.childCount-1).gameObject);
             }     
             MeshFilter [] meshList = binBottom.GetComponentsInChildren<MeshFilter>();
-            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+            //Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
             MeshCombiner(meshList);
         }
         if (name == "BinIso20Back")
@@ -282,7 +275,7 @@ public class CombineMesh : MonoBehaviour
                 DestroyImmediate(binBack.transform.GetChild(binBack.transform.childCount-1).gameObject);
             }  
             MeshFilter [] meshList = binBack.GetComponentsInChildren<MeshFilter>();
-            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+            //Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
             MeshCombiner(meshList);
         }
         if (name == "BinIso20Side")
@@ -292,7 +285,7 @@ public class CombineMesh : MonoBehaviour
                 DestroyImmediate(binSide.transform.GetChild(binSide.transform.childCount-1).gameObject);
             } 
             MeshFilter [] meshList = binSide.GetComponentsInChildren<MeshFilter>();
-            Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
+            //Debug.Log($"MMB meshList length: {meshList.Length}, NAME: {meshList[0].gameObject.name}");
             MeshCombiner(meshList);
         }
 
@@ -353,7 +346,6 @@ public class CombineMesh : MonoBehaviour
         Mesh oldmesh = parent_mf.sharedMesh;
         DestroyImmediate(oldmesh);
         parent_mf.mesh = new Mesh();
-        Debug.Log($"COMBINE INSTANCE IS: {combine.ToArray().Length}");
         parent_mf.mesh.CombineMeshes(combine.ToArray(), true, true);
 
         // restore the parent pos+rot
