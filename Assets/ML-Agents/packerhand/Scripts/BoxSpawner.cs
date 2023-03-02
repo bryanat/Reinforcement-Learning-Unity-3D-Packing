@@ -108,7 +108,6 @@ public class BoxSpawner : MonoBehaviour
         {
             RandomBoxGenerator("mix_random", seed);
             // Read random boxes using existing ReadJson function
-            Debug.Log($"ahhhhh {homeDir}/Unity/data/Boxes_RandomMix.json");
             ReadJson($"{homeDir}/Unity/data/Boxes_RandomMix.json");
             PadZeros();
             // Delete the created json file to reuse the name next iteration

@@ -46,8 +46,8 @@ public class PackerHand : Agent
     [HideInInspector] CombineMesh m_BottomMeshScript;
 
     [HideInInspector] public Vector3 initialAgentPosition;
-    [HideInInspector] public Transform targetBox; // target box selected by agent
-    [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
+    public Transform targetBox; // target box selected by agent
+    public Transform targetBin; // phantom target bin object where the box will be placed
 
     public int selectedBoxIdx; // Box selected 
     public Vector3 selectedRotation; // selectedRotation selected
@@ -83,8 +83,8 @@ public class PackerHand : Agent
     // public bool isVertexSelected;
     [HideInInspector] public bool isBoxSelected;
     [HideInInspector] public bool isRotationSelected;
-    [HideInInspector] public bool isPickedup;
-    [HideInInspector] public bool isDroppedoff;
+    public bool isPickedup;
+    public bool isDroppedoff;
     [HideInInspector] public bool isStateReset;
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
@@ -1050,9 +1050,12 @@ public class PackerHand : Agent
         Destroy(targetBox.GetComponent<BoxCollider>());  
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
-        GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen = false;
-        GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().isCollidedBlue = false;
-        GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().isCollidedRed = false;
+        // GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen = false;
+        // GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().isCollidedBlue = false;
+        // GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().isCollidedRed = false;
+        m_BackMeshScript.isCollidedBlue = false;
+        m_BottomMeshScript.isCollidedGreen = false;
+        m_SideMeshScript.isCollidedRed = false;
         isBackMeshCombined = false;
         isBottomMeshCombined = false;
         isSideMeshCombined = false;
@@ -1070,7 +1073,7 @@ public class PackerHand : Agent
         // Detach box from agent, preventing the placed box from moving again when the agent moves to pickup a new box 
         targetBox.SetParent(null);
 
-        Collider [] m_cList = targetBox.GetComponentsInChildren<Collider>();
+        Collider [] m_cList = targetBox.GetComponentsInChildren<Collider>().Skip(1).ToArray();
 
         foreach (Collider m_c in m_cList) 
         {
@@ -1079,7 +1082,7 @@ public class PackerHand : Agent
         }
         // Lock box position and location
         ///////////////////////COLLISION/////////////////////////
-        targetBox.localPosition = targetBin.localPosition; // COLLISION OCCURS IMMEDIATELY AFTER SET POSITION OCCURS
+        targetBox.position = targetBin.position; // COLLISION OCCURS IMMEDIATELY AFTER SET POSITION OCCURS
         ///////////////////////COLLISION/////////////////////////
 
         targetBox.rotation = Quaternion.Euler(selectedRotation);
