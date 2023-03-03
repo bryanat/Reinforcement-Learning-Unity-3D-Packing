@@ -7,6 +7,12 @@
 
 # Project Members: Bryan Boyett & Yueqi Peng & Pano Evangeliou
 
+## MLE Stack
+![](VSCode/docs/images/MLE_stack.png)
+
+## DRL solution - Evolution Tree
+![](VSCode/docs/images/EvolutionTree2.drawio.png)
+
 ## DRL
 ![](VSCode/docs/images/Screenshot%20from%202022-12-03%2023-56-10.png)
 ![](VSCode/docs/images/Screenshot%20from%202022-12-12%2016-40-31.png)
