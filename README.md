@@ -1,9 +1,9 @@
- # DRL-RNN-LSTM-BOX-SIM
-- ## DRL - Deep Reinforcement Learning
-- ## RNN - Recurrent Neural Network
-- ## LSTM - Long Short Term Memory (RNN derivative)
-- ## BOX - Box. Box. Box. (RL Agent's existence)
-- ## SIM - Simulation in Unity/Gym (RL Environment)
+<!--  # DRL-RNN-LSTM-BOX-SIM -->
+<!-- - ## DRL - Deep Reinforcement Learning -->
+<!-- - ## RNN - Recurrent Neural Network -->
+<!-- - ## LSTM - Long Short Term Memory (RNN derivative) -->
+<!-- - ## BOX - Box. Box. Box. (RL Agent's existence) -->
+<!-- - ## SIM - Simulation in Unity/Gym (RL Environment) -->
 
 # Project Members: Bryan Boyett & Yueqi Peng & Pano Evangeliou
 
@@ -20,6 +20,18 @@
 ### Bryan: `mlagents_envs` (environment state) RL-side of DRL (RL Simulation/Environment-driven) (red)
 ### Yueqi: `mlagents` (learning algorithms) DL-side of DRL (DL Model/Policy-driven) (blue)
 Unity ML-Agents: "`mlagents` provides a set of reinforcement and imitation learning algorithms designed to be used with Unity environments. The algorithms interface with the Python API provided by `mlagents_envs`."
+
+## Remains to be built
+
+### Policy 
+Implement transformers (decision transformer / set transformer) in a multi-agent environment
+### State/action space
+Refine masked continuous space
+### Reward
+Shape/Tune reward towards a more sparse behavior
+### Performance
+Automate running on the cloud
+Randomization of environment to ensure scalability
 
 ### Δ/difference/gradient/change/relativity/generality based : policy gradient methods/policies are probalistic because they do not deal with actual values they deal with with greater than or less than (new Q(s,a) is just converted to Δ/change/relativity aka new Q(s,a) is greater than or less than old Q(s,a)) 
 ### NON-Δ/difference/gradient/change/relativity/generality based : value based methods/policies are non-probablistic because the do deal with actual values and not greater than or less than (they use actual Q(s,a) values and store them and instead of just comparing Δ/change/relativity) ~ (cant do gradient descent on discrete values)
