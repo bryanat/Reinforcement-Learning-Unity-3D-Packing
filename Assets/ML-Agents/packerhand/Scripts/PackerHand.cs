@@ -329,13 +329,14 @@ public class PackerHand : Agent
     {
         Debug.Log("ACTION");
         var j = -1;
-        var i = -1;
+        //var i = -1;
 
         var discreteActions = actionBuffers.DiscreteActions;
-        var continuousActions = actionBuffers.ContinuousActions;
+        //var continuousActions = actionBuffers.ContinuousActions;
 
         SelectBox(discreteActions[++j]); 
-        SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);      
+        // SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]); 
+        SelectVertex(discreteActions[++j]); 
         SelectRotation(discreteActions[++j]);
     }
 
@@ -705,12 +706,8 @@ public class PackerHand : Agent
 
     // }
 
-
-    public void SelectVertex(int action_SelectedVertexIdx, float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
+      public void SelectVertex(int action_SelectedVertexIdx) 
     {
-        action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
-        action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
-        action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
 
         if (isDiscreteSolution)
@@ -719,36 +716,53 @@ public class PackerHand : Agent
             selectedVertexIdx = action_SelectedVertexIdx;
             var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
             boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
-            if (curriculum_ConfigurationLocal == 1)
-            {
-                // reward_dense = inverse of exponential distance between discreteVertex and continuousVertex 
-                float reward_dense_distance = (float) 
-                (1/(Math.Pow(action_SelectedVertex_x - scaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - scaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - scaled_selectedVertex.z, 2)));
-                AddReward(reward_dense_distance);
-                Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
-            }
-            selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
-            Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
-            //AddReward(1f);
-            // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
         }
-
-        else if (isFirstLayerContinuous)
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
-            boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
-        }
-
-        else if (isAllContinuous)
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-            boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
-        }
-            // isVertexSelected = true;
-
     }
+
+
+    // public void SelectVertex(int action_SelectedVertexIdx, float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
+    // {
+    //     action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
+    //     action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
+    //     action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
+    //     Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
+
+    //     if (isDiscreteSolution)
+    //     {
+    //         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
+    //         selectedVertexIdx = action_SelectedVertexIdx;
+    //         var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
+    //         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
+    //         if (curriculum_ConfigurationLocal == 1)
+    //         {
+    //             // reward_dense = inverse of exponential distance between discreteVertex and continuousVertex 
+    //             float reward_dense_distance = (float) 
+    //             (1/(Math.Pow(action_SelectedVertex_x - scaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - scaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - scaled_selectedVertex.z, 2)));
+    //             AddReward(reward_dense_distance);
+    //             Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
+    //         }
+    //         selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
+    //         Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
+    //         //AddReward(1f);
+    //         // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
+    //     }
+
+    //     else if (isFirstLayerContinuous)
+    //     {
+    //         selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
+    //         boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+    //         Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
+    //     }
+
+    //     else if (isAllContinuous)
+    //     {
+    //         selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
+    //         boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+    //         Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
+    //     }
+    //         // isVertexSelected = true;
+
+    // }
 
 
     public void UpdateBoxPosition() 
