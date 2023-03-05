@@ -1,8 +1,4 @@
 import gym
-
-# import baselines.ppo2.ppo2 as ppo2
-# from baselines import logger
-
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.envs.unity_gym_env import UnityToGymWrapper
 import numpy as np
