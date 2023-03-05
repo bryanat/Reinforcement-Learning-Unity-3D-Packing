@@ -9,6 +9,7 @@ import numpy as np
 import collections
 import pickle
 import sys
+# download https://github.com/Farama-Foundation/D4RL and specify its path on local machine
 sys.path.insert(0, "/home/yueqi/DRL/D4RL/d4rl")
 import d4rl
 
@@ -16,9 +17,10 @@ import d4rl
 
 
 def main():
-	unity_env = UnityEnvironment("/home/yueqi/DRL/UnityBox5/DRL-RNN-LSTM-BOX-SIM/env/boxpackingforgym001")
+    # make a directory named env inside directory VSCode and save your Unity build there
+	unity_env = UnityEnvironment("env/boxpackingforgym001")
 	env = UnityToGymWrapper(unity_env, uint8_visual=True, allow_multiple_obs=True)
- # Collect some data from the environment
+ 	# Collect some data from the environment
 	data = []
 	for i in range(100):
 		obs = env.reset()
