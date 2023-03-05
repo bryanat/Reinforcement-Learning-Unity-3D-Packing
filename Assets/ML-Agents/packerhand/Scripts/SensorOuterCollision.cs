@@ -21,8 +21,6 @@ public class SensorOuterCollision : MonoBehaviour
         {
             // reset box, through passedBoundCheck flag that agent uses to reset box and pickup a new box 
             passedBoundCheck = false;
-            //agent.AddReward(-1f);
-            //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedBoundCheck: {passedBoundCheck}");
             //Debug.Log($"SCS {name} FAILED PROTRUSION TEST");
         }  
     }  

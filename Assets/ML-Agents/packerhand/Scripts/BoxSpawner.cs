@@ -23,6 +23,8 @@ public class Box
 {
     public Rigidbody rb;
 
+    public int product_id;
+
     public Vector3 startingPos; // for box reset, constant 
 
     public Quaternion startingRot; // for box reset, constant
@@ -39,17 +41,6 @@ public class Box
 
     public GameObject gameobjectBox;
 }
-
-
-// public class Blackbox
-// {
-//     public Vector3 position;
-//     public Vector3 vertex;
-//     public float volume;
-//     public Vector3 size;
-
-//     public GameObject gameobjectBlackbox;
-// }
 
 
 [System.Serializable]
@@ -72,6 +63,7 @@ public class Item
 public class BoxSpawner : MonoBehaviour 
 {
     [HideInInspector] public List<Box> boxPool = new List<Box>();
+    private List<Item> Items = new List<Item>();
 
     // The box area, which will be set manually in the Inspector
     public GameObject boxArea;
@@ -147,6 +139,7 @@ public class BoxSpawner : MonoBehaviour
                 var newBox = new Box
                 {
                     rb = box.GetComponent<Rigidbody>(), 
+                    product_id = Items[idx].Product_id,
                     startingPos = box.transform.position,
                     startingRot = box.transform.rotation,
                     startingSize = box.transform.localScale,
@@ -188,7 +181,7 @@ public class BoxSpawner : MonoBehaviour
             float x_dimension =  (float)Math.Floor(bin_x/random_num_x * 100)/100;
             float y_dimension =  (float)Math.Floor(bin_y/random_num_y * 100)/100;
             float z_dimension = (float)Math.Floor(bin_z/random_num_z * 100)/100;
-            Debug.Log($"RUF RANDOM UNIFORM BOX NUM: {random_num_x*random_num_y*random_num_z} | x:{x_dimension} y:{y_dimension} z:{z_dimension}");
+            //Debug.Log($"RUF RANDOM UNIFORM BOX NUM: {random_num_x*random_num_y*random_num_z} | x:{x_dimension} y:{y_dimension} z:{z_dimension}");
 
             List<Item> items = new List<Item>();
             items.Add(new Item
@@ -285,19 +278,24 @@ public class BoxSpawner : MonoBehaviour
             var boxes = root.XPathSelectElement("//Items").Elements();
             foreach (XElement box in boxes)
             {
-                string id = box.XPathSelectElement("./Product_id").Value;
+                int id = int.Parse(box.XPathSelectElement("./Product_id").Value);
                 float length = float.Parse(box.XPathSelectElement("./Length").Value);
                 float width = float.Parse(box.XPathSelectElement("./Width").Value);
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
                 int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
                 //Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
-                // Debug.Log($"idx_counter A ================ {idx_counter}");
                 for (int n = 0; n<quantity; n++)
                 {
-                    // Debug.Log($"n           B ================ {n}");
                     sizes[idx_counter].box_size = new Vector3(width, height, length);
+                    Items.Add(new Item
+                    {
+                        Product_id = id,
+                        Length = width,
+                        Width = height,
+                        Height = length,
+                        Quantity = quantity,
+                    });
                     idx_counter++;
-                    // Debug.Log($"idx_counter B ================ {idx_counter}");
                 }   
             }
         }
