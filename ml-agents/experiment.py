@@ -42,7 +42,7 @@ def experiment(
 
 	if env_name == 'packer':
 		# env = gym.make('Hopper-v3')
-		unity_env = UnityEnvironment("/home/bryanat/Unity/builds/boxpackingforgym001/boxpackingforgym001")
+		unity_env = UnityEnvironment("/home/yueqi/DRL/UnityBox5/DRL-RNN-LSTM-BOX-SIM/VSCode/env/boxpackingforgym001")
 		# env is being used again for like 'calibration' (state_dim, action_dim, and eval_episodes) 
 		env = UnityToGymWrapper(unity_env, uint8_visual=True, allow_multiple_obs=True) # make gym env from Unity env
 		max_ep_len = 1000

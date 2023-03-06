@@ -2799,7 +2799,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: seed
-      value: 1
+      value: 123
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -2982,8 +2982,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 58
-  m_MaxNumObservables: 58
+  m_ObservableSize: 55
+  m_MaxNumObservables: 55
 --- !u!114 &571314356
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3013,9 +3013,9 @@ MonoBehaviour:
     VectorObservationSize: 451
     NumStackedVectorObservations: 1
     m_ActionSpec:
-      m_NumContinuousActions: 3
+      m_NumContinuousActions: 0
       BranchSizes: 320000009600000006000000
-    VectorActionSize: 
+    VectorActionSize: 320000009600000006000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -4303,7 +4303,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: seed
-      value: 2
+      value: 145
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -4486,8 +4486,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 58
-  m_MaxNumObservables: 58
+  m_ObservableSize: 55
+  m_MaxNumObservables: 55
 --- !u!114 &976879599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4517,9 +4517,9 @@ MonoBehaviour:
     VectorObservationSize: 451
     NumStackedVectorObservations: 1
     m_ActionSpec:
-      m_NumContinuousActions: 3
+      m_NumContinuousActions: 0
       BranchSizes: 320000009600000006000000
-    VectorActionSize: 
+    VectorActionSize: 320000009600000006000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -5175,7 +5175,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: seed
-      value: 3
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -5358,8 +5358,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 58
-  m_MaxNumObservables: 58
+  m_ObservableSize: 55
+  m_MaxNumObservables: 55
 --- !u!114 &1116319005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5389,9 +5389,9 @@ MonoBehaviour:
     VectorObservationSize: 451
     NumStackedVectorObservations: 1
     m_ActionSpec:
-      m_NumContinuousActions: 3
+      m_NumContinuousActions: 0
       BranchSizes: 320000009600000006000000
-    VectorActionSize: 
+    VectorActionSize: 320000009600000006000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -9465,7 +9465,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: seed
-      value: 0
+      value: 45
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -9633,9 +9633,9 @@ MonoBehaviour:
     VectorObservationSize: 451
     NumStackedVectorObservations: 1
     m_ActionSpec:
-      m_NumContinuousActions: 3
+      m_NumContinuousActions: 0
       BranchSizes: 320000009600000006000000
-    VectorActionSize: 
+    VectorActionSize: 320000009600000006000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -9686,8 +9686,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 58
-  m_MaxNumObservables: 58
+  m_ObservableSize: 55
+  m_MaxNumObservables: 55
 --- !u!54 &702327117403966051
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -202,7 +202,7 @@ public class PackerHand : Agent
 
             if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[maxBoxNum+8];
+                float[] listVarObservation = new float[maxBoxNum+5];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
@@ -216,16 +216,16 @@ public class PackerHand : Agent
                 //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
                 //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
                 // Add updated box placement vertex
-                listVarObservation[maxBoxNum +4] = box.boxVertex.x;
-                listVarObservation[maxBoxNum +5] = box.boxVertex.y;
-                listVarObservation[maxBoxNum +6] = box.boxVertex.z;
+                // listVarObservation[maxBoxNum +4] = box.boxVertex.x;
+                // listVarObservation[maxBoxNum +5] = box.boxVertex.y;
+                // listVarObservation[maxBoxNum +6] = box.boxVertex.z;
                 // Add updated box rotation
                 // listVarObservation[boxPool.Count+7] = box.boxRot[0];
                 // listVarObservation[boxPool.Count+8] = box.boxRot[1];
                 // listVarObservation[boxPool.Count+9] = box.boxRot[2];
                 // listVarObservation[boxPool.Count+10] = box.boxRot[3];
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[maxBoxNum +7] = box.isOrganized ? 1.0f : 0.0f;
+                listVarObservation[maxBoxNum +4] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
@@ -428,6 +428,7 @@ public class PackerHand : Agent
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
             // If percent filled is above an acceptable threshold, output box packing results
+            OutputResult();
 
 
             //Debug.Log("REQUEST DECISION AT NEXT ROUND OF OF PICKING");
@@ -1021,9 +1022,13 @@ public class PackerHand : Agent
     Dictionary<int, Vector3> results = new Dictionary<int, Vector3>();
     foreach(Box box in boxPool)
     {
-        // arrange vertex from smallest to largest for x, y, z
-        results.Add(box.product_id, box.boxVertex);
-        
+        if (box.isOrganized) 
+        {
+            // arrange vertex from smallest to largest for x, y, z
+            results.Add(box.product_id, box.boxVertex);
+
+        }
+      
     }
     
 }

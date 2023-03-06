@@ -137,7 +137,7 @@ labmaze==1.0.6
 lazy-object-proxy @ file:///tmp/build/80754af9/lazy-object-proxy_1616529027849/work
 llvmlite==0.39.1
 locket @ file:///opt/conda/conda-bld/locket_1652903118915/work
-lxml @ file:///opt/conda/conda-bld/lxml_1657545139709/work
+lxml @ file:///opt/conda/conda-bld/lexml_1657545139709/work
 lz4 @ file:///tmp/build/80754af9/lz4_1619516502891/work
 Markdown @ file:///croot/markdown_1671541909495/work
 MarkupSafe @ file:///opt/conda/conda-bld/markupsafe_1654597864307/work

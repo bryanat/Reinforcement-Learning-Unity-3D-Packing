@@ -10,6 +10,14 @@ import d4rl
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.envs.unity_gym_env import UnityToGymWrapper
 
+from gym.envs.registration import register
+
+register(
+    id='yuojjgl-v1',
+    # entry_point='envs:PackHandEnv',
+    # max_episode_steps=300,
+)
+
 
 datasets = []
 
@@ -19,11 +27,16 @@ for env_name in ['packer']:
 	for dataset_type in ['medium']:
 		name = f'{env_name}-{dataset_type}-v2'
 
-		unity_env = UnityEnvironment("/home/bryanat/Unity/builds/boxpackingforgym001/boxpackingforgym001")
-		env = UnityToGymWrapper(unity_env, uint8_visual=True, allow_multiple_obs=True) # make gym env from Unity env
+		unity_env = UnityEnvironment("/home/yueqi/DRL/UnityBox5/DRL-RNN-LSTM-BOX-SIM/ml-agents/env/multibuild01/boxpackingmulti001")
+		# gym_env = UnityToGymWrapper(unity_env, uint8_visual=True, allow_multiple_obs=True) # make gym env from Unity env
 		# env = gym.make(name)
 
-		dataset = env.get_dataset() # D4RL.get_dataset()
+		# print(type(env))
+		gym_env = gym.make("yuojjgl-v1", env=UnityToGymWrapper(unity_env))
+  
+  		# Convert the Unity environment to a Gym environment
+		# gym_env = gym.wrappers.TimeLimit(unity_env, max_episode_steps=100)
+		dataset = gym_env.get_dataset() # D4RL.get_dataset()
 
 		N = dataset['rewards'].shape[0]
 		data_ = collections.defaultdict(list)
