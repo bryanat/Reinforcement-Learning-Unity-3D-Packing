@@ -800,8 +800,7 @@ PrefabInstance:
         type: 3}
       propertyPath: outerBin
       value: 
-      objectReference: {fileID: 2998192221828476203, guid: 74ccf3ab0b2964b18841999b6be8c600,
-        type: 3}
+      objectReference: {fileID: 3859897800709110871}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: binBottom
@@ -1132,6 +1131,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9130374728932030815, guid: 74ccf3ab0b2964b18841999b6be8c600,
         type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9130374728932030815, guid: 74ccf3ab0b2964b18841999b6be8c600,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9130374728932030815, guid: 74ccf3ab0b2964b18841999b6be8c600,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9130374728932030815, guid: 74ccf3ab0b2964b18841999b6be8c600,
+        type: 3}
       propertyPath: m_LocalPosition.x
       value: 20
       objectReference: {fileID: 0}
@@ -1374,6 +1388,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3802952044749756474, guid: 72183f2510eba2327a918f83d731b875,
     type: 3}
   m_PrefabInstance: {fileID: 96774775734726620}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3859897800709110871 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2998192221828476203, guid: 74ccf3ab0b2964b18841999b6be8c600,
+    type: 3}
+  m_PrefabInstance: {fileID: 2020615853224956284}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &4143240950512903988 stripped
 GameObject:

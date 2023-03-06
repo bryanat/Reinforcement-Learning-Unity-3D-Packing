@@ -140,26 +140,35 @@ public class PackerHand : Agent
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
+    
+
+
+        // make container and outer_shell from prefab
         GameObject container = Instantiate(binArea);
         GameObject outer_shell = Instantiate(outerBin);
+        // hide original prefab and set new ones to active
         binArea.SetActive(false);
         outerBin.SetActive(false);
         container.SetActive(true);
         outer_shell.SetActive(true);
-
+        // get container size scales
+        var homeDir = Environment.GetEnvironmentVariable("HOME");
+        boxSpawner.ReadJson($"{homeDir}/Unity/data/{box_file}.json");
         float container_x = boxSpawner.Container.Width;
         float container_y = boxSpawner.Container.Height;
         float container_z = boxSpawner.Container.Length;
         float bin_z = 59f;
         float bin_x = 23.5f;
         float bin_y = 23.9f;
-        container.transform.localScale = new Vector3(container_x/bin_x, container_y/bin_y, container_z/bin_z);
+        // set container and outer_shell's scale and position
+        container.transform.localScale = new Vector3((container_x/bin_x), (container_y/bin_y), (container_z/bin_z));
+        //Debug.Log($"CONTAINER LOCALSCALE IS: {container.transform.localScale}");
         outer_shell.transform.localScale = new Vector3(container_x/bin_x, container_y/bin_y, container_z/bin_z);
-        Vector3 zero_origin = new Vector3(8.25f, 0.50f, 10.50f);
-        Vector3 container_center = new Vector3(zero_origin.x+(container_x/2f), zero_origin.y+(container_y/2f), zero_origin.z+(container_z/2f));
+        origin = Origin.transform.position;
+        Vector3 container_center = new Vector3(origin.x+(container_x/2f), origin.y+(container_y/2f), origin.z+(container_z/2f));
         container.transform.localPosition = container_center;
         outer_shell.transform.localPosition = container_center;
-
+        // initialize containers' children gameobjects
         Transform [] children = container.GetComponentsInChildren<Transform>();
         foreach (Transform child in children )
         {
@@ -175,8 +184,9 @@ public class PackerHand : Agent
             {
                 binSide = child.gameObject;
             }
-        }
-        
+        }   
+        // initialize  outerbin's front
+        outerbinfront = outer_shell.transform.GetChild(5).gameObject;
         // Cache meshes' scripts
         m_BottomMeshScript = binBottom.GetComponent<CombineMesh>();
         m_SideMeshScript = binSide.GetComponent<CombineMesh>();
@@ -200,11 +210,9 @@ public class PackerHand : Agent
         binscale_y = areaBounds.extents.y*2;
         binscale_z = areaBounds.extents.z*2;
 
-        Origin.transform.localPosition = 
-        origin = Origin.transform.position;
         // initialize local reference of box pool
         boxPool = boxSpawner.boxPool;
-
+        // initialize max box number
         maxBoxNum = boxSpawner.maxBoxQuantity;
 
         if (useAttention){
