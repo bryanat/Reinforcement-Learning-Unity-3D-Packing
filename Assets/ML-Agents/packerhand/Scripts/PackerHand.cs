@@ -121,13 +121,6 @@ public class PackerHand : Agent
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
-        // Cache meshes' scripts
-        m_BottomMeshScript = binBottom.GetComponent<CombineMesh>();
-        m_SideMeshScript = binSide.GetComponent<CombineMesh>();
-        m_BackMeshScript = binBack.GetComponent<CombineMesh>();
-        m_BottomMeshScript.agent = this;
-        m_SideMeshScript.agent = this;
-        m_BackMeshScript.agent = this;
 
         // Update model references if we're overriding
         var modelOverrider = GetComponent<ModelOverrider>();
@@ -154,10 +147,18 @@ public class PackerHand : Agent
         container.SetActive(true);
         outer_shell.SetActive(true);
 
-        container.transform.localScale = new Vector3(1, 1, 1);
-        container.transform.localPosition = new Vector3(0, 0, 0);
-        outer_shell.transform.localPosition = new Vector3(1, 1, 1);
-        outer_shell.transform.localPosition = new Vector3(0, 0, 0);
+        float container_x = boxSpawner.Container.Width;
+        float container_y = boxSpawner.Container.Height;
+        float container_z = boxSpawner.Container.Length;
+        float bin_z = 59f;
+        float bin_x = 23.5f;
+        float bin_y = 23.9f;
+        container.transform.localScale = new Vector3(container_x/bin_x, container_y/bin_y, container_z/bin_z);
+        outer_shell.transform.localScale = new Vector3(container_x/bin_x, container_y/bin_y, container_z/bin_z);
+        Vector3 zero_origin = new Vector3(8.25f, 0.50f, 10.50f);
+        Vector3 container_center = new Vector3(zero_origin.x+(container_x/2f), zero_origin.y+(container_y/2f), zero_origin.z+(container_z/2f));
+        container.transform.localPosition = container_center;
+        outer_shell.transform.localPosition = container_center;
 
         Transform [] children = container.GetComponentsInChildren<Transform>();
         foreach (Transform child in children )
@@ -176,6 +177,14 @@ public class PackerHand : Agent
             }
         }
         
+        // Cache meshes' scripts
+        m_BottomMeshScript = binBottom.GetComponent<CombineMesh>();
+        m_SideMeshScript = binSide.GetComponent<CombineMesh>();
+        m_BackMeshScript = binBack.GetComponent<CombineMesh>();
+        m_BottomMeshScript.agent = this;
+        m_SideMeshScript.agent = this;
+        m_BackMeshScript.agent = this;
+
         // Get bounds of bin
         Renderer [] renderers = container.GetComponentsInChildren<Renderer>();
         areaBounds = renderers[0].bounds;
@@ -190,9 +199,9 @@ public class PackerHand : Agent
         binscale_x = areaBounds.extents.x*2;
         binscale_y = areaBounds.extents.y*2;
         binscale_z = areaBounds.extents.z*2;
-        //origin = new Vector3(8.25f, 0.50f, 10.50f);
-        origin = Origin.transform.position;
 
+        Origin.transform.localPosition = 
+        origin = Origin.transform.position;
         // initialize local reference of box pool
         boxPool = boxSpawner.boxPool;
 

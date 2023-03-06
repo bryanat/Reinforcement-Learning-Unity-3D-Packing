@@ -307,9 +307,9 @@ public class BoxSpawner : MonoBehaviour
                 }   
             }
             var container = root.XPathSelectElement("//Container");
-            Container.Length = float.Parse(container.XPathSelectElement("./Length").Value);
-            Container.Width = float.Parse(container.XPathSelectElement("./Width").Value);
-            Container.Height = float.Parse(container.XPathSelectElement("./Height").Value);   
+            Container.Length = float.Parse(container.XPathSelectElement("./Length").Value)/10f;
+            Container.Width = float.Parse(container.XPathSelectElement("./Width").Value)/10f;
+            Container.Height = float.Parse(container.XPathSelectElement("./Height").Value)/10f;   
             //Debug.Log($"JSON CONTAINER LENGTH {Container.Length} WIDTH {Container.Width} HEIGHT {Container.Height}");
         }
     }
