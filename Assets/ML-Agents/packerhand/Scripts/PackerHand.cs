@@ -157,19 +157,19 @@ public class PackerHand : Agent
         {
             boxSpawner.SetUpBin();
         }
-        float container_x = boxSpawner.Container.Width;
-        float container_y = boxSpawner.Container.Height;
-        float container_z = boxSpawner.Container.Length;
+        binscale_x = boxSpawner.Container.Width;
+        binscale_y  = boxSpawner.Container.Height;
+        binscale_z  = boxSpawner.Container.Length;
         float bin_z = 59f;
         float bin_x = 23.5f;
         float bin_y = 23.9f;
-        container.transform.localScale = new Vector3((container_x/bin_x), (container_y/bin_y), (container_z/bin_z));
+        container.transform.localScale = new Vector3((binscale_x/bin_x), (binscale_y/bin_y), (binscale_z/bin_z));
         //Debug.Log($"CONTAINER LOCALSCALE IS: {container.transform.localScale}");
-        outer_shell.transform.localScale = new Vector3(container_x/bin_x, container_y/bin_y, container_z/bin_z);
+        outer_shell.transform.localScale = new Vector3(binscale_x/bin_x, binscale_y/bin_y, binscale_z/bin_z);
         // Set origin position
         origin = Origin.transform.position;
         //Vector3 container_center = new Vector3(origin.x+(container_x/2f), origin.y+(container_y/2f), origin.z+(container_z/2f));
-        Vector3 container_center = new Vector3(origin.x+(container_x/2f), 0.5f, origin.z+(container_z/2f));
+        Vector3 container_center = new Vector3(origin.x+(binscale_x/2f), 0.5f, origin.z+(binscale_z/2f));
         container.transform.localPosition = container_center;
         outer_shell.transform.localPosition = container_center;
         // initialize containers' children gameobjects
@@ -200,19 +200,20 @@ public class PackerHand : Agent
         m_BackMeshScript.agent = this;
 
         // Get bounds of bin
-        Renderer [] renderers = container.GetComponentsInChildren<Renderer>();
-        areaBounds = renderers[0].bounds;
-        for (var i = 1; i < renderers.Length; ++i)
-        {
-            areaBounds.Encapsulate(renderers[i].bounds);
-        }
+        // Renderer [] renderers = container.GetComponentsInChildren<Renderer>();
+        // areaBounds = renderers[0].bounds;
+        // for (var i = 1; i < renderers.Length; ++i)
+        // {
+        //     areaBounds.Encapsulate(renderers[i].bounds);
+        // }
         // Get total bin volume 
-        total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
+        //total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
+        total_bin_volume = binscale_x * binscale_y * binscale_z;
 
         // Get scale of bin
-        binscale_x = areaBounds.extents.x*2;
-        binscale_y = areaBounds.extents.y*2;
-        binscale_z = areaBounds.extents.z*2;
+        // binscale_x = areaBounds.extents.x*2;
+        // binscale_y = areaBounds.extents.y*2;
+        // binscale_z = areaBounds.extents.z*2;
 
         // initialize local reference of box pool
         boxPool = boxSpawner.boxPool;
@@ -351,7 +352,6 @@ public class PackerHand : Agent
             actionMask.SetActionEnabled(0, selectedBoxIdx, false);
         }
     }
-
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
