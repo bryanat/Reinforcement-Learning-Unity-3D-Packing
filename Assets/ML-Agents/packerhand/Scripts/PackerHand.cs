@@ -81,10 +81,10 @@ public class PackerHand : Agent
     // binArea and outerBin are prefabs which will be scaled to the correct container size
     public GameObject binArea; // The bin container, which will be manually selected in the Inspector
     public GameObject outerBin; // The outer shell of container
-    public GameObject binBottom;
-    public GameObject binBack;
-    public GameObject binSide;
-    public GameObject outerbinfront;
+    [HideInInspector] public GameObject binBottom;
+    [HideInInspector] public GameObject binBack;
+    [HideInInspector] public GameObject binSide;
+    [HideInInspector] public GameObject outerbinfront;
     public Material clearPlastic;
 
     public GameObject Origin;
@@ -149,7 +149,10 @@ public class PackerHand : Agent
         container.SetActive(true);
         outer_shell.SetActive(true);
         // get container size scales
-        boxSpawner.ReadJsonForBin(box_file);
+        if (!useCurriculum)
+        {
+            boxSpawner.ReadJsonForBin(box_file);
+        }
         float container_x = boxSpawner.Container.Width;
         float container_y = boxSpawner.Container.Height;
         float container_z = boxSpawner.Container.Length;
@@ -160,6 +163,7 @@ public class PackerHand : Agent
         container.transform.localScale = new Vector3((container_x/bin_x), (container_y/bin_y), (container_z/bin_z));
         //Debug.Log($"CONTAINER LOCALSCALE IS: {container.transform.localScale}");
         outer_shell.transform.localScale = new Vector3(container_x/bin_x, container_y/bin_y, container_z/bin_z);
+        // Set origin position
         origin = Origin.transform.position;
         Vector3 container_center = new Vector3(origin.x+(container_x/2f), origin.y+(container_y/2f), origin.z+(container_z/2f));
         container.transform.localPosition = container_center;
