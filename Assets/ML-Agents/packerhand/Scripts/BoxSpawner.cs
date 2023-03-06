@@ -311,6 +311,7 @@ public class BoxSpawner : MonoBehaviour
 
     public void ReadJsonForBin(string box_file) 
     {
+        homeDir = Environment.GetEnvironmentVariable("HOME");
         string filename = $"{homeDir}/Unity/data/{box_file}.json";
         using (var inputStream = File.Open(filename, FileMode.Open)) {
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
