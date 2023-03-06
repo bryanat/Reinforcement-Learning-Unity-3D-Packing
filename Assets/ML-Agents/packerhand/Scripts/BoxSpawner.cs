@@ -42,6 +42,12 @@ public class Box
     public GameObject gameobjectBox;
 }
 
+public class Container
+{
+    public float Length {get; set;}
+    public float Width {get; set;}
+    public float Height {get; set;}
+}
 
 [System.Serializable]
 public class BoxSize
@@ -52,9 +58,9 @@ public class BoxSize
 public class Item
 {
     public int Product_id { get; set; }
-    public double Length { get; set; }
-    public double Width { get; set; }
-    public double Height { get; set; }
+    public float Length { get; set; }
+    public float Width { get; set; }
+    public float Height { get; set; }
     public int Quantity { get; set; }
 }
 
@@ -64,6 +70,8 @@ public class BoxSpawner : MonoBehaviour
 {
     [HideInInspector] public List<Box> boxPool = new List<Box>();
     private List<Item> Items = new List<Item>();
+
+    public Container Container = new Container();
 
     // The box area, which will be set manually in the Inspector
     public GameObject boxArea;
@@ -298,9 +306,13 @@ public class BoxSpawner : MonoBehaviour
                     idx_counter++;
                 }   
             }
+            var container = root.XPathSelectElement("//Container");
+            Container.Length = float.Parse(container.XPathSelectElement("./Length").Value);
+            Container.Width = float.Parse(container.XPathSelectElement("./Width").Value);
+            Container.Height = float.Parse(container.XPathSelectElement("./Height").Value);   
+            //Debug.Log($"JSON CONTAINER LENGTH {Container.Length} WIDTH {Container.Width} HEIGHT {Container.Height}");
         }
     }
-
     public void PadZeros()
     {
         for (int m=idx_counter; m<maxBoxQuantity; m++)

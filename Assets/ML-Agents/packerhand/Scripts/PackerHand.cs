@@ -77,7 +77,10 @@ public class PackerHand : Agent
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
+
+    // binArea and outerBin are prefabs which will be scaled to the correct container size
     public GameObject binArea; // The bin container, which will be manually selected in the Inspector
+    public GameObject outerBin; // The outer shell of container
     public GameObject binBottom;
     public GameObject binBack;
     public GameObject binSide;
@@ -143,9 +146,38 @@ public class PackerHand : Agent
         // Make agent unaffected by collision
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
+
+        GameObject container = Instantiate(binArea);
+        GameObject outer_shell = Instantiate(outerBin);
+        binArea.SetActive(false);
+        outerBin.SetActive(false);
+        container.SetActive(true);
+        outer_shell.SetActive(true);
+
+        container.transform.localScale = new Vector3(1, 1, 1);
+        container.transform.localPosition = new Vector3(0, 0, 0);
+        outer_shell.transform.localPosition = new Vector3(1, 1, 1);
+        outer_shell.transform.localPosition = new Vector3(0, 0, 0);
+
+        Transform [] children = container.GetComponentsInChildren<Transform>();
+        foreach (Transform child in children )
+        {
+            if (child.name == "BinIso20Bottom")
+            {
+                binBottom = child.gameObject;
+            }
+            else if (child.name == "BinIso20Back")
+            {
+                binBack = child.gameObject;
+            }
+            else  if (child.name == "BinIso20Side")
+            {
+                binSide = child.gameObject;
+            }
+        }
         
         // Get bounds of bin
-        Renderer [] renderers = binArea.GetComponentsInChildren<Renderer>();
+        Renderer [] renderers = container.GetComponentsInChildren<Renderer>();
         areaBounds = renderers[0].bounds;
         for (var i = 1; i < renderers.Length; ++i)
         {

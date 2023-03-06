@@ -265,7 +265,7 @@ public class CombineMesh : MonoBehaviour
 
     public void MeshCombiner(MeshFilter[] meshList) 
     {
-        // Debug.Log("++++++++++++START OF MESHCOMBINER++++++++++++");
+        Debug.Log($"++++++++++++START OF MESHCOMBINER++++++++++++ for {transform.parent.name}");
         List<CombineInstance> combine = new List<CombineInstance>();
 
         // save the parent pos+rot
