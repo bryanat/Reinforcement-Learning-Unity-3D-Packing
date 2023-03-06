@@ -273,6 +273,13 @@ public class BoxSpawner : MonoBehaviour
         }
     }
 
+    public void SetUpBin()
+    {
+        Container.Length = 59f;
+        Container.Height = 23.9f;
+        Container.Width = 23.5f;
+    }
+
 
     // Read from json file and construct box, then add box to sizes array of boxes
     // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },

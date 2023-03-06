@@ -153,19 +153,23 @@ public class PackerHand : Agent
         {
             boxSpawner.ReadJsonForBin(box_file);
         }
+        else
+        {
+            boxSpawner.SetUpBin();
+        }
         float container_x = boxSpawner.Container.Width;
         float container_y = boxSpawner.Container.Height;
         float container_z = boxSpawner.Container.Length;
         float bin_z = 59f;
         float bin_x = 23.5f;
         float bin_y = 23.9f;
-        // set container and outer_shell's scale and position
         container.transform.localScale = new Vector3((container_x/bin_x), (container_y/bin_y), (container_z/bin_z));
         //Debug.Log($"CONTAINER LOCALSCALE IS: {container.transform.localScale}");
         outer_shell.transform.localScale = new Vector3(container_x/bin_x, container_y/bin_y, container_z/bin_z);
         // Set origin position
         origin = Origin.transform.position;
-        Vector3 container_center = new Vector3(origin.x+(container_x/2f), origin.y+(container_y/2f), origin.z+(container_z/2f));
+        //Vector3 container_center = new Vector3(origin.x+(container_x/2f), origin.y+(container_y/2f), origin.z+(container_z/2f));
+        Vector3 container_center = new Vector3(origin.x+(container_x/2f), 0.5f, origin.z+(container_z/2f));
         container.transform.localPosition = container_center;
         outer_shell.transform.localPosition = container_center;
         // initialize containers' children gameobjects
@@ -1068,17 +1072,17 @@ public class PackerHand : Agent
     public void OutputResult()
 
 {
-    Dictionary<int, Vector3> results = new Dictionary<int, Vector3>();
-    foreach(Box box in boxPool)
-    {
-        if (box.isOrganized) 
-        {
-            // arrange vertex from smallest to largest for x, y, z
-            results.Add(box.product_id, box.boxVertex);
+    // Dictionary<int, Vector3> results = new Dictionary<int, Vector3>();
+    // foreach(Box box in boxPool)
+    // {
+    //     if (box.isOrganized) 
+    //     {
+    //         // arrange vertex from smallest to largest for x, y, z
+    //         results.Add(box.product_id, box.boxVertex);
 
-        }
+    //     }
       
-    }
+    // }
     
 }
 
