@@ -306,6 +306,16 @@ public class BoxSpawner : MonoBehaviour
                     idx_counter++;
                 }   
             }
+        }
+    }
+
+    public void ReadJsonForBin(string box_file) 
+    {
+        string filename = $"{homeDir}/Unity/data/{box_file}.json";
+        using (var inputStream = File.Open(filename, FileMode.Open)) {
+            var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
+            //var root = XElement.Load(jsonReader);
+            var root = XDocument.Load(jsonReader);
             var container = root.XPathSelectElement("//Container");
             Container.Length = float.Parse(container.XPathSelectElement("./Length").Value)/10f;
             Container.Width = float.Parse(container.XPathSelectElement("./Width").Value)/10f;

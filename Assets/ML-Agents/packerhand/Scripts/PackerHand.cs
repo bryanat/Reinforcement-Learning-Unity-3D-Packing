@@ -140,9 +140,6 @@ public class PackerHand : Agent
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
-    
-
-
         // make container and outer_shell from prefab
         GameObject container = Instantiate(binArea);
         GameObject outer_shell = Instantiate(outerBin);
@@ -152,8 +149,7 @@ public class PackerHand : Agent
         container.SetActive(true);
         outer_shell.SetActive(true);
         // get container size scales
-        var homeDir = Environment.GetEnvironmentVariable("HOME");
-        boxSpawner.ReadJson($"{homeDir}/Unity/data/{box_file}.json");
+        boxSpawner.ReadJsonForBin(box_file);
         float container_x = boxSpawner.Container.Width;
         float container_y = boxSpawner.Container.Height;
         float container_z = boxSpawner.Container.Length;
