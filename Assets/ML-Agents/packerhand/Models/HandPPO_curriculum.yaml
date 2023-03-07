@@ -45,7 +45,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 600
+          threshold: 900
         value: 0.0
       - name: 2DiscreteLesson # The '-' is important as this is a list
         completion_criteria:
@@ -53,7 +53,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 700
+          threshold: 900
         value: 1.0
       - name: 3DiscreteLesson # The '-' is important as this is a list
         completion_criteria:
@@ -61,7 +61,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 800
+          threshold: 950
         value: 2.0
     # curriculum:
     #   - name: 8BoxDiscreteLesson # The '-' is important as this is a list
