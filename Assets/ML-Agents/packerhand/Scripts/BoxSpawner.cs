@@ -179,16 +179,13 @@ public class BoxSpawner : MonoBehaviour
     {
         if (box_type == "uniform_random") 
         {
-            float bin_z = 59f;
-            float bin_x = 23.5f;
-            float bin_y = 23.9f;
             UnityEngine.Random.InitState(seed);
             int random_num_x =  UnityEngine.Random.Range(1, 4);
             int random_num_y =  UnityEngine.Random.Range(1, 4);
             int random_num_z =  UnityEngine.Random.Range(1, 6);
-            float x_dimension =  (float)Math.Floor(bin_x/random_num_x * 100)/100;
-            float y_dimension =  (float)Math.Floor(bin_y/random_num_y * 100)/100;
-            float z_dimension = (float)Math.Floor(bin_z/random_num_z * 100)/100;
+            float x_dimension =  (float)Math.Floor(Container.Width/random_num_x * 100)/100;
+            float y_dimension =  (float)Math.Floor(Container.Height/random_num_y * 100)/100;
+            float z_dimension = (float)Math.Floor(Container.Length/random_num_z * 100)/100;
             //Debug.Log($"RUF RANDOM UNIFORM BOX NUM: {random_num_x*random_num_y*random_num_z} | x:{x_dimension} y:{y_dimension} z:{z_dimension}");
 
             List<Item> items = new List<Item>();
@@ -210,9 +207,9 @@ public class BoxSpawner : MonoBehaviour
         }
         if (box_type == "mix_random")
         {
-            int bin_z = 59;
-            int bin_x = 23;
-            int bin_y = 24;
+            int bin_z = (int) Math.Floor(Container.Length);
+            int bin_x = (int) Math.Floor(Container.Width);
+            int bin_y = (int) Math.Floor(Container.Height);
             UnityEngine.Random.InitState(seed);
             List<Item> items = new List<Item>();
             List<int> x_dimensions = new List<int>();
@@ -275,9 +272,10 @@ public class BoxSpawner : MonoBehaviour
 
     public void SetUpBin()
     {
-        Container.Length = 59f;
-        Container.Height = 23.9f;
-        Container.Width = 23.5f;
+        // Randomly generate a bin
+        Container.Length =  (float) Math.Round(UnityEngine.Random.Range(10.0f, 60.0f), 2);
+        Container.Height = (float) Math.Round(UnityEngine.Random.Range(10.0f, 25.0f), 2);
+        Container.Width = (float) Math.Round(UnityEngine.Random.Range(10.0f, 30.0f));
     }
 
 

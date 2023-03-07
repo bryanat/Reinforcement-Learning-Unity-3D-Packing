@@ -6,10 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/ML-Agents/packerhand/Scenes/BoxPackingMultPlatformi001.unity
+    path: Assets/ML-Agents/packerhand/Scenes/BoxPackingMultPlatformOriginal.unity
     guid: cece2de1dcba2f7ba91007e1c331f44e
   - enabled: 0
-    path: Assets/ML-Agents/packerhand/Scenes/BoxPackingForGym001.unity
+    path: Assets/ML-Agents/packerhand/Scenes/BoxPackingNew.unity
     guid: a70a10dc78dc3384a98ccae7a1eaa9cc
   - enabled: 0
     path: Assets/ML-Agents/packerhand/Scenes/BoxPackingi001.unity
