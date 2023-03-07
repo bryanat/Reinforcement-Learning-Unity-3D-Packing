@@ -15,19 +15,20 @@ using Boxes;
 
 public class PackerHand : Agent 
 {
-    public int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
-    int curriculum_ConfigurationLocal; // local reference of the above
+    public int curriculum_ConfigurationGlobal=2;  // Depending on this value, different curriculum will be picked
+    private int curriculum_ConfigurationLocal=-1; // local reference of the above
+    
     public int packSpeed = 20;
     public int seed = 123;
     public string box_file = "Boxes_30";
     
     public bool useCurriculum=true;
     public bool useAttention=true; // use attention by default (default = true)
-    public bool useVerticesArray=true;
+    private bool useVerticesArray;
     public bool useDenseReward=true;
-    public bool useSurfaceAreaReward = false;
-    public bool isDiscreteSolution = true;
-    public bool isFirstLayerContinuous;
+    public bool useSurfaceAreaReward=false;
+    public bool isDiscreteSolution;
+    private bool isFirstLayerContinuous;
     public bool isAllContinuous;
 
     BufferSensorComponent m_BufferSensor;
@@ -36,9 +37,9 @@ public class PackerHand : Agent
     public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
     public NNModel continuousBrain;     // Brain to use when boxes are of similar sizes
     public NNModel mixBrain;     // Brain to use when boxes size vary
-    string m_DiscreteBehaviorName = "Discrete"; // 
-    string m_ContinuousBehaviorName = "Continuous";
-    string m_MixBehaviorName = "Mix";
+    private string m_DiscreteBehaviorName = "Discrete"; // 
+    private string m_ContinuousBehaviorName = "Continuous";
+    private string m_MixBehaviorName = "Mix";
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
     [HideInInspector] CombineMesh m_BackMeshScript;
@@ -52,7 +53,7 @@ public class PackerHand : Agent
     public int selectedBoxIdx; // Box selected 
     public Vector3 selectedRotation; // selectedRotation selected
     public Vector3 selectedVertex; // Vertex selected
-    public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
+    public Vector3 [] verticesArray; // (2*num_boxes + 1) vertices, each vertex a Vextor3 vector: total size = (2*num_boxes + 1)*3
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] public List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices;
@@ -115,10 +116,17 @@ public class PackerHand : Agent
 
     public override void Initialize()
     {   
+
+        // TEMPORARY settings (delete when merging with master branch)
+        useCurriculum = false;
+        useSurfaceAreaReward=true;
+
         Academy.Instance.AutomaticSteppingEnabled = false;
 
-        curriculum_ConfigurationLocal = curriculum_ConfigurationGlobal; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
-        
+        if (useCurriculum){
+            curriculum_ConfigurationLocal = curriculum_ConfigurationGlobal; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
+        }
+
         // initialize stats recorder to add stats to tensorboard
         m_statsRecorder = Academy.Instance.StatsRecorder;
 
@@ -139,7 +147,7 @@ public class PackerHand : Agent
         m_SideMeshScript.agent = this;
         m_BackMeshScript.agent = this;
 
-        // Update model references if we're overriding
+        // Update model references if we're overriding by adding a pre-trained brain
         var modelOverrider = GetComponent<ModelOverrider>();
         if (modelOverrider.HasOverrides)
         {
@@ -269,23 +277,26 @@ public class PackerHand : Agent
         }
 
         // Add array of vertices (selected vertices are 0s)
-        int i = 0;
-        maskedVertexIndices = new List<int>();
-        foreach (Vector3 vertex in verticesArray) 
-        {   
-            //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
-            if (useVerticesArray)
-            {
-                Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-                sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+        if (useVerticesArray)
+        {
+            int i = 0;
+            maskedVertexIndices = new List<int>();
+            foreach (Vector3 vertex in verticesArray) 
+            {   
+                //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
+                if (useVerticesArray)
+                {
+                    Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+                    sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+                }
+                // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
+                if (vertex == Vector3.zero)
+                {
+                    //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
+                    maskedVertexIndices.Add(i);
+                }
+                i++;
             }
-            // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
-            if (vertex == Vector3.zero)
-            {
-                //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
-                maskedVertexIndices.Add(i);
-            }
-            i++;
         }
         
         // // array of blackboxes 
@@ -335,7 +346,7 @@ public class PackerHand : Agent
         var continuousActions = actionBuffers.ContinuousActions;
 
         SelectBox(discreteActions[++j]); 
-        SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);      
+        SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         SelectRotation(discreteActions[++j]);
     }
 
@@ -354,7 +365,7 @@ public class PackerHand : Agent
                 Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             }
             EndEpisode();
-            curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
+            if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
             isEpisodeStart = true;
             Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
         }
@@ -367,7 +378,7 @@ public class PackerHand : Agent
                 Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             }
             EndEpisode();
-            curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
+            if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
             isEpisodeStart = true;
             Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
         }
@@ -391,7 +402,9 @@ public class PackerHand : Agent
             }
             else
             {
-                boxSpawner.SetUpBoxes(box_file);
+                // boxSpawner.SetUpBoxes(box_file, false, 0, 0, 0, seed);
+                boxSpawner.SetUpBoxes("mix_random", false, 2, 2, 2, seed);
+                Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
 
             if (isDiscreteSolution)
@@ -502,7 +515,7 @@ public class PackerHand : Agent
                         Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
                     }
                     EndEpisode();
-                    curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
+                    if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
                     isEpisodeStart = true;
                     Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
                 }
@@ -704,7 +717,6 @@ public class PackerHand : Agent
     //     isVertexSelected = true;
 
     // }
-
 
     public void SelectVertex(int action_SelectedVertexIdx, float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
     {
@@ -1345,60 +1357,69 @@ public class PackerHand : Agent
     /// </summary>
     void ConfigureAgent(int n) 
     {
-        // DISCRETE
         if (n==0) 
+        // DISCRETE
         {
+            isDiscreteSolution     = true;
+            isFirstLayerContinuous = false;
+            isAllContinuous        = false;
+            useVerticesArray       = true;
+            Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");            
             if (isInitialization)
             {
                 SetModel(m_DiscreteBehaviorName, discreteBrain);
             }
-            Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
-            isDiscreteSolution = true;
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
-                boxSpawner.SetUpBoxes("mix_random", seed);
+                boxSpawner.SetUpBoxes("mix_random", true, 4, 4, 6, seed);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
             {
-                boxSpawner.SetUpBoxes("mix_random", seed+1);
+                boxSpawner.SetUpBoxes("mix_random", true, 4, 4, 6, seed+1);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
             {
-                boxSpawner.SetUpBoxes("mix_random", seed+2);
+                boxSpawner.SetUpBoxes("mix_random", true, 4, 4, 6, seed+2);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
         }
         else if (n==1) 
+        // Mixed DISCRETE-CONTINUOUS (not recommended to switch from discrete to continuous brain)
         {
+            Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_MixBehaviorName}");
             if (isInitialization)
             {
                 SetModel(m_MixBehaviorName, mixBrain);
             }
-            Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_MixBehaviorName}");
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f)
             {
-                isDiscreteSolution = true;
+                isDiscreteSolution     = true;
+                isFirstLayerContinuous = false;
+                isAllContinuous        = false;
+                useVerticesArray       = true;
             }
             else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 1.0f) == 1.0f)
             {
-                isDiscreteSolution = false;
+                isDiscreteSolution     = false;
                 isFirstLayerContinuous = true;
-                useSurfaceAreaReward = true;
-                useVerticesArray = false;
+                isAllContinuous        = false;
+                useVerticesArray       = false;
             }
             else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 2.0f) == 2.0f)
             {
-                isDiscreteSolution = false;
+                isDiscreteSolution     = false;
                 isFirstLayerContinuous = false;
-                isAllContinuous = true;
-                useSurfaceAreaReward = true;
-                useVerticesArray = false;
+                isAllContinuous        = true;
+                useVerticesArray       = false;
             }
         }
         else if (n==2)
+        // CONTINUOUS
         {
+            useVerticesArray       = false;
+            isDiscreteSolution     = false;
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_ContinuousBehaviorName}");
             if (isInitialization)
             {
@@ -1406,19 +1427,14 @@ public class PackerHand : Agent
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 1.0f) == 1.0f)
             {
-                isDiscreteSolution = false;
-                isFirstLayerContinuous = true;
-                useSurfaceAreaReward = true;
-                useVerticesArray = false;
+                isFirstLayerContinuous = false;
+                isAllContinuous        = false;
 
             }
             else if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 2.0f) == 2.0f)
             {
-                isDiscreteSolution = false;
                 isFirstLayerContinuous = false;
-                isAllContinuous = true;
-                useSurfaceAreaReward = true;
-                useVerticesArray = false;
+                isAllContinuous        = true;
             }  
         }
     }
