@@ -17,18 +17,20 @@ public class PackerHand : Agent
     public int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
     int curriculum_ConfigurationLocal; // local reference of the above
     public int packSpeed = 20;
-    public int seed = 123;
-    public string box_file = "Boxes_30";
+    public int seed = 123; // same seed means same set of randomly generated boxes
+    public string box_file = "Boxes_30"; // json file name used in non-curriculum learning/production/inference
     
-    public bool useCurriculum=true;
-    public bool useAttention=true; // use attention by default (default = true)
+    public bool useCurriculum=true; // if false, bin and box sizes will be read from a json file 
+    public bool useAttention=true; // if use attention (default = true)
+    public bool useBoxReset=false; // if reset box when fails physics test and continue the episode (default=false, which means episode will restart)
     public bool useVerticesArray=true;
     public bool useDenseReward=true;
-    public bool useVariableBin=true;
+    public bool useRandomBins=true; // if use randomly generated bins (only applies to curriculum learning)
+    public bool useMultipleBins=false; // if boxes are packed into multiple bins 
     public bool useSurfaceAreaReward=false;
     public bool isDiscreteSolution = true;
 
-    BufferSensorComponent m_BufferSensor;
+    BufferSensorComponent m_BufferSensor; // attention sensor
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
 
     public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
@@ -43,30 +45,30 @@ public class PackerHand : Agent
     [HideInInspector] CombineMesh m_SideMeshScript;
     [HideInInspector] CombineMesh m_BottomMeshScript;
 
-    [HideInInspector] public Vector3 initialAgentPosition;
+    [HideInInspector] public Vector3 initialAgentPosition; 
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
     public int selectedBoxIdx; // Box selected 
-    public Vector3 selectedRotation; // selectedRotation selected
+    public Vector3 selectedRotation; // Rotation selected
     public Vector3 selectedVertex; // Vertex selected
-    public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
+    public Vector3 [] verticesArray; // space: 3n Vector3 vertices where n = max num boxes
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] public List<Box> boxPool; // space: num boxes
-    [HideInInspector] private List<int> maskedVertexIndices;
+    [HideInInspector] private List<int> maskedVertexIndices; // list of taken vertex indices
     [HideInInspector] public List<int> maskedBoxIndices; // list of organzed box indices
-    [HideInInspector] public List<Vector3> historicalVerticesLog;
-    [HideInInspector] public int VertexCount = 0;
-    [HideInInspector] public Vector3 boxWorldScale;
-    [HideInInspector] public int maxBoxNum;
+    [HideInInspector] public List<Vector3> historicalVerticesLog; // list of all used vertices
+    [HideInInspector] public int VertexCount = 0; // counter for VerticesArray
+    [HideInInspector] public Vector3 boxWorldScale; //local scale of selected box
+    [HideInInspector] public int maxBoxNum; // max number of boxes (50 by default)
     [HideInInspector] public float total_x_distance; //total x distance between agent and target
     [HideInInspector] public float total_y_distance; //total y distance between agent and target
     [HideInInspector] public float total_z_distance; //total z distance between agent and target
     
     public BoxSpawner boxSpawner; // Box Spawner
-    [HideInInspector] public SensorCollision sensorCollision;
-    [HideInInspector] public SensorOuterCollision sensorOuterCollision;
-    [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
+    [HideInInspector] public SensorCollision sensorCollision; // cache script for checking gravity
+    [HideInInspector] public SensorOuterCollision sensorOuterCollision; // cache script for checking protrusion
+    [HideInInspector] public SensorOverlapCollision sensorOverlapCollision; // cache script for checking overlap
 
     [HideInInspector] public bool isInitialization = true;
     [HideInInspector] public bool isEpisodeStart;
@@ -79,28 +81,28 @@ public class PackerHand : Agent
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
 
-    // binArea and outerBin are prefabs which will be scaled to the correct container size
-    public GameObject binArea; // The bin container, which will be manually selected in the Inspector
-    public GameObject outerBin; // The outer shell of container
-    [HideInInspector] public GameObject binBottom;
-    [HideInInspector] public GameObject binBack;
-    [HideInInspector] public GameObject binSide;
-    [HideInInspector] public GameObject outerbinfront;
+    // binArea and outerBin are prefabs which will be scaled 
+    public GameObject binArea; // The bin container prefab, which will be manually selected in the Inspector
+    public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
+    [HideInInspector] public GameObject binBottom; //cache bin bottom
+    [HideInInspector] public GameObject binBack; // cache bin back
+    [HideInInspector] public GameObject binSide; // cache bin side
+    [HideInInspector] public GameObject outerbinfront; // cache outer bin front
     public Material clearPlastic;
 
-    public GameObject Origin;
+    public GameObject Origin; // starting vertex, a gameobject for now for multiplatform
+    [HideInInspector] public Vector3 origin;
+    public float binscale_x; 
+    public float binscale_y;
+    public float binscale_z;
+    public float percent_contact_surface_area;
+    public float box_surface_area;
 
-    public float total_bin_volume; // regular bin's volume
-    public Bounds areaBounds; // regular bin's bounds
+    public float total_bin_volume; // bin's volume
+    //public Bounds areaBounds; // regular bin's bounds
     public int boxes_packed = 0;
     public float current_bin_volume;
     public float percent_filled_bin_volume;
-    public float box_surface_area;
-    public float percent_contact_surface_area;
-    [HideInInspector] public float binscale_x;
-    [HideInInspector] public float binscale_y;
-    [HideInInspector] public float binscale_z;
-    [HideInInspector] public Vector3 origin;
 
 
 
@@ -143,16 +145,16 @@ public class PackerHand : Agent
 
         // make container and outer_shell from prefab
         GameObject container = Instantiate(binArea);
-        GameObject outer_shell = Instantiate(outerBin);
-        // hide original prefab and set new ones to active
+        GameObject shell = Instantiate(outerBin);
+        // hide original prefabs through setting to inactive and set new ones to active
         binArea.SetActive(false);
         outerBin.SetActive(false);
         container.SetActive(true);
-        outer_shell.SetActive(true);
+        shell.SetActive(true);
+        // prefab's (BinIso20) sizes
         float biniso_z = 59f;
         float biniso_x = 23.5f;
         float biniso_y = 23.9f;
-        // get container size scales
         if (!useCurriculum)
         {
             // read bin size from file
@@ -160,7 +162,7 @@ public class PackerHand : Agent
         }
         else
         {
-            if (useVariableBin)
+            if (useRandomBins)
             {
                 // randomly generate a bin
                 boxSpawner.SetUpBin();
@@ -176,16 +178,16 @@ public class PackerHand : Agent
         binscale_x = boxSpawner.Container.Width;
         binscale_y  = boxSpawner.Container.Height;
         binscale_z  = boxSpawner.Container.Length;
+        // Set bin and outer bin's scale and position
         container.transform.localScale = new Vector3((binscale_x/biniso_x), (binscale_y/biniso_y), (binscale_z/biniso_z));
         //Debug.Log($"CONTAINER LOCALSCALE IS: {container.transform.localScale}");
-        outer_shell.transform.localScale = new Vector3(binscale_x/biniso_x, binscale_y/biniso_y, binscale_z/biniso_z);
+        shell.transform.localScale = new Vector3(binscale_x/biniso_x, binscale_y/biniso_y, binscale_z/biniso_z);
         // Set origin position
         origin = Origin.transform.position;
-        //Vector3 container_center = new Vector3(origin.x+(container_x/2f), origin.y+(container_y/2f), origin.z+(container_z/2f));
         Vector3 container_center = new Vector3(origin.x+(binscale_x/2f), 0.5f, origin.z+(binscale_z/2f));
         container.transform.localPosition = container_center;
-        outer_shell.transform.localPosition = container_center;
-        // initialize containers' children gameobjects
+        shell.transform.localPosition = container_center;
+        // cache containers' children gameobjects
         Transform [] children = container.GetComponentsInChildren<Transform>();
         foreach (Transform child in children )
         {
@@ -202,9 +204,9 @@ public class PackerHand : Agent
                 binSide = child.gameObject;
             }
         }   
-        // initialize  outerbin's front
-        outerbinfront = outer_shell.transform.GetChild(5).gameObject;
-        // Cache meshes' scripts
+        // cache outerbin's front
+        outerbinfront = shell.transform.GetChild(5).gameObject;
+        // Cache bin's scripts and initialize their agent
         m_BottomMeshScript = binBottom.GetComponent<CombineMesh>();
         m_SideMeshScript = binSide.GetComponent<CombineMesh>();
         m_BackMeshScript = binBack.GetComponent<CombineMesh>();
@@ -531,11 +533,17 @@ public class PackerHand : Agent
                         AddReward(percent_filled_bin_volume*10);   
                         //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
                     }
-                    //BoxReset("failedPhysicsCheck");
-                    EndEpisode();
-                    curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
-                    isEpisodeStart = true;
-                    //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
+                    if (useBoxReset)
+                    {
+                        BoxReset("failedPhysicsCheck");
+                    }
+                    else
+                    {
+                        // EndEpisode();
+                        // curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
+                        // isEpisodeStart = true;
+                        //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
+                    }
                 }
             }
         }
