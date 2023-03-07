@@ -24,7 +24,8 @@ public class PackerHand : Agent
     public bool useAttention=true; // use attention by default (default = true)
     public bool useVerticesArray=true;
     public bool useDenseReward=true;
-    public bool useSurfaceAreaReward = false;
+    public bool useVariableBin=true;
+    public bool useSurfaceAreaReward=false;
     public bool isDiscreteSolution = true;
 
     BufferSensorComponent m_BufferSensor;
@@ -151,11 +152,23 @@ public class PackerHand : Agent
         // get container size scales
         if (!useCurriculum)
         {
+            // read bin size from file
             boxSpawner.ReadJsonForBin(box_file);
         }
         else
         {
-            boxSpawner.SetUpBin();
+            if (useVariableBin)
+            {
+                // randomly generate a bin
+                boxSpawner.SetUpBin();
+            }
+            else
+            {
+                // use prefab binIso20's scales
+                boxSpawner.Container.Length = 59f;
+                boxSpawner.Container.Width = 23.5f;
+                boxSpawner.Container.Height = 23.9f;
+            }
         }
         binscale_x = boxSpawner.Container.Width;
         binscale_y  = boxSpawner.Container.Height;
