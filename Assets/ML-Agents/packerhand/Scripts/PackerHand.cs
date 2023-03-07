@@ -28,7 +28,7 @@ public class PackerHand : Agent
     public bool useRandomBins=true; // if use randomly generated bins (only applies to curriculum learning)
     public bool useMultipleBins=false; // if boxes are packed into multiple bins 
     public bool useSurfaceAreaReward=false;
-    public bool isDiscreteSolution = true;
+    public bool useDiscreteSolution = true;
 
     BufferSensorComponent m_BufferSensor; // attention sensor
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
@@ -350,7 +350,7 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (isDiscreteSolution)
+        if (useDiscreteSolution)
         {
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
@@ -386,6 +386,8 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
+        // Debug.Log($"STP STEP COUNT {StepCount}");
+        // Debug.Log($"STP MAX STEP {MaxStep}");
         // if all boxes packed, reset episode
         if (boxPool.Count!=0 && maskedBoxIndices.Count == maxBoxNum)
         {
@@ -399,8 +401,9 @@ public class PackerHand : Agent
             isEpisodeStart = true;
             //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
         }
-        // if reaches max step, reset episode 
-        if (StepCount >= MaxStep) 
+        // to reset episode manually, need to reset a little before MaxStep is reached, or else episode will be reset automatically
+        // (this loop is not reached if conditional check is StepCount >= MaxStep)
+        if (StepCount >= MaxStep-5) 
         {
             if (!useDenseReward)
             {
@@ -410,7 +413,7 @@ public class PackerHand : Agent
             EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
             isEpisodeStart = true;
-            //Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
+            // Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
         }
         // start of episode
         if (isEpisodeStart)
@@ -435,7 +438,7 @@ public class PackerHand : Agent
                 boxSpawner.SetUpBoxes(box_file);
             }
 
-            if (isDiscreteSolution)
+            if (useDiscreteSolution)
             { 
                 selectedVertex = origin;
                 isAfterOriginVertexSelected = false;
@@ -464,7 +467,7 @@ public class PackerHand : Agent
 
             StateReset();
 
-            if (isDiscreteSolution)
+            if (useDiscreteSolution)
             {
                 isAfterOriginVertexSelected = true;
                 // vertices array of tripoints doesn't depend on the trimesh
@@ -524,25 +527,33 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    if (useDenseReward)
-                    {
-                        AddReward(-100f);
-                    }
-                    else
-                    {
-                        AddReward(percent_filled_bin_volume*10);   
-                        //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-                    }
                     if (useBoxReset)
                     {
+                        // if (useDenseReward)
+                        // {
+                        //     AddReward(-100f);
+                        // }
+                        // else
+                        // {
+                        //     AddReward(-1f);
+                        // }
                         BoxReset("failedPhysicsCheck");
                     }
                     else
                     {
-                        // EndEpisode();
-                        // curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
-                        // isEpisodeStart = true;
-                        //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
+                        if (useDenseReward)
+                        {
+                            AddReward(-100f);
+                        }
+                        else
+                        {
+                            AddReward(percent_filled_bin_volume*10);   
+                            //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+                        }
+                        EndEpisode();
+                        curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
+                        isEpisodeStart = true;
+                        Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
                     }
                 }
             }
@@ -985,7 +996,7 @@ public class PackerHand : Agent
         // conditional check can be removed if failing physics test = end of episode
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
-            if (isDiscreteSolution)
+            if (useDiscreteSolution)
             {
                 if (isAfterOriginVertexSelected)
                 {
@@ -1036,7 +1047,7 @@ public class PackerHand : Agent
         }        
         // Reset box pool
         boxPool.Clear();
-        if (isDiscreteSolution)
+        if (useDiscreteSolution)
         {
             // Reset vertices array
             Array.Clear(verticesArray, 0, verticesArray.Length);
@@ -1065,7 +1076,7 @@ public class PackerHand : Agent
                 SetModel(m_DiscreteBehaviorName, discreteBrain);
             }
             //Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
-            isDiscreteSolution = true;
+            useDiscreteSolution = true;
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
                 boxSpawner.SetUpBoxes("mix_random", seed);
@@ -1224,7 +1235,7 @@ public class PackerHand : Agent
     {
         if (cause == "failedPhysicsCheck") 
         {
-            Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
+            // Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
             // detach box from agent
             targetBox.parent = null;
             // add back rigidbody and collider
