@@ -1167,7 +1167,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useVariableBin
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1415,6 +1415,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67ef11db21792bd83834e42b9469f425, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Colors: []
   boxArea: {fileID: 14857893}
   unitBox: {fileID: 9098616314326610961}
   maxBoxQuantity: 50
@@ -1670,6 +1671,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67ef11db21792bd83834e42b9469f425, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Colors: []
   boxArea: {fileID: 521841435}
   unitBox: {fileID: 9098616314326610961}
   maxBoxQuantity: 50
@@ -1995,7 +1997,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useVariableBin
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -2647,7 +2649,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useVariableBin
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -3309,6 +3311,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67ef11db21792bd83834e42b9469f425, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Colors: []
   boxArea: {fileID: 868628914}
   unitBox: {fileID: 9098616314326610961}
   maxBoxQuantity: 50

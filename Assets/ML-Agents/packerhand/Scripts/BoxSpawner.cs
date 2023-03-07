@@ -37,6 +37,8 @@ public class Box
 
     public Vector3 boxVertex; // for sensor, changes after selected action
 
+    public Color boxColor;
+
     public bool isOrganized = false; 
 
     public GameObject gameobjectBox;
@@ -73,6 +75,8 @@ public class BoxSpawner : MonoBehaviour
 
     public Container Container = new Container();
 
+    public List<Color> Colors = new List<Color>();
+
     // The box area, which will be set manually in the Inspector
     public GameObject boxArea;
     
@@ -98,7 +102,7 @@ public class BoxSpawner : MonoBehaviour
         {
             RandomBoxGenerator("uniform_random", seed);
             // Read random boxes using existing ReadJson function
-            ReadJson($"{homeDir}/Unity/data/Boxes_RandomUniform.json");
+            ReadJson($"{homeDir}/Unity/data/Boxes_RandomUniform.json", seed);
             PadZeros();
             // Delete the created json file to reuse the name next iteration
             File.Delete($"{homeDir}/Unity/data/Boxes_RandomUniform.json");
@@ -108,15 +112,18 @@ public class BoxSpawner : MonoBehaviour
         {
             RandomBoxGenerator("mix_random", seed);
             // Read random boxes using existing ReadJson function
-            ReadJson($"{homeDir}/Unity/data/Boxes_RandomMix.json");
+            ReadJson($"{homeDir}/Unity/data/Boxes_RandomMix.json", seed);
             PadZeros();
             // Delete the created json file to reuse the name next iteration
             File.Delete($"{homeDir}/Unity/data/Boxes_RandomMix.json");
         }
         else
         {
-            ReadJson($"{homeDir}/Unity/data/{box_type}.json");
-            PadZeros();
+            if (Items.Count==0)
+            {
+                ReadJson($"{homeDir}/Unity/data/{box_type}.json", seed);
+                PadZeros();
+            }
         }
 
         var idx = 0;
@@ -148,6 +155,7 @@ public class BoxSpawner : MonoBehaviour
                 {
                     rb = box.GetComponent<Rigidbody>(), 
                     product_id = Items[idx].Product_id,
+                    boxColor = Colors[idx],
                     startingPos = box.transform.position,
                     startingRot = box.transform.rotation,
                     startingSize = box.transform.localScale,
@@ -180,14 +188,15 @@ public class BoxSpawner : MonoBehaviour
         if (box_type == "uniform_random") 
         {
             UnityEngine.Random.InitState(seed);
+            Color randomColor = UnityEngine.Random.ColorHSV();
             int random_num_x =  UnityEngine.Random.Range(1, 4);
             int random_num_y =  UnityEngine.Random.Range(1, 4);
             int random_num_z =  UnityEngine.Random.Range(1, 6);
             float x_dimension =  (float)Math.Floor(Container.Width/random_num_x * 100)/100;
             float y_dimension =  (float)Math.Floor(Container.Height/random_num_y * 100)/100;
             float z_dimension = (float)Math.Floor(Container.Length/random_num_z * 100)/100;
+            int quantity = random_num_x*random_num_y*random_num_z;
             //Debug.Log($"RUF RANDOM UNIFORM BOX NUM: {random_num_x*random_num_y*random_num_z} | x:{x_dimension} y:{y_dimension} z:{z_dimension}");
-
             List<Item> items = new List<Item>();
             items.Add(new Item
             {
@@ -195,9 +204,14 @@ public class BoxSpawner : MonoBehaviour
                 Length = z_dimension,
                 Width = x_dimension,
                 Height = y_dimension,
-                Quantity = random_num_x*random_num_y*random_num_z
+                Quantity = random_num_x*random_num_y*random_num_z,
             });
-
+            // Set color of the boxes
+            Colors.Clear();
+            for (int i= 0; i<quantity; i++)
+            {
+                Colors.Add(randomColor);
+            }
             // Create a new object with the Items list
             var data = new { Items = items };
             // Serialize the object to json
@@ -212,6 +226,7 @@ public class BoxSpawner : MonoBehaviour
             int bin_y = (int) Math.Floor(Container.Height);
             UnityEngine.Random.InitState(seed);
             List<Item> items = new List<Item>();
+            Colors.Clear();
             List<int> x_dimensions = new List<int>();
             List<int> y_dimensions = new List<int>();
             List<int> z_dimensions = new List<int>();
@@ -250,6 +265,8 @@ public class BoxSpawner : MonoBehaviour
             for (int x=0; x<x_dimensions.Count; x++){
                 for (int y=0; y<y_dimensions.Count; y++){
                     for (int z=0; z<z_dimensions.Count; z++){
+                        Color randomColor = UnityEngine.Random.ColorHSV();
+                        Colors.Add(randomColor);
                         items.Add(new Item{
                             Product_id = id,
                             Length = z_dimensions[z],
@@ -281,8 +298,9 @@ public class BoxSpawner : MonoBehaviour
 
     // Read from json file and construct box, then add box to sizes array of boxes
     // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },
-    public void ReadJson(string filename, bool randomNumberOfBoxes = false) 
+    public void ReadJson(string filename, int seed) 
     {
+        UnityEngine.Random.InitState(seed);
         idx_counter = 0;
         using (var inputStream = File.Open(filename, FileMode.Open)) {
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
@@ -296,6 +314,7 @@ public class BoxSpawner : MonoBehaviour
                 float width = float.Parse(box.XPathSelectElement("./Width").Value);
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
                 int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
+                Color randomColor = UnityEngine.Random.ColorHSV();
                 //Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
                 for (int n = 0; n<quantity; n++)
                 {
@@ -308,6 +327,8 @@ public class BoxSpawner : MonoBehaviour
                         Height = length,
                         Quantity = quantity,
                     });
+                    // Set color of boxes (same id (same size) with same color)
+                    Colors.Add(randomColor);
                     idx_counter++;
                 }   
             }

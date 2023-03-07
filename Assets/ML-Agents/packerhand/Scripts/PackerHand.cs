@@ -149,6 +149,9 @@ public class PackerHand : Agent
         outerBin.SetActive(false);
         container.SetActive(true);
         outer_shell.SetActive(true);
+        float biniso_z = 59f;
+        float biniso_x = 23.5f;
+        float biniso_y = 23.9f;
         // get container size scales
         if (!useCurriculum)
         {
@@ -165,20 +168,17 @@ public class PackerHand : Agent
             else
             {
                 // use prefab binIso20's scales
-                boxSpawner.Container.Length = 59f;
-                boxSpawner.Container.Width = 23.5f;
-                boxSpawner.Container.Height = 23.9f;
+                boxSpawner.Container.Length = biniso_z;
+                boxSpawner.Container.Width = biniso_x;
+                boxSpawner.Container.Height = biniso_y;
             }
         }
         binscale_x = boxSpawner.Container.Width;
         binscale_y  = boxSpawner.Container.Height;
         binscale_z  = boxSpawner.Container.Length;
-        float bin_z = 59f;
-        float bin_x = 23.5f;
-        float bin_y = 23.9f;
-        container.transform.localScale = new Vector3((binscale_x/bin_x), (binscale_y/bin_y), (binscale_z/bin_z));
+        container.transform.localScale = new Vector3((binscale_x/biniso_x), (binscale_y/biniso_y), (binscale_z/biniso_z));
         //Debug.Log($"CONTAINER LOCALSCALE IS: {container.transform.localScale}");
-        outer_shell.transform.localScale = new Vector3(binscale_x/bin_x, binscale_y/bin_y, binscale_z/bin_z);
+        outer_shell.transform.localScale = new Vector3(binscale_x/biniso_x, binscale_y/biniso_y, binscale_z/biniso_z);
         // Set origin position
         origin = Origin.transform.position;
         //Vector3 container_center = new Vector3(origin.x+(container_x/2f), origin.y+(container_y/2f), origin.z+(container_z/2f));
@@ -439,11 +439,9 @@ public class PackerHand : Agent
                 isAfterOriginVertexSelected = false;
             }
 
-
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
             Academy.Instance.EnvironmentStep();
-
         }
         // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
@@ -492,10 +490,6 @@ public class PackerHand : Agent
             
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
-
-            // If percent filled is above an acceptable threshold, output box packing results
-            OutputResult();
-
 
             //Debug.Log("REQUEST DECISION AT NEXT ROUND OF OF PICKING");
             GetComponent<Agent>().RequestDecision();
@@ -1081,23 +1075,6 @@ public class PackerHand : Agent
             }
         }
     }
-
-    public void OutputResult()
-
-{
-    // Dictionary<int, Vector3> results = new Dictionary<int, Vector3>();
-    // foreach(Box box in boxPool)
-    // {
-    //     if (box.isOrganized) 
-    //     {
-    //         // arrange vertex from smallest to largest for x, y, z
-    //         results.Add(box.product_id, box.boxVertex);
-
-    //     }
-      
-    // }
-    
-}
 
     public void ReverseSideNames(int id) 
     {
