@@ -33,6 +33,8 @@ public class PackerHand : Agent
     private bool isFirstLayerContinuous;
     public bool useContinuousSolution;
     private bool useOneHotEncoding;
+    private bool useSparseReward;
+    private bool usePenaltyReward;
 
 
     BufferSensorComponent m_BufferSensor;
@@ -130,6 +132,8 @@ public class PackerHand : Agent
         useSurfaceAreaReward_Discrete=false;
         useDenseReward_Distance=false;
         useDenseReward=false;
+        useSparseReward=false;
+        usePenaltyReward=false;
         // For continuous implementation
         isFirstLayerContinuous=false;
         // WHen using attention, you may use one hot encoding
@@ -423,7 +427,7 @@ public class PackerHand : Agent
         // if all boxes packed, reset episode
         if (boxPool.Count!=0 && ((useOneHotEncoding && maskedBoxIndices.Count == maxBoxNum) || (maskedBoxIndices.Count == boxPool.Count)))
         {
-            if (!useDenseReward)
+            if (useSparseReward)
             {
                 AddReward(percent_filled_bin_volume*10);
                 Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
@@ -436,7 +440,7 @@ public class PackerHand : Agent
         // if reaches max step, reset episode 
         if (StepCount >= MaxStep) 
         {
-            if (!useDenseReward)
+            if (useSparseReward)
             {
                 AddReward(percent_filled_bin_volume*10);
                 Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
@@ -575,11 +579,11 @@ public class PackerHand : Agent
                 else
                 {
                     //BoxReset("failedPhysicsCheck");
-                    if (useDenseReward)
+                    if (usePenaltyReward)
                     {
                         AddReward(-100f);
                     }
-                    else
+                    if (useSparseReward)
                     {
                         AddReward(percent_filled_bin_volume*10);   
                         Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
@@ -811,8 +815,6 @@ public class PackerHand : Agent
         }
         selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
         Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
-        //AddReward(1f);
-        // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
         // isVertexSelected = true;
 
     }
