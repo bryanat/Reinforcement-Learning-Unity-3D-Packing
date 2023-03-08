@@ -15,6 +15,8 @@ public class CombineMesh : MonoBehaviour
     public bool isCollidedBlue = false;
     public bool isCollidedRed = false;
 
+    public bool isBoxPlaced = false;
+
     public Transform oppositeSideObject;
     public Transform sameSideObject;
 
@@ -109,6 +111,9 @@ public class CombineMesh : MonoBehaviour
         // only entered for the last one mesh 
         if (m_BottomMeshScript.isCollidedGreen | m_BackMeshScript.isCollidedBlue | m_SideMeshScript.isCollidedRed)
         {
+            m_BottomMeshScript.isBoxPlaced = true;
+            m_BackMeshScript.isBoxPlaced = true;
+            m_SideMeshScript.isBoxPlaced = true;
         
             // BLUE
             if (isCollidedBlue && name == "BinIso20Back" && agent.isBackMeshCombined==false) 

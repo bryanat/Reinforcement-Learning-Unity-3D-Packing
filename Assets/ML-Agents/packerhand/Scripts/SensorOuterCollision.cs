@@ -23,5 +23,10 @@ public class SensorOuterCollision : MonoBehaviour
             passedBoundCheck = false;
             //Debug.Log($"SCS {name} FAILED PROTRUSION TEST");
         }  
+        // change bin opening's tag back
+        if (collision.transform.parent.name == "OuterBin")
+        {
+            collision.transform.parent.GetChild(5).tag = "binopening";
+        }
     }  
 }

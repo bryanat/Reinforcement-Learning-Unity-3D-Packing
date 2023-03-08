@@ -41,9 +41,9 @@ public class PackerHand : Agent
     string m_MixBehaviorName = "Mix";
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
-    [HideInInspector] CombineMesh m_BackMeshScript;
-    [HideInInspector] CombineMesh m_SideMeshScript;
-    [HideInInspector] CombineMesh m_BottomMeshScript;
+    [HideInInspector] List<CombineMesh> m_BackMeshScripts = new List<CombineMesh>();
+    [HideInInspector] List<CombineMesh> m_SideMeshScripts = new List<CombineMesh>();
+    [HideInInspector] List<CombineMesh> m_BottomMeshScripts = new List<CombineMesh>();
 
     [HideInInspector] public Vector3 initialAgentPosition; 
     [HideInInspector] public Transform targetBox; // target box selected by agent
@@ -84,14 +84,12 @@ public class PackerHand : Agent
     // binArea and outerBin are prefabs which will be scaled 
     public GameObject binArea; // The bin container prefab, which will be manually selected in the Inspector
     public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
-    [HideInInspector] public GameObject binBottom; //cache bin bottom
-    [HideInInspector] public GameObject binBack; // cache bin back
-    [HideInInspector] public GameObject binSide; // cache bin side
-    [HideInInspector] public GameObject outerbinfront; // cache outer bin front
+    // [HideInInspector] public GameObject outerbinfront; // cache outer bin front
     public Material clearPlastic;
 
-    public GameObject Origin; // starting vertex, a gameobject for now for multiplatform
-    [HideInInspector] public Vector3 origin;
+    public GameObject Origin; // gives origin position of the first bin (for multiplatform usage)
+    // public Vector3 origin; // position of the selected bin's origin (for scaling vertex) 
+    [HideInInspector] public List<Vector3> origins = new List<Vector3>(); 
     public float binscale_x; 
     public float binscale_y;
     public float binscale_z;
@@ -143,18 +141,11 @@ public class PackerHand : Agent
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
-        // make container and outer_shell from prefab
-        GameObject container = Instantiate(binArea);
-        GameObject shell = Instantiate(outerBin);
-        // hide original prefabs through setting to inactive and set new ones to active
-        binArea.SetActive(false);
-        outerBin.SetActive(false);
-        container.SetActive(true);
-        shell.SetActive(true);
         // prefab's (BinIso20) sizes
         float biniso_z = 59f;
         float biniso_x = 23.5f;
         float biniso_y = 23.9f;
+
         if (!useCurriculum)
         {
             // read bin size from file
@@ -175,44 +166,54 @@ public class PackerHand : Agent
                 boxSpawner.Container.Height = biniso_y;
             }
         }
-        binscale_x = boxSpawner.Container.Width;
-        binscale_y  = boxSpawner.Container.Height;
-        binscale_z  = boxSpawner.Container.Length;
-        // Set bin and outer bin's scale and position
-        container.transform.localScale = new Vector3((binscale_x/biniso_x), (binscale_y/biniso_y), (binscale_z/biniso_z));
-        //Debug.Log($"CONTAINER LOCALSCALE IS: {container.transform.localScale}");
-        shell.transform.localScale = new Vector3(binscale_x/biniso_x, binscale_y/biniso_y, binscale_z/biniso_z);
-        // Set origin position
-        origin = Origin.transform.position;
-        Vector3 container_center = new Vector3(origin.x+(binscale_x/2f), 0.5f, origin.z+(binscale_z/2f));
-        container.transform.localPosition = container_center;
-        shell.transform.localPosition = container_center;
-        // cache containers' children gameobjects
-        Transform [] children = container.GetComponentsInChildren<Transform>();
-        foreach (Transform child in children )
+        int bin_id = 0;
+        foreach (Container c in boxSpawner.Containers)
         {
-            if (child.name == "BinIso20Bottom")
-            {
-                binBottom = child.gameObject;
-            }
-            else if (child.name == "BinIso20Back")
-            {
-                binBack = child.gameObject;
-            }
-            else  if (child.name == "BinIso20Side")
-            {
-                binSide = child.gameObject;
-            }
-        }   
-        // cache outerbin's front
-        outerbinfront = shell.transform.GetChild(5).gameObject;
-        // Cache bin's scripts and initialize their agent
-        m_BottomMeshScript = binBottom.GetComponent<CombineMesh>();
-        m_SideMeshScript = binSide.GetComponent<CombineMesh>();
-        m_BackMeshScript = binBack.GetComponent<CombineMesh>();
-        m_BottomMeshScript.agent = this;
-        m_SideMeshScript.agent = this;
-        m_BackMeshScript.agent = this;
+            // make container and outer_shell from prefab
+            GameObject container = Instantiate(binArea);
+            GameObject shell = Instantiate(outerBin);
+            container.name = $"Bin{bin_id.ToString()}";
+            shell.name = $"OuterBin{bin_id.ToString()}";
+            // // hide original prefabs through setting to inactive and set new ones to active
+            // binArea.SetActive(false);
+            // outerBin.SetActive(false);
+            // container.SetActive(true);
+            // shell.SetActive(true);
+            binscale_x = c.Width;
+            binscale_y  = c.Height;
+            binscale_z  = c.Length;
+            // Set bin and outer bin's scale and position
+            container.transform.localScale = new Vector3((binscale_x/biniso_x), (binscale_y/biniso_y), (binscale_z/biniso_z));
+            //Debug.Log($"CONTAINER LOCALSCALE IS: {container.transform.localScale}");
+            shell.transform.localScale = new Vector3(binscale_x/biniso_x, binscale_y/biniso_y, binscale_z/biniso_z);
+            // Set origin position
+            Vector3 localOrigin = new Vector3(Origin.transform.position.x+bin_id*binscale_x+10f, Origin.transform.position.y, Origin.transform.position.z);
+            origins.Add(localOrigin);
+            verticesArray[VertexCount]= localOrigin;
+            Vector3 container_center = new Vector3(localOrigin.x+(binscale_x/2f), 0.5f, localOrigin.z+(binscale_z/2f));
+            container.transform.localPosition = container_center;
+            shell.transform.localPosition = container_center;
+            // cache containers' children gameobjects
+            Transform [] children = container.GetComponentsInChildren<Transform>();  
+            // cache outerbin's front
+            // outerbinfront = shell.transform.GetChild(5).gameObject;
+            // Cache bin's scripts and initialize their agent
+            CombineMesh binBottomScript = container.transform.GetChild(0).GetComponent<CombineMesh>();
+            CombineMesh binBackScript = container.transform.GetChild(1).GetComponent<CombineMesh>();
+            CombineMesh binSideScript = container.transform.GetChild(2).GetComponent<CombineMesh>();
+            m_BottomMeshScripts.Add(binBottomScript);
+            m_SideMeshScripts.Add(binSideScript);
+            m_BackMeshScripts.Add(binBackScript);
+            binBottomScript.agent = this;
+            binSideScript.agent = this;
+            binBackScript.agent = this;
+            total_bin_volume += binscale_x * binscale_y * binscale_z;
+            bin_id++;
+            VertexCount++;
+        }
+
+        binArea.SetActive(false);
+        outerBin.SetActive(false);
 
         // Get bounds of bin
         // Renderer [] renderers = container.GetComponentsInChildren<Renderer>();
@@ -223,7 +224,6 @@ public class PackerHand : Agent
         // }
         // Get total bin volume 
         //total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
-        total_bin_volume = binscale_x * binscale_y * binscale_z;
 
         // Get scale of bin
         // binscale_x = areaBounds.extents.x*2;
@@ -332,8 +332,9 @@ public class PackerHand : Agent
             //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
             if (useVerticesArray)
             {
-                Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-                sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+                // Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+                // sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+                sensor.AddObservation(vertex);
             }
             // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
             if (vertex == Vector3.zero)
@@ -386,8 +387,6 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        // Debug.Log($"STP STEP COUNT {StepCount}");
-        // Debug.Log($"STP MAX STEP {MaxStep}");
         // if all boxes packed, reset episode
         if (boxPool.Count!=0 && maskedBoxIndices.Count == maxBoxNum)
         {
@@ -438,11 +437,11 @@ public class PackerHand : Agent
                 boxSpawner.SetUpBoxes(box_file);
             }
 
-            if (useDiscreteSolution)
-            { 
-                selectedVertex = origin;
-                isAfterOriginVertexSelected = false;
-            }
+            // if (useDiscreteSolution)
+            // { 
+            //     selectedVertex = origins[0];
+            //     isAfterOriginVertexSelected = false;
+            // }
 
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
@@ -451,18 +450,25 @@ public class PackerHand : Agent
         // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
-            // If a mesh didn't combine, force combine
-            if (isBackMeshCombined==false)
-            {
-                m_BackMeshScript.ForceMeshCombine();
-            }
-            if (isSideMeshCombined == false)
-            {     
-                m_SideMeshScript.ForceMeshCombine();
-            }
-            if (isBottomMeshCombined == false)
-            {     
-                m_SideMeshScript.ForceMeshCombine();
+            // find the bin that the box is put in
+            for (int i=0; i< m_BackMeshScripts.Count; i++) {
+                if (m_BackMeshScripts[i].isBoxPlaced)
+                {
+                    // If a mesh didn't combine, force combine
+                    if (isBackMeshCombined==false)
+                    {
+                        m_BackMeshScripts[i].ForceMeshCombine();
+                    }
+                    if (isSideMeshCombined == false)
+                    {     
+                        m_SideMeshScripts[i].ForceMeshCombine();
+                    }
+                    if (isBottomMeshCombined == false)
+                    {     
+                        m_BottomMeshScripts[i].ForceMeshCombine();
+                    }
+                    
+                } 
             }
 
             StateReset();
@@ -529,14 +535,6 @@ public class PackerHand : Agent
                 {
                     if (useBoxReset)
                     {
-                        // if (useDenseReward)
-                        // {
-                        //     AddReward(-100f);
-                        // }
-                        // else
-                        // {
-                        //     AddReward(-1f);
-                        // }
                         BoxReset("failedPhysicsCheck");
                     }
                     else
@@ -592,6 +590,65 @@ public class PackerHand : Agent
     }
 
 
+    // / <summary>
+    // / Updates the vertices every time a new mesh is created
+    // /</summary>
+    // void FindOriginVertices() 
+    // {
+    //     MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
+    //     AddVertices(mf_back.mesh.vertices, backMeshVertices);
+    //     //Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
+    //     MeshFilter mf_bottom = binBottom.GetComponent<MeshFilter>();
+    //     AddVertices(mf_bottom.mesh.vertices, bottomMeshVertices);
+    //     //Debug.Log($"OOO BOTTOM MESH VERTICES COUNT IS {bottomMeshVertices.Count()}");
+    //     MeshFilter mf_side = binSide.GetComponent<MeshFilter>();
+    //     AddVertices(mf_side.mesh.vertices, sideMeshVertices);  
+    //     //Debug.Log($"OOO SIDE MESH VERTICES COUNT IS {sideMeshVertices.Count()}");
+    //     foreach (var pair in vertexCounter)
+    //     {
+    //         if (pair.Value == 3)
+    //         {
+    //             Vector3 scaled_continuous_vertex = new Vector3((pair.Key.x - origin.x)/binscale_x,  (pair.Key.y - origin.y)/binscale_y,  (pair.key.z - origin.z)/binscale_z);
+    //             verticesArray[VertexCount] = scaled_continuous_vertex;
+    //             VertexCount++;
+    //         }
+    //     }
+    // }
+
+    /// <summary>
+    /// For every mesh, add each unique vertex to a mesh list and a counter dictionary
+    ///</summary>
+    // AddVertices( input: ALL_LOCAL_VerticesFromMesh, output: UNIQUE_GLOBAL_VerticesFromMesh )
+    // public void AddVertices(Vector3 [] vertices, List<Vector3> verticesList) 
+    // {
+    //     Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
+    //     var tempHashSet = new HashSet<Vector3>();
+    //     // rounding part
+    //     foreach (Vector3 vertex in vertices) 
+    //     {
+    //         // first address vertices that are meant to be the same by rounding
+    //         var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 2)), (float)(Math.Round(vertex.y, 2)), (float)(Math.Round(vertex.z, 2)));
+    //         // remove duplicates by using a hash set
+    //         tempHashSet.Add(roundedVertex);
+    //     }
+    //     // localtoworld part
+    //     foreach (Vector3 vertex in tempHashSet) 
+    //     {
+    //         // convert local scale to world position
+    //         Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
+    //         verticesList.Add(worldVertex);
+    //         // Add to a counter to check for intersection
+    //         // reduce stage: vertex is key, value is count, count = 3 is the tripoint vertex
+    //         if (vertexCounter.ContainsKey(worldVertex)) {
+    //             vertexCounter[worldVertex] ++;
+    //         }
+    //         else {
+    //             vertexCounter.Add(worldVertex, 1);
+    //         }
+    //     }
+    // }
+
+
 
 
     void UpdateVerticesArray() 
@@ -625,14 +682,17 @@ public class PackerHand : Agent
             // if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
             // if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
                 // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
-                Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
+                //Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
                 //Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
-                if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
+                //if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
+                if ( historicalVerticesLog.Exists(element => element == tripoints_list[idx]) == false )
                 {
                     // Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
                     // Add scaled tripoint_vertex to verticesArray
-                    verticesArray[VertexCount] = scaled_continuous_vertex;
-                    historicalVerticesLog.Add(scaled_continuous_vertex);
+                    // verticesArray[VertexCount] = scaled_continuous_vertex;
+                    verticesArray[VertexCount] = tripoints_list[idx];
+                    //historicalVerticesLog.Add(scaled_continuous_vertex);
+                    historicalVerticesLog.Add(tripoints_list[idx]);
                     VertexCount ++;
                     //Debug.Log($"VERTEX COUNT IS {VertexCount}");
 
@@ -652,7 +712,8 @@ public class PackerHand : Agent
         selectedVertexIdx = action_SelectedVertexIdx;
         var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
-        selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
+        //selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
+        selectedVertex = scaled_selectedVertex;
     }
 
 
@@ -939,9 +1000,18 @@ public class PackerHand : Agent
         Destroy(targetBox.GetComponent<BoxCollider>());  
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
-        m_BackMeshScript.isCollidedBlue = false;
-        m_BottomMeshScript.isCollidedGreen = false;
-        m_SideMeshScript.isCollidedRed = false;
+        // find the bin that the box is put in
+        for (int i=0; i< m_BackMeshScripts.Count; i++) {
+            if (m_BackMeshScripts[i].isBoxPlaced)
+            {
+                m_BackMeshScripts[i].isCollidedBlue = false;
+                m_BottomMeshScripts[i].isCollidedGreen = false;
+                m_SideMeshScripts[i].isCollidedRed = false;
+                m_BackMeshScripts[i].isBoxPlaced = false;
+                m_BottomMeshScripts[i].isBoxPlaced = false;
+                m_SideMeshScripts[i].isBoxPlaced = false;
+            }
+        }
         isBackMeshCombined = false;
         isBottomMeshCombined = false;
         isSideMeshCombined = false;
@@ -1014,7 +1084,7 @@ public class PackerHand : Agent
             DestroyImmediate(targetBin.gameObject);
         }
         targetBox = null;
-        outerbinfront.tag = "binopening";
+        //outerbinfront.tag = "binopening";
 
         isStateReset = true;
     }
@@ -1023,9 +1093,15 @@ public class PackerHand : Agent
     public void SetResetParameters()
     {
         // Reset meshes
-        m_BottomMeshScript.MeshReset();
-        m_SideMeshScript.MeshReset();
-        m_BackMeshScript.MeshReset();
+        // find the bin that the box is put in
+        for (int i=0; i< m_BackMeshScripts.Count; i++) {
+            if (m_BackMeshScripts[i].isBoxPlaced)
+            {
+                m_BottomMeshScripts[i].MeshReset();
+                m_SideMeshScripts[i].MeshReset();
+                m_BackMeshScripts[i].MeshReset();
+            }
+        }
 
         isBackMeshCombined = false;
         isSideMeshCombined = false;

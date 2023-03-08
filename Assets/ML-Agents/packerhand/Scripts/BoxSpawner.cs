@@ -73,6 +73,8 @@ public class BoxSpawner : MonoBehaviour
     [HideInInspector] public List<Box> boxPool = new List<Box>();
     private List<Item> Items = new List<Item>();
 
+    public List<Container> Containers = new List<Container>();
+
     public Container Container = new Container();
 
     public List<Color> Colors = new List<Color>();
@@ -343,11 +345,20 @@ public class BoxSpawner : MonoBehaviour
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
             //var root = XElement.Load(jsonReader);
             var root = XDocument.Load(jsonReader);
-            var container = root.XPathSelectElement("//Container");
-            Container.Length = float.Parse(container.XPathSelectElement("./Length").Value)/10f;
-            Container.Width = float.Parse(container.XPathSelectElement("./Width").Value)/10f;
-            Container.Height = float.Parse(container.XPathSelectElement("./Height").Value)/10f;   
-            //Debug.Log($"JSON CONTAINER LENGTH {Container.Length} WIDTH {Container.Width} HEIGHT {Container.Height}");
+            var containers = root.XPathSelectElement("//Container").Elements();
+            foreach (XElement container in containers)
+            {
+                float length = float.Parse(container.XPathSelectElement("./Length").Value)/10f;
+                float width = float.Parse(container.XPathSelectElement("./Width").Value)/10f;
+                float height = float.Parse(container.XPathSelectElement("./Height").Value)/10f;   
+                //Debug.Log($"JSON CONTAINER LENGTH {Container.Length} WIDTH {Container.Width} HEIGHT {Container.Height}");
+                Containers.Add(new Container
+                    {
+                        Length = width,
+                        Width = height,
+                        Height = length,
+                    });
+            }
         }
     }
     public void PadZeros()
