@@ -86,6 +86,7 @@ public class BoxSpawner : MonoBehaviour
     [HideInInspector] public int idx_counter = 0;
 
     string homeDir;
+    private float fittingTolerance = 0.05f; // tolerance for box fitting
 
 
 
@@ -181,9 +182,9 @@ public class BoxSpawner : MonoBehaviour
     {
         if (box_type == "uniform_random" || box_type == "mix_random") 
         {
-            float bin_z = 59f;
-            float bin_x = 23.5f;
-            float bin_y = 23.9f;
+            float bin_z = 59.0f - fittingTolerance;
+            float bin_x = 23.5f - fittingTolerance;
+            float bin_y = 23.9f - fittingTolerance;
             UnityEngine.Random.InitState(seed);
             int random_num_x;
             int random_num_y;
