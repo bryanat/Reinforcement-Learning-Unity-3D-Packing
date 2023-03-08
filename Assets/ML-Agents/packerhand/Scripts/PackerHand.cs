@@ -211,7 +211,6 @@ public class PackerHand : Agent
             bin_counter++;
         }
         total_bin_num = bin_counter;
-        Debug.Log($"BIN total number of bins {total_bin_num}");
         // hide original prefabs
         binArea.SetActive(false);
         outerBin.SetActive(false);
@@ -565,7 +564,7 @@ public class PackerHand : Agent
                         EndEpisode();
                         curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
                         isEpisodeStart = true;
-                        Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
+                        //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
                     }
                 }
             }
@@ -640,7 +639,7 @@ public class PackerHand : Agent
                 {
                     // Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
                     // Add scaled tripoint_vertex to verticesArray
-                    verticesArray[VertexCount] = scaled_continuous_vertex;
+                    verticesArray[VertexCount] = new Vector4(scaled_continuous_vertex.x, scaled_continuous_vertex.y, scaled_continuous_vertex.z, selectedBin);
                     historicalVerticesLog.Add(scaled_continuous_vertex);
                     VertexCount ++;
                     //Debug.Log($"VERTEX COUNT IS {VertexCount}");
@@ -658,7 +657,14 @@ public class PackerHand : Agent
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
         selectedVertexIdx = action_SelectedVertexIdx;
         Vector3 scaled_selectedVertex = new Vector3(verticesArray[action_SelectedVertexIdx].x, verticesArray[action_SelectedVertexIdx].y, verticesArray[action_SelectedVertexIdx].z);
-        selectedBin = Mathf.RoundToInt(verticesArray[action_SelectedVertexIdx].w);
+        if (bin_counter<=0)
+        {
+            selectedBin = Mathf.RoundToInt(verticesArray[action_SelectedVertexIdx].w);
+        }
+        else
+        {
+            selectedBin = bin_counter-1;
+        }
         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
         selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscales_x[selectedBin]) + origins[selectedBin].x), ((scaled_selectedVertex.y* binscales_y[selectedBin]) + origins[selectedBin].y), ((scaled_selectedVertex.z* binscales_z[selectedBin]) + origins[selectedBin].z));
         Debug.Log($"SVB selected vertex is {selectedVertex}");
