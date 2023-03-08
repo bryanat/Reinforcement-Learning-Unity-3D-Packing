@@ -26,12 +26,13 @@ public class PackerHand : Agent
     public bool useAttention=true; // use attention by default (default = true)
     private bool useVerticesArray;
     public bool useDenseReward=true;
-    public bool useSurfaceAreaReward_Discrete=false;
-    public bool useSurfaceAreaReward_Continuous=false;
-    public bool isDiscreteSolution;
+    public bool useSurfaceAreaReward_Discrete;
+    public bool useSurfaceAreaReward_Continuous;
+    public bool useDenseReward_Distance;
+    public bool useDiscreteSolution=true;
     private bool isFirstLayerContinuous;
-    public bool isAllContinuous;
-    private bool useOneHotEncoding=false;
+    public bool useContinuousSolution;
+    private bool useOneHotEncoding;
 
 
     BufferSensorComponent m_BufferSensor;
@@ -127,17 +128,17 @@ public class PackerHand : Agent
         // Setup reward scheme
         useSurfaceAreaReward_Continuous=true;
         useSurfaceAreaReward_Discrete=false;
+        useDenseReward_Distance=false;
         useDenseReward=false;
         // For continuous implementation
         isFirstLayerContinuous=false;
         // WHen using attention, you may use one hot encoding
         useOneHotEncoding=false;
         // Setup Continuous solution
-        isAllContinuous=true;
-        if (isAllContinuous){isDiscreteSolution=false;}
+        useContinuousSolution=true;
+        if (useContinuousSolution){useDiscreteSolution=false;}
         // Setup discrete solution
-        isDiscreteSolution=false;
-        if (isDiscreteSolution){useVerticesArray=true;}
+        if (useDiscreteSolution){useVerticesArray=true;}
         // ******************
 
         Academy.Instance.AutomaticSteppingEnabled = false;
@@ -371,7 +372,7 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (isDiscreteSolution)
+        if (useDiscreteSolution)
         {
             if (isAfterOriginVertexSelected) {
                 if (useVerticesArray){
@@ -402,9 +403,14 @@ public class PackerHand : Agent
         var continuousActions = actionBuffers.ContinuousActions;
 
         SelectBox(discreteActions[++j]); 
-        // activate for discrete solution + adjust in Inspector by adding 1 more discrete branch
-        // SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);
-        SelectVertexContinuous(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        if (useDiscreteSolution){
+            // activate for discrete solution + adjust in Inspector by adding 1 more discrete branch
+            SelectVertexDiscrete(discreteActions[++j],continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        }
+        else if (useContinuousSolution){
+            // activate for continuous solution
+            SelectVertexContinuous(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        }
         SelectRotation(discreteActions[++j]);
     }
 
@@ -465,7 +471,7 @@ public class PackerHand : Agent
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
 
-            if (isDiscreteSolution)
+            if (useDiscreteSolution)
             { 
                 selectedVertex = origin;
                 isAfterOriginVertexSelected = false;
@@ -496,18 +502,16 @@ public class PackerHand : Agent
 
             StateReset();
 
-            if (isDiscreteSolution)
+            if (useDiscreteSolution)
             {
                 isAfterOriginVertexSelected = true;
-                // vertices array of tripoints doesn't depend on the trimesh
-                // only update vertices list and vertices array when box is placed
+                // Vertices array of tripoints doesn't depend on the trimesh; Only update vertices list and vertices array when box is placed
                 UpdateVerticesArray();
             }
 
-            // side, back, and bottom vertices lists depends on the trimesh
-            // should be commented out if not using blackbox for better performance
+            // Side, back, and bottom vertices lists depends on the trimesh; Should be commented out if not using blackbox for better performance
             //UpdateVerticesList();
-            // both vertices array and vertices list are used to find black boxes
+            // Both vertices array and vertices list are used to find black boxes
             //UpdateBlackBox();
 
             box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
@@ -784,47 +788,32 @@ public class PackerHand : Agent
 
     // }
 
-    public void SelectVertex(int action_SelectedVertexIdx, float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
+    public void SelectVertexDiscrete(int action_SelectedVertexIdx, float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
     {
         action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
         action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
         Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
 
-        if (isDiscreteSolution)
+        // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
+        selectedVertexIdx = action_SelectedVertexIdx;
+        var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
+        boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
+        if (curriculum_ConfigurationLocal == 1)
         {
-            // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
-            selectedVertexIdx = action_SelectedVertexIdx;
-            var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
-            boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
-            if (curriculum_ConfigurationLocal == 1)
-            {
-                // reward_dense = inverse of exponential distance between discreteVertex and continuousVertex 
+            if (useDenseReward_Distance){
+                // reward_dense_distance = inverse of exponential distance between discreteVertex and continuousVertex 
                 float reward_dense_distance = (float) 
                 (1/(Math.Pow(action_SelectedVertex_x - scaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - scaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - scaled_selectedVertex.z, 2)));
                 AddReward(reward_dense_distance);
                 Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
             }
-            selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
-            Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
-            //AddReward(1f);
-            // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
         }
-
-        else if (isFirstLayerContinuous)
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
-            boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
-        }
-
-        else if (isAllContinuous)
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-            boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
-        }
-            // isVertexSelected = true;
+        selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
+        Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
+        //AddReward(1f);
+        // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
+        // isVertexSelected = true;
 
     }
 
@@ -833,6 +822,8 @@ public class PackerHand : Agent
         action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
         action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
+        Debug.Log($"action_SelectedVertex_x ================== {action_SelectedVertex_x}");
+
 
         if (isFirstLayerContinuous)
         {
@@ -840,8 +831,7 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
-        else if (isAllContinuous){
-            Debug.Log($"action_SelectedVertex_x ================== {action_SelectedVertex_x}");
+        else{
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
             Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
@@ -1359,7 +1349,7 @@ public class PackerHand : Agent
     {
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
-            if (isDiscreteSolution)
+            if (useDiscreteSolution)
             {
                 // Remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
                 // only removed when a box is successfully placed, if box fails physics test, selected vertex will not be removed
@@ -1415,7 +1405,7 @@ public class PackerHand : Agent
         }        
         // Reset box pool
         boxPool.Clear();
-        if (isDiscreteSolution)
+        if (useDiscreteSolution)
         {
             // Reset vertices array
             Array.Clear(verticesArray, 0, verticesArray.Length);
@@ -1443,9 +1433,9 @@ public class PackerHand : Agent
         if (n==0) 
         // DISCRETE
         {
-            isDiscreteSolution     = true;
+            useDiscreteSolution     = true;
             isFirstLayerContinuous = false;
-            isAllContinuous        = false;
+            useContinuousSolution        = false;
             useVerticesArray       = true;
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");            
             if (isInitialization)
@@ -1478,23 +1468,23 @@ public class PackerHand : Agent
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f)
             {
-                isDiscreteSolution     = true;
+                useDiscreteSolution     = true;
                 isFirstLayerContinuous = false;
-                isAllContinuous        = false;
+                useContinuousSolution        = false;
                 useVerticesArray       = true;
             }
             else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 1.0f) == 1.0f)
             {
-                isDiscreteSolution     = false;
+                useDiscreteSolution     = false;
                 isFirstLayerContinuous = true;
-                isAllContinuous        = false;
+                useContinuousSolution        = false;
                 useVerticesArray       = false;
             }
             else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 2.0f) == 2.0f)
             {
-                isDiscreteSolution     = false;
+                useDiscreteSolution     = false;
                 isFirstLayerContinuous = false;
-                isAllContinuous        = true;
+                useContinuousSolution        = true;
                 useVerticesArray       = false;
             }
         }
@@ -1502,7 +1492,7 @@ public class PackerHand : Agent
         // CONTINUOUS
         {
             useVerticesArray       = false;
-            isDiscreteSolution     = false;
+            useDiscreteSolution     = false;
             Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_ContinuousBehaviorName}");
             if (isInitialization)
             {
@@ -1511,13 +1501,13 @@ public class PackerHand : Agent
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 1.0f) == 1.0f)
             {
                 isFirstLayerContinuous = false;
-                isAllContinuous        = false;
+                useContinuousSolution        = false;
 
             }
             else if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 2.0f) == 2.0f)
             {
                 isFirstLayerContinuous = false;
-                isAllContinuous        = true;
+                useContinuousSolution        = true;
             }  
         }
     }
