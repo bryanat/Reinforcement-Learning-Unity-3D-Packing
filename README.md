@@ -1,11 +1,17 @@
- # DRL-RNN-LSTM-BOX-SIM
-- ## DRL - Deep Reinforcement Learning
-- ## RNN - Recurrent Neural Network
-- ## LSTM - Long Short Term Memory (RNN derivative)
-- ## BOX - Box. Box. Box. (RL Agent's existence)
-- ## SIM - Simulation in Unity/Gym (RL Environment)
+<!--  # DRL-RNN-LSTM-BOX-SIM -->
+<!-- - ## DRL - Deep Reinforcement Learning -->
+<!-- - ## RNN - Recurrent Neural Network -->
+<!-- - ## LSTM - Long Short Term Memory (RNN derivative) -->
+<!-- - ## BOX - Box. Box. Box. (RL Agent's existence) -->
+<!-- - ## SIM - Simulation in Unity/Gym (RL Environment) -->
 
 # Project Members: Bryan Boyett & Yueqi Peng & Pano Evangeliou
+
+## MLE software architecture
+![](VSCode/docs/images/MLE-stack.png)
+
+## DRL solution - Evolution tree
+![](VSCode/docs/images/EvolutionTree2.drawio.png)
 
 ## DRL
 ![](VSCode/docs/images/Screenshot%20from%202022-12-03%2023-56-10.png)
@@ -15,10 +21,22 @@
 ### Yueqi: `mlagents` (learning algorithms) DL-side of DRL (DL Model/Policy-driven) (blue)
 Unity ML-Agents: "`mlagents` provides a set of reinforcement and imitation learning algorithms designed to be used with Unity environments. The algorithms interface with the Python API provided by `mlagents_envs`."
 
-### Δ/difference/gradient/change/relativity/generality based : policy gradient methods/policies are probalistic because they do not deal with actual values they deal with with greater than or less than (new Q(s,a) is just converted to Δ/change/relativity aka new Q(s,a) is greater than or less than old Q(s,a)) 
-### NON-Δ/difference/gradient/change/relativity/generality based : value based methods/policies are non-probablistic because the do deal with actual values and not greater than or less than (they use actual Q(s,a) values and store them and instead of just comparing Δ/change/relativity) ~ (cant do gradient descent on discrete values)
+## Remains to be built
 
-## LSTM / RNN evo
+### Policy 
+Implement transformers (decision transformer / set transformer) in a multi-agent environment
+### State/action space
+Refine masked continuous space
+### Reward
+Shape/Tune reward towards a more sparse behavior
+### Performance
+Automate running on the cloud
+Randomization of environment to ensure scalability
+
+<!-- ### Δ/difference/gradient/change/relativity/generality based : policy gradient methods/policies are probalistic because they do not deal with actual values they deal with with greater than or less than (new Q(s,a) is just converted to Δ/change/relativity aka new Q(s,a) is greater than or less than old Q(s,a))  -->
+<!-- ### NON-Δ/difference/gradient/change/relativity/generality based : value based methods/policies are non-probablistic because the do deal with actual values and not greater than or less than (they use actual Q(s,a) values and store them and instead of just comparing Δ/change/relativity) ~ (cant do gradient descent on discrete values) -->
+
+<!-- ## LSTM / RNN evo
 ### Pointer Networks https://arxiv.org/pdf/1506.03134.pdf
 - ### **Read paper and discover why authors recommended Pointer Networks paper**
   - #### Pointer Networks are useful for solving combinatorial optimization problems (box placement is combinatorial), allowing to train and infer on different sized inputs (sometimes there may be 505 boxes, sometimes 347, based on size of boxes (less larger boxes or more smaller boxes))
@@ -37,7 +55,7 @@ Unity ML-Agents: "`mlagents` provides a set of reinforcement and imitation learn
   - #### @ 41:11 putting a box in a wrong place would cause future words to be put in the wrong (non-optimal) place
 - ### non-Greedy algorithms > Greedy algorithms 
 - ### May be able to use Decision Transformers (RL Transformer) as it approaches the problem with the reward hypothesis in reinforcement learning (the traditional RL reward hypothesis is a greedy hypothesis that says maximize the reward, where instead may want to consider optimality as desired reward or desired reward state) https://huggingface.co/docs/transformers/model_doc/decision_transformer
-
+ -->
 ## Attention ~ Probabilistic
 - ### Attention-mechanism is a Probabilistic-mechanism
 
