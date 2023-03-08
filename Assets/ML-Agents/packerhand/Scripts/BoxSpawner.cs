@@ -21,9 +21,8 @@ namespace Boxes {
 
 public class Box
 {
-    public Rigidbody rb;
-
-    public int product_id;
+    public Rigidbody rb; // for storing transform information
+    public int product_id; 
 
     public Vector3 startingPos; // for box reset, constant 
 
@@ -37,18 +36,11 @@ public class Box
 
     public Vector3 boxVertex; // for sensor, changes after selected action
 
-    public Color boxColor;
+    public bool isOrganized = false; // for sensor, changes after selected action
 
-    public bool isOrganized = false; 
-
+    public Vector3 selectedBinScale;
+    public Color boxColor; 
     public GameObject gameobjectBox;
-}
-
-public class Container
-{
-    public float Length {get; set;}
-    public float Width {get; set;}
-    public float Height {get; set;}
 }
 
 [System.Serializable]
@@ -73,20 +65,17 @@ public class BoxSpawner : MonoBehaviour
     [HideInInspector] public List<Box> boxPool = new List<Box>();
     private List<Item> Items = new List<Item>();
 
-    public List<Container> Containers = new List<Container>();
-
-    public Container Container = new Container();
-
     public List<Color> Colors = new List<Color>();
 
     // The box area, which will be set manually in the Inspector
     public GameObject boxArea;
-    
     public GameObject unitBox; 
-
+    
     public int maxBoxQuantity;
 
     public BoxSize [] sizes;
+
+    public List<Vector3> bin_dimensions;
 
     [HideInInspector] public int idx_counter = 0;
 
@@ -289,15 +278,6 @@ public class BoxSpawner : MonoBehaviour
         }
     }
 
-    public void SetUpBin()
-    {
-        // Randomly generate a bin
-        Container.Length =  (float) Math.Round(UnityEngine.Random.Range(10.0f, 60.0f), 2);
-        Container.Height = (float) Math.Round(UnityEngine.Random.Range(10.0f, 25.0f), 2);
-        Container.Width = (float) Math.Round(UnityEngine.Random.Range(10.0f, 30.0f));
-    }
-
-
     // Read from json file and construct box, then add box to sizes array of boxes
     // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },
     public void ReadJson(string filename, int seed) 
@@ -337,30 +317,6 @@ public class BoxSpawner : MonoBehaviour
         }
     }
 
-    public void ReadJsonForBin(string box_file) 
-    {
-        homeDir = Environment.GetEnvironmentVariable("HOME");
-        string filename = $"{homeDir}/Unity/data/{box_file}.json";
-        using (var inputStream = File.Open(filename, FileMode.Open)) {
-            var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
-            //var root = XElement.Load(jsonReader);
-            var root = XDocument.Load(jsonReader);
-            var containers = root.XPathSelectElement("//Container").Elements();
-            foreach (XElement container in containers)
-            {
-                float length = float.Parse(container.XPathSelectElement("./Length").Value)/10f;
-                float width = float.Parse(container.XPathSelectElement("./Width").Value)/10f;
-                float height = float.Parse(container.XPathSelectElement("./Height").Value)/10f;   
-                //Debug.Log($"JSON CONTAINER LENGTH {Container.Length} WIDTH {Container.Width} HEIGHT {Container.Height}");
-                Containers.Add(new Container
-                    {
-                        Length = length,
-                        Width = width,
-                        Height = height,
-                    });
-            }
-        }
-    }
     public void PadZeros()
     {
         for (int m=idx_counter; m<maxBoxQuantity; m++)

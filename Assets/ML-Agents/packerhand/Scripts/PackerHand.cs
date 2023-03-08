@@ -11,6 +11,8 @@ using Unity.MLAgentsExamples;
 using Unity.MLAgents.Policies;
 using Box = Boxes.Box;
 using Boxes;
+using Bins;
+
 
 public class PackerHand : Agent 
 {
@@ -26,7 +28,6 @@ public class PackerHand : Agent
     public bool useVerticesArray=true;
     public bool useDenseReward=true;
     public bool useRandomBins=true; // if use randomly generated bins (only applies to curriculum learning)
-    public bool useMultipleBins=false; // if boxes are packed into multiple bins 
     public bool useSurfaceAreaReward=false;
     public bool useDiscreteSolution = true;
 
@@ -41,9 +42,9 @@ public class PackerHand : Agent
     string m_MixBehaviorName = "Mix";
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
-    [HideInInspector] List<CombineMesh> m_BackMeshScripts = new List<CombineMesh>();
-    [HideInInspector] List<CombineMesh> m_SideMeshScripts = new List<CombineMesh>();
-    [HideInInspector] List<CombineMesh> m_BottomMeshScripts = new List<CombineMesh>();
+    // [HideInInspector] List<CombineMesh> m_BackMeshScripts = new List<CombineMesh>();
+    // [HideInInspector] List<CombineMesh> m_SideMeshScripts = new List<CombineMesh>();
+    // [HideInInspector] List<CombineMesh> m_BottomMeshScripts = new List<CombineMesh>();
 
     [HideInInspector] public Vector3 initialAgentPosition; 
     [HideInInspector] public Transform targetBox; // target box selected by agent
@@ -67,10 +68,10 @@ public class PackerHand : Agent
     [HideInInspector] public float total_z_distance; //total z distance between agent and target
     
     public BoxSpawner boxSpawner; // Box Spawner
+    public BinSpawner binSpawner; // Bin Spawner
     [HideInInspector] public SensorCollision sensorCollision; // cache script for checking gravity
     [HideInInspector] public SensorOuterCollision sensorOuterCollision; // cache script for checking protrusion
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision; // cache script for checking overlap
-
     [HideInInspector] public bool isInitialization = true;
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
@@ -84,11 +85,10 @@ public class PackerHand : Agent
 
 
     // binArea and outerBin are prefabs which will be scaled 
-    public GameObject binArea; // The bin container prefab, which will be manually selected in the Inspector
-    public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
-    public Material clearPlastic;
-
-    public GameObject Origin; // gives origin position of the first bin (for multiplatform usage)
+    // public GameObject binArea; // The bin container prefab, which will be manually selected in the Inspector
+    // public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
+    // public Material clearPlastic;
+    //public GameObject Origin; // gives origin position of the first bin (for multiplatform usage)
     [HideInInspector] public List<Vector4> origins = new List<Vector4>(); 
     public List<float> binscales_x; 
     public List<float> binscales_y;
@@ -99,19 +99,20 @@ public class PackerHand : Agent
     public float total_bin_volume; // bin's volume
     //public Bounds areaBounds; // regular bin's bounds
     public int boxes_packed = 0;
-    int bin_counter = 0;
-    public int total_bin_num;
     public float current_bin_volume;
     public float percent_filled_bin_volume;
+    int origin_counter; // this is used to count origin vertices when populating origin boxes
 
 
 
 
     public override void Initialize()
     {   
+        // switching off automatic brain stepping for manual control
         Academy.Instance.AutomaticSteppingEnabled = false;
 
-        curriculum_ConfigurationLocal = curriculum_ConfigurationGlobal; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
+        // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
+        curriculum_ConfigurationLocal = curriculum_ConfigurationGlobal; 
         
         // initialize stats recorder to add stats to tensorboard
         m_statsRecorder = Academy.Instance.StatsRecorder;
@@ -119,6 +120,7 @@ public class PackerHand : Agent
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
 
+        // store initial agent position
         initialAgentPosition = m_Agent.position;
 
         // Set environment parameters
@@ -143,92 +145,29 @@ public class PackerHand : Agent
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
-        // prefab's (BinIso20) sizes
-        float biniso_z = 59f;
-        float biniso_x = 23.5f;
-        float biniso_y = 23.9f;
+        // Set up bins
+        binSpawner.SetUpBins(box_file);
 
-        if (!useCurriculum)
+        // initialize bin information and store them locally
+        binscales_x = binSpawner.binscales_x;
+        binscales_y = binSpawner.binscales_y;
+        binscales_z = binSpawner.binscales_z;
+        origins = binSpawner.origins;
+        total_bin_volume = binSpawner.total_bin_volume;
+        origin_counter = binSpawner.total_bin_num;
+        // initalize mesh scripts' agent
+        foreach (CombineMesh script in binSpawner.m_BackMeshScripts)
         {
-            // read bin size from file
-            boxSpawner.ReadJsonForBin(box_file);
+            script.agent = this;
         }
-        else
+        foreach (CombineMesh script in binSpawner.m_SideMeshScripts)
         {
-            if (useRandomBins)
-            {
-                // randomly generate a bin
-                boxSpawner.SetUpBin();
-            }
-            else
-            {
-                // use prefab binIso20's scales
-                boxSpawner.Container.Length = biniso_z;
-                boxSpawner.Container.Width = biniso_x;
-                boxSpawner.Container.Height = biniso_y;
-            }
+            script.agent = this;
         }
-        Vector3 localOrigin = Origin.transform.position;
-        foreach (Container c in boxSpawner.Containers)
+        foreach (CombineMesh script in binSpawner.m_BottomMeshScripts)
         {
-            // make container and outer_shell from prefab
-            GameObject container = Instantiate(binArea);
-            GameObject shell = Instantiate(outerBin);
-            container.name = $"Bin{bin_counter.ToString()}";
-            shell.name = $"OuterBin{bin_counter.ToString()}";
-            float binscale_x = c.Width;
-            float binscale_y  = c.Height;
-            float binscale_z  = c.Length;
-            binscales_x.Add(binscale_x);
-            binscales_y.Add(binscale_y);
-            binscales_z.Add(binscale_z);
-            // Set bin and outer bin's scale and position
-            container.transform.localScale = new Vector3((binscale_x/biniso_x), (binscale_y/biniso_y), (binscale_z/biniso_z));
-            //Debug.Log($"CONTAINER LOCALSCALE IS: {container.transform.localScale}");
-            shell.transform.localScale = new Vector3(binscale_x/biniso_x, binscale_y/biniso_y, binscale_z/biniso_z);
-            // Set origin position of each bin
-            localOrigin.x = localOrigin.x+binscale_x+5f;
-            Vector4 originInfo = new Vector4(localOrigin.x, localOrigin.y, localOrigin.z, bin_counter);
-            Debug.Log($"ORIGIN INFO FOR BIN {bin_counter}: {originInfo}");
-            origins.Add(originInfo);
-            Vector3 container_center = new Vector3(localOrigin.x+(binscale_x/2f), 0.5f, localOrigin.z+(binscale_z/2f));
-            container.transform.localPosition = container_center;
-            shell.transform.localPosition = container_center;
-            // cache containers' children gameobjects
-            Transform [] children = container.GetComponentsInChildren<Transform>();  
-            // Cache bin's scripts and initialize their agent
-            CombineMesh binBottomScript = container.transform.GetChild(0).GetComponent<CombineMesh>();
-            CombineMesh binBackScript = container.transform.GetChild(1).GetComponent<CombineMesh>();
-            CombineMesh binSideScript = container.transform.GetChild(2).GetComponent<CombineMesh>();
-            m_BottomMeshScripts.Add(binBottomScript);
-            m_SideMeshScripts.Add(binSideScript);
-            m_BackMeshScripts.Add(binBackScript);
-            binBottomScript.agent = this;
-            binSideScript.agent = this;
-            binBackScript.agent = this;
-            // update total volume
-            total_bin_volume += binscale_x * binscale_y * binscale_z;
-            bin_counter++;
+            script.agent = this;
         }
-        total_bin_num = bin_counter;
-        // hide original prefabs
-        binArea.SetActive(false);
-        outerBin.SetActive(false);
-
-        // Get bounds of bin
-        // Renderer [] renderers = container.GetComponentsInChildren<Renderer>();
-        // areaBounds = renderers[0].bounds;
-        // for (var i = 1; i < renderers.Length; ++i)
-        // {
-        //     areaBounds.Encapsulate(renderers[i].bounds);
-        // }
-        // Get total bin volume 
-        //total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
-
-        // Get scale of bin
-        // binscale_x = areaBounds.extents.x*2;
-        // binscale_y = areaBounds.extents.y*2;
-        // binscale_z = areaBounds.extents.z*2;
 
         // initialize local reference of box pool
         boxPool = boxSpawner.boxPool;
@@ -266,48 +205,42 @@ public class PackerHand : Agent
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
         {   
-
-            //Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
-
             if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[maxBoxNum+7];
+                float[] listVarObservation = new float[maxBoxNum+8];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
-                // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                // listVarObservation[maxBoxNum] = scaled_continuous_boxsize.x;
-                // listVarObservation[maxBoxNum +1] = scaled_continuous_boxsize.y;
-                // listVarObservation[maxBoxNum +2] = scaled_continuous_boxsize.z;
+                // Add box dimensions, updated after placements 
                 listVarObservation[maxBoxNum] = box.boxSize.x;
                 listVarObservation[maxBoxNum +1] = box.boxSize.y;
                 listVarObservation[maxBoxNum +2] = box.boxSize.z;
-                // Add updated [volume]/[w*h*l] added to state vector
-                //listVarObservation[maxBoxNum +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
                 //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
                 //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
                 //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
-                // Add updated scaled vertex
+                // Add scaled vertex
                 listVarObservation[maxBoxNum +3] = box.boxVertex.x;
                 listVarObservation[maxBoxNum +4] = box.boxVertex.y;
                 listVarObservation[maxBoxNum +5] = box.boxVertex.z;
-                // Add updated box rotation
+                // Add rotation
                 // listVarObservation[boxPool.Count+7] = box.boxRot[0];
                 // listVarObservation[boxPool.Count+8] = box.boxRot[1];
                 // listVarObservation[boxPool.Count+9] = box.boxRot[2];
                 // listVarObservation[boxPool.Count+10] = box.boxRot[3];
+                // Add [box volume]/[bin volume] 
+                listVarObservation[maxBoxNum +6] = (box.boxSize.x* box.boxSize.y *box.boxSize.z)/(total_bin_volume);
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[maxBoxNum +6] = box.isOrganized ? 1.0f : 0.0f;
+                listVarObservation[maxBoxNum +7] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
 
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                //sensor.AddObservation(scaled_continuous_boxsize);
+                // Add scaled box size 
                 sensor.AddObservation(box.boxSize);
                 // Add updated [volume]/[w*h*l] added to state vector
                 //sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
-                // Add updated vertex
+                // Add scaled vertex
                 sensor.AddObservation (box.boxVertex);
                 // Add if box is placed or not
                 sensor.AddObservation(box.isOrganized ? 1.0f : 0.0f);
@@ -331,17 +264,17 @@ public class PackerHand : Agent
         // Add array of vertices (selected vertices are 0s)
         int i = 0;
         maskedVertexIndices = new List<int>();
-        foreach (Vector3 vertex in verticesArray) 
+        foreach (Vector4 vertex in verticesArray) 
         {   
+            Vector3 scaled_vertex = new Vector3(vertex.x, vertex.y, vertex.z);
             //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
             if (useVerticesArray)
             {
-                // Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origins[selectedBin].x)/binscales_x[selectedBin]), ((vertex.y - origins[selectedBin].y)/binscales_y[selectedBin]), ((vertex.z - origins[selectedBin].z)/binscales_z[selectedBin]));
-                // sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
-                sensor.AddObservation(vertex);
+                sensor.AddObservation(scaled_vertex);
             }
-            // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
-            if (vertex == Vector3.zero)
+            // origins after scaled and selected vertices will be (0, 0, 0)
+            // since cannot be selected again, they will be masked in action space
+            if (scaled_vertex == Vector3.zero)
             {
                 //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
                 maskedVertexIndices.Add(i);
@@ -445,56 +378,56 @@ public class PackerHand : Agent
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
             Academy.Instance.EnvironmentStep();
-            if (useDiscreteSolution)
-            { 
-                bin_counter--;
-                selectedVertex = origins[bin_counter];
-            }
+
+            // overrides brain selected first box position
+            // discrete or not, first box will be placed at a bin's origin
+            origin_counter--;
+            selectedVertex = origins[origin_counter];
         }
         // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
-            // find the bin that the box is put in
-            for (int i=0; i< m_BackMeshScripts.Count; i++) {
-                if (m_BackMeshScripts[i].isBoxPlaced)
+            // force all meshes the box is placed into to combine
+            for (int i=0; i< binSpawner.m_BackMeshScripts.Count; i++) {
+                if (binSpawner.m_BackMeshScripts[i].isBoxPlaced)
                 {
-                    // If a mesh didn't combine, force combine
                     if (isBackMeshCombined==false)
                     {
-                        m_BackMeshScripts[i].ForceMeshCombine();
+                        binSpawner.m_BackMeshScripts[i].ForceMeshCombine();
                     }
                     if (isSideMeshCombined == false)
                     {     
-                        m_SideMeshScripts[i].ForceMeshCombine();
+                        binSpawner.m_SideMeshScripts[i].ForceMeshCombine();
                     }
                     if (isBottomMeshCombined == false)
                     {     
-                        m_BottomMeshScripts[i].ForceMeshCombine();
+                        binSpawner.m_BottomMeshScripts[i].ForceMeshCombine();
                     }
                     
                 } 
             }
-
+            // Reset states for next round of picking
             StateReset();
 
+            // Update vertices array 
             if (useDiscreteSolution)
             {
-                // vertices array of tripoints doesn't depend on the trimesh
-                // only update vertices when box is placed
                 UpdateVerticesArray();
             }
 
+            // Add surface area reward
             if (useSurfaceAreaReward)
             {
-                // Add surface area reward
                 box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
                 percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
                 AddReward(percent_contact_surface_area * 50f);
                 //Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
             }
 
+            // recalculate bin volume and percent filled
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
+
             // Add volume reward
             if (useDenseReward)
             {
@@ -505,18 +438,20 @@ public class PackerHand : Agent
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
-            //Debug.Log("REQUEST DECISION AT NEXT ROUND OF OF PICKING");
+            // REGUEST DECISION FOR NEXT ROUND OF PICKING
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
-            // put box at all origins of bins first before letting brain pick vertex
-            if (bin_counter<=0)
+
+            // override brain selected origin boxes positions
+            // discrete or not, the origin box placements will be forced
+            if (origin_counter<=0)
             {
                 isAfterOriginVertexSelected = true;
             }
             else
             {
-                bin_counter--;
-                selectedVertex = origins[bin_counter];
+                origin_counter--;
+                selectedVertex = origins[origin_counter];
             }
         }
 
@@ -539,6 +474,7 @@ public class PackerHand : Agent
             //if agent is close enough to the position, it should drop off the box
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
             {
+                // if box passes all physics test, it will be placed
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     DropoffBox();
@@ -546,10 +482,12 @@ public class PackerHand : Agent
                 }
                 else
                 {
+                    // if box fails physics test and to be repacked, it will be reset and episde will continue
                     if (useBoxReset)
                     {
                         BoxReset("failedPhysicsCheck");
                     }
+                    // if not to be repacked, episode will end
                     else
                     {
                         if (useDenseReward)
@@ -656,16 +594,21 @@ public class PackerHand : Agent
     {
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
         selectedVertexIdx = action_SelectedVertexIdx;
+        // get scaled vertex from vertices array
         Vector3 scaled_selectedVertex = new Vector3(verticesArray[action_SelectedVertexIdx].x, verticesArray[action_SelectedVertexIdx].y, verticesArray[action_SelectedVertexIdx].z);
-        if (bin_counter<=0)
+        // selected bin is stored as 4th vector space (w) in vertices array for non-origin vertices
+        if (origin_counter<=0)
         {
             selectedBin = Mathf.RoundToInt(verticesArray[action_SelectedVertexIdx].w);
         }
+        // since origin vertices are (0,0,0) and are not added into vertices array, information about which bin for origin vertices has to be specified
         else
         {
-            selectedBin = bin_counter-1;
+            selectedBin = origin_counter-1;
         }
+        // store vertex information in box to be added to sensor observation
         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
+        // selected vertex is unscaled vertex
         selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscales_x[selectedBin]) + origins[selectedBin].x), ((scaled_selectedVertex.y* binscales_y[selectedBin]) + origins[selectedBin].y), ((scaled_selectedVertex.z* binscales_z[selectedBin]) + origins[selectedBin].z));
         Debug.Log($"SVB selected vertex is {selectedVertex}");
         Debug.Log($"SVB selected bin is {selectedBin}");
@@ -678,26 +621,26 @@ public class PackerHand : Agent
         // CombineMesh.cs : deals with child sides (left, top, bottom) : collision (physics)
 
         if (targetBin==null) 
-        {
-            // this targetBin will need be destroyed too 
+        { 
+            // initialize the reference to where box is to be placed
             targetBin  = new GameObject().transform;
 
+            // 1. Magnitude: size of box after rotation
             float magnitudeX = boxWorldScale.x * 0.5f; 
             float magnitudeY = boxWorldScale.y * 0.5f; 
             float magnitudeZ = boxWorldScale.z * 0.5f; 
-
-
             // 2: Direction
             int directionX = 1; 
             int directionY = 1;
-            int directionZ = 1;
-                
-            // 3: Calc Position
+            int directionZ = 1;       
+            // 3: Position: the center position where the box will be placed inside bin
             Vector3 position = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
             //Debug.Log($"UVP Updated Vertex Position position: {position}");
 
+            // Physics test for box
             CheckBoxPlacementPhysics(position);
 
+            // set reference's position to box's placement position
             targetBin.position = position;
         }
     }
@@ -765,24 +708,34 @@ public class PackerHand : Agent
     /// </summary>
     public void SelectRotation(int action) 
     {   
-        var childrenList = targetBox.GetComponentsInChildren<Transform>();
+        // get sides of the boxes
+        var sidesList = targetBox.GetComponentsInChildren<Transform>();
+        // box world scale is the selected box's local scale which will be adjusted according to rotation
         boxWorldScale = targetBox.localScale;
+        // Rotation: (0, 0, 0)
         if (action == 0 ) 
         {
             selectedRotation = new Vector3(0, 0, 0);
-            foreach (Transform child in childrenList)
+            // store rotation information for sensor observation
+            boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+            // store size information for sensor observation
+            boxPool[selectedBoxIdx].boxSize = boxWorldScale;
+            foreach (Transform child in sidesList)
             {
                 child.tag = "pickupbox";
             }      
         }  
+        // Rotation: (90 ,0, 0)
         else if (action==1) 
         {
             //Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             selectedRotation = new Vector3(90, 0, 0);
             boxWorldScale = new Vector3(boxWorldScale[0], boxWorldScale[2], boxWorldScale[1]); // actual rotation of object transform
+            // store rotation information for sensor observation
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+            // store size information for sensor observation
             boxPool[selectedBoxIdx].boxSize = boxWorldScale;
-            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
                 if (child.name=="bottom") 
@@ -804,14 +757,17 @@ public class PackerHand : Agent
                 }
             }
         }
+        // Rotation: (0, 90, 0)
         else if (action==2) 
         {
             //Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             selectedRotation = new Vector3(0, 90, 0);
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[1], boxWorldScale[0]); // actual rotation of object transform
+            // store rotation information for sensor observation
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+            // store size information for sensor observation
             boxPool[selectedBoxIdx].boxSize = boxWorldScale;
-            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
                 if (child.name=="left") 
@@ -833,14 +789,17 @@ public class PackerHand : Agent
                 }
             }        
         }
+        // Rotation: (0, 0, 90)
         else if (action==3) 
         {
             //Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             selectedRotation = new Vector3(0, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[0], boxWorldScale[2]); // actual rotation of object transform
+            // store rotation information for sensor observation
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+            // store size information for sensor observation
             boxPool[selectedBoxIdx].boxSize = boxWorldScale;
-            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
                 if (child.name=="left") 
@@ -862,14 +821,17 @@ public class PackerHand : Agent
                 }
             }
         }
+        // Rotation: (0, 90, 90)
         else if (action==4 ) 
         {
             //Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             selectedRotation = new Vector3(0, 90, 90 ); 
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[0], boxWorldScale[1]); // actual rotation of object transform
+            // store rotation information for sensor observation
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+             // store size information for sensor observation
             boxPool[selectedBoxIdx].boxSize = boxWorldScale;
-            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
                 if (child.name=="left") 
@@ -899,14 +861,17 @@ public class PackerHand : Agent
                 }
             }      
         }
+        // Rotation: (90, 0, 90)
         else 
         {
             //Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             selectedRotation = new Vector3(90, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[2], boxWorldScale[0]); // actual rotation of object transform
+            // store rotation information for sensor observation
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
+            // store size information for sensor observation
             boxPool[selectedBoxIdx].boxSize = boxWorldScale;
-            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
                 if (child.name=="left") 
@@ -956,13 +921,13 @@ public class PackerHand : Agent
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
         // find the bin that the box is put in
-        for (int i=0; i< m_BackMeshScripts.Count; i++) {
-            m_BackMeshScripts[i].isCollidedBlue = false;
-            m_BottomMeshScripts[i].isCollidedGreen = false;
-            m_SideMeshScripts[i].isCollidedRed = false;
-            m_BackMeshScripts[i].isBoxPlaced = false;
-            m_BottomMeshScripts[i].isBoxPlaced = false;
-            m_SideMeshScripts[i].isBoxPlaced = false;
+        for (int i=0; i< binSpawner.m_BackMeshScripts.Count; i++) {
+            binSpawner.m_BackMeshScripts[i].isCollidedBlue = false;
+            binSpawner.m_BottomMeshScripts[i].isCollidedGreen = false;
+            binSpawner.m_SideMeshScripts[i].isCollidedRed = false;
+            binSpawner.m_BackMeshScripts[i].isBoxPlaced = false;
+            binSpawner.m_BottomMeshScripts[i].isBoxPlaced = false;
+            binSpawner.m_SideMeshScripts[i].isBoxPlaced = false;
         }
         isBackMeshCombined = false;
         isBottomMeshCombined = false;
@@ -1045,11 +1010,10 @@ public class PackerHand : Agent
     public void SetResetParameters()
     {
         // Reset meshes
-        // find the bin that the box is put in
-        for (int i=0; i< m_BackMeshScripts.Count; i++) {
-            m_BottomMeshScripts[i].MeshReset();
-            m_SideMeshScripts[i].MeshReset();
-            m_BackMeshScripts[i].MeshReset();
+        for (int i=0; i< binSpawner.m_BackMeshScripts.Count; i++) {
+            binSpawner.m_BottomMeshScripts[i].MeshReset();
+            binSpawner.m_SideMeshScripts[i].MeshReset();
+            binSpawner.m_BackMeshScripts[i].MeshReset();
         }
 
         isBackMeshCombined = false;
@@ -1065,7 +1029,8 @@ public class PackerHand : Agent
         // Reset current bin volume
         current_bin_volume = total_bin_volume;
 
-        bin_counter = total_bin_num;
+        // Reset origin counter to the number of origins 
+        origin_counter = binSpawner.total_bin_num;
 
         // Destroy old boxes
         foreach (Box box in boxPool)
@@ -1124,10 +1089,10 @@ public class PackerHand : Agent
 
     public void ReverseSideNames(int id) 
     {
-        var childrenList = boxPool[id].rb.gameObject.GetComponentsInChildren<Transform>();
+        var sidesList = boxPool[id].rb.gameObject.GetComponentsInChildren<Transform>();
         if (selectedRotation==new Vector3(90, 0, 0))
         {
-            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 if (child.name=="bottom") 
                 {
@@ -1150,7 +1115,7 @@ public class PackerHand : Agent
         }
         else if (selectedRotation == new Vector3(0, 90, 0)) 
         {
-            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 if (child.name=="left") 
                 {
@@ -1173,7 +1138,7 @@ public class PackerHand : Agent
         }
         else if (selectedRotation == new Vector3(0, 0, 90))
         {
-            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 if (child.name=="left") 
                 {
@@ -1196,7 +1161,7 @@ public class PackerHand : Agent
         }
         else if (selectedRotation== new Vector3(0, 90, 90)) 
         {
-            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 if (child.name=="back") 
                 {
@@ -1227,7 +1192,7 @@ public class PackerHand : Agent
         }
         else if (selectedRotation == new Vector3(90, 0, 90))
         {
-            foreach (Transform child in childrenList) // only renames the side NAME to correspond with the rotation
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                if (child.name=="top") 
                 {
