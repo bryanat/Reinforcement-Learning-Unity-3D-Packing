@@ -354,9 +354,9 @@ public class BoxSpawner : MonoBehaviour
                 //Debug.Log($"JSON CONTAINER LENGTH {Container.Length} WIDTH {Container.Width} HEIGHT {Container.Height}");
                 Containers.Add(new Container
                     {
-                        Length = width,
-                        Width = height,
-                        Height = length,
+                        Length = length,
+                        Width = width,
+                        Height = height,
                     });
             }
         }

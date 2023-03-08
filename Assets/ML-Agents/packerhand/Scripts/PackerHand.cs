@@ -52,7 +52,8 @@ public class PackerHand : Agent
     public int selectedBoxIdx; // Box selected 
     public Vector3 selectedRotation; // Rotation selected
     public Vector3 selectedVertex; // Vertex selected
-    public Vector3 [] verticesArray; // space: 3n Vector3 vertices where n = max num boxes
+    public int selectedBin;  // Bin selected (not part of action selection)
+    public Vector4 [] verticesArray; // space: 3n Vector3 vertices where n = max num boxes
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] public List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices; // list of taken vertex indices
@@ -81,24 +82,25 @@ public class PackerHand : Agent
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
 
+
     // binArea and outerBin are prefabs which will be scaled 
     public GameObject binArea; // The bin container prefab, which will be manually selected in the Inspector
     public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
-    // [HideInInspector] public GameObject outerbinfront; // cache outer bin front
     public Material clearPlastic;
 
     public GameObject Origin; // gives origin position of the first bin (for multiplatform usage)
-    // public Vector3 origin; // position of the selected bin's origin (for scaling vertex) 
-    [HideInInspector] public List<Vector3> origins = new List<Vector3>(); 
-    public float binscale_x; 
-    public float binscale_y;
-    public float binscale_z;
+    [HideInInspector] public List<Vector4> origins = new List<Vector4>(); 
+    public List<float> binscales_x; 
+    public List<float> binscales_y;
+    public List<float> binscales_z;
     public float percent_contact_surface_area;
     public float box_surface_area;
 
     public float total_bin_volume; // bin's volume
     //public Bounds areaBounds; // regular bin's bounds
     public int boxes_packed = 0;
+    int bin_counter = 0;
+    public int total_bin_num;
     public float current_bin_volume;
     public float percent_filled_bin_volume;
 
@@ -166,37 +168,34 @@ public class PackerHand : Agent
                 boxSpawner.Container.Height = biniso_y;
             }
         }
-        int bin_id = 0;
+        Vector3 localOrigin = Origin.transform.position;
         foreach (Container c in boxSpawner.Containers)
         {
             // make container and outer_shell from prefab
             GameObject container = Instantiate(binArea);
             GameObject shell = Instantiate(outerBin);
-            container.name = $"Bin{bin_id.ToString()}";
-            shell.name = $"OuterBin{bin_id.ToString()}";
-            // // hide original prefabs through setting to inactive and set new ones to active
-            // binArea.SetActive(false);
-            // outerBin.SetActive(false);
-            // container.SetActive(true);
-            // shell.SetActive(true);
-            binscale_x = c.Width;
-            binscale_y  = c.Height;
-            binscale_z  = c.Length;
+            container.name = $"Bin{bin_counter.ToString()}";
+            shell.name = $"OuterBin{bin_counter.ToString()}";
+            float binscale_x = c.Width;
+            float binscale_y  = c.Height;
+            float binscale_z  = c.Length;
+            binscales_x.Add(binscale_x);
+            binscales_y.Add(binscale_y);
+            binscales_z.Add(binscale_z);
             // Set bin and outer bin's scale and position
             container.transform.localScale = new Vector3((binscale_x/biniso_x), (binscale_y/biniso_y), (binscale_z/biniso_z));
             //Debug.Log($"CONTAINER LOCALSCALE IS: {container.transform.localScale}");
             shell.transform.localScale = new Vector3(binscale_x/biniso_x, binscale_y/biniso_y, binscale_z/biniso_z);
-            // Set origin position
-            Vector3 localOrigin = new Vector3(Origin.transform.position.x+bin_id*binscale_x+10f, Origin.transform.position.y, Origin.transform.position.z);
-            origins.Add(localOrigin);
-            verticesArray[VertexCount]= localOrigin;
+            // Set origin position of each bin
+            localOrigin.x = localOrigin.x+binscale_x+5f;
+            Vector4 originInfo = new Vector4(localOrigin.x, localOrigin.y, localOrigin.z, bin_counter);
+            Debug.Log($"ORIGIN INFO FOR BIN {bin_counter}: {originInfo}");
+            origins.Add(originInfo);
             Vector3 container_center = new Vector3(localOrigin.x+(binscale_x/2f), 0.5f, localOrigin.z+(binscale_z/2f));
             container.transform.localPosition = container_center;
             shell.transform.localPosition = container_center;
             // cache containers' children gameobjects
             Transform [] children = container.GetComponentsInChildren<Transform>();  
-            // cache outerbin's front
-            // outerbinfront = shell.transform.GetChild(5).gameObject;
             // Cache bin's scripts and initialize their agent
             CombineMesh binBottomScript = container.transform.GetChild(0).GetComponent<CombineMesh>();
             CombineMesh binBackScript = container.transform.GetChild(1).GetComponent<CombineMesh>();
@@ -207,11 +206,13 @@ public class PackerHand : Agent
             binBottomScript.agent = this;
             binSideScript.agent = this;
             binBackScript.agent = this;
+            // update total volume
             total_bin_volume += binscale_x * binscale_y * binscale_z;
-            bin_id++;
-            VertexCount++;
+            bin_counter++;
         }
-
+        total_bin_num = bin_counter;
+        Debug.Log($"BIN total number of bins {total_bin_num}");
+        // hide original prefabs
         binArea.SetActive(false);
         outerBin.SetActive(false);
 
@@ -267,42 +268,46 @@ public class PackerHand : Agent
         foreach (Box box in boxPool) 
         {   
 
-            Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
+            //Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
 
             if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[maxBoxNum+5];
+                float[] listVarObservation = new float[maxBoxNum+7];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                listVarObservation[maxBoxNum]  = scaled_continuous_boxsize.x;
-                listVarObservation[maxBoxNum +1] = scaled_continuous_boxsize.y;
-                listVarObservation[maxBoxNum +2] = scaled_continuous_boxsize.z;
+                // listVarObservation[maxBoxNum] = scaled_continuous_boxsize.x;
+                // listVarObservation[maxBoxNum +1] = scaled_continuous_boxsize.y;
+                // listVarObservation[maxBoxNum +2] = scaled_continuous_boxsize.z;
+                listVarObservation[maxBoxNum] = box.boxSize.x;
+                listVarObservation[maxBoxNum +1] = box.boxSize.y;
+                listVarObservation[maxBoxNum +2] = box.boxSize.z;
                 // Add updated [volume]/[w*h*l] added to state vector
-                listVarObservation[maxBoxNum +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
+                //listVarObservation[maxBoxNum +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
                 //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
                 //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
                 //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
-                // Add updated box placement vertex
-                // listVarObservation[maxBoxNum +4] = box.boxVertex.x;
-                // listVarObservation[maxBoxNum +5] = box.boxVertex.y;
-                // listVarObservation[maxBoxNum +6] = box.boxVertex.z;
+                // Add updated scaled vertex
+                listVarObservation[maxBoxNum +3] = box.boxVertex.x;
+                listVarObservation[maxBoxNum +4] = box.boxVertex.y;
+                listVarObservation[maxBoxNum +5] = box.boxVertex.z;
                 // Add updated box rotation
                 // listVarObservation[boxPool.Count+7] = box.boxRot[0];
                 // listVarObservation[boxPool.Count+8] = box.boxRot[1];
                 // listVarObservation[boxPool.Count+9] = box.boxRot[2];
                 // listVarObservation[boxPool.Count+10] = box.boxRot[3];
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[maxBoxNum +4] = box.isOrganized ? 1.0f : 0.0f;
+                listVarObservation[maxBoxNum +6] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
 
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                sensor.AddObservation(scaled_continuous_boxsize);
+                //sensor.AddObservation(scaled_continuous_boxsize);
+                sensor.AddObservation(box.boxSize);
                 // Add updated [volume]/[w*h*l] added to state vector
-                sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
+                //sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
                 // Add updated vertex
                 sensor.AddObservation (box.boxVertex);
                 // Add if box is placed or not
@@ -332,7 +337,7 @@ public class PackerHand : Agent
             //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
             if (useVerticesArray)
             {
-                // Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+                // Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origins[selectedBin].x)/binscales_x[selectedBin]), ((vertex.y - origins[selectedBin].y)/binscales_y[selectedBin]), ((vertex.z - origins[selectedBin].z)/binscales_z[selectedBin]));
                 // sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
                 sensor.AddObservation(vertex);
             }
@@ -437,15 +442,15 @@ public class PackerHand : Agent
                 boxSpawner.SetUpBoxes(box_file);
             }
 
-            // if (useDiscreteSolution)
-            // { 
-            //     selectedVertex = origins[0];
-            //     isAfterOriginVertexSelected = false;
-            // }
-
+            isAfterOriginVertexSelected = false;
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
             Academy.Instance.EnvironmentStep();
+            if (useDiscreteSolution)
+            { 
+                bin_counter--;
+                selectedVertex = origins[bin_counter];
+            }
         }
         // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
@@ -475,7 +480,6 @@ public class PackerHand : Agent
 
             if (useDiscreteSolution)
             {
-                isAfterOriginVertexSelected = true;
                 // vertices array of tripoints doesn't depend on the trimesh
                 // only update vertices when box is placed
                 UpdateVerticesArray();
@@ -505,6 +509,16 @@ public class PackerHand : Agent
             //Debug.Log("REQUEST DECISION AT NEXT ROUND OF OF PICKING");
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
+            // put box at all origins of bins first before letting brain pick vertex
+            if (bin_counter<=0)
+            {
+                isAfterOriginVertexSelected = true;
+            }
+            else
+            {
+                bin_counter--;
+                selectedVertex = origins[bin_counter];
+            }
         }
 
         // if agent selects a box, it should move towards the box
@@ -589,68 +603,6 @@ public class PackerHand : Agent
         targetBox.rotation = Quaternion.identity;
     }
 
-
-    // / <summary>
-    // / Updates the vertices every time a new mesh is created
-    // /</summary>
-    // void FindOriginVertices() 
-    // {
-    //     MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
-    //     AddVertices(mf_back.mesh.vertices, backMeshVertices);
-    //     //Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
-    //     MeshFilter mf_bottom = binBottom.GetComponent<MeshFilter>();
-    //     AddVertices(mf_bottom.mesh.vertices, bottomMeshVertices);
-    //     //Debug.Log($"OOO BOTTOM MESH VERTICES COUNT IS {bottomMeshVertices.Count()}");
-    //     MeshFilter mf_side = binSide.GetComponent<MeshFilter>();
-    //     AddVertices(mf_side.mesh.vertices, sideMeshVertices);  
-    //     //Debug.Log($"OOO SIDE MESH VERTICES COUNT IS {sideMeshVertices.Count()}");
-    //     foreach (var pair in vertexCounter)
-    //     {
-    //         if (pair.Value == 3)
-    //         {
-    //             Vector3 scaled_continuous_vertex = new Vector3((pair.Key.x - origin.x)/binscale_x,  (pair.Key.y - origin.y)/binscale_y,  (pair.key.z - origin.z)/binscale_z);
-    //             verticesArray[VertexCount] = scaled_continuous_vertex;
-    //             VertexCount++;
-    //         }
-    //     }
-    // }
-
-    /// <summary>
-    /// For every mesh, add each unique vertex to a mesh list and a counter dictionary
-    ///</summary>
-    // AddVertices( input: ALL_LOCAL_VerticesFromMesh, output: UNIQUE_GLOBAL_VerticesFromMesh )
-    // public void AddVertices(Vector3 [] vertices, List<Vector3> verticesList) 
-    // {
-    //     Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
-    //     var tempHashSet = new HashSet<Vector3>();
-    //     // rounding part
-    //     foreach (Vector3 vertex in vertices) 
-    //     {
-    //         // first address vertices that are meant to be the same by rounding
-    //         var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 2)), (float)(Math.Round(vertex.y, 2)), (float)(Math.Round(vertex.z, 2)));
-    //         // remove duplicates by using a hash set
-    //         tempHashSet.Add(roundedVertex);
-    //     }
-    //     // localtoworld part
-    //     foreach (Vector3 vertex in tempHashSet) 
-    //     {
-    //         // convert local scale to world position
-    //         Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
-    //         verticesList.Add(worldVertex);
-    //         // Add to a counter to check for intersection
-    //         // reduce stage: vertex is key, value is count, count = 3 is the tripoint vertex
-    //         if (vertexCounter.ContainsKey(worldVertex)) {
-    //             vertexCounter[worldVertex] ++;
-    //         }
-    //         else {
-    //             vertexCounter.Add(worldVertex, 1);
-    //         }
-    //     }
-    // }
-
-
-
-
     void UpdateVerticesArray() 
     {
         List<Vector3> tripoints_list = new List<Vector3>();
@@ -682,17 +634,14 @@ public class PackerHand : Agent
             // if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
             // if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
                 // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
-                //Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
+                Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origins[selectedBin].x)/binscales_x[selectedBin],  (tripoints_list[idx].y - origins[selectedBin].y)/binscales_y[selectedBin],  (tripoints_list[idx].z - origins[selectedBin].z)/binscales_z[selectedBin]);
                 //Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
-                //if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
-                if ( historicalVerticesLog.Exists(element => element == tripoints_list[idx]) == false )
+                if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
                 {
                     // Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
                     // Add scaled tripoint_vertex to verticesArray
-                    // verticesArray[VertexCount] = scaled_continuous_vertex;
-                    verticesArray[VertexCount] = tripoints_list[idx];
-                    //historicalVerticesLog.Add(scaled_continuous_vertex);
-                    historicalVerticesLog.Add(tripoints_list[idx]);
+                    verticesArray[VertexCount] = scaled_continuous_vertex;
+                    historicalVerticesLog.Add(scaled_continuous_vertex);
                     VertexCount ++;
                     //Debug.Log($"VERTEX COUNT IS {VertexCount}");
 
@@ -706,14 +655,14 @@ public class PackerHand : Agent
 
     public void SelectVertex(int action_SelectedVertexIdx) 
     {
-        //Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
-
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
         selectedVertexIdx = action_SelectedVertexIdx;
-        var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
+        Vector3 scaled_selectedVertex = new Vector3(verticesArray[action_SelectedVertexIdx].x, verticesArray[action_SelectedVertexIdx].y, verticesArray[action_SelectedVertexIdx].z);
+        selectedBin = Mathf.RoundToInt(verticesArray[action_SelectedVertexIdx].w);
         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
-        //selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
-        selectedVertex = scaled_selectedVertex;
+        selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscales_x[selectedBin]) + origins[selectedBin].x), ((scaled_selectedVertex.y* binscales_y[selectedBin]) + origins[selectedBin].y), ((scaled_selectedVertex.z* binscales_z[selectedBin]) + origins[selectedBin].z));
+        Debug.Log($"SVB selected vertex is {selectedVertex}");
+        Debug.Log($"SVB selected bin is {selectedBin}");
     }
 
 
@@ -1002,15 +951,12 @@ public class PackerHand : Agent
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
         // find the bin that the box is put in
         for (int i=0; i< m_BackMeshScripts.Count; i++) {
-            if (m_BackMeshScripts[i].isBoxPlaced)
-            {
-                m_BackMeshScripts[i].isCollidedBlue = false;
-                m_BottomMeshScripts[i].isCollidedGreen = false;
-                m_SideMeshScripts[i].isCollidedRed = false;
-                m_BackMeshScripts[i].isBoxPlaced = false;
-                m_BottomMeshScripts[i].isBoxPlaced = false;
-                m_SideMeshScripts[i].isBoxPlaced = false;
-            }
+            m_BackMeshScripts[i].isCollidedBlue = false;
+            m_BottomMeshScripts[i].isCollidedGreen = false;
+            m_SideMeshScripts[i].isCollidedRed = false;
+            m_BackMeshScripts[i].isBoxPlaced = false;
+            m_BottomMeshScripts[i].isBoxPlaced = false;
+            m_SideMeshScripts[i].isBoxPlaced = false;
         }
         isBackMeshCombined = false;
         isBottomMeshCombined = false;
@@ -1095,12 +1041,9 @@ public class PackerHand : Agent
         // Reset meshes
         // find the bin that the box is put in
         for (int i=0; i< m_BackMeshScripts.Count; i++) {
-            if (m_BackMeshScripts[i].isBoxPlaced)
-            {
-                m_BottomMeshScripts[i].MeshReset();
-                m_SideMeshScripts[i].MeshReset();
-                m_BackMeshScripts[i].MeshReset();
-            }
+            m_BottomMeshScripts[i].MeshReset();
+            m_SideMeshScripts[i].MeshReset();
+            m_BackMeshScripts[i].MeshReset();
         }
 
         isBackMeshCombined = false;
@@ -1115,6 +1058,8 @@ public class PackerHand : Agent
 
         // Reset current bin volume
         current_bin_volume = total_bin_volume;
+
+        bin_counter = total_bin_num;
 
         // Destroy old boxes
         foreach (Box box in boxPool)
