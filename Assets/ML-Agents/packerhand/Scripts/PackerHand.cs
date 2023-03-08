@@ -20,7 +20,8 @@ public class PackerHand : Agent
     int curriculum_ConfigurationLocal; // local reference of the above
     public int packSpeed = 20;
     public int seed = 123; // same seed means same set of randomly generated boxes
-    public string box_file = "Boxes_30"; // json file name used in non-curriculum learning/production/inference
+    public string file_name = "Boxes_30";
+    public string box_type = "mix"; // json file name used in non-curriculum learning/production/inference
     public string bin_type = "biniso20";
     public int bin_quantity = 1;
     
@@ -52,14 +53,15 @@ public class PackerHand : Agent
     public Vector3 selectedVertex; // Vertex selected
     public int selectedBin;  // Bin selected (not part of action selection)
     public Vector4 [] verticesArray; // space: 3n Vector3 vertices where n = max num boxes
-    [HideInInspector] public int selectedVertexIdx = -1; 
+    int selectedVertexIdx = -1; 
+    int VertexCount = 0; // counter for VerticesArray
+    int maxBoxNum; // max number of boxes (50 by default)
+    int origin_counter; // this is used to count origin vertices when populating origin boxes
     [HideInInspector] public List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices; // list of taken vertex indices
     [HideInInspector] public List<int> maskedBoxIndices; // list of organzed box indices
     [HideInInspector] public List<Vector3> historicalVerticesLog; // list of all used vertices
-    [HideInInspector] public int VertexCount = 0; // counter for VerticesArray
     [HideInInspector] public Vector3 boxWorldScale; //local scale of selected box
-    [HideInInspector] public int maxBoxNum; // max number of boxes (50 by default)
     [HideInInspector] public float total_x_distance; //total x distance between agent and target
     [HideInInspector] public float total_y_distance; //total y distance between agent and target
     [HideInInspector] public float total_z_distance; //total z distance between agent and target
@@ -92,7 +94,6 @@ public class PackerHand : Agent
     public int boxes_packed = 0;
     public float current_bin_volume;
     public float percent_filled_bin_volume;
-    int origin_counter; // this is used to count origin vertices when populating origin boxes
 
 
 
@@ -139,7 +140,7 @@ public class PackerHand : Agent
         // Set up bins
         if (!useCurriculum)
         {
-            binSpawner.SetUpBins(box_file);
+            binSpawner.SetUpBins(file_name);
         }
         else 
         {
@@ -369,7 +370,7 @@ public class PackerHand : Agent
             }
             else
             {
-                boxSpawner.SetUpBoxes(box_file);
+                boxSpawner.SetUpBoxes(file_name);
             }
 
             isAfterOriginVertexSelected = false;
@@ -1069,17 +1070,17 @@ public class PackerHand : Agent
             useDiscreteSolution = true;
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
-                boxSpawner.SetUpBoxes("mix_random", seed);
+                boxSpawner.SetUpBoxes(box_type, seed);
                 //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
             {
-                boxSpawner.SetUpBoxes("mix_random", seed+1);
+                boxSpawner.SetUpBoxes(box_type, seed+1);
                 //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
             {
-                boxSpawner.SetUpBoxes("mix_random", seed+2);
+                boxSpawner.SetUpBoxes(box_type, seed+2);
                 //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
         }

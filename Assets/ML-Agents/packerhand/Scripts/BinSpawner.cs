@@ -91,7 +91,7 @@ string homeDir;
             Vector3 container_center = new Vector3(localOrigin.x+(binscale_x/2f), 0.5f, localOrigin.z+(binscale_z/2f));
             container.transform.localPosition = container_center;
             shell.transform.localPosition = container_center;
-            // Cache bin's scripts and initialize their agent
+            // Add scripts 
             CombineMesh binBottomScript = container.transform.GetChild(0).GetComponent<CombineMesh>();
             CombineMesh binBackScript = container.transform.GetChild(1).GetComponent<CombineMesh>();
             CombineMesh binSideScript = container.transform.GetChild(2).GetComponent<CombineMesh>();
@@ -102,6 +102,7 @@ string homeDir;
             total_bin_volume += binscale_x * binscale_y * binscale_z;
             idx++;
         }
+        // set total bin volume
         total_bin_num = idx;
         // hide original prefabs
         bin.SetActive(false);

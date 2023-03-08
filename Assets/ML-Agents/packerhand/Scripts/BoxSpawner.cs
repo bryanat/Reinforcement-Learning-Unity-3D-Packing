@@ -18,30 +18,19 @@ using Container = Bins.Container;
 
 namespace Boxes {
 
-
-
 public class Box
 {
-    public Rigidbody rb; // for storing transform information
-    public int product_id; 
-
+    public int product_id; // stores box's product id (for front-end)
+    public Color boxColor;  // stores box color, boxes of the same product_id will have same color (for front_end)
+    public Rigidbody rb; // stores transform information
     public Vector3 startingPos; // for box reset, constant 
-
     public Quaternion startingRot; // for box reset, constant
-
     public Vector3 startingSize; // for box reset, constant 
-
     public Vector3 boxSize; // for sensor, changes after selected action
-
     public Quaternion boxRot; // for sensor, changes after selected action
-
     public Vector3 boxVertex; // for sensor, changes after selected action
-
     public bool isOrganized = false; // for sensor, changes after selected action
-
-    public Vector3 selectedBinScale;
-    public Color boxColor; 
-    public GameObject gameobjectBox;
+    public GameObject gameobjectBox; // stores gameobject box reference created during box creation, for destroying old boxes
 }
 
 [System.Serializable]
@@ -60,27 +49,21 @@ public class Item
 }
 
 
-// Spawns in boxes with sizes from a json file
 public class BoxSpawner : MonoBehaviour 
 {
-    [HideInInspector] public List<Box> boxPool = new List<Box>();
-    private List<Item> Items = new List<Item>();
-
-    public List<Color> Colors = new List<Color>();
+    [HideInInspector] public List<Box> boxPool = new List<Box>(); //list of Box class objects that stores most of the box information
+    private List<Item> Items = new List<Item>(); // for reading, generating, and writing box information
+    public List<Color> Colors = new List<Color>(); // stores local box colors
 
     // The box area, which will be set manually in the Inspector
-    public GameObject boxArea;
-    public GameObject unitBox; 
+    public GameObject boxArea; // place where boxes are spawned
+    public GameObject unitBox; // prefab for box generation
     
-    public int maxBoxQuantity;
+    public int maxBoxQuantity; // maximum box quantity (default set to 50)
 
-    public BoxSize [] sizes;
+    public BoxSize [] sizes; // array of box sizes
 
-    // public List<float> binscales_x; 
-    // public List<float> binscales_y;
-    // public List<float> binscales_z;
-
-    [HideInInspector] public int idx_counter = 0;
+    [HideInInspector] public int idx_counter = 0; //counter for sizes array
 
     string homeDir;
 
@@ -90,36 +73,30 @@ public class BoxSpawner : MonoBehaviour
         homeDir = Environment.GetEnvironmentVariable("HOME");
     }
 
-    public void SetUpBoxes(string box_type, int seed=123) 
+    public void SetUpBoxes(string box_type , int seed=123) 
     {
-        if (box_type == "uniform_random")
+        // randomly generates boxes
+        if (box_type == "uniform" | box_type == "mix")
         {
-            RandomBoxGenerator("uniform_random", seed);
+            RandomBoxGenerator(box_type, seed);
             // Read random boxes using existing ReadJson function
-            ReadJson($"{homeDir}/Unity/data/Boxes_RandomUniform.json", seed);
+            ReadJson($"{homeDir}/Unity/data/Boxes_Random.json", seed);
             PadZeros();
             // Delete the created json file to reuse the name next iteration
-            File.Delete($"{homeDir}/Unity/data/Boxes_RandomUniform.json");
+            File.Delete($"{homeDir}/Unity/data/Boxes_Random.json");
 
         }
-        else if (box_type == "mix_random")
-        {
-            RandomBoxGenerator("mix_random", seed);
-            // Read random boxes using existing ReadJson function
-            ReadJson($"{homeDir}/Unity/data/Boxes_RandomMix.json", seed);
-            PadZeros();
-            // Delete the created json file to reuse the name next iteration
-            File.Delete($"{homeDir}/Unity/data/Boxes_RandomMix.json");
-        }
+        // read box from file
         else
         {
+            // once Items is populated, don't have to read from file again
             if (Items.Count==0)
             {
                 ReadJson($"{homeDir}/Unity/data/{box_type}.json", seed);
                 PadZeros();
             }
         }
-
+        // populate box pool
         var idx = 0;
         foreach(BoxSize s in sizes) 
         {
@@ -179,9 +156,10 @@ public class BoxSpawner : MonoBehaviour
 
     public void RandomBoxGenerator(string box_type, int seed)
     {
+        // Create a new object with the Items list
         List<Item> items = new List<Item>();
         Colors.Clear();
-        if (box_type == "uniform_random") 
+        if (box_type == "uniform") 
         {
             foreach (Container container in BinSpawner.Containers)
             {
@@ -209,14 +187,13 @@ public class BoxSpawner : MonoBehaviour
                     Colors.Add(randomColor);
                 }
             }
-        // Create a new object with the Items list
         var data = new { Items = items };
         // Serialize the object to json
         var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
         // Write the json to a file
-        File.WriteAllText($"{homeDir}/Unity/data/Boxes_RandomUniform.json", json);
+        File.WriteAllText($"{homeDir}/Unity/data/Boxes_Random.json", json);
         }
-        else if (box_type == "mix_random")
+        else if (box_type == "mix")
         {
             foreach (Container container in BinSpawner.Containers)
             {
@@ -281,7 +258,7 @@ public class BoxSpawner : MonoBehaviour
             // Serialize the object to json
             var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
             // Write the json to a file
-            File.WriteAllText($"{homeDir}/Unity/data/Boxes_RandomMix.json", json);           
+            File.WriteAllText($"{homeDir}/Unity/data/Boxes_Random.json", json);           
         }
     }
 
