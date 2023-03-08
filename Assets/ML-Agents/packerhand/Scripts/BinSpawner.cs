@@ -25,7 +25,7 @@ public class Container
 public class BinSpawner : MonoBehaviour {
 
 
-public List<Container> Containers = new List<Container>();
+public static List<Container> Containers = new List<Container>();
 public Container Container = new Container();
 public GameObject binArea; // The bin container prefab, which will be manually selected in the Inspector
 public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
