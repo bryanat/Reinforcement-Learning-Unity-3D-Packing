@@ -21,13 +21,14 @@ public class PackerHand : Agent
     public int packSpeed = 20;
     public int seed = 123; // same seed means same set of randomly generated boxes
     public string box_file = "Boxes_30"; // json file name used in non-curriculum learning/production/inference
+    public string bin_type = "biniso20";
+    public int bin_quantity = 1;
     
     public bool useCurriculum=true; // if false, bin and box sizes will be read from a json file 
     public bool useAttention=true; // if use attention (default = true)
     public bool useBoxReset=false; // if reset box when fails physics test and continue the episode (default=false, which means episode will restart)
     public bool useVerticesArray=true;
     public bool useDenseReward=true;
-    public bool useRandomBins=true; // if use randomly generated bins (only applies to curriculum learning)
     public bool useSurfaceAreaReward=false;
     public bool useDiscreteSolution = true;
 
@@ -42,10 +43,6 @@ public class PackerHand : Agent
     string m_MixBehaviorName = "Mix";
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
-    // [HideInInspector] List<CombineMesh> m_BackMeshScripts = new List<CombineMesh>();
-    // [HideInInspector] List<CombineMesh> m_SideMeshScripts = new List<CombineMesh>();
-    // [HideInInspector] List<CombineMesh> m_BottomMeshScripts = new List<CombineMesh>();
-
     [HideInInspector] public Vector3 initialAgentPosition; 
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
@@ -83,12 +80,6 @@ public class PackerHand : Agent
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
 
-
-    // binArea and outerBin are prefabs which will be scaled 
-    // public GameObject binArea; // The bin container prefab, which will be manually selected in the Inspector
-    // public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
-    // public Material clearPlastic;
-    //public GameObject Origin; // gives origin position of the first bin (for multiplatform usage)
     [HideInInspector] public List<Vector4> origins = new List<Vector4>(); 
     public List<float> binscales_x; 
     public List<float> binscales_y;
@@ -146,7 +137,14 @@ public class PackerHand : Agent
         m_c.isTrigger = true;
 
         // Set up bins
-        binSpawner.SetUpBins(box_file);
+        if (!useCurriculum)
+        {
+            binSpawner.SetUpBins(box_file);
+        }
+        else 
+        {
+            binSpawner.SetUpBins(bin_type, bin_quantity, seed);
+        }
 
         // initialize bin information and store them locally
         binscales_x = binSpawner.binscales_x;

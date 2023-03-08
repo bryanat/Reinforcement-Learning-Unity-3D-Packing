@@ -52,17 +52,17 @@ string homeDir;
         homeDir = Environment.GetEnvironmentVariable("HOME");
     }
 
-    public void SetUpBins(string box_type, int seed=123)
+    public void SetUpBins(string bin_type, int bin_quantity=0, int seed=123)
     {
-        if (box_type == "random_multibin")
+        if (bin_type == "biniso20" | bin_type == "random")
         {
-            // read bin size from file
-            RandomBinGenerator();
+            // generate bin
+            RandomBinGenerator(bin_type, bin_quantity, seed);
         }
         else
         {
-            // read bin size from file
-            ReadJson(box_type);            
+            // read bin from file
+            ReadJson(bin_type);            
         }
         Vector3 localOrigin = Origin.transform.position;
         int idx = 0;
@@ -108,9 +108,35 @@ string homeDir;
         outerBin.SetActive(false);
 
     }
-    public void RandomBinGenerator()
+    public void RandomBinGenerator(string bin_type, int quantity, int seed)
     {
-        //Container.Width = (float) Math.Round(UnityEngine.Random.Range(10.0f, 30.0f));
+        if (bin_type == "random")
+        {
+            for (int i = 0; i<quantity;i++)
+            {
+                float length = (float) Math.Round(UnityEngine.Random.Range(10.0f, 60.0f));
+                float width = (float) Math.Round(UnityEngine.Random.Range(10.0f, 30.0f));
+                float height = (float) Math.Round(UnityEngine.Random.Range(10.0f, 30.0f));
+                Containers.Add(new Container
+                {
+                    Length = length,
+                    Width = width,
+                    Height = height,
+                });   
+            }      
+        }
+        else if (bin_type == "biniso20")
+        {
+            for (int i = 0; i<quantity;i++)
+            {
+                Containers.Add(new Container
+                {
+                    Length = biniso_z,
+                    Width = biniso_x,
+                    Height = biniso_y,
+                });   
+            }      
+        }
     }
 
 
