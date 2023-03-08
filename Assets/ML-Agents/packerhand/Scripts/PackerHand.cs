@@ -26,10 +26,13 @@ public class PackerHand : Agent
     public bool useAttention=true; // use attention by default (default = true)
     private bool useVerticesArray;
     public bool useDenseReward=true;
-    public bool useSurfaceAreaReward=false;
+    public bool useSurfaceAreaReward_Discrete=false;
+    public bool useSurfaceAreaReward_Continuous=false;
     public bool isDiscreteSolution;
     private bool isFirstLayerContinuous;
     public bool isAllContinuous;
+    private bool useOneHotEncoding=false;
+
 
     BufferSensorComponent m_BufferSensor;
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
@@ -99,13 +102,13 @@ public class PackerHand : Agent
 
     public GameObject Origin;
 
-    public float total_bin_volume; // regular bin's volume
-    public Bounds areaBounds; // regular bin's bounds
-    public int boxes_packed = 0;
-    public float current_bin_volume;
-    public float percent_filled_bin_volume;
-    public float box_surface_area;
-    public float percent_contact_surface_area;
+    private float total_bin_volume; // regular bin's volume
+    private float total_bin_area; // regular bin's area
+    private Bounds areaBounds; // regular bin's bounds
+    private int boxes_packed = 0;
+    private float current_bin_volume;
+    private float percent_filled_bin_volume;
+    private float box_volume;
     [HideInInspector] public float binscale_x;
     [HideInInspector] public float binscale_y;
     [HideInInspector] public float binscale_z;
@@ -117,9 +120,25 @@ public class PackerHand : Agent
     public override void Initialize()
     {   
 
-        // TEMPORARY settings (delete when merging with master branch)
+        // ****************** TEMPORARY settings (delete when merging with master branch)
+        // Setup curriculum
         useCurriculum = false;
-        useSurfaceAreaReward=true;
+        curriculum_ConfigurationGlobal=2;
+        // Setup reward scheme
+        useSurfaceAreaReward_Continuous=true;
+        useSurfaceAreaReward_Discrete=false;
+        useDenseReward=false;
+        // For continuous implementation
+        isFirstLayerContinuous=false;
+        // WHen using attention, you may use one hot encoding
+        useOneHotEncoding=false;
+        // Setup Continuous solution
+        isAllContinuous=true;
+        if (isAllContinuous){isDiscreteSolution=false;}
+        // Setup discrete solution
+        isDiscreteSolution=false;
+        if (isDiscreteSolution){useVerticesArray=true;}
+        // ******************
 
         Academy.Instance.AutomaticSteppingEnabled = false;
 
@@ -175,6 +194,7 @@ public class PackerHand : Agent
         //Debug.Log($"BIN BOUNDS: {areaBounds}");
         // Get total bin volume 
         total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
+        total_bin_area   = 4 * areaBounds.extents.x * areaBounds.extents.y + 4 * areaBounds.extents.x * areaBounds.extents.z + 4 * areaBounds.extents.y * areaBounds.extents.z;
         //Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
 
         // Get scale of bin
@@ -215,45 +235,71 @@ public class PackerHand : Agent
         Debug.Log("OBSERVATION");
         // Add updated bin volume
         sensor.AddObservation(current_bin_volume);
+        sensor.AddObservation(total_bin_volume);
+        sensor.AddObservation(total_bin_area);
+        sensor.AddObservation(new Vector3(binscale_x,binscale_y,binscale_z));
+        sensor.AddObservation(new Vector3(binscale_x,binscale_y,binscale_z));
 
         int j = 0;
         maskedBoxIndices = new List<int>();
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
         {   
-
             Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
 
             if (useAttention){
-                // Used for variable size observations
-                float[] listVarObservation = new float[maxBoxNum+8];
-                int boxNum = int.Parse(box.rb.name);
-                // The first boxPool.Count are one hot encoding of the box
-                listVarObservation[boxNum] = 1.0f;
-                // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                listVarObservation[maxBoxNum]  = scaled_continuous_boxsize.x;
-                listVarObservation[maxBoxNum +1] = scaled_continuous_boxsize.y;
-                listVarObservation[maxBoxNum +2] = scaled_continuous_boxsize.z;
-                // Add updated [volume]/[w*h*l] added to state vector
-                listVarObservation[maxBoxNum +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
-                //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
-                //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
-                //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
-                // Add updated box placement vertex
-                listVarObservation[maxBoxNum +4] = box.boxVertex.x;
-                listVarObservation[maxBoxNum +5] = box.boxVertex.y;
-                listVarObservation[maxBoxNum +6] = box.boxVertex.z;
-                // Add updated box rotation
-                // listVarObservation[boxPool.Count+7] = box.boxRot[0];
-                // listVarObservation[boxPool.Count+8] = box.boxRot[1];
-                // listVarObservation[boxPool.Count+9] = box.boxRot[2];
-                // listVarObservation[boxPool.Count+10] = box.boxRot[3];
-                // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[maxBoxNum +7] = box.isOrganized ? 1.0f : 0.0f;;
-                m_BufferSensor.AppendObservation(listVarObservation);
+                if (useOneHotEncoding){
+                    // Used for variable size observations
+                    float[] listVarObservation = new float[maxBoxNum+8];
+                    int boxNum = int.Parse(box.rb.name);
+                    // The first boxPool.Count are one hot encoding of the box
+                    listVarObservation[boxNum] = 1.0f;
+                    // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
+                    listVarObservation[maxBoxNum]  = scaled_continuous_boxsize.x;
+                    listVarObservation[maxBoxNum +1] = scaled_continuous_boxsize.y;
+                    listVarObservation[maxBoxNum +2] = scaled_continuous_boxsize.z;
+                    // Add updated [volume]/[w*h*l] added to state vector
+                    listVarObservation[maxBoxNum +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
+                    //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
+                    //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
+                    //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
+                    // Add updated box placement vertex
+                    listVarObservation[maxBoxNum +4] = box.boxVertex.x;
+                    listVarObservation[maxBoxNum +5] = box.boxVertex.y;
+                    listVarObservation[maxBoxNum +6] = box.boxVertex.z;
+                    // Add updated box rotation
+                    // listVarObservation[boxPool.Count+7] = box.boxRot[0];
+                    // listVarObservation[boxPool.Count+8] = box.boxRot[1];
+                    // listVarObservation[boxPool.Count+9] = box.boxRot[2];
+                    // listVarObservation[boxPool.Count+10] = box.boxRot[3];
+                    // Add if box is placed already: 1 if placed already and 0 otherwise
+                    listVarObservation[maxBoxNum +7] = box.isOrganized ? 1.0f : 0.0f;;
+                    m_BufferSensor.AppendObservation(listVarObservation);
+                }
+                else{
+                    // Used for variable size observations
+                    float[] listVarObservation = new float[13];
+                    // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
+                    listVarObservation[0]  = scaled_continuous_boxsize.x;
+                    listVarObservation[1] = scaled_continuous_boxsize.y;
+                    listVarObservation[2] = scaled_continuous_boxsize.z;
+                    // Add updated [volume]/[w*h*l] added to state vector
+                    listVarObservation[3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
+                    // Add updated box placement vertex
+                    listVarObservation[4] = box.boxVertex.x;
+                    listVarObservation[5] = box.boxVertex.y;
+                    listVarObservation[6] = box.boxVertex.z;
+                    // Add updated box rotation
+                    listVarObservation[7] = box.boxRot[0];
+                    listVarObservation[8] = box.boxRot[1];
+                    listVarObservation[9] = box.boxRot[2];
+                    listVarObservation[10] = box.boxRot[3];
+                    // Add if box is placed already: 1 if placed already and 0 otherwise
+                    listVarObservation[12] = box.isOrganized ? 1.0f : 0.0f;;
+                    m_BufferSensor.AppendObservation(listVarObservation);
+                }
             }
             else{
-
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
                 sensor.AddObservation(scaled_continuous_boxsize);
                 // Add updated [volume]/[w*h*l] added to state vector
@@ -270,17 +316,20 @@ public class PackerHand : Agent
         }
 
         // add all zero padded boxes to action mask
-        for (int m=boxPool.Count(); m< maxBoxNum; m++)
-        {
-            // Debug.Log($"MASK ZERO PADDING {m}");
-            maskedBoxIndices.Add(m);
+        if (useOneHotEncoding){
+            for (int m=boxPool.Count(); m< maxBoxNum; m++)
+            {
+                // Debug.Log($"MASK ZERO PADDING {m}");
+                maskedBoxIndices.Add(m);
+            }
         }
 
         // Add array of vertices (selected vertices are 0s)
         if (useVerticesArray)
         {
-            int i = 0;
             maskedVertexIndices = new List<int>();
+            
+            int i = 0;
             foreach (Vector3 vertex in verticesArray) 
             {   
                 //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
@@ -298,7 +347,12 @@ public class PackerHand : Agent
                 i++;
             }
         }
-        
+        // If everything works for the Continuous approach then remove this line
+        // else
+        // {
+        //     maskedVertexIndices.Add(0);
+        // }
+
         // // array of blackboxes 
         // foreach (Blackbox blackbox in blackboxPool)
         // {
@@ -320,10 +374,12 @@ public class PackerHand : Agent
         if (isDiscreteSolution)
         {
             if (isAfterOriginVertexSelected) {
-                foreach (int vertexIdx in maskedVertexIndices) 
-                {
-                    //Debug.Log($"MASK VERTEX {vertexIdx}");
-                    actionMask.SetActionEnabled(1, vertexIdx, false);
+                if (useVerticesArray){
+                    foreach (int vertexIdx in maskedVertexIndices) 
+                    {
+                        //Debug.Log($"MASK VERTEX {vertexIdx}");
+                        actionMask.SetActionEnabled(1, vertexIdx, false);
+                    }
                 }
             }
         }
@@ -346,7 +402,9 @@ public class PackerHand : Agent
         var continuousActions = actionBuffers.ContinuousActions;
 
         SelectBox(discreteActions[++j]); 
-        SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        // activate for discrete solution + adjust in Inspector by adding 1 more discrete branch
+        // SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        SelectVertexContinuous(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         SelectRotation(discreteActions[++j]);
     }
 
@@ -357,7 +415,7 @@ public class PackerHand : Agent
     void FixedUpdate() 
     {
         // if all boxes packed, reset episode
-        if (boxPool.Count!=0 && maskedBoxIndices.Count == maxBoxNum)
+        if (boxPool.Count!=0 && ((useOneHotEncoding && maskedBoxIndices.Count == maxBoxNum) || (maskedBoxIndices.Count == boxPool.Count)))
         {
             if (!useDenseReward)
             {
@@ -403,7 +461,7 @@ public class PackerHand : Agent
             else
             {
                 // boxSpawner.SetUpBoxes(box_file, false, 0, 0, 0, seed);
-                boxSpawner.SetUpBoxes("mix_random", false, 2, 2, 2, seed);
+                boxSpawner.SetUpBoxes("uniform_random", false, 2, 2, 2, seed);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
 
@@ -452,24 +510,32 @@ public class PackerHand : Agent
             // both vertices array and vertices list are used to find black boxes
             //UpdateBlackBox();
 
-            if (useSurfaceAreaReward)
-            {
+            box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
+            float box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+
+            if (useSurfaceAreaReward_Discrete){
                 // Add surface area reward
-                box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-                percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
+                float percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
                 AddReward(percent_contact_surface_area * 50f);
                 Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
             }
-
-            current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
-            percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
-            // Add volume reward
-            if (useDenseReward)
+            if (useSurfaceAreaReward_Continuous)
             {
-                AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
-                Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+                // Add surface area reward
+                float percent_contact_surface_area_scaled = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
+                AddReward(percent_contact_surface_area_scaled * 1000f);
+                Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area_scaled * 1000f} reward from surface area");
             }
             
+            current_bin_volume = current_bin_volume - box_volume;
+            percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
+                // Add volume reward
+            if (useDenseReward)
+            {
+                AddReward((box_volume/total_bin_volume) * 1000f);
+                Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{(box_volume/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+            }
+
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
@@ -760,6 +826,26 @@ public class PackerHand : Agent
         }
             // isVertexSelected = true;
 
+    }
+
+    public void SelectVertexContinuous(float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
+    {
+        action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
+        action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
+        action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
+
+        if (isFirstLayerContinuous)
+        {
+            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
+            boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
+        }
+        else if (isAllContinuous){
+            Debug.Log($"action_SelectedVertex_x ================== {action_SelectedVertex_x}");
+            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
+            boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
+        }
     }
 
 
@@ -1234,29 +1320,28 @@ public class PackerHand : Agent
         if (cause == "failedPhysicsCheck") 
         {
             Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
-            // detach box from agent
+            // Detach box from agent
             targetBox.parent = null;
-            // add back rigidbody and collider
+            // Add back rigidbody and collider
             Rigidbody rb = boxPool[selectedBoxIdx].rb;
             BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
-            // not be affected by forces or collisions, position and rotation will be controlled directly through script
+            // Not be affected by forces or collisions, position and rotation will be controlled directly through script
             rb.isKinematic = true;
-            // reset to starting position
+            // Reset to starting position
             rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
             rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
             rb.transform.position = boxPool[selectedBoxIdx].startingPos;
             ReverseSideNames(selectedBoxIdx);
-            // remove from organized list to be picked again
+            // Remove from organized list to be picked again
             maskedBoxIndices.Remove(selectedBoxIdx);
-            // reset states
+            // Reset states
             StateReset();
             // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
-// Why is the DecisionRequester() still active in the Hand gameObject?
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
-            // settting isBlackboxUpdated to true allows another vertex to be selected
-            //isBlackboxUpdated = true;
-            // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
+            // Setting to true allows another vertex to be selected
+            // isBlackboxUpdated = true;
+            // Setting to true keeps the current vertex and allows another box to be selected
             // isVertexSelected = true;
         }
     }
@@ -1272,13 +1357,13 @@ public class PackerHand : Agent
 
     public void StateReset() 
     {
-        // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        // only removed when a box is successfully placed, if box fails physics test, selected vertex will not be removed
-        // conditional check can be removed if failing physics test = end of episode
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
             if (isDiscreteSolution)
             {
+                // Remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
+                // only removed when a box is successfully placed, if box fails physics test, selected vertex will not be removed
+                // conditional check can be removed if failing physics test = end of episode
                 if (isAfterOriginVertexSelected)
                 {
                     //Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
@@ -1352,9 +1437,7 @@ public class PackerHand : Agent
     }
 
 
-    /// <summary>
     /// Configures the agent. Given an integer config, difficulty level will be different and a different brain will be used.
-    /// </summary>
     void ConfigureAgent(int n) 
     {
         if (n==0) 

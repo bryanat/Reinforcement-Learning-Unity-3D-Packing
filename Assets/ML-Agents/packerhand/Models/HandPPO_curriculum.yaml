@@ -1,5 +1,5 @@
 behaviors:
-  Discrete:
+  Continuous:
     trainer_type: ppo
     hyperparameters:
       batch_size: 512
@@ -90,60 +90,60 @@ behaviors:
   
   # Add this section
 environment_parameters:
-  discrete:
+  Continuous:
     curriculum:
-      - name: 1DiscreteLesson # The '-' is important as this is a list
+      - name: 1ContinuousLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
-          behavior: Discrete
+          behavior: Continuous
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 800
         value: 0.0
-      - name: 2DiscreteLesson # The '-' is important as this is a list
+      - name: 2ContinuousLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
-          behavior: Discrete
+          behavior: Continuous
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 800
         value: 1.0
-      - name: 3DiscreteLesson # The '-' is important as this is a list
+      - name: 3ContinuousLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
-          behavior: Discrete
+          behavior: Continuous
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 800
         value: 2.0
     # curriculum:
-    #   - name: 8BoxDiscreteLesson # The '-' is important as this is a list
+    #   - name: 8BoxContinuousLesson # The '-' is important as this is a list
     #     completion_criteria:
     #       measure: reward
-    #       behavior: Discrete
+    #       behavior: Continuous
     #       signal_smoothing: true
     #       min_lesson_length: 100
     #       threshold: 400
     #     value: 0.0
-    #   - name: 30BoxDiscreteLesson # The '-' is important as this is a list
+    #   - name: 30BoxContinuousLesson # The '-' is important as this is a list
     #     completion_criteria:
     #       measure: reward
-    #       behavior: Discrete
+    #       behavior: Continuous
     #       signal_smoothing: true
     #       min_lesson_length: 100
     #       threshold: 600
     #     value: 1.0
-    #   - name: VariableBoxDiscreteLesson # The '-' is important as this is a list
+    #   - name: VariableBoxContinuousLesson # The '-' is important as this is a list
     #     completion_criteria:
     #       measure: reward
-    #       behavior: Discrete
+    #       behavior: Continuous
     #       signal_smoothing: true
     #       min_lesson_length: 100
     #       threshold: 900
     #     value: 2.0
   # mix:
   #   curriculum:
-  #     - name: EasyDiscreteLesson # The '-' is important as this is a list
+  #     - name: EasyContinuousLesson # The '-' is important as this is a list
   #       completion_criteria:
   #         measure: reward
   #         behavior: Mix

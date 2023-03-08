@@ -78,13 +78,16 @@ public class BoxSpawner : MonoBehaviour
     
     public GameObject unitBox; 
 
-    public int maxBoxQuantity;
+    public int maxBoxQuantity= 50; // max number of boxes in the scene; default of 50 here is arbitrary
+    private bool usePadding = false; // if true, will pad the json file with zeros to maxBoxQuantity
 
     public BoxSize [] sizes;
 
     [HideInInspector] public int idx_counter = 0;
 
     string homeDir;
+
+
 
 
     public void Start()
@@ -99,7 +102,7 @@ public class BoxSpawner : MonoBehaviour
             RandomBoxGenerator("uniform_random", pickRandom, num_boxes_x, num_boxes_y, num_boxes_z, seed);
             // Read random boxes using existing ReadJson function
             ReadJson($"{homeDir}/Unity/data/Boxes_RandomUniform.json");
-            PadZeros();
+            if (usePadding){PadZeros();}
             // Delete the created json file to reuse the name next iteration
             File.Delete($"{homeDir}/Unity/data/Boxes_RandomUniform.json");
 
@@ -109,14 +112,14 @@ public class BoxSpawner : MonoBehaviour
             RandomBoxGenerator("mix_random", pickRandom, num_boxes_x, num_boxes_y, num_boxes_z, seed);
             // Read random boxes using existing ReadJson function
             ReadJson($"{homeDir}/Unity/data/Boxes_RandomMix.json");
-            PadZeros();
+            if (usePadding){PadZeros();}
             // Delete the created json file to reuse the name next iteration
             File.Delete($"{homeDir}/Unity/data/Boxes_RandomMix.json");
         }
         else
         {
             ReadJson($"{homeDir}/Unity/data/{box_type}.json");
-            PadZeros();
+            if (usePadding){PadZeros();}
         }
 
         var idx = 0;
