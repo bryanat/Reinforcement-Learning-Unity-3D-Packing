@@ -79,7 +79,7 @@ public class BoxSpawner : MonoBehaviour
     public GameObject unitBox; 
 
     public int maxBoxQuantity= 50; // max number of boxes in the scene; default of 50 here is arbitrary
-    private bool usePadding = false; // if true, will pad the json file with zeros to maxBoxQuantity
+    private bool usePadding = false; // if true, will pad the json file with zeros to maxBoxQuantity; use when using one-hot encoding in packerhand.cs
 
     public BoxSize [] sizes;
 
