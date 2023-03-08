@@ -27,7 +27,7 @@ public class BinSpawner : MonoBehaviour {
 
 public static List<Container> Containers = new List<Container>();
 public Container Container = new Container();
-public GameObject binArea; // The bin container prefab, which will be manually selected in the Inspector
+public GameObject bin; // The bin container prefab, which will be manually selected in the Inspector
 public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
 public GameObject Origin; // gives origin position of the first bin (for multiplatform usage)   
 [HideInInspector] public List<Vector4> origins = new List<Vector4>(); 
@@ -69,7 +69,7 @@ string homeDir;
         foreach (Container c in Containers)
         {
             // make container and outer_shell from prefab
-            GameObject container = Instantiate(binArea);
+            GameObject container = Instantiate(bin);
             GameObject shell = Instantiate(outerBin);
             container.name = $"Bin{idx.ToString()}";
             shell.name = $"OuterBin{idx.ToString()}";
@@ -104,7 +104,7 @@ string homeDir;
         }
         total_bin_num = idx;
         // hide original prefabs
-        binArea.SetActive(false);
+        bin.SetActive(false);
         outerBin.SetActive(false);
 
     }
