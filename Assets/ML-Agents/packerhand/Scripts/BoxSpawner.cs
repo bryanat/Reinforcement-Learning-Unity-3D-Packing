@@ -51,7 +51,7 @@ public class Item
 
 public class BoxSpawner : MonoBehaviour 
 {
-    [HideInInspector] public List<Box> boxPool = new List<Box>(); //list of Box class objects that stores most of the box information
+    [HideInInspector] public static List<Box> boxPool = new List<Box>(); //list of Box class objects that stores most of the box information
     private List<Item> Items = new List<Item>(); // for reading, generating, and writing box information
     public List<Color> Colors = new List<Color>(); // stores local box colors
 
@@ -139,9 +139,6 @@ public class BoxSpawner : MonoBehaviour
                 idx+=1;     
             }
         }
-        // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
-        // // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
-        // // Create sizes_AmericanEuropeanAsian_pallets = new float[][] { ... }  42" X 42" = 10.67dm X 10.67dm
     }
 
 
@@ -159,11 +156,11 @@ public class BoxSpawner : MonoBehaviour
         // Create a new object with the Items list
         List<Item> items = new List<Item>();
         Colors.Clear();
+        UnityEngine.Random.InitState(seed);
         if (box_type == "uniform") 
         {
             foreach (Container container in BinSpawner.Containers)
             {
-                UnityEngine.Random.InitState(seed);
                 Color randomColor = UnityEngine.Random.ColorHSV();
                 int random_num_x =  UnityEngine.Random.Range(1, 4);
                 int random_num_y =  UnityEngine.Random.Range(1, 4);
@@ -200,7 +197,6 @@ public class BoxSpawner : MonoBehaviour
                 int bin_z = (int) Math.Floor(container.Length);
                 int bin_x = (int) Math.Floor(container.Width);
                 int bin_y = (int) Math.Floor(container.Height);
-                UnityEngine.Random.InitState(seed);
                 List<int> x_dimensions = new List<int>();
                 List<int> y_dimensions = new List<int>();
                 List<int> z_dimensions = new List<int>();

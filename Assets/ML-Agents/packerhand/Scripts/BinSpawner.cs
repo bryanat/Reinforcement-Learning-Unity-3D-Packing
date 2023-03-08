@@ -25,33 +25,36 @@ public class Container
 public class BinSpawner : MonoBehaviour {
 
 
-public static List<Container> Containers = new List<Container>();
-public Container Container = new Container();
-public GameObject bin; // The bin container prefab, which will be manually selected in the Inspector
-public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
-public GameObject Origin; // gives origin position of the first bin (for multiplatform usage)   
-[HideInInspector] public List<Vector4> origins = new List<Vector4>(); 
+    public static List<Container> Containers = new List<Container>();
+    public Container Container = new Container();
+    public GameObject bin; // The bin container prefab, which will be manually selected in the Inspector
+    public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
+    public GameObject Origin; // gives origin position of the first bin (for multiplatform usage)   
+    [HideInInspector] public static List<Vector4> origins = new List<Vector4>(); 
 
-[HideInInspector] public List<CombineMesh> m_BackMeshScripts = new List<CombineMesh>();
-[HideInInspector] public List<CombineMesh> m_SideMeshScripts = new List<CombineMesh>();
-[HideInInspector] public List<CombineMesh> m_BottomMeshScripts = new List<CombineMesh>();
+    public static List<float> binscales_x = new List<float>(); 
+    public static List<float> binscales_y = new List<float>();
+    public static List<float> binscales_z = new List<float>();
+    [HideInInspector] public List<CombineMesh> m_BackMeshScripts = new List<CombineMesh>();
+    [HideInInspector] public List<CombineMesh> m_SideMeshScripts = new List<CombineMesh>();
+    [HideInInspector] public List<CombineMesh> m_BottomMeshScripts = new List<CombineMesh>();
 
-public List<float> binscales_x; 
-public List<float> binscales_y;
-public List<float> binscales_z;
-// prefab's (BinIso20) sizes
-public float biniso_z = 59f;
-public float biniso_x = 23.5f;
-public float biniso_y = 23.9f;
-public int total_bin_num;
-public float total_bin_volume;
-string homeDir;
+    // prefab's (BinIso20) sizes
+    public float biniso_z = 59f;
+    public float biniso_x = 23.5f;
+    public float biniso_y = 23.9f;
+    public int total_bin_num;
+    public float total_bin_volume;
+    string homeDir;
 
     public void Start()
     {
         homeDir = Environment.GetEnvironmentVariable("HOME");
     }
 
+    // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
+    // // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
+    // // Create sizes_AmericanEuropeanAsian_pallets = new float[][] { ... }  42" X 42" = 10.67dm X 10.67dm
     public void SetUpBins(string bin_type, int bin_quantity=0, int seed=123)
     {
         if (bin_type == "biniso20" | bin_type == "random")
@@ -111,6 +114,8 @@ string homeDir;
     }
     public void RandomBinGenerator(string bin_type, int quantity, int seed)
     {
+
+        UnityEngine.Random.InitState(seed);
         if (bin_type == "random")
         {
             for (int i = 0; i<quantity;i++)
