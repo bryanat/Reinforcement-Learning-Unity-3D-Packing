@@ -313,7 +313,12 @@ public class PackerHand : Agent
                 int idx_cntr = 0;
                 float[] listVarObservation = new float[max_observable_size];
 
-                // Add boxes to action mask. THese boxes will be exempted from the next action/decision of the agent
+                if (box.isOrganized && usePadding){
+                    Debug.Log($"box.isOrganized && usePadding: {box.isOrganized && usePadding} is not valid. A padded box should not be placed inside the bin");
+                    return;
+                }
+
+                // Add boxes to action mask. These boxes will be exempted from the next action/decision of the agent
                 if (box.isOrganized){           
                     // Already placed boxes are exempted from action but included in observation so that the agent "knows" about the 
                     // positions of the boxes inside the bin
