@@ -103,10 +103,6 @@ public class BoxSpawner : MonoBehaviour
     public void Start()
     {
         homeDir = Environment.GetEnvironmentVariable("HOME");
-        // packerHand = FindObjectOfType<PackerHand>();
-        // if (packerHand.useBoxCategorization){
-            // usePadding = true;
-        // }
     }
 
     public void SetUpBoxes(string box_type, bool pickRandom, int num_boxes_x, int num_boxes_y, int num_boxes_z, int seed, bool usePadding)
@@ -147,7 +143,7 @@ public class BoxSpawner : MonoBehaviour
             // Create boxPool array containing non-0-sized boxes as Box objects
             Vector3 box_size = new Vector3(s.box_size.x, s.box_size.y, s.box_size.z);
             // if box is not of size zeros
-            if (box_size.x != 0) 
+            if (box_size.x != 0)        // QUESTION: how is the padding working if zero-boxes are neglected here?
             {
                 // Create GameObject box
                 var position = GetRandomSpawnPos();

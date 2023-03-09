@@ -348,11 +348,11 @@ public class PackerHand : Agent
                 sensor.AddObservation (box.boxVertex);
             }
 
-            // Add boxes to action ask: 1) boxes already placed in the bin, 2) boxes that are zero-padded
+            // Add boxes (to be exempted from decision step) to action mask: 1) boxes already placed in the bin, 2) boxes that are zero-padded
             if (box.isOrganized){
                 maskedBoxIndices.Add(j);}
             else if (usePadding){   
-                maskedBoxIndices.Add(j);}
+                if (box.boxSize == Vector3.zero) maskedBoxIndices.Add(j);}
             j++;
         }
 
