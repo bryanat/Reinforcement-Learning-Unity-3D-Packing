@@ -10,7 +10,6 @@ using Unity.Barracuda;
 using Unity.MLAgentsExamples;
 using Unity.MLAgents.Policies;
 using Box = Boxes.Box;
-//using Blackbox = Boxes.Blackbox;
 using Boxes;
 
 public class PackerHand : Agent 
