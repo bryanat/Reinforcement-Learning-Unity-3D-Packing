@@ -22,6 +22,6 @@ public class VertexCounter : MonoBehaviour
         meshFilter = GetComponent<MeshFilter>();
         mesh = meshFilter.mesh;
         vertexCount = mesh.vertices.Length;
-        Debug.Log($"********************************************** Original  {gameObject.name}: Vertex count=== " + vertexCount);
+        //Debug.Log($"********************************************** Original  {gameObject.name}: Vertex count=== " + vertexCount);
     }
 }

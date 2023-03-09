@@ -12,45 +12,25 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Runtime.Serialization.Json;
 using Newtonsoft.Json;
-
+using BinSpawner = Bins.BinSpawner;
+using Container = Bins.Container;
 
 
 namespace Boxes {
 
-
-
 public class Box
 {
-    public Rigidbody rb;
-
+    public Color boxColor;  // stores box color, boxes of the same product_id will have same color (for front_end)
+    public Rigidbody rb; // stores transform information
     public Vector3 startingPos; // for box reset, constant 
-
     public Quaternion startingRot; // for box reset, constant
-
     public Vector3 startingSize; // for box reset, constant 
-
     public Vector3 boxSize; // for sensor, changes after selected action
-
     public Quaternion boxRot; // for sensor, changes after selected action
-
     public Vector3 boxVertex; // for sensor, changes after selected action
-
-    public bool isOrganized = false; 
-
-    public GameObject gameobjectBox;
+    public bool isOrganized = false; // for sensor, changes after selected action
+    public GameObject gameobjectBox; // stores gameobject box reference created during box creation, for destroying old boxes
 }
-
-
-// public class Blackbox
-// {
-//     public Vector3 position;
-//     public Vector3 vertex;
-//     public float volume;
-//     public Vector3 size;
-
-//     public GameObject gameobjectBlackbox;
-// }
-
 
 [System.Serializable]
 public class BoxSize
@@ -61,57 +41,62 @@ public class BoxSize
 public class Item
 {
     public int Product_id { get; set; }
-    public double Length { get; set; }
-    public double Width { get; set; }
-    public double Height { get; set; }
+    public float Length { get; set; }
+    public float Width { get; set; }
+    public float Height { get; set; }
     public int Quantity { get; set; }
 }
 
 
-// Spawns in boxes with sizes from a json file
 public class BoxSpawner : MonoBehaviour 
 {
-    [HideInInspector] public List<Box> boxPool = new List<Box>();
+    [HideInInspector] public List<Box> boxPool = new List<Box>(); //list of Box class objects that stores most of the box information
+    public List<Color> Colors = new List<Color>(); // stores local box colors
 
     // The box area, which will be set manually in the Inspector
-    public GameObject boxArea;
+    public GameObject boxArea; // place where boxes are spawned
+    public GameObject unitBox; // prefab for box generation
     
-    public GameObject unitBox; 
+    public int maxBoxQuantity; // maximum box quantity (default set to 50)
 
-    public int maxBoxQuantity;
+    public BoxSize [] sizes; // array of box sizes
 
-    public BoxSize [] sizes;
+    [HideInInspector] public int idx_counter = 0; //counter for sizes array
 
-    [HideInInspector] public int idx_counter = 0;
+    public BinSpawner binSpawner;
+
+    string homeDir;
 
 
-    public void SetUpBoxes(string box_type, int seed=123) 
+    public void Start()
     {
-        if (box_type == "uniform_random")
+        homeDir = Environment.GetEnvironmentVariable("HOME");
+    }
+
+    public void SetUpBoxes(string box_type , int seed=123) 
+    {
+        // randomly generates boxes
+        if (box_type == "uniform" | box_type == "mix")
         {
-            RandomBoxGenerator("uniform_random", seed);
+            RandomBoxGenerator(box_type, seed);
             // Read random boxes using existing ReadJson function
-            ReadJson("~/Unity/data/Boxes_RandomUniform.json");
+            ReadJson($"{homeDir}/Unity/data/Boxes_Random.json", seed);
             PadZeros();
             // Delete the created json file to reuse the name next iteration
-            File.Delete("~/Unity/data/Boxes_RandomUniform.json");
+            File.Delete($"{homeDir}/Unity/data/Boxes_Random.json");
 
         }
-        else if (box_type == "mix_random")
-        {
-            RandomBoxGenerator("mix_random", seed);
-            // Read random boxes using existing ReadJson function
-            ReadJson("~/Unity/data/Boxes_RandomMix.json");
-            PadZeros();
-            // Delete the created json file to reuse the name next iteration
-            File.Delete("~/Unity/data/Boxes_RandomMix.json");
-        }
+        // read box from file
         else
         {
-            ReadJson($"~/Unity/data/{box_type}.json");
-            PadZeros();
+            // once sizes is populated, don't have to read from file again
+            if (sizes[0].box_size.x==0)
+            {
+                ReadJson($"{homeDir}/Unity/data/{box_type}.json", seed);
+                PadZeros();
+            }
         }
-
+        // populate box pool
         var idx = 0;
         foreach(BoxSize s in sizes) 
         {
@@ -140,6 +125,7 @@ public class BoxSpawner : MonoBehaviour
                 var newBox = new Box
                 {
                     rb = box.GetComponent<Rigidbody>(), 
+                    boxColor = Colors[idx],
                     startingPos = box.transform.position,
                     startingRot = box.transform.rotation,
                     startingSize = box.transform.localScale,
@@ -152,9 +138,6 @@ public class BoxSpawner : MonoBehaviour
                 idx+=1;     
             }
         }
-        // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
-        // // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
-        // // Create sizes_AmericanEuropeanAsian_pallets = new float[][] { ... }  42" X 42" = 10.67dm X 10.67dm
     }
 
 
@@ -169,107 +152,116 @@ public class BoxSpawner : MonoBehaviour
 
     public void RandomBoxGenerator(string box_type, int seed)
     {
-        if (box_type == "uniform_random") 
+        // Create a new object with the Items list
+        List<Item> items = new List<Item>();
+        Colors.Clear();
+        UnityEngine.Random.InitState(seed);
+        if (box_type == "uniform") 
         {
-            float bin_z = 59f;
-            float bin_x = 23.5f;
-            float bin_y = 23.9f;
-            UnityEngine.Random.InitState(seed);
-            int random_num_x =  UnityEngine.Random.Range(1, 4);
-            int random_num_y =  UnityEngine.Random.Range(1, 4);
-            int random_num_z =  UnityEngine.Random.Range(1, 6);
-            float x_dimension =  (float)Math.Floor(bin_x/random_num_x * 100)/100;
-            float y_dimension =  (float)Math.Floor(bin_y/random_num_y * 100)/100;
-            float z_dimension = (float)Math.Floor(bin_z/random_num_z * 100)/100;
-            Debug.Log($"RUF RANDOM UNIFORM BOX NUM: {random_num_x*random_num_y*random_num_z} | x:{x_dimension} y:{y_dimension} z:{z_dimension}");
-
-            List<Item> items = new List<Item>();
-            items.Add(new Item
+            foreach (Container container in binSpawner.Containers)
             {
-                Product_id = 0,
-                Length = z_dimension,
-                Width = x_dimension,
-                Height = y_dimension,
-                Quantity = random_num_x*random_num_y*random_num_z
-            });
-
-            // Create a new object with the Items list
-            var data = new { Items = items };
-            // Serialize the object to json
-            var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
-            // Write the json to a file
-            File.WriteAllText("~/Unity/data/Boxes_RandomUniform.json", json);
-        }
-        if (box_type == "mix_random")
-        {
-            int bin_z = 59;
-            int bin_x = 23;
-            int bin_y = 24;
-            UnityEngine.Random.InitState(seed);
-            List<Item> items = new List<Item>();
-            List<int> x_dimensions = new List<int>();
-            List<int> y_dimensions = new List<int>();
-            List<int> z_dimensions = new List<int>();
-            // chop up the x, y, z dimensions
-            int random_num_x =  UnityEngine.Random.Range(2, 4);
-            int random_num_y =  UnityEngine.Random.Range(2, 4);
-            int random_num_z =  UnityEngine.Random.Range(2, 6);
-            x_dimensions.Add(bin_x);
-            while (x_dimensions.Count<random_num_x)
-            {
-                int largest = x_dimensions.Max();
-                int newPiece = UnityEngine.Random.Range(1, largest);
-                x_dimensions.Remove(largest);
-                x_dimensions.Add(newPiece);
-                x_dimensions.Add(largest - newPiece);
-            }
-            y_dimensions.Add(bin_y);
-            while (y_dimensions.Count<random_num_y)
-            {
-                int largest = y_dimensions.Max();
-                int newPiece = UnityEngine.Random.Range(1, largest);
-                y_dimensions.Remove(largest);
-                y_dimensions.Add(newPiece);
-                y_dimensions.Add(largest - newPiece);
-            }
-            z_dimensions.Add(bin_z);
-            while (z_dimensions.Count<random_num_z)
-            {
-                int largest = z_dimensions.Max();
-                int newPiece = UnityEngine.Random.Range(1, largest);
-                z_dimensions.Remove(largest);
-                z_dimensions.Add(newPiece);
-                z_dimensions.Add(largest - newPiece);
-            }
-            int id = 0;
-            for (int x=0; x<x_dimensions.Count; x++){
-                for (int y=0; y<y_dimensions.Count; y++){
-                    for (int z=0; z<z_dimensions.Count; z++){
-                        items.Add(new Item{
-                            Product_id = id,
-                            Length = z_dimensions[z],
-                            Width = x_dimensions[x],
-                            Height = y_dimensions[y],
-                            Quantity = 1
-
-                        }); id++;
-                    }
+                Color randomColor = UnityEngine.Random.ColorHSV();
+                int random_num_x =  UnityEngine.Random.Range(1, 4);
+                int random_num_y =  UnityEngine.Random.Range(1, 4);
+                int random_num_z =  UnityEngine.Random.Range(1, 6);
+                float x_dimension =  (float)Math.Floor(container.Width/random_num_x * 100)/100;
+                float y_dimension =  (float)Math.Floor(container.Height/random_num_y * 100)/100;
+                float z_dimension = (float)Math.Floor(container.Length/random_num_z * 100)/100;
+                int quantity = random_num_x*random_num_y*random_num_z;
+                //Debug.Log($"RUF RANDOM UNIFORM BOX NUM: {random_num_x*random_num_y*random_num_z} | x:{x_dimension} y:{y_dimension} z:{z_dimension}");
+                items.Add(new Item
+                {
+                    Product_id = 0,
+                    Length = z_dimension,
+                    Width = x_dimension,
+                    Height = y_dimension,
+                    Quantity = random_num_x*random_num_y*random_num_z,
+                });
+                // Set color of the boxes
+                for (int i= 0; i<quantity; i++)
+                {
+                    Colors.Add(randomColor);
                 }
             }
+        var data = new { Items = items };
+        // Serialize the object to json
+        var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
+        // Write the json to a file
+        File.WriteAllText($"{homeDir}/Unity/data/Boxes_Random.json", json);
+        }
+        else if (box_type == "mix")
+        {
+            foreach (Container container in binSpawner.Containers)
+            {
+                int bin_z = (int) Math.Floor(container.Length);
+                int bin_x = (int) Math.Floor(container.Width);
+                int bin_y = (int) Math.Floor(container.Height);
+                List<int> x_dimensions = new List<int>();
+                List<int> y_dimensions = new List<int>();
+                List<int> z_dimensions = new List<int>();
+                // chop up the x, y, z dimensions
+                int random_num_x =  UnityEngine.Random.Range(2, 4);
+                int random_num_y =  UnityEngine.Random.Range(2, 4);
+                int random_num_z =  UnityEngine.Random.Range(2, 6);
+                x_dimensions.Add(bin_x);
+                while (x_dimensions.Count<random_num_x)
+                {
+                    int largest = x_dimensions.Max();
+                    int newPiece = UnityEngine.Random.Range(1, largest);
+                    x_dimensions.Remove(largest);
+                    x_dimensions.Add(newPiece);
+                    x_dimensions.Add(largest - newPiece);
+                }
+                y_dimensions.Add(bin_y);
+                while (y_dimensions.Count<random_num_y)
+                {
+                    int largest = y_dimensions.Max();
+                    int newPiece = UnityEngine.Random.Range(1, largest);
+                    y_dimensions.Remove(largest);
+                    y_dimensions.Add(newPiece);
+                    y_dimensions.Add(largest - newPiece);
+                }
+                z_dimensions.Add(bin_z);
+                while (z_dimensions.Count<random_num_z)
+                {
+                    int largest = z_dimensions.Max();
+                    int newPiece = UnityEngine.Random.Range(1, largest);
+                    z_dimensions.Remove(largest);
+                    z_dimensions.Add(newPiece);
+                    z_dimensions.Add(largest - newPiece);
+                }
+                int id = 0;
+                for (int x=0; x<x_dimensions.Count; x++){
+                    for (int y=0; y<y_dimensions.Count; y++){
+                        for (int z=0; z<z_dimensions.Count; z++){
+                            Color randomColor = UnityEngine.Random.ColorHSV();
+                            Colors.Add(randomColor);
+                            items.Add(new Item{
+                                Product_id = id,
+                                Length = z_dimensions[z],
+                                Width = x_dimensions[x],
+                                Height = y_dimensions[y],
+                                Quantity = 1
 
+                            }); id++;
+                        }
+                    }
+                }
+
+            }
             var data = new { Items = items };
             // Serialize the object to json
             var json = JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented);
             // Write the json to a file
-            File.WriteAllText("~/Unity/data/Boxes_RandomMix.json", json);           
+            File.WriteAllText($"{homeDir}/Unity/data/Boxes_Random.json", json);           
         }
     }
 
-
     // Read from json file and construct box, then add box to sizes array of boxes
     // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },
-    public void ReadJson(string filename, bool randomNumberOfBoxes = false) 
+    public void ReadJson(string filename, int seed) 
     {
+        UnityEngine.Random.InitState(seed);
         idx_counter = 0;
         using (var inputStream = File.Open(filename, FileMode.Open)) {
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
@@ -278,19 +270,19 @@ public class BoxSpawner : MonoBehaviour
             var boxes = root.XPathSelectElement("//Items").Elements();
             foreach (XElement box in boxes)
             {
-                string id = box.XPathSelectElement("./Product_id").Value;
+                int id = int.Parse(box.XPathSelectElement("./Product_id").Value);
                 float length = float.Parse(box.XPathSelectElement("./Length").Value);
                 float width = float.Parse(box.XPathSelectElement("./Width").Value);
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
                 int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
+                Color randomColor = UnityEngine.Random.ColorHSV();
                 //Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
-                // Debug.Log($"idx_counter A ================ {idx_counter}");
                 for (int n = 0; n<quantity; n++)
                 {
-                    // Debug.Log($"n           B ================ {n}");
                     sizes[idx_counter].box_size = new Vector3(width, height, length);
+                    // Set color of boxes (same id (same size) with same color)
+                    Colors.Add(randomColor);
                     idx_counter++;
-                    // Debug.Log($"idx_counter B ================ {idx_counter}");
                 }   
             }
         }

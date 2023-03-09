@@ -5,7 +5,16 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
-    path: Assets/ML-Agents/packerhand/Scenes/BoxPacking001.unity
+  - enabled: 0
+    path: Assets/ML-Agents/packerhand/Scenes/BoxPackingMultPlatformOriginal.unity
     guid: cece2de1dcba2f7ba91007e1c331f44e
+  - enabled: 0
+    path: Assets/ML-Agents/packerhand/Scenes/BoxPackingNew.unity
+    guid: a70a10dc78dc3384a98ccae7a1eaa9cc
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 1
+    path: Assets/ML-Agents/packerhand/Scenes/BoxPackingNewV2.unity
+    guid: 16fa2dfe88bfccb5885bf9d1cfd20ec7
   m_configObjects: {}

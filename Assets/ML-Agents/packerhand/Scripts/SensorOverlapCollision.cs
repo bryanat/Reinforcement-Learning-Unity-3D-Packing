@@ -26,9 +26,7 @@ public class SensorOverlapCollision : MonoBehaviour
         {
             // reset box, through failing passedOverlapCheck flag that agent uses to reset box and pickup a new box when false
             passedOverlapCheck = false;
-            //agent.AddReward(-1f);
-            //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedOverlapCheck: {passedOverlapCheck}");
-            Debug.Log($"SCS {name} FAILED OVERLAP CHECK");
+            //Debug.Log($"SCS {name} FAILED OVERLAP CHECK");
             Destroy(gameObject);
         }         
     }  

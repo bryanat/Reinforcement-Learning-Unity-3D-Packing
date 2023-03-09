@@ -21,9 +21,12 @@ public class SensorOuterCollision : MonoBehaviour
         {
             // reset box, through passedBoundCheck flag that agent uses to reset box and pickup a new box 
             passedBoundCheck = false;
-            //agent.AddReward(-1f);
-            //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedBoundCheck: {passedBoundCheck}");
-            Debug.Log($"SCS {name} FAILED PROTRUSION TEST");
+            //Debug.Log($"SCS {name} FAILED PROTRUSION TEST");
         }  
+        // change bin opening's tag back
+        if (collision.transform.parent!=null && collision.transform.parent.name == "OuterBin")
+        {
+            collision.transform.parent.GetChild(5).tag = "binopening";
+        }
     }  
 }
