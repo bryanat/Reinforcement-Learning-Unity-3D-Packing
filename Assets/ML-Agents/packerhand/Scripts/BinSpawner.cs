@@ -25,19 +25,18 @@ public class Container
 public class BinSpawner : MonoBehaviour {
 
 
-    public  List<Container> Containers = new List<Container>();
-    public Container Container = new Container();
+    public  List<Container> Containers = new List<Container>(); // contains dimension information of all bins
     public GameObject bin; // The bin container prefab, which will be manually selected in the Inspector
     public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
     public GameObject Origin; // gives origin position of the first bin (for multiplatform usage)   
-    [HideInInspector] public List<Vector4> origins = new List<Vector4>(); 
+    [HideInInspector] public List<Vector4> origins = new List<Vector4>(); // stores origin information of all bins
 
-    public List<float> binscales_x = new List<float>(); 
-    public List<float> binscales_y = new List<float>();
-    public List<float> binscales_z = new List<float>();
-    [HideInInspector] public List<CombineMesh> m_BackMeshScripts = new List<CombineMesh>();
-    [HideInInspector] public List<CombineMesh> m_SideMeshScripts = new List<CombineMesh>();
-    [HideInInspector] public List<CombineMesh> m_BottomMeshScripts = new List<CombineMesh>();
+    public List<float> binscales_x = new List<float>(); // stores all bin's x dimension
+    public List<float> binscales_y = new List<float>(); // stores all bin's y dimension
+    public List<float> binscales_z = new List<float>(); // stores all bin's z dimension
+    [HideInInspector] public List<CombineMesh> m_BackMeshScripts = new List<CombineMesh>(); // stores back mesh script of all bins
+    [HideInInspector] public List<CombineMesh> m_SideMeshScripts = new List<CombineMesh>(); // stores side mesh script of all bins
+    [HideInInspector] public List<CombineMesh> m_BottomMeshScripts = new List<CombineMesh>(); // stores bottom mesh script of all bins
 
     // prefab's (BinIso20) sizes
     public float biniso_z = 59f;
@@ -45,12 +44,7 @@ public class BinSpawner : MonoBehaviour {
     public float biniso_y = 23.9f;
     public int total_bin_num;
     public float total_bin_volume;
-    string homeDir;
 
-    public void Start()
-    {
-        homeDir = Environment.GetEnvironmentVariable("HOME");
-    }
 
     // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
     // // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
@@ -150,7 +144,7 @@ public class BinSpawner : MonoBehaviour {
 
     public void ReadJson(string box_file) 
     {
-        homeDir = Environment.GetEnvironmentVariable("HOME");
+        var homeDir = Environment.GetEnvironmentVariable("HOME");
         string filename = $"{homeDir}/Unity/data/{box_file}.json";
         using (var inputStream = File.Open(filename, FileMode.Open)) {
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 

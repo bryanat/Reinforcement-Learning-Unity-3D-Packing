@@ -20,7 +20,6 @@ namespace Boxes {
 
 public class Box
 {
-    public int product_id; // stores box's product id (for front-end)
     public Color boxColor;  // stores box color, boxes of the same product_id will have same color (for front_end)
     public Rigidbody rb; // stores transform information
     public Vector3 startingPos; // for box reset, constant 
@@ -52,7 +51,6 @@ public class Item
 public class BoxSpawner : MonoBehaviour 
 {
     [HideInInspector] public List<Box> boxPool = new List<Box>(); //list of Box class objects that stores most of the box information
-    private List<Item> Items = new List<Item>(); // for reading, generating, and writing box information
     public List<Color> Colors = new List<Color>(); // stores local box colors
 
     // The box area, which will be set manually in the Inspector
@@ -91,8 +89,8 @@ public class BoxSpawner : MonoBehaviour
         // read box from file
         else
         {
-            // once Items is populated, don't have to read from file again
-            if (Items.Count==0)
+            // once sizes is populated, don't have to read from file again
+            if (sizes[0].box_size.x==0)
             {
                 ReadJson($"{homeDir}/Unity/data/{box_type}.json", seed);
                 PadZeros();
@@ -127,7 +125,6 @@ public class BoxSpawner : MonoBehaviour
                 var newBox = new Box
                 {
                     rb = box.GetComponent<Rigidbody>(), 
-                    product_id = Items[idx].Product_id,
                     boxColor = Colors[idx],
                     startingPos = box.transform.position,
                     startingRot = box.transform.rotation,
@@ -283,14 +280,6 @@ public class BoxSpawner : MonoBehaviour
                 for (int n = 0; n<quantity; n++)
                 {
                     sizes[idx_counter].box_size = new Vector3(width, height, length);
-                    Items.Add(new Item
-                    {
-                        Product_id = id,
-                        Length = width,
-                        Width = height,
-                        Height = length,
-                        Quantity = quantity,
-                    });
                     // Set color of boxes (same id (same size) with same color)
                     Colors.Add(randomColor);
                     idx_counter++;
