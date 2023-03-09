@@ -466,7 +466,7 @@ public class PackerHand : Agent
             if ((usePadding && maskedBoxIndices.Count != maxBoxNum) || 
                 (              maskedBoxIndices.Count != boxPool.Count)){
                 Debug.Log($" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ERROR &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-                Debug.Log($" Increase maxBoxNum from {maxBoxNum} to {boxPool.Count} to fit all padded boxes in the bin");
+                Debug.Log($" Masked box array not working correctly. Masked box array length: {maskedBoxIndices.Count} | boxPool.Count: {boxPool.Count} | maxBoxNum: {maxBoxNum}");
                 return;
             }
 
