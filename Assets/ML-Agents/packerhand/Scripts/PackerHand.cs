@@ -23,7 +23,6 @@ public class PackerHand : Agent
     public bool useCurriculum=true;
     public bool useAttention=true; // use attention by default (default = true)
     public bool useDiscreteSolution=true;
-    // [SerializeField] private bool _useBoxCategorization;    // This variable is used as an entry point for the useBoxCategorization variable
     public bool _useOneHotEncodingForAttention; 
                             // _useOneHotEncodingForAttention means that we have a number of standard boxes (eg 50), each with unique attributes. For each training,
                             // we would use only a subset of these boxes (eg 10). The rest of the boxes will be created but their sizes will be set to 
@@ -35,6 +34,12 @@ public class PackerHand : Agent
                             // 2. Even if we did, it is not really needed. The unique identifier of each box is its size which is already in the 
                             //    observation stack. 
                             // 3. OneHotEncoding drastically increases the size of the observation stack, making training far more difficult.
+    public bool _usePadding; // Padding should be used when using a Curriculum with varying number of boxes between lessons
+                             // Padding does not require one-hot encoding. That would only be useful when the same boxes are re-used in the next
+                             //   next Curriculum lesson. Otherwise, using OneHotEncoding just mixes up the identities of the boxes from the  
+                             //   previous lesson with the boxes from the new lesson.
+                             // If padding is used, take care to set the padding value to the maximum number of boxes in the total curriculum.
+                             // Also take care to pass that value to the available observation and actions, incl. the attention-related observations.
     [SerializeField] private bool _isFirstLayerContinuous; // Used to pack the first layer of boxes onto the bottom of the bin
 
     //  Reward switchers
@@ -51,12 +56,10 @@ public class PackerHand : Agent
     private bool isFirstLayerContinuous{    // Used to pack the first layer of boxes onto the bottom of the bin; only possible when useContinuousSolution is True
         get{if (useContinuousSolution) return _isFirstLayerContinuous; else return false;}
         set{}}
-    // public bool useBoxCategorization{           // This variable is used by BoxSpawner.cs; this is why it is "public"
-        // get{return _useBoxCategorization;}
-    // }
-    private bool useOneHotEncoding{ get{ return (useAttention && _useOneHotEncodingForAttention);}}  // Appried in Attention entities when using BoxCategorization & Padding(in BoxSpawner.cs)
+    // Using OneHotEncoding in Attention entities; padding not required unless Curriculum learning is applied AND the same boxes are re-used
+    private bool useOneHotEncoding{ get{ return (useAttention && _useOneHotEncodingForAttention);}}  
     // Padding is used when using a Curriculum or when using oneHotEncoding for Attention observations 
-    private bool usePadding{ get{ return (useCurriculum || useOneHotEncoding);}}
+    private bool usePadding{ get{ return (useCurriculum && _usePadding);}}
     private int curriculum_ConfigurationGlobal{
         get {
             if (useCurriculum)
@@ -310,6 +313,19 @@ public class PackerHand : Agent
                 int idx_cntr = 0;
                 float[] listVarObservation = new float[max_observable_size];
 
+                // Add boxes to action mask. THese boxes will be exempted from the next action/decision of the agent
+                if (box.isOrganized){           
+                    // Already placed boxes are exempted from action but included in observation so that the agent "knows" about the 
+                    // positions of the boxes inside the bin
+                    maskedBoxIndices.Add(j);}
+                else if (usePadding){   
+                    // Zero-padded boxes are only useful for memory allocation. They hold no information regarding the state of the environment.
+                    // This is why they are both: 1) masked from the next action/decision of the agent and 2) not included in the observation
+                    if (box.boxSize == Vector3.zero) maskedBoxIndices.Add(j);}
+                    // Skip to next box
+                    continue;
+                j++;
+
                 if (useOneHotEncoding){
                     // Used for variable size observations
                     int boxNum = int.Parse(box.rb.name);
@@ -347,13 +363,6 @@ public class PackerHand : Agent
                 sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
                 sensor.AddObservation (box.boxVertex);
             }
-
-            // Add boxes (to be exempted from decision step) to action mask: 1) boxes already placed in the bin, 2) boxes that are zero-padded
-            if (box.isOrganized){
-                maskedBoxIndices.Add(j);}
-            else if (usePadding){   
-                if (box.boxSize == Vector3.zero) maskedBoxIndices.Add(j);}
-            j++;
         }
 
         // Add array of vertices (selected vertices are 0s)
