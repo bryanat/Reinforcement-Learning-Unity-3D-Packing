@@ -78,11 +78,13 @@ public class PackerHand : Agent
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
-    public float percent_contact_surface_area;
-    public float box_surface_area;
+    [HideInInspector ]public float percent_contact_surface_area;
+    [HideInInspector] public float box_surface_area;
+    public int total_box_number;
+    public float percent_box_packed;
     public float total_bin_volume; // sum of all bins' volume
-    public int boxes_packed = 0;
-    public float current_bin_volume;
+    float current_bin_volume;
+    int boxes_packed=0;
     public float percent_filled_bin_volume;
 
 
@@ -186,7 +188,7 @@ public class PackerHand : Agent
         {   
             if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+8];
+                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+5];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
@@ -198,18 +200,18 @@ public class PackerHand : Agent
                 //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
                 //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
                 // Add scaled vertex
-                listVarObservation[boxSpawner.maxBoxQuantity +3] = box.boxVertex.x;
-                listVarObservation[boxSpawner.maxBoxQuantity +4] = box.boxVertex.y;
-                listVarObservation[boxSpawner.maxBoxQuantity +5] = box.boxVertex.z;
+                // listVarObservation[boxSpawner.maxBoxQuantity +3] = box.boxVertex.x;
+                // listVarObservation[boxSpawner.maxBoxQuantity +4] = box.boxVertex.y;
+                // listVarObservation[boxSpawner.maxBoxQuantity +5] = box.boxVertex.z;
                 // Add rotation
                 // listVarObservation[boxPool.Count+7] = box.boxRot[0];
                 // listVarObservation[boxPool.Count+8] = box.boxRot[1];
                 // listVarObservation[boxPool.Count+9] = box.boxRot[2];
                 // listVarObservation[boxPool.Count+10] = box.boxRot[3];
                 // Add [box volume]/[bin volume] 
-                listVarObservation[boxSpawner.maxBoxQuantity +6] = (box.boxSize.x* box.boxSize.y *box.boxSize.z)/(total_bin_volume);
+                listVarObservation[boxSpawner.maxBoxQuantity +3] = (box.boxSize.x* box.boxSize.y *box.boxSize.z)/(total_bin_volume);
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[boxSpawner.maxBoxQuantity +7] = box.isOrganized ? 1.0f : 0.0f;
+                listVarObservation[boxSpawner.maxBoxQuantity +4] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
@@ -357,6 +359,9 @@ public class PackerHand : Agent
             // initialize local reference to box pool
             boxPool = boxSpawner.boxPool;
 
+            // initialize total box number
+            total_box_number = boxPool.Count();
+
             isAfterOriginVertexSelected = false;
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
@@ -462,6 +467,8 @@ public class PackerHand : Agent
                 {
                     DropoffBox();
                     boxes_packed++;
+                    percent_box_packed = (boxes_packed/total_box_number) * 100;
+                    m_statsRecorder.Add("% Box Packed", percent_box_packed, StatAggregationMethod.Average);
                 }
                 else
                 {

@@ -1400,6 +1400,11 @@ PrefabInstance:
       objectReference: {fileID: 1176588390}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: file_name
+      value: Boxes_412
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: packSpeed
       value: 2
       objectReference: {fileID: 0}
@@ -1421,7 +1426,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: bin_quantity
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1432,6 +1437,11 @@ PrefabInstance:
         type: 3}
       propertyPath: useAttention
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      propertyPath: discreteBrain
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1569,8 +1579,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 58
-  m_MaxNumObservables: 58
+  m_ObservableSize: 55
+  m_MaxNumObservables: 55
 --- !u!114 &563826189
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2438,6 +2448,11 @@ PrefabInstance:
       objectReference: {fileID: 1673465051}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: file_name
+      value: Boxes_412
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: packSpeed
       value: 2
       objectReference: {fileID: 0}
@@ -2607,8 +2622,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 58
-  m_MaxNumObservables: 58
+  m_ObservableSize: 55
+  m_MaxNumObservables: 55
 --- !u!114 &1052727388
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3887,6 +3902,11 @@ PrefabInstance:
       objectReference: {fileID: 4143240950512903988}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: file_name
+      value: Boxes_412
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: packSpeed
       value: 2
       objectReference: {fileID: 0}
@@ -3919,6 +3939,11 @@ PrefabInstance:
         type: 3}
       propertyPath: useAttention
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      propertyPath: discreteBrain
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -4094,8 +4119,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 58
-  m_MaxNumObservables: 58
+  m_ObservableSize: 55
+  m_MaxNumObservables: 55
 --- !u!1001 &1149920266690001738
 PrefabInstance:
   m_ObjectHideFlags: 0
