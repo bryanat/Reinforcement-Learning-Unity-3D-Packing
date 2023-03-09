@@ -1630,8 +1630,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 12
-  m_MaxNumObservables: 8
+  m_ObservableSize: 0
+  m_MaxNumObservables: 0
 --- !u!54 &702327117403966051
 Rigidbody:
   m_ObjectHideFlags: 0
