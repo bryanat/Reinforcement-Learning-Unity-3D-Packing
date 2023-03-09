@@ -25,16 +25,16 @@ public class Container
 public class BinSpawner : MonoBehaviour {
 
 
-    public static List<Container> Containers = new List<Container>();
+    public  List<Container> Containers = new List<Container>();
     public Container Container = new Container();
     public GameObject bin; // The bin container prefab, which will be manually selected in the Inspector
     public GameObject outerBin; // The outer shell of container prefab, which will be manually selected in the Inspector
     public GameObject Origin; // gives origin position of the first bin (for multiplatform usage)   
-    [HideInInspector] public static List<Vector4> origins = new List<Vector4>(); 
+    [HideInInspector] public List<Vector4> origins = new List<Vector4>(); 
 
-    public static List<float> binscales_x = new List<float>(); 
-    public static List<float> binscales_y = new List<float>();
-    public static List<float> binscales_z = new List<float>();
+    public List<float> binscales_x = new List<float>(); 
+    public List<float> binscales_y = new List<float>();
+    public List<float> binscales_z = new List<float>();
     [HideInInspector] public List<CombineMesh> m_BackMeshScripts = new List<CombineMesh>();
     [HideInInspector] public List<CombineMesh> m_SideMeshScripts = new List<CombineMesh>();
     [HideInInspector] public List<CombineMesh> m_BottomMeshScripts = new List<CombineMesh>();
@@ -69,6 +69,7 @@ public class BinSpawner : MonoBehaviour {
         }
         Vector3 localOrigin = Origin.transform.position;
         int idx = 0;
+        Debug.Log($"CONTAINER COUNT: {Containers.Count}");
         foreach (Container c in Containers)
         {
             // make container and outer_shell from prefab

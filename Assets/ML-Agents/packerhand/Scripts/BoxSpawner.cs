@@ -51,7 +51,7 @@ public class Item
 
 public class BoxSpawner : MonoBehaviour 
 {
-    [HideInInspector] public static List<Box> boxPool = new List<Box>(); //list of Box class objects that stores most of the box information
+    [HideInInspector] public List<Box> boxPool = new List<Box>(); //list of Box class objects that stores most of the box information
     private List<Item> Items = new List<Item>(); // for reading, generating, and writing box information
     public List<Color> Colors = new List<Color>(); // stores local box colors
 
@@ -64,6 +64,8 @@ public class BoxSpawner : MonoBehaviour
     public BoxSize [] sizes; // array of box sizes
 
     [HideInInspector] public int idx_counter = 0; //counter for sizes array
+
+    public BinSpawner binSpawner;
 
     string homeDir;
 
@@ -159,7 +161,7 @@ public class BoxSpawner : MonoBehaviour
         UnityEngine.Random.InitState(seed);
         if (box_type == "uniform") 
         {
-            foreach (Container container in BinSpawner.Containers)
+            foreach (Container container in binSpawner.Containers)
             {
                 Color randomColor = UnityEngine.Random.ColorHSV();
                 int random_num_x =  UnityEngine.Random.Range(1, 4);
@@ -192,7 +194,7 @@ public class BoxSpawner : MonoBehaviour
         }
         else if (box_type == "mix")
         {
-            foreach (Container container in BinSpawner.Containers)
+            foreach (Container container in binSpawner.Containers)
             {
                 int bin_z = (int) Math.Floor(container.Length);
                 int bin_x = (int) Math.Floor(container.Width);

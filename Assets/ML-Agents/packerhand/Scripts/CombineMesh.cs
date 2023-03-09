@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using Box = Boxes.Box;
-using BoxSpawner = Boxes.BoxSpawner;
 
 
 // Trimesh
@@ -11,7 +10,6 @@ using BoxSpawner = Boxes.BoxSpawner;
 public class CombineMesh : MonoBehaviour
 {
     [HideInInspector] public PackerHand agent;
-
     public bool isCollidedGreen = false;
     public bool isCollidedBlue = false;
     public bool isCollidedRed = false;
@@ -66,7 +64,7 @@ public class CombineMesh : MonoBehaviour
 
             // get the gameObject of the opposite side using the name of the opposite side
             // synatax for getting a child is GameObject.Find("Parent/Child")
-            oppositeSideObject = BoxSpawner.boxPool[agent.selectedBoxIdx].rb.transform.Find(blue_opposite_side_name);
+            oppositeSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find(blue_opposite_side_name);
             sameSideObject = collision.transform;
         }
 
@@ -84,7 +82,7 @@ public class CombineMesh : MonoBehaviour
 
             // get the gameObject of the opposite side using the name of the opposite side 
             // synatax for getting a child is GameObject.Find("Parent/Child")
-            oppositeSideObject = BoxSpawner.boxPool[agent.selectedBoxIdx].rb.transform.Find(green_opposite_side_name);
+            oppositeSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find(green_opposite_side_name);
             sameSideObject = collision.transform;
         }
 
@@ -103,7 +101,7 @@ public class CombineMesh : MonoBehaviour
 
             // get the gameObject of the opposite side using the name of the opposite side 
             // synatax for getting a child is GameObject.Find("Parent/Child")
-            oppositeSideObject = BoxSpawner.boxPool[agent.selectedBoxIdx].rb.transform.Find(red_opposite_side_name);
+            oppositeSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find(red_opposite_side_name);
             sameSideObject = collision.transform;
         }
 
@@ -127,8 +125,8 @@ public class CombineMesh : MonoBehaviour
                 agent.isBackMeshCombined = true;
                 // oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
                 // sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-                oppositeSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
-                sameSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
+                oppositeSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
+                sameSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
             }
 
             // GREEN
@@ -142,8 +140,8 @@ public class CombineMesh : MonoBehaviour
                 agent.isBottomMeshCombined = true;  
                 // oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
                 // sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;  
-                oppositeSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
-                sameSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
+                oppositeSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
+                sameSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
             }
 
             // RED
@@ -157,8 +155,8 @@ public class CombineMesh : MonoBehaviour
                 agent.isSideMeshCombined = true;
                 // oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
                 // sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-                oppositeSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
-                sameSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
+                oppositeSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
+                sameSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
             }
         }
     }
@@ -198,8 +196,8 @@ public class CombineMesh : MonoBehaviour
         // BLUE
         if (name == "BinIso20Back" && agent.isBackMeshCombined==false) 
         {
-            sameSideObject = BoxSpawner.boxPool[agent.selectedBoxIdx].rb.transform.Find("back");
-            oppositeSideObject = BoxSpawner.boxPool[agent.selectedBoxIdx].rb.transform.Find("front");
+            sameSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("back");
+            oppositeSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("front");
             m_BackMeshScript.oppositeSideObject.transform.parent = binBack.transform;
             m_BackMeshScript.sameSideObject.transform.parent = binBack.transform;
             var blueMeshList = binBack.GetComponentsInChildren<MeshFilter>(); 
@@ -208,14 +206,14 @@ public class CombineMesh : MonoBehaviour
             agent.isBackMeshCombined = true;
             // oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
             // sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-            oppositeSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
-            sameSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
+            oppositeSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
+            sameSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
         }
         // RED
         if (name == "BinIso20Side" && agent.isSideMeshCombined==false) 
         {
-            sameSideObject = BoxSpawner.boxPool[agent.selectedBoxIdx].rb.transform.Find("left");
-            oppositeSideObject = BoxSpawner.boxPool[agent.selectedBoxIdx].rb.transform.Find("right");
+            sameSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("left");
+            oppositeSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("right");
             m_SideMeshScript.oppositeSideObject.transform.parent = binSide.transform;
             m_SideMeshScript.sameSideObject.transform.parent = binSide.transform;
             var redMeshList = binSide.GetComponentsInChildren<MeshFilter>(); 
@@ -224,14 +222,14 @@ public class CombineMesh : MonoBehaviour
             agent.isSideMeshCombined = true;
             // oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
             // sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-            oppositeSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
-            sameSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
+            oppositeSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
+            sameSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
         }
         // GREEN
         if (name == "BinIso20Bottom" && agent.isBottomMeshCombined==false) 
         {
-            sameSideObject = BoxSpawner.boxPool[agent.selectedBoxIdx].rb.transform.Find("bottom");
-            oppositeSideObject = BoxSpawner.boxPool[agent.selectedBoxIdx].rb.transform.Find("top");
+            sameSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("bottom");
+            oppositeSideObject = agent.boxPool[agent.selectedBoxIdx].rb.transform.Find("top");
             m_BottomMeshScript.oppositeSideObject.transform.parent = binBottom.transform;
             m_BottomMeshScript.sameSideObject.transform.parent = binBottom.transform;
             var greenMeshList = binBottom.GetComponentsInChildren<MeshFilter>(); 
@@ -240,8 +238,8 @@ public class CombineMesh : MonoBehaviour
             agent.isBottomMeshCombined = true;
             // oppositeSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
             // sameSideObject.GetComponent<MeshRenderer>().material = clearPlastic;
-            oppositeSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
-            sameSideObject.GetComponent<MeshRenderer>().material.color = BoxSpawner.boxPool[agent.selectedBoxIdx].boxColor;
+            oppositeSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
+            sameSideObject.GetComponent<MeshRenderer>().material.color = agent.boxPool[agent.selectedBoxIdx].boxColor;
         }
      }
 
