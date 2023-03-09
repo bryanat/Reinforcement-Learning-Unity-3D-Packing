@@ -161,7 +161,7 @@ public class PackerHand : Agent
 
         isEpisodeStart = true;
 
-        //Debug.Log("INITIALIZE ENDS");
+        Debug.Log("INITIALIZE ENDS");
     }
 
 
@@ -353,6 +353,7 @@ public class PackerHand : Agent
             else
             {
                 boxSpawner.SetUpBoxes(file_name);
+                isAfterInitialization = true;
             }
             
             // initialize local reference to box pool
