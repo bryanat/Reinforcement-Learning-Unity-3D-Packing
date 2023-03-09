@@ -171,11 +171,6 @@ public class PackerHand : Agent
                                      // Default        : observable_size
                                      // OneHotEncoding : observable_size + number of boxes in current lesson
                                      // Padding        : observable_size + maximum number of boxes in all lessons
-    private int n_organized_boxes=0; // number of boxes that are placed inside the bin
-
-    // private int temp=55; // delete this variable and the print statement associated with it
-
-
 
     public override void Initialize()
     {   
@@ -268,11 +263,13 @@ public class PackerHand : Agent
 
         if (useAttention){
             m_BufferSensor = GetComponent<BufferSensorComponent>();
+
             // Set (in the Inspector) the maximum number of observables entities that the BufferSensor can observe
             if (usePadding){
                 m_BufferSensor.MaxNumObservables = maxBoxNum;}
             else if (boxSpawner.useRandomGenerator){
                 m_BufferSensor.MaxNumObservables = num_boxes_x + num_boxes_y + num_boxes_z;}
+
             // Set (in the Inspector) the size of each observable entity
             if (usePadding){
                 max_observable_size = maxBoxNum + observable_size;}
@@ -285,15 +282,6 @@ public class PackerHand : Agent
     public override void OnEpisodeBegin()
     {   
         Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
-
-        // // Temporary testing: checking if the buffer size can be updated during runtime
-        // //  (increase buffer size during runtime but keep number of variable observations the same)
-        // if (useAttention){
-        //     temp = temp + 11;
-        //     m_BufferSensor.ObservableSize = temp;
-        //     Debug.Log($"Observable size: {m_BufferSensor.ObservableSize}");
-        //     // .....remove above block
-        // }
     }
 
 
@@ -460,7 +448,7 @@ public class PackerHand : Agent
     void FixedUpdate() 
     {
         // All boxes packed? Reset episode
-        if (boxPool.Count!=0 && n_organized_boxes == boxPool.Count)
+        if (boxPool.Count!=0 && boxes_packed == boxPool.Count)
         {
             // Make sure that the box masks are working correctly; by now all boxes (padded or not) should be masked
             if ((usePadding && maskedBoxIndices.Count != maxBoxNum) || 
@@ -525,19 +513,6 @@ public class PackerHand : Agent
                 Debug.Log($" Increase maxBoxNum from {maxBoxNum} to {boxPool.Count} to fit all padded boxes in the bin");
                 return;
             }
-
-
-            // Temporary testing: checking if the buffer size can be updated during runtime
-            //  (increase buffer size during runtime but keep number of variable observations the same)
-            // if (useAttention){
-            //     temp = temp + 11;
-            //     m_BufferSensor.ObservableSize = temp;
-            //     Debug.Log($"Observable size: {m_BufferSensor.ObservableSize}");
-            //     // .....remove above block
-            // }
-
-
-
 
             if (useDiscreteSolution)
             { 
@@ -611,7 +586,7 @@ public class PackerHand : Agent
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
-            //Debug.Log("REQUEST DECISION AT NEXT ROUND OF OF PICKING");
+            //Debug.Log("REQUEST DECISION FOR NEXT ROUND OF PICKING");
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
         }
@@ -1358,7 +1333,6 @@ public class PackerHand : Agent
                 }
             }
             boxPool[selectedBoxIdx].isOrganized = true;
-            n_organized_boxes++;
         }
         //isBlackboxUpdated = false;
         // isVertexSelected = false;

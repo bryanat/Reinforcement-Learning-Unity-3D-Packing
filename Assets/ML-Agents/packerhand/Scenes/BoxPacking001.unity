@@ -2429,7 +2429,7 @@ MonoBehaviour:
   box_type: uniform_random
   pickRandom: 0
   _num_boxes: {x: 2, y: 2, z: 2}
-  maxBoxQuantity: 50
+  maxBoxQuantity: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}

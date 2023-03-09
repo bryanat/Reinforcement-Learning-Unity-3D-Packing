@@ -205,10 +205,12 @@ public class BoxSpawner : MonoBehaviour
         }
         catch (Exception e)
         {
-            Console.WriteLine("{0} Memory of {2} box sizes in BoxSpawner-->Inspector is not enough for {1} generated boxes.", e.Message, num_boxes_x + num_boxes_y + num_boxes_z);
+            Debug.Log($" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ERROR &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+            Debug.Log($"{e.Message} Memory of {box_counter} box sizes in BoxSpawner-->Inspector is not enough for {num_boxes_x + num_boxes_y + num_boxes_z} generated boxes");
             return;
         }
 
+        // Generate boxes
         if (box_type == "uniform_random" || box_type == "mix_random") 
         {
             float bin_z = 59.0f - fittingTolerance;
