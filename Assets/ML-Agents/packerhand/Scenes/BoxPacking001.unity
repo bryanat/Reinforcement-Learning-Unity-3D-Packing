@@ -2429,7 +2429,7 @@ MonoBehaviour:
   box_type: uniform_random
   pickRandom: 0
   _num_boxes: {x: 2, y: 2, z: 2}
-  maxBoxQuantity: 0
+  maxBoxQuantity: 8
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -2442,6 +2442,7 @@ MonoBehaviour:
   boxArea: {fileID: 868628914}
   unitBox: {fileID: 9098616314326610961}
   idx_counter: 0
+  box_counter: 0
 --- !u!33 &4609237671011420100
 MeshFilter:
   m_ObjectHideFlags: 0

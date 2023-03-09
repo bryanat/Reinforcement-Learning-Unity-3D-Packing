@@ -195,21 +195,6 @@ public class BoxSpawner : MonoBehaviour
 
     public void RandomBoxGenerator(string box_type, bool pickRandomNumberofBoxes, int num_boxes_x, int num_boxes_y, int num_boxes_z, int seed)
     {
-        // Check if allocated space is enough for the maximum possible number of boxes to be generated; if not, throw exception and stop execution
-        int box_counter = 0;
-            foreach(BoxSize b in sizes){
-            box_counter += 1;
-        }
-        try{
-            box_counter = num_boxes_x + num_boxes_y + num_boxes_z;
-        }
-        catch (Exception e)
-        {
-            Debug.Log($" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ERROR &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-            Debug.Log($"{e.Message} Memory of {box_counter} box sizes in BoxSpawner-->Inspector is not enough for {num_boxes_x + num_boxes_y + num_boxes_z} generated boxes");
-            return;
-        }
-
         // Generate boxes
         if (box_type == "uniform_random" || box_type == "mix_random") 
         {

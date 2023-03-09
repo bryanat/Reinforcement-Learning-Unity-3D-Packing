@@ -34,12 +34,6 @@ public class PackerHand : Agent
                             // 2. Even if we did, it is not really needed. The unique identifier of each box is its size which is already in the 
                             //    observation stack. 
                             // 3. OneHotEncoding drastically increases the size of the observation stack, making training far more difficult.
-    public bool _usePadding; // Padding should be used when using a Curriculum with varying number of boxes between lessons
-                             // Padding does not require one-hot encoding. That would only be useful when the same boxes are re-used in the next
-                             //   next Curriculum lesson. Otherwise, using OneHotEncoding just mixes up the identities of the boxes from the  
-                             //   previous lesson with the boxes from the new lesson.
-                             // If padding is used, take care to set the padding value to the maximum number of boxes in the total curriculum.
-                             // Also take care to pass that value to the available observation and actions, incl. the attention-related observations.
     [SerializeField] private bool _isFirstLayerContinuous; // Used to pack the first layer of boxes onto the bottom of the bin
 
     //  Reward switchers
@@ -58,8 +52,12 @@ public class PackerHand : Agent
         set{}}
     // Using OneHotEncoding in Attention entities; padding not required unless Curriculum learning is applied AND the same boxes are re-used
     private bool useOneHotEncoding{ get{ return (useAttention && _useOneHotEncodingForAttention);}}  
-    // Padding is used when using a Curriculum or when using oneHotEncoding for Attention observations 
-    private bool usePadding{ get{ return (useCurriculum && _usePadding);}}
+    private bool usePadding{                    // Padding is used when activating Curriculum Learning (with varying number of boxes between lessons).
+        get{                                    // Padding does not require one-hot encoding. That would only be useful when the same boxes are re-used in the next
+            if (useCurriculum) return true;     //   next Curriculum lesson. Otherwise, using OneHotEncoding just mixes up the identities of the boxes from the  
+            else return false;                  //   previous lesson with the boxes from the new lesson.
+        }                                       // When padding is used, take care to set the padding value to the maximum number of boxes out of all curriculum lessons.
+    }                                           // Also take care to pass that value to the available observations and actions, incl. the attention-related observations.
     private int curriculum_ConfigurationGlobal{
         get {
             if (useCurriculum)
@@ -84,14 +82,6 @@ public class PackerHand : Agent
             else return null;}
         set{}
     } 
-
-    // Obsolete code
-    // public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
-    // public NNModel continuousBrain;     // Brain to use when boxes are of similar sizes
-    // public NNModel mixBrain;     // Brain to use when boxes size vary
-    // private string m_DiscreteBehaviorName = "Discrete"; // 
-    // private string m_ContinuousBehaviorName = "Continuous";
-    // private string m_MixBehaviorName = "Mix";
 
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
@@ -206,16 +196,6 @@ public class PackerHand : Agent
         {
             brain = modelOverrider.GetModelForBehaviorName(m_BehaviorName);
             m_BehaviorName = ModelOverrider.GetOverrideBehaviorName(m_BehaviorName);
-
-            // Redundant code
-            // discreteBrain = modelOverrider.GetModelForBehaviorName(m_DiscreteBehaviorName);
-            // m_DiscreteBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_DiscreteBehaviorName);
-
-            // continuousBrain = modelOverrider.GetModelForBehaviorName(m_ContinuousBehaviorName);
-            // m_ContinuousBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_ContinuousBehaviorName);
-
-            // mixBrain = modelOverrider.GetModelForBehaviorName(m_MixBehaviorName);
-            // m_MixBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_MixBehaviorName);
         }
 
         // Make agent unaffected by collision
@@ -245,17 +225,27 @@ public class PackerHand : Agent
 
         // initialize local reference of box pool
         boxPool = boxSpawner.boxPool;
+
         // Maximum possible number of boxes defined in a curriculum
-        if (usePadding || useOneHotEncoding) maxBoxNum = boxSpawner.maxBoxQuantity;
-
-        // BELOW HERE pass block to onEpisodeBegin()
-
-        if (boxSpawner.useRandomGenerator){
-            num_boxes_x = boxSpawner.num_boxes.x;
-            num_boxes_y = boxSpawner.num_boxes.y;
-            num_boxes_z = boxSpawner.num_boxes.z;
-        }   
-        // However the boxes are generated, when using padding the number of boxes is the user-specified maximum number of boxes
+        if (useCurriculum){
+            // Use Curriculum; padding is applied
+            maxBoxNum = boxSpawner.maxBoxQuantity;
+        }
+        else{
+            // No curriculum; one set of boxes; no need for padding
+            int box_counter = 0;
+            foreach(BoxSize b in boxSpawner.sizes) box_counter += 1;
+            maxBoxNum = box_counter;
+            Debug.Log($"BoxSpawner: {box_counter} boxes in boxPool");
+            Debug.Log($"MAX BOX NUM: {maxBoxNum}");
+            
+            if (boxSpawner.useRandomGenerator){
+                //Boxes generated tandomly according to user-specified divisoins along each dimension
+                num_boxes_x = boxSpawner.num_boxes.x;
+                num_boxes_y = boxSpawner.num_boxes.y;
+                num_boxes_z = boxSpawner.num_boxes.z;
+            }  
+        }
 
         isEpisodeStart = true;
 
@@ -265,16 +255,11 @@ public class PackerHand : Agent
             m_BufferSensor = GetComponent<BufferSensorComponent>();
 
             // Set (in the Inspector) the maximum number of observables entities that the BufferSensor can observe
-            if (usePadding){
-                m_BufferSensor.MaxNumObservables = maxBoxNum;}
-            else if (boxSpawner.useRandomGenerator){
-                m_BufferSensor.MaxNumObservables = num_boxes_x + num_boxes_y + num_boxes_z;}
+            m_BufferSensor.MaxNumObservables = maxBoxNum;
 
             // Set (in the Inspector) the size of each observable entity
-            if (usePadding){
-                max_observable_size = maxBoxNum + observable_size;}
-            else{
-                max_observable_size = observable_size;}
+            if (useOneHotEncoding) max_observable_size = maxBoxNum + observable_size;
+            else                   max_observable_size = observable_size;
             m_BufferSensor.ObservableSize = max_observable_size;
         }
     }
@@ -309,27 +294,21 @@ public class PackerHand : Agent
                 int idx_cntr = 0;
                 float[] listVarObservation = new float[max_observable_size];
                 
-                // Box index
+                // Box index; update it here due to the "continue" statement below
                 j++;
-
-                if (box.isOrganized && usePadding){
-                    Debug.Log($" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ERROR &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-                    Debug.Log($"box.isOrganized && usePadding: {box.isOrganized && usePadding} is not valid. A padded box should not be placed inside the bin");
-                    return;
-                }
 
                 // Add boxes to action mask. These boxes will be exempted from the next action/decision of the agent
                 if (box.isOrganized){           
                     // Already placed boxes are exempted from action but included in observation so that the agent "knows" about the 
                     // positions of the boxes inside the bin
-                    maskedBoxIndices.Add(j);}
-                else if (usePadding){   
-                    // Zero-padded boxes are only useful for memory allocation. They hold no information regarding the state of the environment.
-                    // This is why they are both: 1) masked from the next action/decision of the agent and 2) not included in the observation
-                    if (box.boxSize == Vector3.zero) maskedBoxIndices.Add(j);
+                    maskedBoxIndices.Add(j);
+                }
+                else if (box.boxSize == Vector3.zero){
+                    // Mask zero boxes that may end up here; normally shouldn't happen
+                     maskedBoxIndices.Add(j);
                     // Skip to next box
-                    continue;}
-                // Increase counter of  
+                    continue;
+                }
 
                 if (useOneHotEncoding){
                     // Used for variable size observations
@@ -345,21 +324,23 @@ public class PackerHand : Agent
                 listVarObservation[idx_cntr +2] = scaled_continuous_boxsize.z;
                 // Add updated [volume]/[w*h*l] added to state vector
                 listVarObservation[idx_cntr +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
-                //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
-                //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
-                //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
                 // Add updated box placement vertex
                 listVarObservation[idx_cntr +4] = box.boxVertex.x;
                 listVarObservation[idx_cntr +5] = box.boxVertex.y;
                 listVarObservation[idx_cntr +6] = box.boxVertex.z;
-                // Add updated box rotation
-                // listVarObservation[boxPool.Count+7] = box.boxRot[0];
-                // listVarObservation[boxPool.Count+8] = box.boxRot[1];
-                // listVarObservation[boxPool.Count+9] = box.boxRot[2];
-                // listVarObservation[boxPool.Count+10] = box.boxRot[3];
                 // Add if box is placed already: 1 if placed already and 0 otherwise
                 listVarObservation[idx_cntr +7] = box.isOrganized ? 1.0f : 0.0f;;
+                // Add updated box rotation
+                // listVarObservation[idx_cntr+7] = box.boxRot[0];
+                // listVarObservation[idx_cntr+8] = box.boxRot[1];
+                // listVarObservation[idx_cntr+9] = box.boxRot[2];
+                // listVarObservation[idx_cntr+10] = box.boxRot[3];
+
                 m_BufferSensor.AppendObservation(listVarObservation);
+
+                //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
+                //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
+                //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
             }
             else{
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
@@ -450,14 +431,6 @@ public class PackerHand : Agent
         // All boxes packed? Reset episode
         if (boxPool.Count!=0 && boxes_packed == boxPool.Count)
         {
-            // Make sure that the box masks are working correctly; by now all boxes (padded or not) should be masked
-            if ((usePadding && maskedBoxIndices.Count != maxBoxNum) || 
-                (              maskedBoxIndices.Count != boxPool.Count)){
-                Debug.Log($" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ERROR &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-                Debug.Log($" Masked box array not working correctly. Masked box array length: {maskedBoxIndices.Count} | boxPool.Count: {boxPool.Count} | maxBoxNum: {maxBoxNum}");
-                return;
-            }
-
             if (useSparseReward)
             {
                 AddReward(percent_filled_bin_volume*10);
@@ -898,7 +871,10 @@ public class PackerHand : Agent
     {
         selectedBoxIdx = action_SelectedBox;
         Debug.Log($"SBB Selected Box selectedBoxIdx: {selectedBoxIdx}");
+        Debug.Log($"BOX POOL COUNT = {boxPool.Count()}");
+        Debug.Log($"action_selectedBox = {action_SelectedBox}");
         targetBox = boxPool[selectedBoxIdx].rb.transform;
+        Debug.Log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
         isBoxSelected = true;
     }
 
