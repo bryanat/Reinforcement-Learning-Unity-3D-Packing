@@ -236,11 +236,8 @@ public class PackerHand : Agent
             int box_counter = 0;
             foreach(BoxSize b in boxSpawner.sizes) box_counter += 1;
             maxBoxNum = box_counter;
-            Debug.Log($"BoxSpawner: {box_counter} boxes in boxPool");
-            Debug.Log($"MAX BOX NUM: {maxBoxNum}");
-            
+            // No curriculum; boxes generated randomly according to user-specified divisions along each dimension
             if (boxSpawner.useRandomGenerator){
-                //Boxes generated tandomly according to user-specified divisoins along each dimension
                 num_boxes_x = boxSpawner.num_boxes.x;
                 num_boxes_y = boxSpawner.num_boxes.y;
                 num_boxes_z = boxSpawner.num_boxes.z;
@@ -251,6 +248,7 @@ public class PackerHand : Agent
 
         Debug.Log("INITIALIZE ENDS");
 
+        // Initialize BufferSensor
         if (useAttention){
             m_BufferSensor = GetComponent<BufferSensorComponent>();
 
@@ -262,6 +260,7 @@ public class PackerHand : Agent
             else                   max_observable_size = observable_size;
             m_BufferSensor.ObservableSize = max_observable_size;
         }
+
     }
 
     public override void OnEpisodeBegin()
