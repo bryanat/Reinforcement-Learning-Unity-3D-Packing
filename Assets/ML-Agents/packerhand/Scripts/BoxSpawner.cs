@@ -71,51 +71,69 @@ public class Item
 // Spawns in boxes with sizes from a json file
 public class BoxSpawner : MonoBehaviour 
 {
-    [HideInInspector] public List<Box> boxPool = new List<Box>();
-
-    // The box area, which will be set manually in the Inspector
-    public GameObject boxArea;
-    
-    public GameObject unitBox; 
-
-    public int maxBoxQuantity= 50; // max number of boxes in the scene; default of 50 here is arbitrary
-    private bool usePadding = false; // if true, will pad the json file with zeros to maxBoxQuantity; use when using one-hot encoding in packerhand.cs
-
+    public string box_type = "uniform_random"; // "uniform_random" or "mix_random" or "Boxes_30" 
+    public bool pickRandom;  // if true,  generator will pick in each direction a random number of boxes in the ranges: [1, num_boxes_x] [1, num_boxes_y][1, num_boxes_z]
+                             // if false, generator will pick in each direction a fixed number of boxes: num_boxes_x, num_boxes_y, num_boxes_z
+    [SerializeField] Vector3Int _num_boxes = new Vector3Int(); // Number of boxes in each direction, use when automatic generation of boxes is used (box_type=="uniform_random" or box_type=="mix_random")
+    public bool useRandomGenerator{  // if true, use custom Json file for box sizes 
+        get{
+            if (box_type=="uniform_random" || box_type=="mix_random") return true;
+            else return false;
+        }
+    }
+    [HideInInspector] public Vector3Int num_boxes{ 
+        get{
+            if (useRandomGenerator) return _num_boxes;
+            else return new Vector3Int(0,0,0);
+        }
+        set{}
+    }
+    public int maxBoxQuantity=50; // Size of "box vocabulary"; needed for padding when "useCategoricalBoxes" is activate in packerhand.cs
     public BoxSize [] sizes;
-
+    [HideInInspector] public List<Box> boxPool = new List<Box>();
+    // The box area, which will be set manually in the Inspector
+    public GameObject boxArea;  
+    public GameObject unitBox; 
     [HideInInspector] public int idx_counter = 0;
-
-    string homeDir;
+    private string homeDir;
     private float fittingTolerance = 0.05f; // tolerance for box fitting
-
-
+    // private PackerHand packerHand;
 
 
     public void Start()
     {
         homeDir = Environment.GetEnvironmentVariable("HOME");
+        // packerHand = FindObjectOfType<PackerHand>();
+        // if (packerHand.useBoxCategorization){
+            // usePadding = true;
+        // }
     }
 
-    public void SetUpBoxes(string box_type, bool pickRandom, int num_boxes_x, int num_boxes_y, int num_boxes_z, int seed)
+    public void SetUpBoxes(string box_type, bool pickRandom, int num_boxes_x, int num_boxes_y, int num_boxes_z, int seed, bool usePadding)
     {
-        if (box_type == "uniform_random")
+        // box_type  : "uniform_random", "mix_random", "Boxes_30", etc.
+        // pickRandom: if true,  generator will pick in each direction a random number of boxes in the ranges: [1, num_boxes_x] [1, num_boxes_y][1, num_boxes_z]
+        //             if false, generator will pick in each direction a fixed number of boxes: num_boxes_x, num_boxes_y, num_boxes_z
+        // num_boxes_x, num_boxes_y, num_boxes_z: number of boxes in each direction
+        // seed      : random seed for the generator (default == 123)
+        
+        if (useRandomGenerator)
         {
-            RandomBoxGenerator("uniform_random", pickRandom, num_boxes_x, num_boxes_y, num_boxes_z, seed);
+            string filename = "";
+            if (box_type == "uniform_random"){
+                filename = "Boxes_RandomUniform";
+            }
+            else if (box_type == "mix_random"){
+                filename = "Boxes_RandomMix";
+            }
+            // Create json file with random boxes
+            RandomBoxGenerator(box_type, pickRandom, num_boxes_x, num_boxes_y, num_boxes_z, seed);
             // Read random boxes using existing ReadJson function
-            ReadJson($"{homeDir}/Unity/data/Boxes_RandomUniform.json");
+            ReadJson($"{homeDir}/Unity/data/{filename}.json");
             if (usePadding){PadZeros();}
             // Delete the created json file to reuse the name next iteration
-            File.Delete($"{homeDir}/Unity/data/Boxes_RandomUniform.json");
+            File.Delete($"{homeDir}/Unity/data/{filename}.json");
 
-        }
-        else if (box_type == "mix_random")
-        {
-            RandomBoxGenerator("mix_random", pickRandom, num_boxes_x, num_boxes_y, num_boxes_z, seed);
-            // Read random boxes using existing ReadJson function
-            ReadJson($"{homeDir}/Unity/data/Boxes_RandomMix.json");
-            if (usePadding){PadZeros();}
-            // Delete the created json file to reuse the name next iteration
-            File.Delete($"{homeDir}/Unity/data/Boxes_RandomMix.json");
         }
         else
         {
@@ -126,6 +144,7 @@ public class BoxSpawner : MonoBehaviour
         var idx = 0;
         foreach(BoxSize s in sizes) 
         {
+            // Create boxPool array containing non-0-sized boxes as Box objects
             Vector3 box_size = new Vector3(s.box_size.x, s.box_size.y, s.box_size.z);
             // if box is not of size zeros
             if (box_size.x != 0) 
@@ -180,6 +199,20 @@ public class BoxSpawner : MonoBehaviour
 
     public void RandomBoxGenerator(string box_type, bool pickRandomNumberofBoxes, int num_boxes_x, int num_boxes_y, int num_boxes_z, int seed)
     {
+        // Check if allocated space is enough for the maximum possible number of boxes to be generated; if not, throw exception and stop execution
+        int box_counter = 0;
+            foreach(BoxSize b in sizes){
+            box_counter += 1;
+        }
+        try{
+            box_counter = num_boxes_x + num_boxes_y + num_boxes_z;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("{0} Memory of {2} box sizes in BoxSpawner-->Inspector is not enough for {1} generated boxes.", e.Message, num_boxes_x + num_boxes_y + num_boxes_z);
+            return;
+        }
+
         if (box_type == "uniform_random" || box_type == "mix_random") 
         {
             float bin_z = 59.0f - fittingTolerance;
@@ -204,8 +237,8 @@ public class BoxSpawner : MonoBehaviour
             List<Item> items = new List<Item>();
             
             if (box_type == "uniform_random"){
-                float x_dimension =  (float)Math.Floor(bin_x/random_num_x * 100)/100;
-                float y_dimension =  (float)Math.Floor(bin_y/random_num_y * 100)/100;
+                float x_dimension = (float)Math.Floor(bin_x/random_num_x * 100)/100;
+                float y_dimension = (float)Math.Floor(bin_y/random_num_y * 100)/100;
                 float z_dimension = (float)Math.Floor(bin_z/random_num_z * 100)/100;
                 Debug.Log($"RUF RANDOM UNIFORM BOX NUM: {random_num_x*random_num_y*random_num_z} | x:{x_dimension} y:{y_dimension} z:{z_dimension}");
 
@@ -295,19 +328,16 @@ public class BoxSpawner : MonoBehaviour
             var boxes = root.XPathSelectElement("//Items").Elements();
             foreach (XElement box in boxes)
             {
-                string id = box.XPathSelectElement("./Product_id").Value;
-                float length = float.Parse(box.XPathSelectElement("./Length").Value);
-                float width = float.Parse(box.XPathSelectElement("./Width").Value);
-                float height = float.Parse(box.XPathSelectElement("./Height").Value);
-                int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
+                string id       = box.XPathSelectElement("./Product_id").Value;
+                float  length   = float.Parse(box.XPathSelectElement("./Length").Value);
+                float  width    = float.Parse(box.XPathSelectElement("./Width").Value);
+                float  height   = float.Parse(box.XPathSelectElement("./Height").Value);
+                int    quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
                 //Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
-                // Debug.Log($"idx_counter A ================ {idx_counter}");
                 for (int n = 0; n<quantity; n++)
                 {
-                    // Debug.Log($"n           B ================ {n}");
-                    sizes[idx_counter].box_size = new Vector3(width, height, length);
+                    sizes[idx_counter].box_size = new Vector3(width, height, length); // If idx_counter is greater than length of sizes, then we have reached the max number of boxes
                     idx_counter++;
-                    // Debug.Log($"idx_counter B ================ {idx_counter}");
                 }   
             }
         }

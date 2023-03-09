@@ -15,37 +15,82 @@ using Boxes;
 
 public class PackerHand : Agent 
 {
-    public int curriculum_ConfigurationGlobal=2;  // Depending on this value, different curriculum will be picked
-    private int curriculum_ConfigurationLocal=-1; // local reference of the above
-    
-    public int packSpeed = 20;
-    public int seed = 123;
-    public string box_file = "Boxes_30";
-    
+    // Miscellaneous environment parameters   
+    public int packSpeed=20;
+    public int seed=123;
+
+    // Method switchers
     public bool useCurriculum=true;
     public bool useAttention=true; // use attention by default (default = true)
-    private bool useVerticesArray;
-    public bool useDenseReward=true;
-    public bool useSurfaceAreaReward_Discrete;
-    public bool useSurfaceAreaReward_Continuous;
-    public bool useDenseReward_Distance;
     public bool useDiscreteSolution=true;
-    private bool isFirstLayerContinuous;
-    public bool useContinuousSolution;
-    private bool useOneHotEncoding;
-    private bool useSparseReward;
-    private bool usePenaltyReward;
+    // [SerializeField] private bool _useBoxCategorization;    // This variable is used as an entry point for the useBoxCategorization variable
+    public bool _useOneHotEncodingForAttention; 
+                            // _useOneHotEncodingForAttention means that we have a number of standard boxes (eg 50), each with unique attributes. For each training,
+                            // we would use only a subset of these boxes (eg 10). The rest of the boxes will be created but their sizes will be set to 
+                            // zero. This is done to ensure that the agent learns on boxes only in the training.
+                            // In other words, this implementation aims to create a "BOX VOCABULARY". This method is NOT COMPLETE yet as we have not yet
+                            // generated a standard box vocabulary.
+                            // Three points to caounter the use of this method:
+                            // 1. We don;t have a box vocabulary yet
+                            // 2. Even if we did, it is not really needed. The unique identifier of each box is its size which is already in the 
+                            //    observation stack. 
+                            // 3. OneHotEncoding drastically increases the size of the observation stack, making training far more difficult.
+    [SerializeField] private bool _isFirstLayerContinuous; // Used to pack the first layer of boxes onto the bottom of the bin
+
+    //  Reward switchers
+    public bool useSparseReward;        // Reward at the end of the episode: total volume ratio (total volume of the boxes / volume of the bin)
+    public bool usePenaltyReward;       // Penalty for every box misplaced and/or violating environemnt constraints
+    public bool useDenseReward;         // Reward for every box placed: volume ratio (volume of the box / volume of the bin)
+    public bool useSurfaceAreaReward;   // Reward for every box placed: surface area ratio (area of the box / area of the bin)
+    public bool useAreaVolumeCombinedReward=true;    // Reward for every box placed: combines the area & volume rewards (surface area ratio & volume ratio)
+    public bool useDistanceReward;    // Reward for every box placed: distance ratio (distance between the box and the bin / distance between the agent and the bin)
+
+    // Filters for lLocal features
+    private bool useVerticesArray{ get{ return useDiscreteSolution;}}   // Padded container of all vertices generated from TriMesh
+    private bool useContinuousSolution{ get{ return !useDiscreteSolution;}}
+    private bool isFirstLayerContinuous{    // Used to pack the first layer of boxes onto the bottom of the bin; only possible when useContinuousSolution is True
+        get{if (useContinuousSolution) return _isFirstLayerContinuous; else return false;}
+        set{}}
+    // public bool useBoxCategorization{           // This variable is used by BoxSpawner.cs; this is why it is "public"
+        // get{return _useBoxCategorization;}
+    // }
+    private bool useOneHotEncoding{ get{ return (useAttention && _useOneHotEncodingForAttention);}}  // Appried in Attention entities when using BoxCategorization & Padding(in BoxSpawner.cs)
+    // Padding is used when using a Curriculum or when using oneHotEncoding for Attention observations 
+    private bool usePadding{ get{ return (useCurriculum || useOneHotEncoding);}}
+    private int curriculum_ConfigurationGlobal{
+        get {
+            if (useCurriculum)
+                if (useDiscreteSolution) return 0;
+                else if (useContinuousSolution) return 2;
+                else return -1;
+            else return -1;
+        }
+        set {}
+    }
+    private int curriculum_ConfigurationLocal=-1; // used as temporary variable to store the curriculum configuration value
+
 
 
     BufferSensorComponent m_BufferSensor;
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
 
-    public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
-    public NNModel continuousBrain;     // Brain to use when boxes are of similar sizes
-    public NNModel mixBrain;     // Brain to use when boxes size vary
-    private string m_DiscreteBehaviorName = "Discrete"; // 
-    private string m_ContinuousBehaviorName = "Continuous";
-    private string m_MixBehaviorName = "Mix";
+    public NNModel brain;
+    private string m_BehaviorName{
+        get{
+            if (useDiscreteSolution) return "Discrete";
+            else if (useContinuousSolution) return "Continuous";
+            else return null;}
+        set{}
+    } 
+
+    // Obsolete code
+    // public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
+    // public NNModel continuousBrain;     // Brain to use when boxes are of similar sizes
+    // public NNModel mixBrain;     // Brain to use when boxes size vary
+    // private string m_DiscreteBehaviorName = "Discrete"; // 
+    // private string m_ContinuousBehaviorName = "Continuous";
+    // private string m_MixBehaviorName = "Mix";
+
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
     [HideInInspector] CombineMesh m_BackMeshScript;
@@ -56,10 +101,10 @@ public class PackerHand : Agent
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
-    public int selectedBoxIdx; // Box selected 
-    public Vector3 selectedRotation; // selectedRotation selected
-    public Vector3 selectedVertex; // Vertex selected
-    public Vector3 [] verticesArray; // (2*num_boxes + 1) vertices, each vertex a Vextor3 vector: total size = (2*num_boxes + 1)*3
+    [HideInInspector] public int selectedBoxIdx; // Box selected 
+    private Vector3 selectedRotation; // selectedRotation selected
+    [HideInInspector] public Vector3 selectedVertex; // Vertex selected
+    [HideInInspector] public Vector3 [] verticesArray; // (2*num_boxes + 1) vertices, each vertex a Vextor3 vector: total size = (2*num_boxes + 1)*3
     [HideInInspector] public int selectedVertexIdx = -1; 
     [HideInInspector] public List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices;
@@ -116,35 +161,17 @@ public class PackerHand : Agent
     [HideInInspector] public float binscale_y;
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
-
+    private int num_boxes_x;
+    private int num_boxes_y;
+    private int num_boxes_z;
+    private int observable_size=8; // The observable size of an entity used in the attention mechanism
+    private int max_observable_size; // Default                  : observable_size
+                                     // OneHotEncoding || Padding: observable_size + maxBoxQuantity
 
 
 
     public override void Initialize()
     {   
-
-        // ****************** TEMPORARY settings (delete when merging with master branch)
-        // Setup curriculum
-        useCurriculum = false;
-        curriculum_ConfigurationGlobal=2;
-        // Setup reward scheme
-        useSurfaceAreaReward_Continuous=true;
-        useSurfaceAreaReward_Discrete=false;
-        useDenseReward_Distance=false;
-        useDenseReward=false;
-        useSparseReward=false;
-        usePenaltyReward=false;
-        // For continuous implementation
-        isFirstLayerContinuous=false;
-        // WHen using attention, you may use one hot encoding
-        useOneHotEncoding=false;
-        // Setup Continuous solution
-        useContinuousSolution=true;
-        if (useContinuousSolution){useDiscreteSolution=false;}
-        // Setup discrete solution
-        if (useDiscreteSolution){useVerticesArray=true;}
-        // ******************
-
         Academy.Instance.AutomaticSteppingEnabled = false;
 
         if (useCurriculum){
@@ -175,14 +202,18 @@ public class PackerHand : Agent
         var modelOverrider = GetComponent<ModelOverrider>();
         if (modelOverrider.HasOverrides)
         {
-            discreteBrain = modelOverrider.GetModelForBehaviorName(m_DiscreteBehaviorName);
-            m_DiscreteBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_DiscreteBehaviorName);
+            brain = modelOverrider.GetModelForBehaviorName(m_BehaviorName);
+            m_BehaviorName = ModelOverrider.GetOverrideBehaviorName(m_BehaviorName);
 
-            continuousBrain = modelOverrider.GetModelForBehaviorName(m_ContinuousBehaviorName);
-            m_ContinuousBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_ContinuousBehaviorName);
+            // Redundant code
+            // discreteBrain = modelOverrider.GetModelForBehaviorName(m_DiscreteBehaviorName);
+            // m_DiscreteBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_DiscreteBehaviorName);
 
-            mixBrain = modelOverrider.GetModelForBehaviorName(m_MixBehaviorName);
-            m_MixBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_MixBehaviorName);
+            // continuousBrain = modelOverrider.GetModelForBehaviorName(m_ContinuousBehaviorName);
+            // m_ContinuousBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_ContinuousBehaviorName);
+
+            // mixBrain = modelOverrider.GetModelForBehaviorName(m_MixBehaviorName);
+            // m_MixBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_MixBehaviorName);
         }
 
         // Make agent unaffected by collision
@@ -212,11 +243,26 @@ public class PackerHand : Agent
 
         // initialize local reference of box pool
         boxPool = boxSpawner.boxPool;
+        // Maximum possible number of boxes defined in a curriculum
+        if (usePadding || useOneHotEncoding) maxBoxNum = boxSpawner.maxBoxQuantity;
 
-        maxBoxNum = boxSpawner.maxBoxQuantity;
+        num_boxes_x = boxSpawner.num_boxes.x;
+        num_boxes_y = boxSpawner.num_boxes.y;
+        num_boxes_z = boxSpawner.num_boxes.z;
 
         if (useAttention){
             m_BufferSensor = GetComponent<BufferSensorComponent>();
+            // Set (in the Inspector) the maximum number of observables entities that the BufferSensor can observe
+            if (usePadding){
+                m_BufferSensor.MaxNumObservables = maxBoxNum;}
+            else if (boxSpawner.useRandomGenerator){
+                m_BufferSensor.MaxNumObservables = num_boxes_x + num_boxes_y + num_boxes_z;}
+            // Set (in the Inspector) the size of each observable entity
+            if (useOneHotEncoding){
+                max_observable_size = maxBoxNum + observable_size;}
+            else{
+                max_observable_size = observable_size;}
+            m_BufferSensor.ObservableSize = max_observable_size;
         }
 
         isEpisodeStart = true;
@@ -243,7 +289,7 @@ public class PackerHand : Agent
         sensor.AddObservation(total_bin_volume);
         sensor.AddObservation(total_bin_area);
         sensor.AddObservation(new Vector3(binscale_x,binscale_y,binscale_z));
-        sensor.AddObservation(new Vector3(binscale_x,binscale_y,binscale_z));
+        // sensor.AddObservation(new Vector3(binscale_x,binscale_y,binscale_z));
 
         int j = 0;
         maskedBoxIndices = new List<int>();
@@ -253,56 +299,37 @@ public class PackerHand : Agent
             Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
 
             if (useAttention){
+                int idx_cntr = 0;
+                float[] listVarObservation = new float[max_observable_size];
                 if (useOneHotEncoding){
                     // Used for variable size observations
-                    float[] listVarObservation = new float[maxBoxNum+8];
                     int boxNum = int.Parse(box.rb.name);
                     // The first boxPool.Count are one hot encoding of the box
                     listVarObservation[boxNum] = 1.0f;
-                    // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                    listVarObservation[maxBoxNum]  = scaled_continuous_boxsize.x;
-                    listVarObservation[maxBoxNum +1] = scaled_continuous_boxsize.y;
-                    listVarObservation[maxBoxNum +2] = scaled_continuous_boxsize.z;
-                    // Add updated [volume]/[w*h*l] added to state vector
-                    listVarObservation[maxBoxNum +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
-                    //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
-                    //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
-                    //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
-                    // Add updated box placement vertex
-                    listVarObservation[maxBoxNum +4] = box.boxVertex.x;
-                    listVarObservation[maxBoxNum +5] = box.boxVertex.y;
-                    listVarObservation[maxBoxNum +6] = box.boxVertex.z;
-                    // Add updated box rotation
-                    // listVarObservation[boxPool.Count+7] = box.boxRot[0];
-                    // listVarObservation[boxPool.Count+8] = box.boxRot[1];
-                    // listVarObservation[boxPool.Count+9] = box.boxRot[2];
-                    // listVarObservation[boxPool.Count+10] = box.boxRot[3];
-                    // Add if box is placed already: 1 if placed already and 0 otherwise
-                    listVarObservation[maxBoxNum +7] = box.isOrganized ? 1.0f : 0.0f;;
-                    m_BufferSensor.AppendObservation(listVarObservation);
+                    // Counter for remaining observations
+                    idx_cntr = maxBoxNum;
                 }
-                else{
-                    // Used for variable size observations
-                    float[] listVarObservation = new float[13];
-                    // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                    listVarObservation[0]  = scaled_continuous_boxsize.x;
-                    listVarObservation[1] = scaled_continuous_boxsize.y;
-                    listVarObservation[2] = scaled_continuous_boxsize.z;
-                    // Add updated [volume]/[w*h*l] added to state vector
-                    listVarObservation[3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
-                    // Add updated box placement vertex
-                    listVarObservation[4] = box.boxVertex.x;
-                    listVarObservation[5] = box.boxVertex.y;
-                    listVarObservation[6] = box.boxVertex.z;
-                    // Add updated box rotation
-                    listVarObservation[7] = box.boxRot[0];
-                    listVarObservation[8] = box.boxRot[1];
-                    listVarObservation[9] = box.boxRot[2];
-                    listVarObservation[10] = box.boxRot[3];
-                    // Add if box is placed already: 1 if placed already and 0 otherwise
-                    listVarObservation[12] = box.isOrganized ? 1.0f : 0.0f;;
-                    m_BufferSensor.AppendObservation(listVarObservation);
-                }
+                // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
+                listVarObservation[idx_cntr]    = scaled_continuous_boxsize.x;
+                listVarObservation[idx_cntr +1] = scaled_continuous_boxsize.y;
+                listVarObservation[idx_cntr +2] = scaled_continuous_boxsize.z;
+                // Add updated [volume]/[w*h*l] added to state vector
+                listVarObservation[idx_cntr +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
+                //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
+                //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
+                //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
+                // Add updated box placement vertex
+                listVarObservation[idx_cntr +4] = box.boxVertex.x;
+                listVarObservation[idx_cntr +5] = box.boxVertex.y;
+                listVarObservation[idx_cntr +6] = box.boxVertex.z;
+                // Add updated box rotation
+                // listVarObservation[boxPool.Count+7] = box.boxRot[0];
+                // listVarObservation[boxPool.Count+8] = box.boxRot[1];
+                // listVarObservation[boxPool.Count+9] = box.boxRot[2];
+                // listVarObservation[boxPool.Count+10] = box.boxRot[3];
+                // Add if box is placed already: 1 if placed already and 0 otherwise
+                listVarObservation[idx_cntr +7] = box.isOrganized ? 1.0f : 0.0f;;
+                m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
@@ -311,22 +338,12 @@ public class PackerHand : Agent
                 sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
                 sensor.AddObservation (box.boxVertex);
             }
-            // add placed boxes to action ask
-            if (box.isOrganized)
-            {
-                maskedBoxIndices.Add(j);
-                //Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
-            }
+            // Add boxes to action ask: 1) boxes already placed in the bin, 2) boxes that are zero-padded
+            if (box.isOrganized){
+                maskedBoxIndices.Add(j);}
+            else if (usePadding){   
+                maskedBoxIndices.Add(j);}
             j++;
-        }
-
-        // add all zero padded boxes to action mask
-        if (useOneHotEncoding){
-            for (int m=boxPool.Count(); m< maxBoxNum; m++)
-            {
-                // Debug.Log($"MASK ZERO PADDING {m}");
-                maskedBoxIndices.Add(m);
-            }
         }
 
         // Add array of vertices (selected vertices are 0s)
@@ -352,11 +369,6 @@ public class PackerHand : Agent
                 i++;
             }
         }
-        // If everything works for the Continuous approach then remove this line
-        // else
-        // {
-        //     maskedVertexIndices.Add(0);
-        // }
 
         // // array of blackboxes 
         // foreach (Blackbox blackbox in blackboxPool)
@@ -407,25 +419,27 @@ public class PackerHand : Agent
         var continuousActions = actionBuffers.ContinuousActions;
 
         SelectBox(discreteActions[++j]); 
+
         if (useDiscreteSolution){
             // activate for discrete solution + adjust in Inspector by adding 1 more discrete branch
-            SelectVertexDiscrete(discreteActions[++j],continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+            SelectVertexDiscrete(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         }
         else if (useContinuousSolution){
             // activate for continuous solution
             SelectVertexContinuous(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         }
+        
         SelectRotation(discreteActions[++j]);
     }
 
 
-    /// <summary>
     /// This function is called at every time step
-    ///</summary>
     void FixedUpdate() 
     {
         // if all boxes packed, reset episode
-        if (boxPool.Count!=0 && ((useOneHotEncoding && maskedBoxIndices.Count == maxBoxNum) || (maskedBoxIndices.Count == boxPool.Count)))
+        if (boxPool.Count!=0 && ((useOneHotEncoding && maskedBoxIndices.Count == maxBoxNum    ) ||
+                                 (usePadding        && maskedBoxIndices.Count == maxBoxNum    ) || 
+                                 (                     maskedBoxIndices.Count == boxPool.Count) ))
         {
             if (useSparseReward)
             {
@@ -470,8 +484,9 @@ public class PackerHand : Agent
             }
             else
             {
-                // boxSpawner.SetUpBoxes(box_file, false, 0, 0, 0, seed);
-                boxSpawner.SetUpBoxes("uniform_random", false, 2, 2, 2, seed);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 0, 0, 0, seed, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 2, 2, 2, seed, usePadding);
+                boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, num_boxes_x, num_boxes_y, num_boxes_z, seed, usePadding);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
 
@@ -521,13 +536,13 @@ public class PackerHand : Agent
             box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
             float box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
 
-            if (useSurfaceAreaReward_Discrete){
+            if (useSurfaceAreaReward){
                 // Add surface area reward
                 float percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
                 AddReward(percent_contact_surface_area * 50f);
                 Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
             }
-            if (useSurfaceAreaReward_Continuous)
+            if (useAreaVolumeCombinedReward)
             {
                 // Add surface area reward
                 float percent_contact_surface_area_scaled = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
@@ -804,8 +819,9 @@ public class PackerHand : Agent
         var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
         if (curriculum_ConfigurationLocal == 1)
+        // Probably inactive code!! (since curriculum_ConfigurationGlobal==1 is not used anymore)
         {
-            if (useDenseReward_Distance){
+            if (useDistanceReward){
                 // reward_dense_distance = inverse of exponential distance between discreteVertex and continuousVertex 
                 float reward_dense_distance = (float) 
                 (1/(Math.Pow(action_SelectedVertex_x - scaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - scaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - scaled_selectedVertex.z, 2)));
@@ -1432,84 +1448,72 @@ public class PackerHand : Agent
     /// Configures the agent. Given an integer config, difficulty level will be different and a different brain will be used.
     void ConfigureAgent(int n) 
     {
+        Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_BehaviorName}");
+        if (isInitialization)
+        {
+            SetModel(m_BehaviorName, brain);  
+        }
+
         if (n==0) 
         // DISCRETE
         {
-            useDiscreteSolution     = true;
-            isFirstLayerContinuous = false;
-            useContinuousSolution        = false;
-            useVerticesArray       = true;
-            Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");            
-            if (isInitialization)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 0.0f) == 0.0f)
             {
-                SetModel(m_DiscreteBehaviorName, discreteBrain);
-            }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
-            {
-                boxSpawner.SetUpBoxes("mix_random", true, 4, 4, 6, seed);
+                boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 4, 4, 6, seed, usePadding);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 1.0f) == 1.0f)
             {
-                boxSpawner.SetUpBoxes("mix_random", true, 4, 4, 6, seed+1);
+                boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 8, 8, 12, seed+1, usePadding);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 2.0f) == 2.0f)
             {
-                boxSpawner.SetUpBoxes("mix_random", true, 4, 4, 6, seed+2);
+                boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 16, 16, 24, seed+2, usePadding);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
         }
         else if (n==1) 
-        // Mixed DISCRETE-CONTINUOUS (not recommended to switch from discrete to continuous brain)
-        {
-            Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_MixBehaviorName}");
-            if (isInitialization)
-            {
-                SetModel(m_MixBehaviorName, mixBrain);
-            }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f)
-            {
-                useDiscreteSolution     = true;
-                isFirstLayerContinuous = false;
-                useContinuousSolution        = false;
-                useVerticesArray       = true;
-            }
-            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 1.0f) == 1.0f)
-            {
-                useDiscreteSolution     = false;
-                isFirstLayerContinuous = true;
-                useContinuousSolution        = false;
-                useVerticesArray       = false;
-            }
-            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 2.0f) == 2.0f)
-            {
-                useDiscreteSolution     = false;
-                isFirstLayerContinuous = false;
-                useContinuousSolution        = true;
-                useVerticesArray       = false;
-            }
-        }
+            {}  // Not used anymore
+        // // Mixed DISCRETE-CONTINUOUS (not recommended to switch from discrete to continuous brain)
+        // {
+        //     Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_MixBehaviorName}");
+        //     if (isInitialization)
+        //     {
+        //         SetModel(m_MixBehaviorName, mixBrain);
+        //     }
+        //     if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f)
+        //     {
+        //         useDiscreteSolution     true;
+        //         isFirstLayerContinuous = false;
+        //         useContinuousSolution  = false;
+        //         useVerticesArray       = true;
+        //     }
+        //     else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 1.0f) == 1.0f)
+        //     {
+        //         useDiscreteSolution     = false;
+        //         isFirstLayerContinuous = true;
+        //         useContinuousSolution        = false;
+        //         useVerticesArray       = false;
+        //     }
+        //     else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 2.0f) == 2.0f)
+        //     {
+        //         useDiscreteSolution     = false;
+        //         isFirstLayerContinuous = false;
+        //         useContinuousSolution        = true;
+        //         useVerticesArray       = false;
+        //     }
+        // }
         else if (n==2)
         // CONTINUOUS
         {
-            useVerticesArray       = false;
-            useDiscreteSolution     = false;
-            Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_ContinuousBehaviorName}");
-            if (isInitialization)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 1.0f) == 1.0f)
             {
-                SetModel(m_ContinuousBehaviorName, continuousBrain);  
+                // pending setup
             }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 1.0f) == 1.0f)
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 2.0f) == 2.0f)
             {
-                isFirstLayerContinuous = false;
-                useContinuousSolution        = false;
-
-            }
-            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("continuous", 2.0f) == 2.0f)
-            {
-                isFirstLayerContinuous = false;
-                useContinuousSolution        = true;
+                // pending setup
             }  
         }
     }
