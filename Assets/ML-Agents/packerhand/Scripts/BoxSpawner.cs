@@ -27,7 +27,8 @@ public class Box
     public Vector3 startingSize; // for box reset, constant 
     public Vector3 boxSize; // for sensor, changes after selected action
     public Quaternion boxRot; // for sensor, changes after selected action
-    public Vector3 boxVertex; // for sensor, changes after selected action
+    public Vector3 boxVertex = Vector3.zero; // for sensor, changes after selected action
+    public Vector3 binSize = Vector3.zero; //for sensor, changes after selected actiong
     public bool isOrganized = false; // for sensor, changes after selected action
     public GameObject gameobjectBox; // stores gameobject box reference created during box creation, for destroying old boxes
 }

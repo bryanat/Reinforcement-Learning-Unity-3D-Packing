@@ -84,7 +84,7 @@ public class PackerHand : Agent
     public float percent_box_packed;
     public float total_bin_volume; // sum of all bins' volume
     float current_bin_volume;
-    int boxes_packed=0;
+    int boxes_packed;
     public float percent_filled_bin_volume;
 
 
@@ -188,7 +188,7 @@ public class PackerHand : Agent
         {   
             if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+5];
+                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+11];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
@@ -196,22 +196,27 @@ public class PackerHand : Agent
                 listVarObservation[boxSpawner.maxBoxQuantity] = box.boxSize.x;
                 listVarObservation[boxSpawner.maxBoxQuantity +1] = box.boxSize.y;
                 listVarObservation[boxSpawner.maxBoxQuantity +2] = box.boxSize.z;
+                // Add associated bin dimensions
+                // if box has not been placed, they'll be zeros
+                listVarObservation[boxSpawner.maxBoxQuantity +3] = box.binSize.x;
+                listVarObservation[boxSpawner.maxBoxQuantity +4] = box.binSize.y;
+                listVarObservation[boxSpawner.maxBoxQuantity +5] = box.binSize.z;
                 //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
                 //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
                 //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
                 // Add scaled vertex
-                // listVarObservation[boxSpawner.maxBoxQuantity +3] = box.boxVertex.x;
-                // listVarObservation[boxSpawner.maxBoxQuantity +4] = box.boxVertex.y;
-                // listVarObservation[boxSpawner.maxBoxQuantity +5] = box.boxVertex.z;
+                listVarObservation[boxSpawner.maxBoxQuantity +6] = box.boxVertex.x;
+                listVarObservation[boxSpawner.maxBoxQuantity +7] = box.boxVertex.y;
+                listVarObservation[boxSpawner.maxBoxQuantity +8] = box.boxVertex.z;
                 // Add rotation
                 // listVarObservation[boxPool.Count+7] = box.boxRot[0];
                 // listVarObservation[boxPool.Count+8] = box.boxRot[1];
                 // listVarObservation[boxPool.Count+9] = box.boxRot[2];
                 // listVarObservation[boxPool.Count+10] = box.boxRot[3];
                 // Add [box volume]/[bin volume] 
-                listVarObservation[boxSpawner.maxBoxQuantity +3] = (box.boxSize.x* box.boxSize.y *box.boxSize.z)/(total_bin_volume);
+                listVarObservation[boxSpawner.maxBoxQuantity +9] = (box.boxSize.x* box.boxSize.y *box.boxSize.z)/(total_bin_volume);
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[boxSpawner.maxBoxQuantity +4] = box.isOrganized ? 1.0f : 0.0f;
+                listVarObservation[boxSpawner.maxBoxQuantity +10] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
@@ -426,6 +431,9 @@ public class PackerHand : Agent
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
+            percent_box_packed = (boxes_packed/total_box_number) * 100;
+            m_statsRecorder.Add("% Box Packed", percent_box_packed, StatAggregationMethod.Average);
+
             // REGUEST DECISION FOR NEXT ROUND OF PICKING
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
@@ -467,8 +475,6 @@ public class PackerHand : Agent
                 {
                     DropoffBox();
                     boxes_packed++;
-                    percent_box_packed = (boxes_packed/total_box_number) * 100;
-                    m_statsRecorder.Add("% Box Packed", percent_box_packed, StatAggregationMethod.Average);
                 }
                 else
                 {
@@ -570,6 +576,8 @@ public class PackerHand : Agent
         }
         // store vertex information in box to be added to sensor observation
         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
+        // store bin informaition in box to be added to sensor observation
+        boxPool[selectedBoxIdx].binSize = new Vector3(binSpawner.binscales_x[selectedBin], binSpawner.binscales_y[selectedBin], binSpawner.binscales_z[selectedBin]);
         // selected vertex is unscaled vertex
         selectedVertex =  new Vector3(((scaled_selectedVertex.x* binSpawner.binscales_x[selectedBin]) + binSpawner.origins[selectedBin].x), ((scaled_selectedVertex.y* binSpawner.binscales_y[selectedBin]) + binSpawner.origins[selectedBin].y), ((scaled_selectedVertex.z* binSpawner.binscales_z[selectedBin]) + binSpawner.origins[selectedBin].z));
         // Debug.Log($"SVB selected vertex is {selectedVertex}");
