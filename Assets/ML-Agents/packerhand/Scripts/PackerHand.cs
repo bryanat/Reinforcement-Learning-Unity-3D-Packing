@@ -320,10 +320,10 @@ public class PackerHand : Agent
                 AddReward(percent_filled_bin_volume*10);
                 //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             }
-            EndEpisode();
+                EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
             isEpisodeStart = true;
-            //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
+            Debug.Log($"ALL BOXES PACKED!!! EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
         }
         // to reset episode manually, need to reset a little before MaxStep is reached, or else episode will be reset automatically
         // (this loop is not reached if conditional check is StepCount >= MaxStep)
@@ -426,8 +426,8 @@ public class PackerHand : Agent
             // Add volume reward
             if (useDenseReward)
             {
-                AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
-                //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+            AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
+            //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
             }
             
             // Increment stats recorder to match reward
@@ -482,7 +482,7 @@ public class PackerHand : Agent
                 {
                     if (useDenseReward)
                     {
-                        AddReward(-100f);
+                    AddReward(-100f);
                     }
                     else
                     {
