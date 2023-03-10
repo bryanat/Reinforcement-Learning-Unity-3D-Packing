@@ -31,6 +31,8 @@ public class PackerHand : Agent
     public bool useSurfaceAreaReward=false;
     public bool useDiscreteSolution = true;
 
+    public bool useVerticesArray = true;
+
     BufferSensorComponent m_BufferSensor; // attention sensor
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
 
@@ -179,7 +181,7 @@ public class PackerHand : Agent
     {
         //Debug.Log("OBSERVATION");
         // Add updated bin volume
-        sensor.AddObservation(current_bin_volume);
+        sensor.AddObservation(percent_filled_bin_volume);
 
         int j = 0;
         maskedBoxIndices = new List<int>();
@@ -254,7 +256,7 @@ public class PackerHand : Agent
         {   
             Vector3 scaled_vertex = new Vector3(vertex.x, vertex.y, vertex.z);
             //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
-            if (useDiscreteSolution)
+            if (useVerticesArray)
             {
                 sensor.AddObservation(scaled_vertex);
             }
