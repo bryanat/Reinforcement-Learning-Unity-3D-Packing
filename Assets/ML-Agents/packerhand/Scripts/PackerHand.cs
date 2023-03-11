@@ -121,7 +121,7 @@ public class PackerHand : Agent
 
     [HideInInspector] public bool initializeBrain = true;
     [HideInInspector] public bool isEpisodeStart;
-    [HideInInspector] public bool isAfterOriginVertexSelected;
+    private bool isAfterOriginVertexSelected;
     //[HideInInspector] public bool isBlackboxUpdated;
     // public bool isVertexSelected;
     [HideInInspector] public bool isBoxSelected;
@@ -355,6 +355,7 @@ public class PackerHand : Agent
             maskedVertexIndices = new List<int>();
             
             int i = 0;
+            Debug.Log($"============================================================================================ verticesArray: {verticesArray.Length}");
             foreach (Vector3 vertex in verticesArray) 
             {   
                 //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
@@ -382,6 +383,7 @@ public class PackerHand : Agent
         {
             if (isAfterOriginVertexSelected) {
                 if (useVerticesArray){
+                    Debug.Log($"MASK VERTEX ARRAY size: {maskedVertexIndices.Count}");
                     foreach (int vertexIdx in maskedVertexIndices) 
                     {
                         //Debug.Log($"MASK VERTEX {vertexIdx}");
@@ -412,7 +414,7 @@ public class PackerHand : Agent
 
         if (useDiscreteSolution){
             // activate for discrete solution + adjust in Inspector by adding 1 more discrete branch
-            SelectVertexDiscrete(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+            SelectVertexDiscrete(discreteActions[++j]);
         }
         else if (useContinuousSolution){
             // activate for continuous solution
@@ -423,7 +425,9 @@ public class PackerHand : Agent
     }
 
 
+    /// <summary>
     /// This function is called at every time step
+    /// <summary>
     void FixedUpdate() 
     {
         // All boxes packed? Reset episode
@@ -439,7 +443,7 @@ public class PackerHand : Agent
             isEpisodeStart = true;
             Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
         }
-        // if reaches max step, reset episode 
+        // If reaches max step, reset episode 
         if (StepCount >= MaxStep) 
         {
             if (useSparseReward)
@@ -452,7 +456,7 @@ public class PackerHand : Agent
             isEpisodeStart = true;
             Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
         }
-        // start of episode
+        // Start of episode
         if (isEpisodeStart)
         {
             isEpisodeStart = false;
@@ -460,7 +464,7 @@ public class PackerHand : Agent
             // Reset agent and rewards
             SetResetParameters();
 
-            // Initialize curriculum and brain
+            // Initialize curriculum and boxes
             if (useCurriculum)
             {
                 if (curriculum_ConfigurationGlobal != -1)
@@ -478,19 +482,13 @@ public class PackerHand : Agent
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
 
+            // For padding, make sure that the newly generated amount of boxes is not greater than the maxBoxNum memory allocated
             if (usePadding && maxBoxNum < boxPool.Count)
             {
                 Debug.Log($" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ERROR &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
                 Debug.Log($" Increase maxBoxNum from {maxBoxNum} to {boxPool.Count} to fit all padded boxes in the bin");
                 return;
             }
-
-            if (useDiscreteSolution)
-            { 
-                selectedVertex = origin;
-                isAfterOriginVertexSelected = false;
-            }
-
 
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
@@ -732,28 +730,14 @@ public class PackerHand : Agent
         }
     }
 
-    public void SelectVertexDiscrete(int action_SelectedVertexIdx, float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
+    public void SelectVertexDiscrete(int action_SelectedVertexIdx) 
     {
-        action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
-        action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
-        action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
-        Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
 
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
         selectedVertexIdx = action_SelectedVertexIdx;
         var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
-        if (curriculum_ConfigurationLocal == 1)
-        // Probably inactive code!! (since curriculum_ConfigurationGlobal==1 is not used anymore)
-        {
-            if (useDistanceReward){
-                // reward_dense_distance = inverse of exponential distance between discreteVertex and continuousVertex 
-                float reward_dense_distance = (float) 
-                (1/(Math.Pow(action_SelectedVertex_x - scaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - scaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - scaled_selectedVertex.z, 2)));
-                AddReward(reward_dense_distance);
-                Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
-            }
-        }
+
         selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
         Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
         // isVertexSelected = true;
@@ -872,7 +856,6 @@ public class PackerHand : Agent
         Debug.Log($"BOX POOL COUNT = {boxPool.Count()}");
         Debug.Log($"action_selectedBox = {action_SelectedBox}");
         targetBox = boxPool[selectedBoxIdx].rb.transform;
-        Debug.Log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
         isBoxSelected = true;
     }
 
@@ -1251,36 +1234,36 @@ public class PackerHand : Agent
     }
 
 
-    public void BoxReset(string cause)
-    {
-        if (cause == "failedPhysicsCheck") 
-        {
-            Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
-            // Detach box from agent
-            targetBox.parent = null;
-            // Add back rigidbody and collider
-            Rigidbody rb = boxPool[selectedBoxIdx].rb;
-            BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
-            // Not be affected by forces or collisions, position and rotation will be controlled directly through script
-            rb.isKinematic = true;
-            // Reset to starting position
-            rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
-            rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
-            rb.transform.position = boxPool[selectedBoxIdx].startingPos;
-            ReverseSideNames(selectedBoxIdx);
-            // Remove from organized list to be picked again
-            maskedBoxIndices.Remove(selectedBoxIdx);
-            // Reset states
-            StateReset();
-            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
-            GetComponent<Agent>().RequestDecision();
-            Academy.Instance.EnvironmentStep();
-            // Setting to true allows another vertex to be selected
-            // isBlackboxUpdated = true;
-            // Setting to true keeps the current vertex and allows another box to be selected
-            // isVertexSelected = true;
-        }
-    }
+    // public void BoxReset(string cause)
+    // {
+    //     if (cause == "failedPhysicsCheck") 
+    //     {
+    //         Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
+    //         // Detach box from agent
+    //         targetBox.parent = null;
+    //         // Add back rigidbody and collider
+    //         Rigidbody rb = boxPool[selectedBoxIdx].rb;
+    //         BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
+    //         // Not be affected by forces or collisions, position and rotation will be controlled directly through script
+    //         rb.isKinematic = true;
+    //         // Reset to starting position
+    //         rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
+    //         rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
+    //         rb.transform.position = boxPool[selectedBoxIdx].startingPos;
+    //         ReverseSideNames(selectedBoxIdx);
+    //         // Remove from organized list to be picked again
+    //         maskedBoxIndices.Remove(selectedBoxIdx);
+    //         // Reset states
+    //         StateReset();
+    //         // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+    //         GetComponent<Agent>().RequestDecision();
+    //         Academy.Instance.EnvironmentStep();
+    //         // Setting to true allows another vertex to be selected
+    //         // isBlackboxUpdated = true;
+    //         // Setting to true keeps the current vertex and allows another box to be selected
+    //         // isVertexSelected = true;
+    //     }
+    // }
 
 
     public void AgentReset() 
@@ -1330,9 +1313,9 @@ public class PackerHand : Agent
         m_BottomMeshScript.MeshReset();
         m_SideMeshScript.MeshReset();
         m_BackMeshScript.MeshReset();
-
-        isBackMeshCombined = false;
-        isSideMeshCombined = false;
+    
+        isBackMeshCombined   = false;
+        isSideMeshCombined   = false;
         isBottomMeshCombined = false;
 
         // Reset reward
@@ -1360,10 +1343,15 @@ public class PackerHand : Agent
             // sideMeshVertices.Clear();
             // bottomMeshVertices.Clear();
             historicalVerticesLog.Clear();
+
+            // Reset vertex count
+            VertexCount = 0;
+
+            // Reset selected vertex
+            selectedVertex = origin;
+            isAfterOriginVertexSelected = false;
         }
         
-        // Reset vertex count
-        VertexCount = 0;
 
         // Reset states;
         StateReset();
