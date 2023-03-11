@@ -523,39 +523,37 @@ public class PackerHand : Agent
                 UpdateVerticesArray();
             }
 
-            // Side, back, and bottom vertices lists depends on the trimesh; Should be commented out if not using blackbox for better performance
-            //UpdateVerticesList();
-            // Both vertices array and vertices list are used to find black boxes
-            //UpdateBlackBox();
-
             box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
-            float box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
 
+            float box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+            // Add surface area reward
             if (useSurfaceAreaReward){
-                // Add surface area reward
                 float percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
                 AddReward(percent_contact_surface_area * 50f);
                 Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
             }
+
+            // Add combined area-volume reward
             if (useAreaVolumeCombinedReward)
             {
-                // Add surface area reward
-                float percent_contact_surface_area_scaled = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
-                AddReward(percent_contact_surface_area_scaled * 1000f);
-                Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area_scaled * 1000f} reward from surface area");
+                float percent_filled_bin_combined = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
+                AddReward(percent_filled_bin_combined * 1000f);
+                Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_filled_bin_combined * 1000f} reward from surface area");
+                // Increment stats recorder to match reward
+                m_statsRecorder.Add("% Bin Volume & Area Filled", percent_filled_bin_combined, StatAggregationMethod.Average);
             }
             
+            // Add volume reward
             current_bin_volume = current_bin_volume - box_volume;
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
-                // Add volume reward
             if (useDenseReward)
             {
                 AddReward((box_volume/total_bin_volume) * 1000f);
                 Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{(box_volume/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+                // Increment stats recorder to match reward
+                m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
             }
 
-            // Increment stats recorder to match reward
-            m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
             //Debug.Log("REQUEST DECISION FOR NEXT ROUND OF PICKING");
             GetComponent<Agent>().RequestDecision();
