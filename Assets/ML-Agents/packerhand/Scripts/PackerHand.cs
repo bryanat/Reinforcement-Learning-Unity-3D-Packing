@@ -31,8 +31,6 @@ public class PackerHand : Agent
     public bool useSurfaceAreaReward=false;
     public bool useDiscreteSolution = true;
 
-    public bool useVerticesArray = true;
-
     BufferSensorComponent m_BufferSensor; // attention sensor
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
 
@@ -229,6 +227,9 @@ public class PackerHand : Agent
                 // Add updated [volume]/[w*h*l] added to state vector
                 //sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
                 // Add scaled vertex
+                // Add associated bin dimensions
+                sensor.AddObservation(box.binSize);
+                // if box has not been placed, they'll be zeros
                 sensor.AddObservation (box.boxVertex);
                 // Add if box is placed or not
                 sensor.AddObservation(box.isOrganized ? 1.0f : 0.0f);
@@ -256,7 +257,7 @@ public class PackerHand : Agent
         {   
             Vector3 scaled_vertex = new Vector3(vertex.x, vertex.y, vertex.z);
             //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
-            if (useVerticesArray)
+            if (!useAttention)
             {
                 sensor.AddObservation(scaled_vertex);
             }
@@ -433,6 +434,7 @@ public class PackerHand : Agent
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
+            Debug.Log($"boxes packed {boxes_packed} | total_box {total_box_number} | percent packed {percent_box_packed}");
             percent_box_packed = (boxes_packed/total_box_number) * 100;
             m_statsRecorder.Add("% Box Packed", percent_box_packed, StatAggregationMethod.Average);
 

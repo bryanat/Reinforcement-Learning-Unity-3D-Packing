@@ -162,9 +162,9 @@ public class BoxSpawner : MonoBehaviour
             foreach (Container container in binSpawner.Containers)
             {
                 Color randomColor = UnityEngine.Random.ColorHSV();
-                int random_num_x =  UnityEngine.Random.Range(1, 4);
-                int random_num_y =  UnityEngine.Random.Range(1, 4);
-                int random_num_z =  UnityEngine.Random.Range(1, 6);
+                int random_num_x =  UnityEngine.Random.Range(2, 4);
+                int random_num_y =  UnityEngine.Random.Range(2, 4);
+                int random_num_z =  UnityEngine.Random.Range(2, 4);
                 float x_dimension =  (float)Math.Floor(container.Width/random_num_x * 100)/100;
                 float y_dimension =  (float)Math.Floor(container.Height/random_num_y * 100)/100;
                 float z_dimension = (float)Math.Floor(container.Length/random_num_z * 100)/100;
@@ -203,7 +203,7 @@ public class BoxSpawner : MonoBehaviour
                 // chop up the x, y, z dimensions
                 int random_num_x =  UnityEngine.Random.Range(2, 4);
                 int random_num_y =  UnityEngine.Random.Range(2, 4);
-                int random_num_z =  UnityEngine.Random.Range(2, 6);
+                int random_num_z =  UnityEngine.Random.Range(2, 4);
                 x_dimensions.Add(bin_x);
                 while (x_dimensions.Count<random_num_x)
                 {
