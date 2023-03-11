@@ -7,7 +7,7 @@ behaviors:
       learning_rate: 0.0003
       beta: 0.01
       beta_schedule: linear
-      epsilon: 0.2
+      epsilon: 0.1
       epsilon_schedule: linear
       lambd: 0.95
       num_epoch: 6
@@ -17,9 +17,9 @@ behaviors:
       hidden_units: 512
       num_layers: 3
       # vis_encode_type: simple
-      use_recurrent: true
-      sequence_length: 64
-      memory_size: 256
+      # use_recurrent: true
+      # sequence_length: 64
+      # memory_size: 256
       # use_curiosity: true
       # curiosity_enc_size: 128
       # curiosity_strength: 0.05
