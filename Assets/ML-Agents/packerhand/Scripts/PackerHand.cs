@@ -88,15 +88,15 @@ public class PackerHand : Agent
     [HideInInspector] CombineMesh m_SideMeshScript;
     [HideInInspector] CombineMesh m_BottomMeshScript;
 
-    [HideInInspector] public Vector3 initialAgentPosition;
-    [HideInInspector] public Transform targetBox; // target box selected by agent
-    [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
+    private Vector3 initialAgentPosition;
+    private Transform targetBox; // Box selected (by agent) to be placed in the bin
+    private Transform targetBin; // Phantom target bin object where the box will be placed
 
     [HideInInspector] public int selectedBoxIdx; // Box selected 
     private Vector3 selectedRotation; // selectedRotation selected
     [HideInInspector] public Vector3 selectedVertex; // Vertex selected
     [HideInInspector] public Vector3 [] verticesArray; // (2*num_boxes + 1) vertices, each vertex a Vextor3 vector: total size = (2*num_boxes + 1)*3
-    [HideInInspector] public int selectedVertexIdx = -1; 
+    private int selectedVertexIdx = -1; 
     [HideInInspector] public List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices;
     [HideInInspector] public List<int> maskedBoxIndices; // list of organzed box indices
@@ -110,25 +110,25 @@ public class PackerHand : Agent
     // [HideInInspector] public List<Vector3> backMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
     // [HideInInspector] public List<Vector3> sideMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
     // [HideInInspector] public List<Vector3> bottomMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
-    [HideInInspector] public float total_x_distance; //total x distance between agent and target
-    [HideInInspector] public float total_y_distance; //total y distance between agent and target
-    [HideInInspector] public float total_z_distance; //total z distance between agent and target
+    private float total_x_distance; //total x distance between agent and target
+    private float total_y_distance; //total y distance between agent and target
+    private float total_z_distance; //total z distance between agent and target
     
     public BoxSpawner boxSpawner; // Box Spawner
     [HideInInspector] public SensorCollision sensorCollision;
     [HideInInspector] public SensorOuterCollision sensorOuterCollision;
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
 
-    [HideInInspector] public bool initializeBrain = true;
-    [HideInInspector] public bool isEpisodeStart;
+    private bool initializeBrain = true;
+    private bool isEpisodeStart;
     private bool isAfterOriginVertexSelected;
     //[HideInInspector] public bool isBlackboxUpdated;
     // public bool isVertexSelected;
-    [HideInInspector] public bool isBoxSelected;
-    [HideInInspector] public bool isRotationSelected;
-    [HideInInspector] public bool isPickedup;
-    [HideInInspector] public bool isDroppedoff;
-    [HideInInspector] public bool isStateReset;
+    private bool isBoxSelected;
+    private bool isRotationSelected;
+    private bool isPickedup;
+    private bool isDroppedoff;
+    private bool isStateReset;
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
@@ -438,11 +438,10 @@ public class PackerHand : Agent
                 AddReward(percent_filled_bin_volume*10);
                 Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             }
-            EndEpisode();
-            if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
-            isEpisodeStart = true;
-            Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
+
+            initiateNewEpisode();
         }
+
         // If reaches max step, reset episode 
         if (StepCount >= MaxStep) 
         {
@@ -451,11 +450,10 @@ public class PackerHand : Agent
                 AddReward(percent_filled_bin_volume*10);
                 Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             }
-            EndEpisode();
-            if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
-            isEpisodeStart = true;
-            Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
+            
+            initiateNewEpisode();
         }
+
         // Start of episode
         if (isEpisodeStart)
         {
@@ -463,8 +461,12 @@ public class PackerHand : Agent
 
             // Reset agent and rewards
             SetResetParameters();
+            // Reset states;
+            StateReset();
+            // Reset agent
+            AgentReset();
 
-            // Initialize curriculum and boxes
+            // Initialize curriculum & brain and generate boxes
             if (useCurriculum)
             {
                 if (curriculum_ConfigurationGlobal != -1)
@@ -560,9 +562,10 @@ public class PackerHand : Agent
             Academy.Instance.EnvironmentStep();
         }
 
-        // if agent selects a box, it should move towards the box
+        // If agent selects a box, it should move towards the box
         else if (isBoxSelected && isPickedup == false) 
         {
+            // Agent moves to position of the box
             UpdateAgentPosition(targetBox);
             if ( Math.Abs(total_x_distance) < 0.1f && Math.Abs(total_z_distance) < 0.1f ) 
             {
@@ -574,7 +577,9 @@ public class PackerHand : Agent
         else if (isPickedup && isRotationSelected && isDroppedoff == false) 
         {
             UpdateBoxPosition();
+            // Agent moves (with the box) to selected position inside the bin
             UpdateAgentPosition(targetBin);
+
             UpdateTargetBox();
             //if agent is close enough to the position, it should drop off the box
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
@@ -596,10 +601,8 @@ public class PackerHand : Agent
                         AddReward(percent_filled_bin_volume*10);   
                         Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
                     }
-                    EndEpisode();
-                    if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
-                    isEpisodeStart = true;
-                    Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
+
+                    initiateNewEpisode();
                 }
             }
         }
@@ -613,6 +616,7 @@ public class PackerHand : Agent
     ///</summary>
     void UpdateAgentPosition(Transform target) 
     {
+        // Move agent towards the target position with specified PackSpeed
         total_x_distance = target.position.x- m_Agent.position.x;
         total_y_distance = target.position.y- m_Agent.position.y;
         total_z_distance = target.position.z- m_Agent.position.z;
@@ -620,7 +624,8 @@ public class PackerHand : Agent
         var current_agent_y = m_Agent.position.y;
         var current_agent_z = m_Agent.position.z;   
         this.transform.position = new Vector3(current_agent_x + total_x_distance/packSpeed, 
-        target.position.y, current_agent_z + total_z_distance/packSpeed);   
+                                              target.position.y, 
+                                              current_agent_z + total_z_distance/packSpeed);   
 
     }
 
@@ -785,10 +790,6 @@ public class PackerHand : Agent
             int directionX = 1; 
             int directionY = 1;
             int directionZ = 1;
-                
-            // var directionX = blackbox.position.x > 0 : 1 : -1; 
-            // var directionY = blackbox.position.y > 0 : 1 : -1;
-            // var directionZ = blackbox.position.z > 0 : 1 : -1;
                 
             // 3: Calc Position
             Vector3 position = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
@@ -1291,12 +1292,11 @@ public class PackerHand : Agent
             }
             boxPool[selectedBoxIdx].isOrganized = true;
         }
-        //isBlackboxUpdated = false;
         // isVertexSelected = false;
-        isBoxSelected = false;
+        isBoxSelected      = false;
         isRotationSelected = false;
-        isPickedup = false;
-        isDroppedoff = false;
+        isPickedup         = false;
+        isDroppedoff       = false;
         if (targetBin!=null)
         {
             DestroyImmediate(targetBin.gameObject);
@@ -1351,13 +1351,6 @@ public class PackerHand : Agent
             selectedVertex = origin;
             isAfterOriginVertexSelected = false;
         }
-        
-
-        // Reset states;
-        StateReset();
-
-        // Reset agent
-        AgentReset();
     }
 
 
@@ -1432,6 +1425,16 @@ public class PackerHand : Agent
                 // pending setup
             }  
         }
+    }
+
+    public void initiateNewEpisode(){
+        // Reset curriculum brain & box generation, end episode, reset flag for new episode
+        
+        if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
+        isEpisodeStart = true;
+        Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
+
+        EndEpisode();
     }
 
     /// <summary>

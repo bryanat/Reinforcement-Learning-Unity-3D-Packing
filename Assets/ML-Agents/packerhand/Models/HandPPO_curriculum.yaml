@@ -2,7 +2,7 @@ behaviors:
   Continuous:
     trainer_type: ppo
     hyperparameters:
-      batch_size: 512
+      batch_size: 256
       buffer_size: 4096
       learning_rate: 0.001
       beta: 0.005
@@ -29,8 +29,8 @@ behaviors:
         learning_rate: 0.0003
     keep_checkpoints: 5
     checkpoint_interval: 20000
-    max_steps: 1000000
-    time_horizon: 128
+    max_steps: 128 # instead of 1000000
+    time_horizon: 128 
     summary_freq: 2000
   # Mix:
   #   trainer_type: ppo
