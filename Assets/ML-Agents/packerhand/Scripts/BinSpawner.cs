@@ -63,7 +63,7 @@ public class BinSpawner : MonoBehaviour {
         }
         Vector3 localOrigin = Origin.transform.position;
         int idx = 0;
-        Debug.Log($"CONTAINER COUNT: {Containers.Count}");
+        //Debug.Log($"CONTAINER COUNT: {Containers.Count}");
         foreach (Container c in Containers)
         {
             // make container and outer_shell from prefab
@@ -84,7 +84,7 @@ public class BinSpawner : MonoBehaviour {
             // Set origin position of each bin
             localOrigin.x = localOrigin.x+binscale_x+5f;
             Vector4 originInfo = new Vector4(localOrigin.x, localOrigin.y, localOrigin.z, idx);
-            Debug.Log($"ORIGIN INFO FOR BIN {idx}: {originInfo}");
+            //Debug.Log($"ORIGIN INFO FOR BIN {idx}: {originInfo}");
             origins.Add(originInfo);
             Vector3 container_center = new Vector3(localOrigin.x+(binscale_x/2f), 0.5f, localOrigin.z+(binscale_z/2f));
             container.transform.localPosition = container_center;

@@ -35,11 +35,8 @@ public class PackerHand : Agent
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
 
     public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
-    // public NNModel continuousBrain;     // Brain to use when boxes are of similar sizes
-    // public NNModel mixBrain;     // Brain to use when boxes size vary
     string m_DiscreteBehaviorName = "Discrete"; 
-    // string m_ContinuousBehaviorName = "Continuous";
-    // string m_MixBehaviorName = "Mix";
+
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
     [HideInInspector] public Vector3 initialAgentPosition; 
@@ -70,22 +67,20 @@ public class PackerHand : Agent
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision; // cache script for checking overlap
     [HideInInspector] public bool isAfterInitialization = false;
     [HideInInspector] public bool isEpisodeStart;
-    public bool isAfterOriginVertexSelected;
+    [HideInInspector] public bool isAfterOriginVertexSelected;
     [HideInInspector] public bool isBoxSelected;
     [HideInInspector] public bool isBoxPlacementChecked;
     [HideInInspector] public bool isPickedup;
-    [HideInInspector] public bool isDroppedoff;
+    public bool isDroppedoff;
     [HideInInspector] public bool isStateReset;
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
     [HideInInspector ]public float percent_contact_surface_area;
     [HideInInspector] public float box_surface_area;
-    public int total_box_number;
-    public float percent_box_packed;
     public float total_bin_volume; // sum of all bins' volume
     float current_bin_volume;
-    int boxes_packed;
+    public int boxes_packed;
     public float percent_filled_bin_volume;
 
 
@@ -119,11 +114,6 @@ public class PackerHand : Agent
             discreteBrain = modelOverrider.GetModelForBehaviorName(m_DiscreteBehaviorName);
             m_DiscreteBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_DiscreteBehaviorName);
 
-            // continuousBrain = modelOverrider.GetModelForBehaviorName(m_ContinuousBehaviorName);
-            // m_ContinuousBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_ContinuousBehaviorName);
-
-            // mixBrain = modelOverrider.GetModelForBehaviorName(m_MixBehaviorName);
-            // m_MixBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_MixBehaviorName);
         }
 
         // Make agent unaffected by collision
@@ -290,7 +280,7 @@ public class PackerHand : Agent
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
                 {
-                    Debug.Log($"MASK VERTEX {vertexIdx}");
+                    //Debug.Log($"MASK VERTEX {vertexIdx}");
                     actionMask.SetActionEnabled(1, vertexIdx, false);
                 }
             }
@@ -375,8 +365,8 @@ public class PackerHand : Agent
             // initialize local reference to box pool
             boxPool = boxSpawner.boxPool;
 
-            // initialize total box number
-            total_box_number = boxPool.Count();
+            // // initialize total box number
+            // total_box_number = boxPool.Count();
 
             isAfterOriginVertexSelected = false;
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
@@ -422,10 +412,6 @@ public class PackerHand : Agent
             
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
-
-            Debug.Log($"boxes packed {boxes_packed} | total_box {total_box_number} | percent packed {percent_box_packed}");
-            percent_box_packed = (boxes_packed/total_box_number) * 100;
-            m_statsRecorder.Add("% Box Packed", percent_box_packed, StatAggregationMethod.Average);
 
             // REGUEST DECISION FOR NEXT ROUND OF PICKING
             if (origin_counter<=0) 
@@ -474,7 +460,7 @@ public class PackerHand : Agent
                 {
                     if (useDenseReward)
                     {
-                    AddReward(-100f);
+                        AddReward(-100f);
                     }
                     else
                     {
@@ -631,7 +617,7 @@ public class PackerHand : Agent
         GameObject testBoxChild = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
-        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.5f), (boxWorldScale.y - 0.5f), (boxWorldScale.z - 0.5f));
+        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.15f), (boxWorldScale.y - 0.15f), (boxWorldScale.z - 0.15f));
         testBoxChild.transform.position = testPosition;
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
@@ -889,9 +875,6 @@ public class PackerHand : Agent
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
         // find the bin that the box is put in
         for (int i=0; i< binSpawner.m_BackMeshScripts.Count; i++) {
-            // binSpawner.m_BackMeshScripts[i].isCollidedBlue = false;
-            // binSpawner.m_BottomMeshScripts[i].isCollidedGreen = false;
-            // binSpawner.m_SideMeshScripts[i].isCollidedRed = false;
             binSpawner.m_BackMeshScripts[i].isBoxPlaced = false;
             binSpawner.m_BottomMeshScripts[i].isBoxPlaced = false;
             binSpawner.m_SideMeshScripts[i].isBoxPlaced = false;

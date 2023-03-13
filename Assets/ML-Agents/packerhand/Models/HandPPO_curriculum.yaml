@@ -15,7 +15,7 @@ behaviors:
     network_settings:
       normalize: true
       hidden_units: 512
-      num_layers: 3
+      num_layers: 6
       # vis_encode_type: simple
       # use_recurrent: true
       # sequence_length: 64
