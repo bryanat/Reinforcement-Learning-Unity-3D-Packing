@@ -30,7 +30,7 @@ behaviors:
         learning_rate: 0.0003
     keep_checkpoints: 5
     checkpoint_interval: 20000
-    max_steps: 128 # instead of 1000000
+    max_steps: 1000000
     time_horizon: 128 
     summary_freq: 2000
 
@@ -64,7 +64,7 @@ behaviors:
         learning_rate: 0.0003
     keep_checkpoints: 5
     checkpoint_interval: 20000
-    max_steps: 128 # instead of 1000000
+    max_steps: 1000000
     time_horizon: 128 
     summary_freq: 2000
 
