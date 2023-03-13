@@ -391,24 +391,24 @@ public class PackerHand : Agent
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
             // force all meshes the box is placed into to combine
-            for (int i=0; i< binSpawner.m_BackMeshScripts.Count; i++) {
-                if (binSpawner.m_BackMeshScripts[i].isBoxPlaced)
-                {
-                    if (isBackMeshCombined==false)
-                    {
-                        binSpawner.m_BackMeshScripts[i].ForceMeshCombine();
-                    }
-                    if (isSideMeshCombined == false)
-                    {     
-                        binSpawner.m_SideMeshScripts[i].ForceMeshCombine();
-                    }
-                    if (isBottomMeshCombined == false)
-                    {     
-                        binSpawner.m_BottomMeshScripts[i].ForceMeshCombine();
-                    }
+            // for (int i=0; i< binSpawner.m_BackMeshScripts.Count; i++) {
+            //     if (binSpawner.m_BackMeshScripts[i].isBoxPlaced)
+            //     {
+            //         if (isBackMeshCombined==false)
+            //         {
+            //             binSpawner.m_BackMeshScripts[i].ForceMeshCombine();
+            //         }
+            //         if (isSideMeshCombined == false)
+            //         {     
+            //             binSpawner.m_SideMeshScripts[i].ForceMeshCombine();
+            //         }
+            //         if (isBottomMeshCombined == false)
+            //         {     
+            //             binSpawner.m_BottomMeshScripts[i].ForceMeshCombine();
+            //         }
                     
-                } 
-            }
+            //     } 
+            // }
             // Reset states for next round of picking
             StateReset();
 
@@ -906,9 +906,9 @@ public class PackerHand : Agent
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
         // find the bin that the box is put in
         for (int i=0; i< binSpawner.m_BackMeshScripts.Count; i++) {
-            binSpawner.m_BackMeshScripts[i].isCollidedBlue = false;
-            binSpawner.m_BottomMeshScripts[i].isCollidedGreen = false;
-            binSpawner.m_SideMeshScripts[i].isCollidedRed = false;
+            // binSpawner.m_BackMeshScripts[i].isCollidedBlue = false;
+            // binSpawner.m_BottomMeshScripts[i].isCollidedGreen = false;
+            // binSpawner.m_SideMeshScripts[i].isCollidedRed = false;
             binSpawner.m_BackMeshScripts[i].isBoxPlaced = false;
             binSpawner.m_BottomMeshScripts[i].isBoxPlaced = false;
             binSpawner.m_SideMeshScripts[i].isBoxPlaced = false;
