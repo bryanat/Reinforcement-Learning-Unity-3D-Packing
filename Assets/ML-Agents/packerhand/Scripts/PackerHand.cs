@@ -35,11 +35,11 @@ public class PackerHand : Agent
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
 
     public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
-    public NNModel continuousBrain;     // Brain to use when boxes are of similar sizes
-    public NNModel mixBrain;     // Brain to use when boxes size vary
+    // public NNModel continuousBrain;     // Brain to use when boxes are of similar sizes
+    // public NNModel mixBrain;     // Brain to use when boxes size vary
     string m_DiscreteBehaviorName = "Discrete"; 
-    string m_ContinuousBehaviorName = "Continuous";
-    string m_MixBehaviorName = "Mix";
+    // string m_ContinuousBehaviorName = "Continuous";
+    // string m_MixBehaviorName = "Mix";
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
     [HideInInspector] public Vector3 initialAgentPosition; 
@@ -55,13 +55,13 @@ public class PackerHand : Agent
     int VertexCount = 0; // counter for VerticesArray
     int origin_counter; // used to count origin vertices when populating origin boxes
     [HideInInspector] public List<Box> boxPool; 
-    [HideInInspector] private List<int> maskedVertexIndices; // list of taken vertex indices
+    [HideInInspector] public List<int> maskedVertexIndices; // list of taken vertex indices
     [HideInInspector] public List<int> maskedBoxIndices; // list of organzed box indices
     [HideInInspector] public List<Vector3> historicalVerticesLog; // list of all used vertices
     [HideInInspector] public Vector3 boxWorldScale; //local scale of selected box
-    [HideInInspector] public float total_x_distance; //total x distance between agent and target
-    [HideInInspector] public float total_y_distance; //total y distance between agent and target
-    [HideInInspector] public float total_z_distance; //total z distance between agent and target
+    float total_x_distance; //total x distance between agent and target
+    float total_y_distance; //total y distance between agent and target
+    float total_z_distance; //total z distance between agent and target
     
     public BoxSpawner boxSpawner; // Box Spawner
     public BinSpawner binSpawner; // Bin Spawner
@@ -70,8 +70,9 @@ public class PackerHand : Agent
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision; // cache script for checking overlap
     [HideInInspector] public bool isAfterInitialization = false;
     [HideInInspector] public bool isEpisodeStart;
-    [HideInInspector] public bool isAfterOriginVertexSelected;
+    public bool isAfterOriginVertexSelected;
     [HideInInspector] public bool isBoxSelected;
+    [HideInInspector] public bool isBoxPlacementChecked;
     [HideInInspector] public bool isPickedup;
     [HideInInspector] public bool isDroppedoff;
     [HideInInspector] public bool isStateReset;
@@ -118,11 +119,11 @@ public class PackerHand : Agent
             discreteBrain = modelOverrider.GetModelForBehaviorName(m_DiscreteBehaviorName);
             m_DiscreteBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_DiscreteBehaviorName);
 
-            continuousBrain = modelOverrider.GetModelForBehaviorName(m_ContinuousBehaviorName);
-            m_ContinuousBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_ContinuousBehaviorName);
+            // continuousBrain = modelOverrider.GetModelForBehaviorName(m_ContinuousBehaviorName);
+            // m_ContinuousBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_ContinuousBehaviorName);
 
-            mixBrain = modelOverrider.GetModelForBehaviorName(m_MixBehaviorName);
-            m_MixBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_MixBehaviorName);
+            // mixBrain = modelOverrider.GetModelForBehaviorName(m_MixBehaviorName);
+            // m_MixBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_MixBehaviorName);
         }
 
         // Make agent unaffected by collision
@@ -289,7 +290,7 @@ public class PackerHand : Agent
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
                 {
-                    //Debug.Log($"MASK VERTEX {vertexIdx}");
+                    Debug.Log($"MASK VERTEX {vertexIdx}");
                     actionMask.SetActionEnabled(1, vertexIdx, false);
                 }
             }
@@ -390,25 +391,6 @@ public class PackerHand : Agent
         // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
-            // force all meshes the box is placed into to combine
-            // for (int i=0; i< binSpawner.m_BackMeshScripts.Count; i++) {
-            //     if (binSpawner.m_BackMeshScripts[i].isBoxPlaced)
-            //     {
-            //         if (isBackMeshCombined==false)
-            //         {
-            //             binSpawner.m_BackMeshScripts[i].ForceMeshCombine();
-            //         }
-            //         if (isSideMeshCombined == false)
-            //         {     
-            //             binSpawner.m_SideMeshScripts[i].ForceMeshCombine();
-            //         }
-            //         if (isBottomMeshCombined == false)
-            //         {     
-            //             binSpawner.m_BottomMeshScripts[i].ForceMeshCombine();
-            //         }
-                    
-            //     } 
-            // }
             // Reset states for next round of picking
             StateReset();
 
@@ -434,8 +416,8 @@ public class PackerHand : Agent
             // Add volume reward
             if (useDenseReward)
             {
-            AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
-            //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+                AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
+                //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
             }
             
             // Increment stats recorder to match reward
@@ -446,16 +428,17 @@ public class PackerHand : Agent
             m_statsRecorder.Add("% Box Packed", percent_box_packed, StatAggregationMethod.Average);
 
             // REGUEST DECISION FOR NEXT ROUND OF PICKING
+            if (origin_counter<=0) 
+            {
+                isAfterOriginVertexSelected = true;
+            }
+
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
 
             // override brain selected origin boxes positions
             // discrete or not, the origin box placements will be forced
-            if (origin_counter<=0)
-            {
-                isAfterOriginVertexSelected = true;
-            }
-            else
+            if (isAfterOriginVertexSelected==false)
             {
                 origin_counter--;
                 selectedVertex = binSpawner.origins[origin_counter];
@@ -479,7 +462,7 @@ public class PackerHand : Agent
             UpdateAgentPosition(targetBin);
             UpdateTargetBox();
             //if agent is close enough to the position, it should drop off the box
-            if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
+            if (isBoxPlacementChecked && Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f) 
             {
                 // if box passes all physics test, it will be placed
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
@@ -587,8 +570,6 @@ public class PackerHand : Agent
         }
         // store vertex information in box to be added to sensor observation
         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
-        // store bin informaition in box to be added to sensor observation
-        //boxPool[selectedBoxIdx].boxBinScale = new Vector3(binSpawner.binscales_x[selectedBin], binSpawner.binscales_y[selectedBin], binSpawner.binscales_z[selectedBin]);
         // selected vertex is unscaled vertex
         selectedVertex =  new Vector3(((scaled_selectedVertex.x* binSpawner.binscales_x[selectedBin]) + binSpawner.origins[selectedBin].x), ((scaled_selectedVertex.y* binSpawner.binscales_y[selectedBin]) + binSpawner.origins[selectedBin].y), ((scaled_selectedVertex.z* binSpawner.binscales_z[selectedBin]) + binSpawner.origins[selectedBin].z));
         // Debug.Log($"SVB selected vertex is {selectedVertex}");
@@ -660,6 +641,8 @@ public class PackerHand : Agent
         sensorOuterCollision.agent = this; // agent reference used by component to set rewards on collision
         testBoxChild.name = $"testboxChild{targetBox.name}";
         testBoxChild.tag = "testboxChild";
+
+        isBoxPlacementChecked = true;
     }
 
 
@@ -976,6 +959,7 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].isOrganized = true;
         }
         isBoxSelected = false;
+        isBoxPlacementChecked = false;
         isPickedup = false;
         isDroppedoff = false;
         if (targetBin!=null)

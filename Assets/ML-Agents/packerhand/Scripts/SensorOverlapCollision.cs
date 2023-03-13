@@ -15,11 +15,8 @@ public class SensorOverlapCollision : MonoBehaviour
     }
 
 
-    // if box 
     void OnCollisionEnter(Collision collision)
     {
-        //Debug.Log($"CBO {collision.gameObject.name}               |          overlap with side: {name} ");
-
         // if convex mesh does not have thickness, it will have holes and entrances
         // for overlap check to work, mesh has to have certain thickness
         if (collision.gameObject.tag == "bin" | collision.gameObject.tag == "pickupbox") 
@@ -28,6 +25,6 @@ public class SensorOverlapCollision : MonoBehaviour
             passedOverlapCheck = false;
             //Debug.Log($"SCS {name} FAILED OVERLAP CHECK");
             Destroy(gameObject);
-        }         
+        }        
     }  
 }
