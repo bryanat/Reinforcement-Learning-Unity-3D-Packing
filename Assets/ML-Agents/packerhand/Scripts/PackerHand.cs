@@ -19,9 +19,9 @@ public class PackerHand : Agent
     public int seed=123;
 
     // Method switchers
-    public bool useCurriculum=true;
-    public bool useAttention=true; // use attention by default (default = true)
-    public bool useDiscreteSolution=true;
+    public bool useCurriculum;
+    public bool useAttention; // use attention by default (default = true)
+    public bool useDiscreteSolution;
     public bool _useOneHotEncodingForAttention; 
                             // _useOneHotEncodingForAttention means that we have a number of standard boxes (eg 50), each with unique attributes. For each training,
                             // we would use only a subset of these boxes (eg 10). The rest of the boxes will be created but their sizes will be set to 
@@ -40,7 +40,7 @@ public class PackerHand : Agent
     public bool usePenaltyReward;       // Penalty for every box misplaced and/or violating environemnt constraints
     public bool useDenseReward;         // Reward for every box placed: volume ratio (volume of the box / volume of the bin)
     public bool useSurfaceAreaReward;   // Reward for every box placed: surface area ratio (area of the box / area of the bin)
-    public bool useAreaVolumeCombinedReward=true;    // Reward for every box placed: combines the area & volume rewards (surface area ratio & volume ratio)
+    public bool useAreaVolumeCombinedReward;    // Reward for every box placed: combines the area & volume rewards (surface area ratio & volume ratio)
     public bool useDistanceReward;    // Reward for every box placed: distance ratio (distance between the box and the bin / distance between the agent and the bin)
 
     // Filters for lLocal features
@@ -245,8 +245,6 @@ public class PackerHand : Agent
 
         isEpisodeStart = true;
 
-        Debug.Log("INITIALIZE ENDS");
-
         // Initialize BufferSensor
         if (useAttention){
             m_BufferSensor = GetComponent<BufferSensorComponent>();
@@ -260,7 +258,13 @@ public class PackerHand : Agent
             m_BufferSensor.ObservableSize = max_observable_size;
         }
 
+        if (useVerticesArray) verticesArray = new Vector3[2*maxBoxNum+1];
+        else                  verticesArray = new Vector3[0];
+        Debug.Log($"============================================================================================ INITIALIZE  verticesArray: {verticesArray.Length}");
+
+        Debug.Log("INITIALIZE ENDS");
     }
+
 
     public override void OnEpisodeBegin()
     {   
@@ -460,7 +464,9 @@ public class PackerHand : Agent
             isEpisodeStart = false;
 
             // Reset agent and rewards
+            Debug.Log($"VERTICES ARRAY SIZE before SetResetParameters: {verticesArray.Length} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             SetResetParameters();
+            Debug.Log($"VERTICES ARRAY SIZE after  SetResetParameters: {verticesArray.Length} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             // Reset states;
             StateReset();
             // Reset agent
@@ -497,6 +503,7 @@ public class PackerHand : Agent
             Academy.Instance.EnvironmentStep();
 
         }
+
         // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
@@ -519,8 +526,10 @@ public class PackerHand : Agent
             if (useDiscreteSolution)
             {
                 isAfterOriginVertexSelected = true;
-                // Vertices array of tripoints doesn't depend on the trimesh; Only update vertices list and vertices array when box is placed
+                // Vertices array of tripoints don't depend on the trimesh; Only update vertices list and vertices array when box is placed
+                Debug.Log($"VERTICES ARRAY SIZE before UpdateVerticesArray: {verticesArray.Length} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
                 UpdateVerticesArray();
+                Debug.Log($"VERTICES ARRAY SIZE after  UpdateVerticesArray: {verticesArray.Length} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             }
 
             box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
@@ -555,7 +564,7 @@ public class PackerHand : Agent
             }
 
 
-            //Debug.Log("REQUEST DECISION FOR NEXT ROUND OF PICKING");
+            // Debug.Log("REQUEST DECISION FOR NEXT ROUND OF PICKING");
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
         }
@@ -640,55 +649,12 @@ public class PackerHand : Agent
     }
 
 
-    /// <summary>
-    /// Updates the vertices every time a new mesh is created
-    ///</summary>
-    // void UpdateVerticesList() 
-    // {
-    //     MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
-    //     AddVertices(mf_back.mesh.vertices, backMeshVertices);
-    //     //Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
-    //     MeshFilter mf_bottom = binBottom.GetComponent<MeshFilter>();
-    //     AddVertices(mf_bottom.mesh.vertices, bottomMeshVertices);
-    //     //Debug.Log($"OOO BOTTOM MESH VERTICES COUNT IS {bottomMeshVertices.Count()}");
-    //     MeshFilter mf_side = binSide.GetComponent<MeshFilter>();
-    //     AddVertices(mf_side.mesh.vertices, sideMeshVertices);  
-    //     //Debug.Log($"OOO SIDE MESH VERTICES COUNT IS {sideMeshVertices.Count()}");
-    // }
-
-    /// <summary>
-    /// For every mesh, add each unique vertex to a mesh list and a counter dictionary
-    ///</summary>
-    // Vertices used for constructing blackbox
-    // AddVertices( input: ALL_LOCAL_VerticesFromMesh, output: UNIQUE_GLOBAL_VerticesFromMesh )
-    // void AddVertices(Vector3 [] vertices, List<Vector3> verticesList) 
-    // {
-    //     Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
-    //     var tempHashSet = new HashSet<Vector3>();
-    //     // rounding part
-    //     foreach (Vector3 vertex in vertices) 
-    //     {
-    //         // first address vertices that are meant to be the same by rounding
-    //         var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 2)), (float)(Math.Round(vertex.y, 2)), (float)(Math.Round(vertex.z, 2)));
-    //         // remove duplicates by using a hash set
-    //         tempHashSet.Add(roundedVertex);
-    //     }
-    //     // localtoworld part
-    //     foreach (Vector3 vertex in tempHashSet) 
-    //     {
-    //         // convert local scale to world position
-    //         Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
-    //         verticesList.Add(worldVertex);
-    //     }
-    // }
-
-
     void UpdateVerticesArray() 
     {
         List<Vector3> tripoints_list = new List<Vector3>();
-        var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
-        var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
-        var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
+        var tripoint_redx   = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y,                 selectedVertex.z);                   // x red side tripoint
+        var tripoint_greeny = new Vector3(selectedVertex.x,                   selectedVertex.y+boxWorldScale.y, selectedVertex.z);                   // y green bottom tripoint 
+        var tripoint_bluez  = new Vector3(selectedVertex.x,                   selectedVertex.y,                 selectedVertex.z+boxWorldScale.z);   // z blue back tripoint 
 
         tripoints_list.Add(tripoint_redx);   
         tripoints_list.Add(tripoint_greeny);
@@ -717,12 +683,16 @@ public class PackerHand : Agent
                 Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
                 //Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
                 //Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
+
+                // if the scaled_continuous_vertex is not already in the historicalVerticesLog, add it to the verticesArray
                 if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
                 {
                     // Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
+
                     // Add scaled tripoint_vertex to verticesArray
                     verticesArray[VertexCount] = scaled_continuous_vertex;
                     historicalVerticesLog.Add(scaled_continuous_vertex);
+                    
                     VertexCount ++;
                     //Debug.Log($"VERTEX COUNT IS {VertexCount}");
 
@@ -1290,17 +1260,20 @@ public class PackerHand : Agent
             }
             boxPool[selectedBoxIdx].isOrganized = true;
         }
+
         // isVertexSelected = false;
         isBoxSelected      = false;
         isRotationSelected = false;
         isPickedup         = false;
         isDroppedoff       = false;
+
         if (targetBin!=null)
         {
             DestroyImmediate(targetBin.gameObject);
         }
         targetBox = null;
         outerbinfront.tag = "binopening";
+        
         isStateReset = true;
     }
 

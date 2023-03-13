@@ -88,7 +88,7 @@ public class BoxSpawner : MonoBehaviour
         }
         set{}
     }
-    public int maxBoxQuantity=50; // Size of "box vocabulary"; needed for padding when "useCategoricalBoxes" is activate in packerhand.cs
+    public int maxBoxQuantity=40; // Size of "box vocabulary"; needed for padding when "useCategoricalBoxes" is activate in packerhand.cs
     public BoxSize [] sizes;
     [HideInInspector] public List<Box> boxPool = new List<Box>();
     // The box area, which will be set manually in the Inspector
