@@ -10,6 +10,10 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Runtime.Serialization.Json;
 using Newtonsoft.Json;
+using UnityEditor;
+using UnityEditor.Formats.Fbx.Exporter;
+using Autodesk.Fbx;
+
 
 
 namespace Bins {
@@ -166,6 +170,43 @@ public class BinSpawner : MonoBehaviour {
             }
         }
     }
+
+    public void ExportBins()
+    {
+        string filePath = Path.Combine(Application.dataPath, "Bins.fbx");
+        UnityEngine.Object[] objects = new UnityEngine.Object[total_bin_num];
+        for (int n=0; n<total_bin_num;n++)
+        {
+            objects[n] = GameObject.Find($"Bin{n}");
+            // set the path and name for the exported file
+            //string path = "Assets/MyModel.fbx";
+        }
+        var x = ModelExporter.ExportObjects(filePath, objects);
+
+
+    }
+
+
+//     public  void ExportScene (string fileName)
+//     {
+//     using(FbxManager fbxManager = FbxManager.Create ()){
+//         // configure IO settings.
+//         fbxManager.SetIOSettings (FbxIOSettings.Create (fbxManager, Globals.IOSROOT));
+
+//         // Export the scene
+//         using (FbxExporter exporter = FbxExporter.Create (fbxManager, "myExporter")) {
+
+//             // Initialize the exporter.
+//             bool status = exporter.Initialize (fileName, -1, fbxManager.GetIOSettings ());
+
+//             // Create a new scene to export
+//             FbxScene scene = FbxScene.Create (fbxManager, "myScene");
+
+//             // Export the scene to the file.
+//             exporter.Export (scene);
+//         }
+//     }
+// }
 
 }
 }

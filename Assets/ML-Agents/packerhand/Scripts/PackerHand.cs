@@ -24,12 +24,11 @@ public class PackerHand : Agent
     public string box_type = "mix"; // box type options: "mix", "uniform" (for curriculum)
     public string bin_type = "biniso20"; // bin type options: "random", "biniso20" (for curriculum) // future: add "pallet"
     public int bin_quantity = 1; // bin quantities (for curriculum)
-    
+
+    public bool runInference=false; 
     public bool useCurriculum=true; // if false, bin and box sizes and quantity will be read from a json file 
     public bool useAttention=true; // if use attention (default = true)
-    public bool useDenseReward=true;
-    public bool useSurfaceAreaReward=false;
-    public bool useDiscreteSolution = true;
+
 
     BufferSensorComponent m_BufferSensor; // attention sensor
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
@@ -43,11 +42,11 @@ public class PackerHand : Agent
     [HideInInspector] public Transform targetBox; // target box selected by agent
     [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
 
-    public int selectedBoxIdx; // Box selected 
-    public Vector3 selectedRotation; // Rotation selected
-    public Vector3 selectedVertex; // Vertex selected
-    public int selectedBin;  // Bin selected (not part of action selection)
-    public Vector4 [] verticesArray; // space: 3n Vector3 vertices where n = max num boxes
+    [HideInInspector] public int selectedBoxIdx; // Box selected 
+    [HideInInspector] public Vector3 selectedRotation; // Rotation selected
+    [HideInInspector] public Vector3 selectedVertex; // Vertex selected
+    [HideInInspector] public int selectedBin;  // Bin selected (not part of action selection)
+    [HideInInspector] public Vector4 [] verticesArray; // space: 3n Vector3 vertices where n = max num boxes
     int selectedVertexIdx = -1; 
     int VertexCount = 0; // counter for VerticesArray
     int origin_counter; // used to count origin vertices when populating origin boxes
@@ -71,13 +70,11 @@ public class PackerHand : Agent
     [HideInInspector] public bool isBoxSelected;
     [HideInInspector] public bool isBoxPlacementChecked;
     [HideInInspector] public bool isPickedup;
-    public bool isDroppedoff;
+    [HideInInspector] public bool isDroppedoff;
     [HideInInspector] public bool isStateReset;
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
-    [HideInInspector ]public float percent_contact_surface_area;
-    [HideInInspector] public float box_surface_area;
     public float total_bin_volume; // sum of all bins' volume
     float current_bin_volume;
     public int boxes_packed;
@@ -275,14 +272,11 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (useDiscreteSolution)
-        {
-            if (isAfterOriginVertexSelected) {
-                foreach (int vertexIdx in maskedVertexIndices) 
-                {
-                    //Debug.Log($"MASK VERTEX {vertexIdx}");
-                    actionMask.SetActionEnabled(1, vertexIdx, false);
-                }
+        if (isAfterOriginVertexSelected) {
+            foreach (int vertexIdx in maskedVertexIndices) 
+            {
+                //Debug.Log($"MASK VERTEX {vertexIdx}");
+                actionMask.SetActionEnabled(1, vertexIdx, false);
             }
         }
         // box action mask
@@ -311,15 +305,20 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
+        if (runInference)
+        {
+            if (CompletedEpisodes==1)
+            {
+                binSpawner.ExportBins();
+                // stop mlagents-learn
+            }
+        }
         // if all boxes packed, reset episode
         if (maskedBoxIndices.Count == boxSpawner.maxBoxQuantity)
         {
-            if (!useDenseReward)
-            {
-                AddReward(percent_filled_bin_volume*10);
-                //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-            }
-                EndEpisode();
+            AddReward(percent_filled_bin_volume*10);
+            //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+            EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
             isEpisodeStart = true;
             Debug.Log($"ALL BOXES PACKED!!! EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
@@ -328,11 +327,8 @@ public class PackerHand : Agent
         // (this loop is not reached if conditional check is StepCount >= MaxStep)
         if (StepCount >= MaxStep-5) 
         {
-            if (!useDenseReward)
-            {
-                AddReward(percent_filled_bin_volume*10);
-                //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-            }
+            AddReward(percent_filled_bin_volume*10);
+            //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
             isEpisodeStart = true;
@@ -385,30 +381,15 @@ public class PackerHand : Agent
             StateReset();
 
             // Update vertices array 
-            if (useDiscreteSolution)
-            {
-                UpdateVerticesArray();
-            }
-
-            // Add surface area reward
-            if (useSurfaceAreaReward)
-            {
-                box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-                percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
-                AddReward(percent_contact_surface_area * 50f);
-                //Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
-            }
+            UpdateVerticesArray();
 
             // recalculate bin volume and percent filled
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
 
             // Add volume reward
-            if (useDenseReward)
-            {
-                AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
-                //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
-            }
+            AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
+            //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
             
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
@@ -458,15 +439,7 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    if (useDenseReward)
-                    {
-                        AddReward(-100f);
-                    }
-                    else
-                    {
-                        AddReward(percent_filled_bin_volume*10);   
-                        //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-                    }
+                    AddReward(-100f);
                     EndEpisode();
                     curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
                     isEpisodeStart = true;
@@ -931,13 +904,10 @@ public class PackerHand : Agent
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
-            if (useDiscreteSolution)
+            if (isAfterOriginVertexSelected)
             {
-                if (isAfterOriginVertexSelected)
-                {
-                    //Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
-                    verticesArray[selectedVertexIdx] = Vector3.zero;               
-                }
+                //Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
+                verticesArray[selectedVertexIdx] = Vector3.zero;               
             }
             boxPool[selectedBoxIdx].isOrganized = true;
         }
@@ -994,12 +964,9 @@ public class PackerHand : Agent
                 binSpawner.m_SideMeshScripts[i].MeshReset();
                 binSpawner.m_BackMeshScripts[i].MeshReset();
             }
-            if (useDiscreteSolution)
-            {
-                // Reset vertices array
-                Array.Clear(verticesArray, 0, verticesArray.Length);
-                historicalVerticesLog.Clear();
-            }
+            // Reset vertices array
+            Array.Clear(verticesArray, 0, verticesArray.Length);
+            historicalVerticesLog.Clear();
         }   
     
         // Reset states;
@@ -1022,7 +989,6 @@ public class PackerHand : Agent
                 SetModel(m_DiscreteBehaviorName, discreteBrain);
             }
             //Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
-            useDiscreteSolution = true;
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
                 boxSpawner.SetUpBoxes(box_type, seed);
