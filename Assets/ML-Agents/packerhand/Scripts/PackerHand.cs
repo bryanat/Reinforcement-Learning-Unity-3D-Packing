@@ -264,6 +264,7 @@ public class PackerHand : Agent
             else                   max_observable_size = observable_size;
             m_BufferSensor.ObservableSize = max_observable_size;
         }
+        else DestroyImmediate(m_Agent.GetComponent<BufferSensorComponent>());
 
         if (useVerticesArray) verticesArray = new Vector3[2*maxBoxNum+1];
         else                  verticesArray = new Vector3[0];
@@ -519,8 +520,14 @@ public class PackerHand : Agent
             // For padding, make sure that the newly generated amount of boxes is not greater than the maxBoxNum memory allocated
             if (usePadding && maxBoxNum < boxPool.Count)
             {
-                // Debug.Log($" Increase maxBoxNum from {maxBoxNum} to {boxPool.Count} to fit all padded boxes in the bin");
+                Debug.Log($" Increase maxBoxNum from {maxBoxNum} to {boxPool.Count} to fit all padded boxes in the bin");
                 return;
+            }
+
+            if (useDiscreteSolution)
+            { 
+                selectedVertex = origin;
+                isAfterOriginVertexSelected = false;
             }
 
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
@@ -651,6 +658,18 @@ public class PackerHand : Agent
         }
 
         else { return;}
+    }
+
+    public void initiateNewEpisode(){
+        // Reset curriculum brain & box generation, end episode, reset flag for new episode
+        
+        Debug.Log($"Initiating new episode");
+
+        if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
+        isEpisodeStart = true;
+        // Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
+
+        EndEpisode();
     }
     
 
@@ -1320,10 +1339,6 @@ public class PackerHand : Agent
 
             // Reset vertex count
             VertexCount = 0;
-
-            // Reset selected vertex
-            selectedVertex = origin;
-            isAfterOriginVertexSelected = false;
         }
     }
 
@@ -1369,18 +1384,6 @@ public class PackerHand : Agent
                 // pending setup
             }  
         }
-    }
-
-    public void initiateNewEpisode(){
-        // Reset curriculum brain & box generation, end episode, reset flag for new episode
-        
-        Debug.Log($"Initiating new episode");
-
-        if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
-        isEpisodeStart = true;
-        // Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
-
-        EndEpisode();
     }
 
 }
