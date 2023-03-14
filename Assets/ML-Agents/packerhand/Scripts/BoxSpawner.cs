@@ -71,7 +71,7 @@ public class BoxSpawner : MonoBehaviour
 
     public void Start()
     {
-        homeDir = Environment.GetEnvironmentVariable("HOME");
+        homeDir = Environment.GetEnvironmentVariable("HOME"); // AWS: /home/ubuntu/
     }
 
     public void SetUpBoxes(string box_type , int seed=123) 
