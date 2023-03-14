@@ -160,10 +160,16 @@ public class PackerHand : Agent
                                      // Default        : observable_size
                                      // OneHotEncoding : observable_size + number of boxes in current lesson
                                      // Padding        : observable_size + maximum number of boxes in all lessons
-
+    // private BehaviorParameters m_BehaviorParameters;
 
     public override void Initialize()
     {   
+        // m_BehaviorParameters = gameObject.GetComponent<BehaviorParameters>();
+        // m_BehaviorParameters.BehaviorName = m_BehaviorName;
+        // Unity.MLAgents.Sensors.VectorSensor sensor = new Unity.MLAgents.Sensors.VectorSensor(observable_size);
+        // var ObservationSpec = sensor.GetObservationSpec();
+        // m_BehaviorParameters.BrainParameters.VectorObservationSize = ObservationSpec.Shape[0];
+
         Academy.Instance.AutomaticSteppingEnabled = false;
 
         if (useCurriculum){
@@ -403,7 +409,7 @@ public class PackerHand : Agent
         {
             if (isAfterOriginVertexSelected) {
                 if (useVerticesArray){
-                    Debug.Log($"MASK VERTEX ARRAY size: {maskedVertexIndices.Count}");
+                    // Debug.Log($"MASK VERTEX ARRAY size: {maskedVertexIndices.Count}");
                     foreach (int vertexIdx in maskedVertexIndices) 
                     {
                         //Debug.Log($"MASK VERTEX {vertexIdx}");
@@ -453,10 +459,12 @@ public class PackerHand : Agent
         // All boxes packed? Reset episode
         if (boxPool.Count!=0 && boxes_packed == boxPool.Count)
         {
+            Debug.Log("All boxes packed!");
+            
             if (useSparseReward)
             {
                 AddReward(percent_filled_bin_volume*10);
-                Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+                // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             }
 
             initiateNewEpisode();
@@ -465,10 +473,12 @@ public class PackerHand : Agent
         // If reaches max step, reset episode 
         if (StepCount >= MaxStep) 
         {
+            Debug.Log("Max step reached!");
+
             if (useSparseReward)
             {
                 AddReward(percent_filled_bin_volume*10);
-                Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+                // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             }
             
             initiateNewEpisode();
@@ -477,6 +487,8 @@ public class PackerHand : Agent
         // Start of episode
         if (isEpisodeStart)
         {
+            Debug.Log("Reset new episode!");
+            
             isEpisodeStart = false;
 
             // Reset agent and rewards
@@ -507,8 +519,7 @@ public class PackerHand : Agent
             // For padding, make sure that the newly generated amount of boxes is not greater than the maxBoxNum memory allocated
             if (usePadding && maxBoxNum < boxPool.Count)
             {
-                Debug.Log($" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ERROR &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-                Debug.Log($" Increase maxBoxNum from {maxBoxNum} to {boxPool.Count} to fit all padded boxes in the bin");
+                // Debug.Log($" Increase maxBoxNum from {maxBoxNum} to {boxPool.Count} to fit all padded boxes in the bin");
                 return;
             }
 
@@ -521,6 +532,8 @@ public class PackerHand : Agent
         // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
+            Debug.Log("Meshes combined!");
+
             // If a mesh didn't combine, force combine
             if (isBackMeshCombined==false)
             {
@@ -539,10 +552,14 @@ public class PackerHand : Agent
 
             if (useDiscreteSolution)
             {
+                Debug.Log("Update vertices array");
+
                 isAfterOriginVertexSelected = true;
                 // Vertices array of tripoints don't depend on the trimesh; Only update vertices list and vertices array when box is placed
                 UpdateVerticesArray();
             }
+
+            Debug.Log("Add new vertices to vertices array");
 
             box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
 
@@ -551,7 +568,7 @@ public class PackerHand : Agent
             if (useSurfaceAreaReward){
                 float percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
                 AddReward(percent_contact_surface_area * 50f);
-                Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
+                // Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
             }
 
             // Add combined area-volume reward
@@ -559,7 +576,8 @@ public class PackerHand : Agent
             {
                 float percent_filled_bin_combined = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
                 AddReward(percent_filled_bin_combined * 1000f);
-                Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_filled_bin_combined * 1000f} reward from surface area");
+                // Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_filled_bin_combined * 1000f} reward from surface area");
+
                 // Increment stats recorder to match reward
                 m_statsRecorder.Add("% Bin Volume & Area Filled", percent_filled_bin_combined, StatAggregationMethod.Average);
             }
@@ -570,13 +588,14 @@ public class PackerHand : Agent
             if (useDenseReward)
             {
                 AddReward((box_volume/total_bin_volume) * 1000f);
-                Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{(box_volume/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+                // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{(box_volume/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+
                 // Increment stats recorder to match reward
                 m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
             }
 
 
-            // Debug.Log("REQUEST DECISION FOR NEXT ROUND OF PICKING");
+            Debug.Log("Request decision for next box");
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
         }
@@ -588,6 +607,7 @@ public class PackerHand : Agent
             UpdateAgentPosition(targetBox);
             if ( Math.Abs(total_x_distance) < 0.1f && Math.Abs(total_z_distance) < 0.1f ) 
             {
+                Debug.Log("Box picked up!");
                 PickupBox();
             }
         }
@@ -595,6 +615,7 @@ public class PackerHand : Agent
         //if agent is carrying a box it should move towards the selected position
         else if (isPickedup && isRotationSelected && isDroppedoff == false) 
         {
+
             UpdateBoxPosition();
             // Agent moves (with the box) to selected position inside the bin
             UpdateAgentPosition(targetBin);
@@ -607,9 +628,13 @@ public class PackerHand : Agent
                 {
                     DropoffBox();
                     boxes_packed++;
+                 
+                    Debug.Log("Box dropped off!");
                 }
                 else
                 {
+                    Debug.Log("Box dropped off in wrong position! Failed physics checks!");
+
                     if (usePenaltyReward)
                     {
                         AddReward(-100f);
@@ -617,7 +642,7 @@ public class PackerHand : Agent
                     if (useSparseReward)
                     {
                         AddReward(percent_filled_bin_volume*10);   
-                        Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+                        // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
                     }
 
                     initiateNewEpisode();
@@ -723,7 +748,7 @@ public class PackerHand : Agent
         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
 
         selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
-        Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
+        // Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
         // isVertexSelected = true;
 
     }
@@ -733,19 +758,19 @@ public class PackerHand : Agent
         action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
         action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
-        Debug.Log($"action_SelectedVertex_x ================== {action_SelectedVertex_x}");
+        // Debug.Log($"action_SelectedVertex_x ================== {action_SelectedVertex_x}");
 
 
         if (isFirstLayerContinuous)
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
+            // Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
         else{
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
+            // Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
     }
 
@@ -772,7 +797,7 @@ public class PackerHand : Agent
                 
             // 3: Calc Position
             Vector3 position = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
-            Debug.Log($"UVP Updated Vertex Position position: {position}");
+            // Debug.Log($"UVP Updated Box Position: {position}");
 
             CheckBoxPlacementPhysics(position);
 
@@ -832,9 +857,9 @@ public class PackerHand : Agent
     public void SelectBox(int action_SelectedBox) 
     {
         selectedBoxIdx = action_SelectedBox;
-        Debug.Log($"SBB Selected Box selectedBoxIdx: {selectedBoxIdx}");
-        Debug.Log($"BOX POOL COUNT = {boxPool.Count()}");
-        Debug.Log($"action_selectedBox = {action_SelectedBox}");
+        // Debug.Log($"SBB Selected Box selectedBoxIdx: {selectedBoxIdx}");
+        // Debug.Log($"BOX POOL COUNT = {boxPool.Count()}");
+        // Debug.Log($"action_selectedBox = {action_SelectedBox}");
         targetBox = boxPool[selectedBoxIdx].rb.transform;
         isBoxSelected = true;
     }
@@ -857,7 +882,7 @@ public class PackerHand : Agent
         }  
         else if (action==1) 
         {
-            Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
+            // Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             selectedRotation = new Vector3(90, 0, 0);
             boxWorldScale = new Vector3(boxWorldScale[0], boxWorldScale[2], boxWorldScale[1]); // actual rotation of object transform
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
@@ -886,7 +911,7 @@ public class PackerHand : Agent
         }
         else if (action==2) 
         {
-            Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
+            // Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             selectedRotation = new Vector3(0, 90, 0);
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[1], boxWorldScale[0]); // actual rotation of object transform
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
@@ -915,7 +940,7 @@ public class PackerHand : Agent
         }
         else if (action==3) 
         {
-            Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
+            // Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             selectedRotation = new Vector3(0, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[0], boxWorldScale[2]); // actual rotation of object transform
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
@@ -944,7 +969,7 @@ public class PackerHand : Agent
         }
         else if (action==4 ) 
         {
-            Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
+            // Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             selectedRotation = new Vector3(0, 90, 90 ); 
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[0], boxWorldScale[1]); // actual rotation of object transform
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
@@ -981,7 +1006,7 @@ public class PackerHand : Agent
         }
         else 
         {
-            Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
+            // Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             selectedRotation = new Vector3(90, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[2], boxWorldScale[0]); // actual rotation of object transform
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
@@ -1306,7 +1331,8 @@ public class PackerHand : Agent
     /// Configures the agent. Given an integer config, difficulty level will be different and a different brain will be used.
     void ConfigureAgent(int n) 
     {
-        Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_BehaviorName}");
+        // Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_BehaviorName}");
+
         if (initializeBrain)
         {
             SetModel(m_BehaviorName, brain);  
@@ -1318,50 +1344,19 @@ public class PackerHand : Agent
             if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 0.0f) == 0.0f)
             {
                 boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 4, 4, 6, seed, usePadding);
-                Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 1.0f) == 1.0f)
             {
                 boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 8, 8, 12, seed+1, usePadding);
-                Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 2.0f) == 2.0f)
             {
                 boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 16, 16, 24, seed+2, usePadding);
-                Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
         }
-        else if (n==1) 
-            {}  // Not used anymore
-        // // Mixed DISCRETE-CONTINUOUS (not recommended to switch from discrete to continuous brain)
-        // {
-        //     Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_MixBehaviorName}");
-        //     if (initializeBrain)
-        //     {
-        //         SetModel(m_MixBehaviorName, mixBrain);
-        //     }
-        //     if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 0.0f) == 0.0f)
-        //     {
-        //         useDiscreteSolution     true;
-        //         isFirstLayerContinuous = false;
-        //         useContinuousSolution  = false;
-        //         useVerticesArray       = true;
-        //     }
-        //     else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 1.0f) == 1.0f)
-        //     {
-        //         useDiscreteSolution     = false;
-        //         isFirstLayerContinuous = true;
-        //         useContinuousSolution        = false;
-        //         useVerticesArray       = false;
-        //     }
-        //     else if (Academy.Instance.EnvironmentParameters.GetWithDefault("mix", 2.0f) == 2.0f)
-        //     {
-        //         useDiscreteSolution     = false;
-        //         isFirstLayerContinuous = false;
-        //         useContinuousSolution        = true;
-        //         useVerticesArray       = false;
-        //     }
-        // }
         else if (n==2)
         // CONTINUOUS
         {
@@ -1379,44 +1374,13 @@ public class PackerHand : Agent
     public void initiateNewEpisode(){
         // Reset curriculum brain & box generation, end episode, reset flag for new episode
         
+        Debug.Log($"Initiating new episode");
+
         if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
         isEpisodeStart = true;
-        Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
+        // Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
 
         EndEpisode();
     }
 
-    /// <summary>
-    /// Agent moves according to selected action.
-    // public override void Heuristic(in ActionBuffers actionsOut)
-    // {
-    //     var discreteActionsOut = actionsOut.DiscreteActions;
-    //     //forward
-    //     if (Input.GetKey(KeyCode.W))
-    //     {
-    //         discreteActionsOut[1] = 1;
-    //     }
-    //     if (Input.GetKey(KeyCode.S))
-    //     {
-    //         discreteActionsOut[1] = 2;
-    //     }
-    //     //rotate
-    //     if (Input.GetKey(KeyCode.D))
-    //     {
-    //         discreteActionsOut[2] = 1;
-    //     }
-    //     if (Input.GetKey(KeyCode.A))
-    //     {
-    //         discreteActionsOut[2] = 2;
-    //     }
-    //     //right
-    //     if (Input.GetKey(KeyCode.E))
-    //     {
-    //         discreteActionsOut[3] = 1;
-    //     }
-    //     if (Input.GetKey(KeyCode.Q))
-    //     {
-    //         discreteActionsOut[3] = 2;
-    //     }
-    // }
 }
