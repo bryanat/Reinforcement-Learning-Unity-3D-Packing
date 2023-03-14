@@ -71,7 +71,7 @@ public class PackerHand : Agent
     [HideInInspector] public bool isBoxSelected;
     [HideInInspector] public bool isBoxPlacementChecked;
     [HideInInspector] public bool isPickedup;
-    public bool isDroppedoff;
+    [HideInInspector] public bool isDroppedoff;
     [HideInInspector] public bool isStateReset;
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
@@ -929,7 +929,7 @@ public class PackerHand : Agent
     public void StateReset() 
     {
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
+        if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) 
         {
             if (useDiscreteSolution)
             {
