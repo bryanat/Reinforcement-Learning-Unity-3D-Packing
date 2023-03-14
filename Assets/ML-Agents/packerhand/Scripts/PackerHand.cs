@@ -70,7 +70,7 @@ public class PackerHand : Agent
     private int curriculum_ConfigurationLocal=-1; // used as temporary variable to store the curriculum configuration value
 
 
-    BufferSensorComponent m_BufferSensor;
+    private BufferSensorComponent m_BufferSensor;
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
 
     public NNModel brain;
@@ -160,6 +160,7 @@ public class PackerHand : Agent
                                      // Default        : observable_size
                                      // OneHotEncoding : observable_size + number of boxes in current lesson
                                      // Padding        : observable_size + maximum number of boxes in all lessons
+
 
     public override void Initialize()
     {   
@@ -260,7 +261,6 @@ public class PackerHand : Agent
 
         if (useVerticesArray) verticesArray = new Vector3[2*maxBoxNum+1];
         else                  verticesArray = new Vector3[0];
-        Debug.Log($"============================================================================================ INITIALIZE  verticesArray: {verticesArray.Length}");
 
         Debug.Log("INITIALIZE ENDS");
     }
@@ -275,6 +275,7 @@ public class PackerHand : Agent
     /// <summary>
     /// Agent adds environment observations 
     /// </summary>
+
     public override void CollectObservations(VectorSensor sensor) 
     {
         Debug.Log("OBSERVATION");
@@ -283,7 +284,8 @@ public class PackerHand : Agent
         sensor.AddObservation(total_bin_volume);
         sensor.AddObservation(total_bin_area);
         sensor.AddObservation(new Vector3(binscale_x,binscale_y,binscale_z));
-        // sensor.AddObservation(new Vector3(binscale_x,binscale_y,binscale_z));
+
+        // Size of vector observation space: s1 = 1 + 1 + 1 + 1 * 3 = 6
 
         int j = -1;
         maskedBoxIndices = new List<int>();
@@ -292,25 +294,26 @@ public class PackerHand : Agent
         {   
             Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
 
+            // Box index; update it here due to the "continue" statement below
+            j++;
+
+            // Add boxes to action mask. These boxes will be exempted from the next action/decision of the agent
+            if (box.isOrganized){           
+                // Already placed boxes are exempted from action but included in observation so that the agent "knows" about the 
+                // positions of the boxes inside the bin
+                maskedBoxIndices.Add(j);
+            }
+            else if (box.boxSize == Vector3.zero){
+                // Mask zero boxes that may end up here; normally shouldn't happen
+                    maskedBoxIndices.Add(j);
+                // Skip to next box
+                continue;
+            }
+
             if (useAttention){
                 int idx_cntr = 0;
                 float[] listVarObservation = new float[max_observable_size];
                 
-                // Box index; update it here due to the "continue" statement below
-                j++;
-
-                // Add boxes to action mask. These boxes will be exempted from the next action/decision of the agent
-                if (box.isOrganized){           
-                    // Already placed boxes are exempted from action but included in observation so that the agent "knows" about the 
-                    // positions of the boxes inside the bin
-                    maskedBoxIndices.Add(j);
-                }
-                else if (box.boxSize == Vector3.zero){
-                    // Mask zero boxes that may end up here; normally shouldn't happen
-                     maskedBoxIndices.Add(j);
-                    // Skip to next box
-                    continue;
-                }
 
                 if (useOneHotEncoding){
                     // Used for variable size observations
@@ -350,6 +353,9 @@ public class PackerHand : Agent
                 // Add updated [volume]/[w*h*l] added to state vector
                 sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
                 sensor.AddObservation (box.boxVertex);
+
+                // Size of vector observation space: s2 = 1 * 3 + 1 + 1 * 3 = 7
+
             }
         }
 
@@ -359,7 +365,6 @@ public class PackerHand : Agent
             maskedVertexIndices = new List<int>();
             
             int i = 0;
-            Debug.Log($"============================================================================================ verticesArray: {verticesArray.Length}");
             foreach (Vector3 vertex in verticesArray) 
             {   
                 //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
@@ -368,15 +373,26 @@ public class PackerHand : Agent
                     Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
                     sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
                 }
+
                 // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
                 if (vertex == Vector3.zero)
                 {
                     //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
                     maskedVertexIndices.Add(i);
                 }
+
                 i++;
+
+                // Size of vector observation space: s3 = 3
             }
+
+            // Size of vector observation space: s3 * verticesArray.Length
         }
+
+        // Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   s1 + s2 * boxPool.Count() + s3 * verticesArray.Length
+        //                                                                                   = 6 + 7 * boxPool.Count() + 3 * verticesArray.Length
+        // Thus, IN GENERAL:
+        // Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   6 + 7 * n + 3 * (2 * n + 1) = 9 + 13 * n        
     }
 
 
@@ -409,9 +425,8 @@ public class PackerHand : Agent
     {
         Debug.Log("ACTION");
         var j = -1;
-        var i = -1;
 
-        var discreteActions = actionBuffers.DiscreteActions;
+        var discreteActions   = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
 
         SelectBox(discreteActions[++j]); 
@@ -422,9 +437,10 @@ public class PackerHand : Agent
         }
         else if (useContinuousSolution){
             // activate for continuous solution
+            var i = -1;
             SelectVertexContinuous(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         }
-        
+
         SelectRotation(discreteActions[++j]);
     }
 
@@ -464,9 +480,7 @@ public class PackerHand : Agent
             isEpisodeStart = false;
 
             // Reset agent and rewards
-            Debug.Log($"VERTICES ARRAY SIZE before SetResetParameters: {verticesArray.Length} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             SetResetParameters();
-            Debug.Log($"VERTICES ARRAY SIZE after  SetResetParameters: {verticesArray.Length} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             // Reset states;
             StateReset();
             // Reset agent
@@ -527,9 +541,7 @@ public class PackerHand : Agent
             {
                 isAfterOriginVertexSelected = true;
                 // Vertices array of tripoints don't depend on the trimesh; Only update vertices list and vertices array when box is placed
-                Debug.Log($"VERTICES ARRAY SIZE before UpdateVerticesArray: {verticesArray.Length} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
                 UpdateVerticesArray();
-                Debug.Log($"VERTICES ARRAY SIZE after  UpdateVerticesArray: {verticesArray.Length} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             }
 
             box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
@@ -598,7 +610,6 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    //BoxReset("failedPhysicsCheck");
                     if (usePenaltyReward)
                     {
                         AddReward(-100f);
@@ -1201,39 +1212,6 @@ public class PackerHand : Agent
              }      
         }
     }
-
-
-    // public void BoxReset(string cause)
-    // {
-    //     if (cause == "failedPhysicsCheck") 
-    //     {
-    //         Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
-    //         // Detach box from agent
-    //         targetBox.parent = null;
-    //         // Add back rigidbody and collider
-    //         Rigidbody rb = boxPool[selectedBoxIdx].rb;
-    //         BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
-    //         // Not be affected by forces or collisions, position and rotation will be controlled directly through script
-    //         rb.isKinematic = true;
-    //         // Reset to starting position
-    //         rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
-    //         rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
-    //         rb.transform.position = boxPool[selectedBoxIdx].startingPos;
-    //         ReverseSideNames(selectedBoxIdx);
-    //         // Remove from organized list to be picked again
-    //         maskedBoxIndices.Remove(selectedBoxIdx);
-    //         // Reset states
-    //         StateReset();
-    //         // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
-    //         GetComponent<Agent>().RequestDecision();
-    //         Academy.Instance.EnvironmentStep();
-    //         // Setting to true allows another vertex to be selected
-    //         // isBlackboxUpdated = true;
-    //         // Setting to true keeps the current vertex and allows another box to be selected
-    //         // isVertexSelected = true;
-    //     }
-    // }
-
 
     public void AgentReset() 
     {
