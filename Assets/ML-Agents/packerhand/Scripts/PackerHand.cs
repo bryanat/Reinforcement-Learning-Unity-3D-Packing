@@ -436,6 +436,8 @@ public class PackerHand : Agent
                 {
                     DropoffBox();
                     boxes_packed++;
+                    // Increment stats recorder to match boxes packed
+                    m_statsRecorder.Add("Boxes Packed", boxes_packed, StatAggregationMethod.MostRecent);
                 }
                 else
                 {
