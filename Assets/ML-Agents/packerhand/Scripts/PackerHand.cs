@@ -361,9 +361,6 @@ public class PackerHand : Agent
             // initialize local reference to box pool
             boxPool = boxSpawner.boxPool;
 
-            // // initialize total box number
-            // total_box_number = boxPool.Count();
-
             isAfterOriginVertexSelected = false;
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
@@ -404,7 +401,7 @@ public class PackerHand : Agent
             Academy.Instance.EnvironmentStep();
 
             // override brain selected origin boxes positions
-            // discrete or not, the origin box placements will be forced
+            // the origin box placements are forced
             if (isAfterOriginVertexSelected==false)
             {
                 origin_counter--;
@@ -904,7 +901,7 @@ public class PackerHand : Agent
     public void StateReset() 
     {
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
+        if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) 
         {
             if (isAfterOriginVertexSelected)
             {
