@@ -29,6 +29,8 @@ public class PackerHand : Agent
     public bool useCurriculum=true; // if false, bin and box sizes and quantity will be read from a json file 
     public bool useAttention=true; // if use attention (default = true)
     public bool useDenseReward=true;
+
+    public bool useBoxReset=false; // if reset box when fails physics test and continue the episode (default=false, which means episode will restart)
     public bool useDiscreteSolution = true;
 
     BufferSensorComponent m_BufferSensor; // attention sensor
@@ -463,20 +465,29 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    if (useDenseReward)
+                    // if box fails physics test and to be repacked, it will be reset and episde will continue
+                    if (useBoxReset)
                     {
-                        AddReward(-100f);
+                        BoxReset("failedPhysicsCheck");
                     }
+                    // if not to be repacked, episode will end
                     else
                     {
-                        AddReward(percent_filled_bin_volume*10);   
-                        //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-                        AddReward(percent_filled_bin_surface_area);
+                        if (useDenseReward)
+                        {
+                            AddReward(-100f);
+                        }
+                        else
+                        {
+                            AddReward(percent_filled_bin_volume*10);   
+                            //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+                            AddReward(percent_filled_bin_surface_area);
+                        }
+                        EndEpisode();
+                        curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
+                        isEpisodeStart = true;
+                        //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
                     }
-                    EndEpisode();
-                    curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
-                    isEpisodeStart = true;
-                    //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
                 }
             }
         }
@@ -560,8 +571,9 @@ public class PackerHand : Agent
         {
             selectedBin = origin_counter-1;
         }
-        // store vertex information in box to be added to sensor observation
+        // store updated box info
         boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
+        boxPool[selectedBoxIdx].isOrganized = true;
         // selected vertex is unscaled vertex
         selectedVertex =  new Vector3(((scaled_selectedVertex.x* binSpawner.binscales_x[selectedBin]) + binSpawner.origins[selectedBin].x), ((scaled_selectedVertex.y* binSpawner.binscales_y[selectedBin]) + binSpawner.origins[selectedBin].y), ((scaled_selectedVertex.z* binSpawner.binscales_z[selectedBin]) + binSpawner.origins[selectedBin].z));
         // Debug.Log($"SVB selected vertex is {selectedVertex}");
@@ -663,12 +675,10 @@ public class PackerHand : Agent
         if (action == 0 ) 
         {
             selectedRotation = new Vector3(0, 0, 0);
-            // store rotation information for sensor observation
+            // store updated box info
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
-            // store size information for sensor observation
-            //boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in sidesList)
             {
                 child.tag = "pickupbox";
@@ -680,12 +690,10 @@ public class PackerHand : Agent
             //Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             selectedRotation = new Vector3(90, 0, 0);
             boxWorldScale = new Vector3(boxWorldScale[0], boxWorldScale[2], boxWorldScale[1]); // actual rotation of object transform
-            // store rotation information for sensor observation
+            // store updated box info
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
-            // store size information for sensor observation
-            //boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -714,12 +722,10 @@ public class PackerHand : Agent
             //Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             selectedRotation = new Vector3(0, 90, 0);
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[1], boxWorldScale[0]); // actual rotation of object transform
-            // store rotation information for sensor observation
+            // store updated box info
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
-            // store size information for sensor observation
-            //boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -748,12 +754,10 @@ public class PackerHand : Agent
             //Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             selectedRotation = new Vector3(0, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[0], boxWorldScale[2]); // actual rotation of object transform
-            // store rotation information for sensor observation
+            /// store updated box info
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
-            // store size information for sensor observation
-            //boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -782,12 +786,10 @@ public class PackerHand : Agent
             //Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             selectedRotation = new Vector3(0, 90, 90 ); 
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[0], boxWorldScale[1]); // actual rotation of object transform
-            // store rotation information for sensor observation
+            // store updated box info
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
-             // store size information for sensor observation
-            //boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -824,12 +826,10 @@ public class PackerHand : Agent
             //Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             selectedRotation = new Vector3(90, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[2], boxWorldScale[0]); // actual rotation of object transform
-            // store rotation information for sensor observation
+            // store updated box info
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
-            // store size information for sensor observation
-            //boxPool[selectedBoxIdx].boxSize = boxWorldScale;
             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -945,7 +945,6 @@ public class PackerHand : Agent
                     verticesArray[selectedVertexIdx] = Vector3.zero;               
                 }
             }
-            boxPool[selectedBoxIdx].isOrganized = true;
         }
         isBoxSelected = false;
         isBoxPlacementChecked = false;
@@ -1047,6 +1046,176 @@ public class PackerHand : Agent
                 boxSpawner.SetUpBoxes(box_type, seed+2);
                 //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
+        }
+    }
+
+
+       public void ReverseSideNames(int id) 
+    {
+        var sidesList = boxPool[id].rb.gameObject.GetComponentsInChildren<Transform>();
+        if (selectedRotation==new Vector3(90, 0, 0))
+        {
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="bottom") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "bottom";
+                }
+
+                else if (child.name == "top") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "top";
+                }
+            }
+        }
+        else if (selectedRotation == new Vector3(0, 90, 0)) 
+        {
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="left") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "left";
+                }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "right";
+                }
+            }        
+        }
+        else if (selectedRotation == new Vector3(0, 0, 90))
+        {
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="left") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "left";
+                }
+
+                else if (child.name == "right") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "right";
+                }
+            }                
+        }
+        else if (selectedRotation== new Vector3(0, 90, 90)) 
+        {
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
+            {
+                if (child.name=="back") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "right") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "top") 
+                {
+                    child.name = "left";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "left") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "right";
+                }
+
+            }      
+        }
+        else if (selectedRotation == new Vector3(90, 0, 90))
+        {
+            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
+            {
+               if (child.name=="top") 
+                {
+                    child.name = "back";
+                }
+                else if (child.name == "left") 
+                {
+                    child.name = "bottom";
+                }
+                else if (child.name == "front") 
+                {
+                    child.name = "left";
+                }
+                else if (child.name == "bottom") 
+                {
+                    child.name = "front";
+                }
+                else if (child.name == "right") 
+                {
+                    child.name = "top";
+                }
+                else if (child.name == "back") 
+                {
+                    child.name = "right";
+                }
+             }      
+        }
+    }
+
+
+    public void BoxReset(string cause)
+    {
+        if (cause == "failedPhysicsCheck") 
+        {
+            // Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
+            // detach box from agent
+            targetBox.parent = null;
+            // add back rigidbody and collider
+            Rigidbody rb = boxPool[selectedBoxIdx].rb;
+            BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
+            // not be affected by forces or collisions, position and rotation will be controlled directly through script
+            rb.isKinematic = true;
+            // reset to starting position
+            rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
+            rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
+            rb.transform.position = boxPool[selectedBoxIdx].startingPos;
+            ReverseSideNames(selectedBoxIdx);
+            // remove from organized list to be picked again
+            maskedBoxIndices.Remove(selectedBoxIdx);
+            // restore box information
+            boxPool[selectedBoxIdx].boxSize = boxPool[selectedBoxIdx].startingSize;
+            boxPool[selectedBoxIdx].boxRot = Quaternion.identity;
+            boxPool[selectedBoxIdx].boxBinScale = Vector3.zero;
+            boxPool[selectedBoxIdx].boxVertex = Vector3.zero;
+            boxPool[selectedBoxIdx].isOrganized = false;
+            // reset states
+            StateReset();
+            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+            GetComponent<Agent>().RequestDecision();
+            Academy.Instance.EnvironmentStep();
         }
     }
 
