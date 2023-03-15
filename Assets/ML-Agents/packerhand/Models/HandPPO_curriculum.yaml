@@ -2,7 +2,7 @@ behaviors:
   Discrete:
     trainer_type: ppo
     hyperparameters:
-      buffer_size: 160
+      buffer_size: 128
       batch_size: 32
       learning_rate: 0.0003
       beta: 0.01
@@ -18,7 +18,7 @@ behaviors:
       num_layers: 3
       use_recurrent: true
       sequence_length: 32
-      memory_size: 320
+      memory_size: 256
     reward_signals:
       extrinsic:
         gamma: 0.995

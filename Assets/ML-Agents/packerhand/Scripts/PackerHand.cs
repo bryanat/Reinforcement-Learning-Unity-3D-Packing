@@ -81,9 +81,7 @@ public class PackerHand : Agent
     public float total_bin_volume; // sum of all bins' volume
     public float total_bin_surface_area;
     float current_bin_volume;
-    float current_bin_surface_area;
     public float percent_filled_bin_volume;
-    public float percent_filled_bin_surface_area;
     public int boxes_packed;
 
 
@@ -175,7 +173,6 @@ public class PackerHand : Agent
         //Debug.Log("OBSERVATION");
         // Add updated bin volume
         sensor.AddObservation(percent_filled_bin_volume);
-        sensor.AddObservation(percent_filled_bin_surface_area);
 
         int j = 0;
         maskedBoxIndices = new List<int>();
@@ -327,7 +324,6 @@ public class PackerHand : Agent
             {
                 AddReward(percent_filled_bin_volume*10);
                 //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-                AddReward(percent_filled_bin_surface_area);
             }
                 EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
@@ -342,7 +338,6 @@ public class PackerHand : Agent
             {
                 AddReward(percent_filled_bin_volume*10);
                 //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-                AddReward(percent_filled_bin_surface_area);
             }
             EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
@@ -376,9 +371,6 @@ public class PackerHand : Agent
             // initialize local reference to box pool
             boxPool = boxSpawner.boxPool;
 
-            // // initialize total box number
-            // total_box_number = boxPool.Count();
-
             isAfterOriginVertexSelected = false;
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
@@ -400,10 +392,6 @@ public class PackerHand : Agent
             {
                 UpdateVerticesArray();
             }
-
-            // recalculate bin surface area and percent filled
-            current_bin_surface_area = current_bin_surface_area - sensorCollision.totalContactSA;
-            percent_filled_bin_surface_area = (1-(current_bin_surface_area/total_bin_surface_area))*100;
 
             // recalculate bin volume and percent filled
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
@@ -481,7 +469,6 @@ public class PackerHand : Agent
                         {
                             AddReward(percent_filled_bin_volume*10);   
                             //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-                            AddReward(percent_filled_bin_surface_area);
                         }
                         EndEpisode();
                         curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
@@ -979,9 +966,6 @@ public class PackerHand : Agent
 
         // Reset current bin volume
         current_bin_volume = total_bin_volume;
-
-        // Reset current bin surface area
-        current_bin_surface_area = total_bin_surface_area;
 
         // Reset origin counter to the number of origins 
         origin_counter = binSpawner.total_bin_num;
