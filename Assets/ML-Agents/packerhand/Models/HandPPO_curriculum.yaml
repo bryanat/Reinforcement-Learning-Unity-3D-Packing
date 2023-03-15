@@ -17,11 +17,11 @@ behaviors:
       hidden_units: 256
       num_layers: 3
       vis_encode_type: simple
-      # Use memory enhancement through RNN
-      use_recurrent: true
-      memory:
-        sequence_length: 128
-        memory_size: 256
+      # # Use memory enhancement through RNN
+      # use_recurrent: true
+      # memory:
+      #   sequence_length: 128
+      #   memory_size: 256
     reward_signals:
       extrinsic:
         gamma: 0.995
@@ -73,16 +73,16 @@ behaviors:
 
   
 #   # Add this section
-# environment_parameters:
-#   Discrete:
-#     curriculum:
-#       - name: Lesson01 # The '-' is important as this is a list
-#         completion_criteria:
-#           measure: reward
-#           behavior: Discrete
-#           signal_smoothing: true
-#           min_lesson_length: 100
-#           threshold: 800
+environment_parameters:
+  Discrete:
+    curriculum:
+      - name: Lesson01 # The '-' is important as this is a list
+        completion_criteria:
+          measure: reward
+          behavior: Discrete
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 5000
 #         value: 0.0
 #       - name: Lesson02 # The '-' is important as this is a list
 #         completion_criteria:

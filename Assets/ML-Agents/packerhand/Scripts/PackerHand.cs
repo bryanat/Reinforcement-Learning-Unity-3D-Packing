@@ -473,7 +473,7 @@ public class PackerHand : Agent
             
             if (useSparseReward)
             {
-                AddReward(5000f);
+                SetReward(10000f);
                 // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             }
 
@@ -649,7 +649,13 @@ public class PackerHand : Agent
 
                     if (usePenaltyReward)
                     {
-                        AddReward(current_empty_bin_volume/total_bin_volume * -1000f);
+                        SetReward(current_empty_bin_volume/total_bin_volume * -1000f);
+                    }
+
+                    if (useSparseReward){
+                        if      (current_empty_bin_volume/total_bin_volume < 0.15f) SetReward(2500f); 
+                        else if (current_empty_bin_volume/total_bin_volume < 0.10f) SetReward(5000f);
+                        else if (current_empty_bin_volume/total_bin_volume < 0.05f) SetReward(7500f);
                     }
 
                     initiateNewEpisode();
