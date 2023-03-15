@@ -310,14 +310,14 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        if (runInference)
-        {
-            if (CompletedEpisodes==1)
-            {
-                binSpawner.ExportBins();
-                // stop mlagents-learn
-            }
-        }
+        // if (runInference)
+        // {
+        //     if (CompletedEpisodes==1)
+        //     {
+        //         binSpawner.ExportBins();
+        //         // stop mlagents-learn
+        //     }
+        // }
         // if all boxes packed, reset episode
         if (maskedBoxIndices.Count == boxSpawner.maxBoxQuantity)
         {
@@ -325,6 +325,7 @@ public class PackerHand : Agent
             {
                 AddReward(percent_filled_bin_volume*10);
                 //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+                AddReward(percent_filled_bin_surface_area);
             }
                 EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
@@ -339,6 +340,7 @@ public class PackerHand : Agent
             {
                 AddReward(percent_filled_bin_volume*10);
                 //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+                AddReward(percent_filled_bin_surface_area);
             }
             EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
@@ -410,6 +412,7 @@ public class PackerHand : Agent
             {
                 AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
                 //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+                AddReward(sensorCollision.totalContactSA/total_bin_surface_area*100f);
             }
             
             // Increment stats recorder to match reward
@@ -468,6 +471,7 @@ public class PackerHand : Agent
                     {
                         AddReward(percent_filled_bin_volume*10);   
                         //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+                        AddReward(percent_filled_bin_surface_area);
                     }
                     EndEpisode();
                     curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
