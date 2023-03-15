@@ -44,7 +44,7 @@ public class BinSpawner : MonoBehaviour {
     public float biniso_y = 23.9f;
     public int total_bin_num;
     public float total_bin_volume;
-
+    public float total_bin_surface_area;
 
     // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
     // // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
@@ -98,6 +98,7 @@ public class BinSpawner : MonoBehaviour {
             m_BackMeshScripts.Add(binBackScript);
             // update total volume
             total_bin_volume += binscale_x * binscale_y * binscale_z;
+            total_bin_surface_area += 2*binscale_x*binscale_y + 2*binscale_x*binscale_z + 2*binscale_y*binscale_z;
             idx++;
         }
         // set total bin volume

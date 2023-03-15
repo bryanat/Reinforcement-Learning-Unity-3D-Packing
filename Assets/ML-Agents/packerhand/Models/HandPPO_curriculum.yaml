@@ -2,7 +2,7 @@ behaviors:
   Discrete:
     trainer_type: ppo
     hyperparameters:
-      buffer_size: 5120
+      buffer_size: 512
       batch_size: 64
       learning_rate: 0.0003
       beta: 0.01
@@ -16,7 +16,6 @@ behaviors:
       normalize: false
       hidden_units: 512
       num_layers: 3
-      # vis_encode_type: simple
       # use_recurrent: true
       # sequence_length: 32
       # memory_size: 256
@@ -49,7 +48,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 800
+          threshold: 700
         value: 0.0
       - name: 2DiscreteLesson # The '-' is important as this is a list
         completion_criteria:
@@ -57,7 +56,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 800
+          threshold: 750
         value: 1.0
       - name: 3DiscreteLesson # The '-' is important as this is a list
         completion_criteria:
@@ -67,30 +66,6 @@ environment_parameters:
           min_lesson_length: 100
           threshold: 800
         value: 2.0
-    # curriculum:
-    #   - name: 8BoxDiscreteLesson # The '-' is important as this is a list
-    #     completion_criteria:
-    #       measure: reward
-    #       behavior: Discrete
-    #       signal_smoothing: true
-    #       min_lesson_length: 100
-    #       threshold: 400
-    #     value: 0.0
-    #   - name: 30BoxDiscreteLesson # The '-' is important as this is a list
-    #     completion_criteria:
-    #       measure: reward
-    #       behavior: Discrete
-    #       signal_smoothing: true
-    #       min_lesson_length: 100
-    #       threshold: 600
-    #     value: 1.0
-    #   - name: VariableBoxDiscreteLesson # The '-' is important as this is a list
-    #     completion_criteria:
-    #       measure: reward
-    #       behavior: Discrete
-    #       signal_smoothing: true
-    #       min_lesson_length: 100
-    #       threshold: 900
-    #     value: 2.0
+
 
       

@@ -47,40 +47,26 @@ public class CombineMesh : MonoBehaviour
         // Packerhand.cs  : deals parent box : position (math)
         
         // BLUE
-        //Debug.Log($"{name} RRR blue {isCollidedBlue == false}, {name == "BinIso20Back"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedBlue: {isCollidedBlue == false} name == BinIso20Back: {name == "BinIso20Back"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
-        // if this mesh is Back Blue mesh and a box collides with it then set isCollidedBlue collision property to true
         if (isBoxPlaced == false && name == "BinIso20Back" && collision.gameObject.tag == "pickupbox" && collision.gameObject.name == "back")
         {
-            // set mesh property isCollidedBlue to true, used when all three colors are true then combinemeshes
             isBoxPlaced = true;
         }
 
         // GREEN
-        //Debug.Log($"{name} RRR green {isCollidedGreen == false}, {name == "BinIso20Bottom"}, {collision.gameObject.tag == "pickupbox"}, {collision.gameObject.name == "bottom"} | collision side:{collision.gameObject.name} AAA isCollidedGreen: {isCollidedGreen == false} name == BinIso20Bottom: {name == "BinIso20Bottom"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
-        // if this mesh is Bottom Green mesh and a box collides with it then set isCollidedGreen collision property to true
          if (isBoxPlaced == false && name == "BinIso20Bottom" && collision.gameObject.tag == "pickupbox" && collision.gameObject.name == "bottom")
         {
-            // set mesh property isCollidedGreen to true, used when all three colors are true then combinemeshes
             isBoxPlaced = true;
         }
 
         // RED
-        //Debug.Log($"{name} RRR red {isCollidedRed == false}, {name == "BinIso20Side"}, {collision.gameObject.tag == "pickupbox"} | collision side:{collision.gameObject.name} AAA isCollidedRed: {isCollidedRed == false} name == BinIso20Side: {name == "BinIso20Side"} collision.gameObject.tag == pickupbox: {collision.gameObject.tag == "pickupbox"}");
-        // if this mesh is Side Red mesh and a box collides with it then set isCollidedRed collision property to true
         if (isBoxPlaced == false && name == "BinIso20Side" && collision.gameObject.tag == "pickupbox" && (collision.gameObject.name=="left" | collision.gameObject.name=="right"))
         {
-            // set mesh property isCollidedRed to true, used when all three colors are true then combinemeshes
             isBoxPlaced = true;
-
         }
 
         // if one of the three meshes have contact, then allow combining meshes 
-        // only entered for the last one mesh 
         if (m_BottomMeshScript.isBoxPlaced | m_BackMeshScript.isBoxPlaced | m_SideMeshScript.isBoxPlaced)
         {
-            // m_BottomMeshScript.isBoxPlaced = true;
-            // m_BackMeshScript.isBoxPlaced = true;
-            // m_SideMeshScript.isBoxPlaced = true;
         
             // BLUE
             if (agent.isBackMeshCombined==false) 
