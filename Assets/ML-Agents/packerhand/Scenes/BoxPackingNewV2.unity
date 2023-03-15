@@ -1667,6 +1667,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: useSurfaceAreaReward
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: testboxPurpleMaterial
       value: 
       objectReference: {fileID: 2100000, guid: ff14134b548ad4790809bd7ffdffbf32, type: 2}
@@ -1791,7 +1796,7 @@ MonoBehaviour:
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
-  m_BehaviorName: Constant
+  m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
   m_UseChildActuators: 1
@@ -3889,6 +3894,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: useSurfaceAreaReward
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: testboxPurpleMaterial
       value: 
       objectReference: {fileID: 2100000, guid: ff14134b548ad4790809bd7ffdffbf32, type: 2}
@@ -4013,7 +4023,7 @@ MonoBehaviour:
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
-  m_BehaviorName: Constant
+  m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
   m_UseChildActuators: 1
@@ -5601,6 +5611,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: useSurfaceAreaReward
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: testboxPurpleMaterial
       value: 
       objectReference: {fileID: 2100000, guid: ff14134b548ad4790809bd7ffdffbf32, type: 2}
@@ -5725,7 +5740,7 @@ MonoBehaviour:
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
-  m_BehaviorName: Constant
+  m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
   m_UseChildActuators: 1
@@ -6013,6 +6028,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: useSurfaceAreaReward
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: testboxPurpleMaterial
       value: 
       objectReference: {fileID: 2100000, guid: ff14134b548ad4790809bd7ffdffbf32, type: 2}
@@ -6137,7 +6157,7 @@ MonoBehaviour:
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
-  m_BehaviorName: Constant
+  m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
   m_UseChildActuators: 1
@@ -7038,6 +7058,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: useSurfaceAreaReward
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: testboxPurpleMaterial
       value: 
       objectReference: {fileID: 2100000, guid: ff14134b548ad4790809bd7ffdffbf32, type: 2}
@@ -7162,7 +7187,7 @@ MonoBehaviour:
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
-  m_BehaviorName: Constant
+  m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
   m_UseChildActuators: 1
@@ -8966,6 +8991,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: useSurfaceAreaReward
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: testboxPurpleMaterial
       value: 
       objectReference: {fileID: 2100000, guid: ff14134b548ad4790809bd7ffdffbf32, type: 2}
@@ -9044,7 +9074,7 @@ MonoBehaviour:
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
-  m_BehaviorName: Constant
+  m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
   m_UseChildActuators: 1
