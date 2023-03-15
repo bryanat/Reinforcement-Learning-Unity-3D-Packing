@@ -353,6 +353,8 @@ public class PackerHand : Agent
                 //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
                 //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
                 //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
+
+                // Size of vector observation space: s2 = 0
             }
             else{
                 // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
@@ -397,9 +399,13 @@ public class PackerHand : Agent
         }
 
         // Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   s1 + s2 * boxPool.Count() + s3 * verticesArray.Length
-        //                                                                                   = 6 + 7 * boxPool.Count() + 3 * verticesArray.Length
+        //                                                                                   = 6 + s2 * boxPool.Count() + 3 * verticesArray.Length
         // Thus, IN GENERAL:
-        // Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   6 + 7 * n + 3 * (2 * n + 1) = 9 + 13 * n        
+        //     with    attention
+        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   6 + 0 * n + 3 * (2 * n + 1) = 9 + 6 * n        
+
+        //     without attention
+        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   6 + 7 * n + 3 * (2 * n + 1) = 9 + 13 * n        
     }
 
 
@@ -644,7 +650,7 @@ public class PackerHand : Agent
 
                     if (usePenaltyReward)
                     {
-                        AddReward(-100f);
+                        AddReward(GetCumulativeReward()/2);
                     }
                     if (useSparseReward)
                     {
