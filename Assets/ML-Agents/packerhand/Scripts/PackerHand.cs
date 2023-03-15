@@ -25,10 +25,10 @@ public class PackerHand : Agent
     public string bin_type = "biniso20"; // bin type options: "random", "biniso20" (for curriculum) // future: add "pallet"
     public int bin_quantity = 1; // bin quantities (for curriculum)
     
+    public bool runInference=false; 
     public bool useCurriculum=true; // if false, bin and box sizes and quantity will be read from a json file 
     public bool useAttention=true; // if use attention (default = true)
     public bool useDenseReward=true;
-    public bool useSurfaceAreaReward=false;
     public bool useDiscreteSolution = true;
 
     BufferSensorComponent m_BufferSensor; // attention sensor
@@ -209,8 +209,8 @@ public class PackerHand : Agent
                 // listVarObservation[boxSpawner.maxBoxQuantity+11] = box.boxRot[2];
                 // Add [box volume]/[bin volume] 
                 listVarObservation[boxSpawner.maxBoxQuantity +6] = (box.boxSize.x* box.boxSize.y *box.boxSize.z)/(total_bin_volume);
-                // Add total box surface area, will be zero after placement
-                listVarObservation[boxSpawner.maxBoxQuantity +7] = 2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z;
+                // Add [box surface area]/[bin surface area]
+                listVarObservation[boxSpawner.maxBoxQuantity +7] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_bin_surface_area);
                 // Add if box is placed already: 1 if placed already and 0 otherwise
                 listVarObservation[boxSpawner.maxBoxQuantity +8] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
@@ -310,6 +310,14 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
+        if (runInference)
+        {
+            if (CompletedEpisodes==1)
+            {
+                binSpawner.ExportBins();
+                // stop mlagents-learn
+            }
+        }
         // if all boxes packed, reset episode
         if (maskedBoxIndices.Count == boxSpawner.maxBoxQuantity)
         {

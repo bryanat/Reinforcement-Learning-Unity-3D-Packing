@@ -10,6 +10,9 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Runtime.Serialization.Json;
 using Newtonsoft.Json;
+using UnityEditor;
+using UnityEditor.Formats.Fbx.Exporter;
+using Autodesk.Fbx;
 
 
 namespace Bins {
@@ -45,6 +48,7 @@ public class BinSpawner : MonoBehaviour {
     public int total_bin_num;
     public float total_bin_volume;
     public float total_bin_surface_area;
+    
 
     // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
     // // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
@@ -166,6 +170,20 @@ public class BinSpawner : MonoBehaviour {
                     });
             }
         }
+    }
+
+    public void ExportBins()
+    {
+        // set the path and name for the exported file
+        string filePath = Path.Combine(Application.dataPath, "Bins.fbx");
+        UnityEngine.Object[] objects = new UnityEngine.Object[total_bin_num];
+        for (int n=0; n<total_bin_num;n++)
+        {
+            objects[n] = GameObject.Find($"Bin{n}");
+        }
+        var x = ModelExporter.ExportObjects(filePath, objects);
+
+
     }
 
 }

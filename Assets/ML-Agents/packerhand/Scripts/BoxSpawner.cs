@@ -29,7 +29,6 @@ public class Box
     public Quaternion boxRot = Quaternion.identity; // for sensor, changes after selected action
     public Vector3 boxVertex = Vector3.zero; // for sensor, changes after selected action
     public Vector3 boxBinScale = Vector3.zero; //for sensor, changes after selected actiong
-    //public float percentSurfaceAreaContact = 0;
     public bool isOrganized = false; // for sensor, changes after selected action
     public GameObject gameobjectBox; // stores gameobject box reference created during box creation, for destroying old boxes
 }
