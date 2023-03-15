@@ -1354,7 +1354,7 @@ public class PackerHand : Agent
     {
         // Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_BehaviorName}");
 
-        if (initializeBrain)
+        if (useCurriculum && initializeBrain)
         {
             SetModel(m_BehaviorName, brain);  
         }

@@ -17,21 +17,17 @@ behaviors:
       hidden_units: 256
       num_layers: 3
       vis_encode_type: simple
-      # # Use memory enhancement through RNN
-      # use_recurrent: true
-      # memory:
-      #   sequence_length: 128
-      #   memory_size: 256
     reward_signals:
       extrinsic:
         gamma: 0.995
         strength: 1.0
-      curiosity:  # curiosity works only with sparse rewards
-        gamma: 0.99
-        strength: 0.02
-        network_settings:
-          hidden_units: 256
-        learning_rate: 0.0003
+      # # Curiosity works only with sparse rewards
+      # curiosity:  
+      #   gamma: 0.99
+      #   strength: 0.02
+      #   network_settings:
+      #     hidden_units: 256
+      #   learning_rate: 0.0003
     keep_checkpoints: 5
     checkpoint_interval: 20000
     max_steps: 1000000
@@ -72,17 +68,17 @@ behaviors:
   #   summary_freq: 2000
 
   
-#   # Add this section
-environment_parameters:
-  Discrete:
-    curriculum:
-      - name: Lesson01 # The '-' is important as this is a list
-        completion_criteria:
-          measure: reward
-          behavior: Discrete
-          signal_smoothing: true
-          min_lesson_length: 100
-          threshold: 5000
+# #   # Add this section
+# environment_parameters:
+#   Discrete:
+#     curriculum:
+#       - name: Lesson01 # The '-' is important as this is a list
+#         completion_criteria:
+#           measure: reward
+#           behavior: Discrete
+#           signal_smoothing: true
+#           min_lesson_length: 100
+#           threshold: 10000
 #         value: 0.0
 #       - name: Lesson02 # The '-' is important as this is a list
 #         completion_criteria:
