@@ -2,16 +2,16 @@ behaviors:
   Discrete:
     trainer_type: ppo
     hyperparameters:
-      batch_size: 512
-      buffer_size: 10240
+      buffer_size: 64
+      batch_size: 4
       learning_rate: 0.0003
       beta: 0.01
-      beta_schedule: linear
-      epsilon: 0.05
-      epsilon_schedule: linear
+      beta_schedule: constant
+      epsilon: 0.2
+      epsilon_schedule: constant
       lambd: 0.95
       num_epoch: 3
-      learning_rate_schedule: linear
+      learning_rate_schedule: constant
     network_settings:
       normalize: false
       hidden_units: 512
@@ -29,9 +29,9 @@ behaviors:
         strength: 1.0
     keep_checkpoints: 5
     checkpoint_interval: 20000
+    time_horizon: 16
     max_steps: 3000000
-    time_horizon: 32
-    summary_freq: 2000
+    summary_freq: 256
 
 
   
