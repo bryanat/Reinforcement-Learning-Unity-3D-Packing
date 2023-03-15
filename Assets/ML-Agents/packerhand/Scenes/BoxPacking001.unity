@@ -1478,6 +1478,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
+      propertyPath: useSparseReward
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      propertyPath: usePenaltyReward
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      propertyPath: useCombinedReward
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
       propertyPath: isDiscreteSolution
       value: 1
       objectReference: {fileID: 0}
@@ -1574,7 +1589,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 217
+    VectorObservationSize: 216
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0

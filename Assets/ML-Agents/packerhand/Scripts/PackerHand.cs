@@ -40,7 +40,7 @@ public class PackerHand : Agent
     public bool usePenaltyReward;       // Penalty for every box misplaced and/or violating environemnt constraints
     public bool useDenseReward;         // Reward for every box placed: volume ratio (volume of the box / volume of the bin)
     public bool useSurfaceAreaReward;   // Reward for every box placed: surface area ratio (area of the box / area of the bin)
-    public bool useAreaVolumeCombinedReward;    // Reward for every box placed: combines the area & volume rewards (surface area ratio & volume ratio)
+    public bool useCombinedReward;    // Reward for every box placed: combines the area & volume rewards (surface area ratio & volume ratio)
     public bool useDistanceReward;    // Reward for every box placed: distance ratio (distance between the box and the bin / distance between the agent and the bin)
 
     // Filters for lLocal features
@@ -145,7 +145,7 @@ public class PackerHand : Agent
     private float total_bin_area; // regular bin's area
     private Bounds areaBounds; // regular bin's bounds
     private int boxes_packed = 0;
-    private float current_bin_volume;
+    private float current_empty_bin_volume;
     private float percent_filled_bin_volume;
     private float box_volume;
     [HideInInspector] public float binscale_x;
@@ -161,6 +161,7 @@ public class PackerHand : Agent
                                      // OneHotEncoding : observable_size + number of boxes in current lesson
                                      // Padding        : observable_size + maximum number of boxes in all lessons
     // private BehaviorParameters m_BehaviorParameters;
+    private double totalPossibleContanArea;
 
     public override void Initialize()
     {   
@@ -287,12 +288,11 @@ public class PackerHand : Agent
     {
         Debug.Log("OBSERVATION");
         // Add updated bin volume
-        sensor.AddObservation(current_bin_volume);
+        sensor.AddObservation(current_empty_bin_volume);
         sensor.AddObservation(total_bin_volume);
-        sensor.AddObservation(total_bin_area);
         sensor.AddObservation(new Vector3(binscale_x,binscale_y,binscale_z));
 
-        // Size of vector observation space: s1 = 1 + 1 + 1 + 1 * 3 = 6
+        // Size of vector observation space: s1 = 1 + 1 + 1 * 3 = 5
 
         int j = -1;
         maskedBoxIndices = new List<int>();
@@ -398,14 +398,17 @@ public class PackerHand : Agent
             // Size of vector observation space: s3 * verticesArray.Length
         }
 
-        // Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   s1 + s2 * boxPool.Count() + s3 * verticesArray.Length
-        //                                                                                   = 6 + s2 * boxPool.Count() + 3 * verticesArray.Length
+        // Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   s1 + s2 * n + s3 * verticesArray.Length
+        //
+        // , where n = maxBoxNumber  
+        //   (i.e. number of boxes in the scene; note that when padding is used the number of boxes in the scene is larger than the number of boxes in the scene without padding)
+        //
         // Thus, IN GENERAL:
         //     with    attention
-        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   6 + 0 * n + 3 * (2 * n + 1) = 9 + 6 * n        
+        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   5 + 0 * n + 3 * (2 * n + 1) = 8 + 6 * n        
 
         //     without attention
-        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   6 + 7 * n + 3 * (2 * n + 1) = 9 + 13 * n        
+        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   5 + 7 * n + 3 * (2 * n + 1) = 8 + 13 * n        
     }
 
 
@@ -470,7 +473,7 @@ public class PackerHand : Agent
             
             if (useSparseReward)
             {
-                AddReward(percent_filled_bin_volume*10);
+                AddReward(5000f);
                 // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             }
 
@@ -482,12 +485,6 @@ public class PackerHand : Agent
         {
             Debug.Log("Max step reached!");
 
-            if (useSparseReward)
-            {
-                AddReward(percent_filled_bin_volume*10);
-                // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-            }
-            
             initiateNewEpisode();
         }
 
@@ -574,20 +571,24 @@ public class PackerHand : Agent
 
             Debug.Log("Add new vertices to vertices array");
 
-            box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
 
-            float box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+            float box_surface_area    = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+            box_volume                = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
+            current_empty_bin_volume  = current_empty_bin_volume - box_volume;
+            percent_filled_bin_volume = (1 - (current_empty_bin_volume/total_bin_volume)) * 100;
+
             // Add surface area reward
             if (useSurfaceAreaReward){
-                float percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
+                float percent_contact_surface_area = sensorCollision.totalContactSA / box_surface_area;
                 AddReward(percent_contact_surface_area * 50f);
                 // Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
             }
 
             // Add combined area-volume reward
-            if (useAreaVolumeCombinedReward)
+            if (useCombinedReward)
             {
-                float percent_filled_bin_combined = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
+                // float percent_filled_bin_combined = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
+                float percent_filled_bin_combined = (1 + sensorCollision.totalContactSA / box_surface_area) * ( box_volume / total_bin_volume );
                 AddReward(percent_filled_bin_combined * 1000f);
                 // Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_filled_bin_combined * 1000f} reward from surface area");
 
@@ -596,12 +597,10 @@ public class PackerHand : Agent
             }
             
             // Add volume reward
-            current_bin_volume = current_bin_volume - box_volume;
-            percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
             if (useDenseReward)
             {
                 AddReward((box_volume/total_bin_volume) * 1000f);
-                // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{(box_volume/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+                // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{(box_volume/total_bin_volume) * 1000f} reward | current_empty_bin_volume: {current_empty_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
 
                 // Increment stats recorder to match reward
                 m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
@@ -650,12 +649,7 @@ public class PackerHand : Agent
 
                     if (usePenaltyReward)
                     {
-                        AddReward(GetCumulativeReward()/2);
-                    }
-                    if (useSparseReward)
-                    {
-                        AddReward(percent_filled_bin_volume*10);   
-                        // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+                        AddReward(current_empty_bin_volume/total_bin_volume * -1000f);
                     }
 
                     initiateNewEpisode();
@@ -1324,7 +1318,7 @@ public class PackerHand : Agent
         boxes_packed = 0;
 
         // Reset current bin volume
-        current_bin_volume = total_bin_volume;
+        current_empty_bin_volume = total_bin_volume;
 
         // Destroy old boxes
         foreach (Box box in boxPool)
