@@ -34,8 +34,10 @@ public class PackerHand : Agent
     BufferSensorComponent m_BufferSensor; // attention sensor
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
 
-    public NNModel discreteBrain;   // Brain to use when all boxes are 1 by 1 by 1
-    string m_DiscreteBehaviorName = "Discrete"; 
+    public NNModel constantBrain;   // Brain to use when all boxes are 1 by 1 by 1
+    public NNModel linearBrain; 
+    string m_ConstantBehaviorName = "Constant"; 
+    string m_LinearBehaviorName = "Linear";
 
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
@@ -111,8 +113,10 @@ public class PackerHand : Agent
         var modelOverrider = GetComponent<ModelOverrider>();
         if (modelOverrider.HasOverrides && useCurriculum)
         {
-            discreteBrain = modelOverrider.GetModelForBehaviorName(m_DiscreteBehaviorName);
-            m_DiscreteBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_DiscreteBehaviorName);
+            constantBrain = modelOverrider.GetModelForBehaviorName(m_ConstantBehaviorName);
+            m_ConstantBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_ConstantBehaviorName);
+            linearBrain = modelOverrider.GetModelForBehaviorName(m_LinearBehaviorName);
+            m_LinearBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_LinearBehaviorName);
 
         }
 
@@ -1019,23 +1023,23 @@ public class PackerHand : Agent
         {
             if (isAfterInitialization==false)
             {
-                SetModel(m_DiscreteBehaviorName, discreteBrain);
+                SetModel(m_ConstantBehaviorName, constantBrain);
             }
             //Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
             useDiscreteSolution = true;
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("rate", 0.0f) == 0.0f)
             {
                 boxSpawner.SetUpBoxes(box_type, seed);
                 //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("rate", 1.0f) == 1.0f)
             {
-                boxSpawner.SetUpBoxes(box_type, seed+1);
+                boxSpawner.SetUpBoxes(box_type, seed);
                 //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("rate", 2.0f) == 2.0f)
             {
-                boxSpawner.SetUpBoxes(box_type, seed+2);
+                boxSpawner.SetUpBoxes(box_type, seed+1);
                 //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
         }
