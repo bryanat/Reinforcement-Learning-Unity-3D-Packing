@@ -402,7 +402,6 @@ public class PackerHand : Agent
             {
                 AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
                 //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
-                AddReward(sensorCollision.totalContactSA/total_bin_surface_area*100f);
             }
             
             // Increment stats recorder to match reward
@@ -449,6 +448,7 @@ public class PackerHand : Agent
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     DropoffBox();
+                    AddReward(sensorCollision.totalContactSA/total_bin_surface_area*100f);
                     boxes_packed++;
                 }
                 else
