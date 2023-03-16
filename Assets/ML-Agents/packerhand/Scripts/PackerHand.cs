@@ -78,8 +78,8 @@ public class PackerHand : Agent
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
-    public float total_bin_volume; // sum of all bins' volume
-    public float total_bin_surface_area;
+    [HideInInspector] public float total_bin_volume; // sum of all bins' volume
+    [HideInInspector] public float total_bin_surface_area;
     float current_bin_volume;
     public float percent_filled_bin_volume;
     public int boxes_packed;
@@ -181,7 +181,7 @@ public class PackerHand : Agent
         {   
             if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+9];
+                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+15];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
@@ -199,19 +199,19 @@ public class PackerHand : Agent
                 //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
                 //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
                 // Add scaled vertex, (0, 0, 0) before placement
-                // listVarObservation[boxSpawner.maxBoxQuantity +6] = box.boxVertex.x;
-                // listVarObservation[boxSpawner.maxBoxQuantity +7] = box.boxVertex.y;
-                // listVarObservation[boxSpawner.maxBoxQuantity +8] = box.boxVertex.z;
+                listVarObservation[boxSpawner.maxBoxQuantity +6] = box.boxVertex.x;
+                listVarObservation[boxSpawner.maxBoxQuantity +7] = box.boxVertex.y;
+                listVarObservation[boxSpawner.maxBoxQuantity +8] = box.boxVertex.z;
                 // Add rotation,  (0, 0, 0) before placement
-                // listVarObservation[boxSpawner.maxBoxQuantity+9] = box.boxRot[0];
-                // listVarObservation[boxSpawner.maxBoxQuantity+10] = box.boxRot[1];
-                // listVarObservation[boxSpawner.maxBoxQuantity+11] = box.boxRot[2];
+                listVarObservation[boxSpawner.maxBoxQuantity+9] = box.boxRot[0];
+                listVarObservation[boxSpawner.maxBoxQuantity+10] = box.boxRot[1];
+                listVarObservation[boxSpawner.maxBoxQuantity+11] = box.boxRot[2];
                 // Add [box volume]/[bin volume] 
-                listVarObservation[boxSpawner.maxBoxQuantity +6] = (box.boxSize.x* box.boxSize.y *box.boxSize.z)/(total_bin_volume);
+                listVarObservation[boxSpawner.maxBoxQuantity +12] = (box.boxSize.x* box.boxSize.y *box.boxSize.z)/(total_bin_volume);
                 // Add [box surface area]/[bin surface area]
-                listVarObservation[boxSpawner.maxBoxQuantity +7] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_bin_surface_area);
+                listVarObservation[boxSpawner.maxBoxQuantity +13] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_bin_surface_area);
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[boxSpawner.maxBoxQuantity +8] = box.isOrganized ? 1.0f : 0.0f;
+                listVarObservation[boxSpawner.maxBoxQuantity +14] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
@@ -528,13 +528,14 @@ public class PackerHand : Agent
             //Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
             // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
             Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - binSpawner.origins[selectedBin].x)/binSpawner.binscales_x[selectedBin],  (tripoints_list[idx].y - binSpawner.origins[selectedBin].y)/binSpawner.binscales_y[selectedBin],  (tripoints_list[idx].z - binSpawner.origins[selectedBin].z)/binSpawner.binscales_z[selectedBin]);
+            Vector3 rounded_vertex = new Vector3((float)(Math.Round(scaled_continuous_vertex.x-0.005, 2)),(float)(Math.Round(scaled_continuous_vertex.y-0.005, 2)), (float)(Math.Round(scaled_continuous_vertex.z-0.005, 2)));
             //Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
-            if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
+            if ( historicalVerticesLog.Exists(element => element == rounded_vertex) == false )
             {
                 // Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
                 // Add scaled tripoint_vertex to verticesArray
                 verticesArray[VertexCount] = new Vector4(scaled_continuous_vertex.x, scaled_continuous_vertex.y, scaled_continuous_vertex.z, selectedBin);
-                historicalVerticesLog.Add(scaled_continuous_vertex);
+                historicalVerticesLog.Add(rounded_vertex);
                 VertexCount ++;
                 //Debug.Log($"VERTEX COUNT IS {VertexCount}");
             }

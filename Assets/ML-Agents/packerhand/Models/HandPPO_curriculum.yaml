@@ -16,26 +16,26 @@ behaviors:
       normalize: false
       hidden_units: 512
       num_layers: 3
-      memory:
-        use_recurrent: true
-        sequence_length: 32
-        memory_size: 128
+      # memory:
+      #   use_recurrent: true
+      #   sequence_length: 32
+      #   memory_size: 128
     reward_signals:
       extrinsic:
         gamma: 0.995
         strength: 0.9
       # curiosity:
       #   gamma: 0.99
-      #   strength: 0.02
+      #   strength: 0.1
       #   network_settings:
       #     hidden_units: 256
       #   learning_rate: 0.0003
-      # rnd:
-      #   gamma: 0.995
-      #   strength: 0.05
-      #   network_settings:
-      #     hidden_units: 256
-      #     learning_rate: 0.0003
+      rnd:
+        gamma: 0.995
+        strength: 0.05
+        network_settings:
+          hidden_units: 256
+          learning_rate: 0.0003
     keep_checkpoints: 5
     checkpoint_interval: 20000
     time_horizon: 1
