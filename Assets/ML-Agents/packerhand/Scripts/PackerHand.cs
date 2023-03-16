@@ -21,7 +21,6 @@ public class PackerHand : Agent
     public int packSpeed = 20;
     public int seed = 123; // same seed means same set of randomly generated boxes
     public string file_name = "Boxes_30"; // jason file name used in non-curriculum such as production, bin and box information will be read this file
-    public string box_type = "mix"; // box type options: "mix", "uniform" (for curriculum)
     public string bin_type = "biniso20"; // bin type options: "random", "biniso20" (for curriculum) // future: add "pallet"
     public int bin_quantity = 1; // bin quantities (for curriculum)
     
@@ -29,6 +28,7 @@ public class PackerHand : Agent
     public bool useCurriculum=true; // if false, bin and box sizes and quantity will be read from a json file 
     public bool useAttention=true; // if use attention (default = true)
     public bool useDenseReward=true;
+    public bool useStabilityReward=false;
 
     public bool useBoxReset=false; // if reset box when fails physics test and continue the episode (default=false, which means episode will restart)
     public bool useDiscreteSolution = true;
@@ -79,9 +79,12 @@ public class PackerHand : Agent
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
     [HideInInspector] public float total_bin_volume; // sum of all bins' volume
-    [HideInInspector] public float total_bin_surface_area;
+    public float total_box_surface_area;
+    public float current_contact_surface_area;
+
     float current_bin_volume;
     public float percent_filled_bin_volume;
+    public float percent_contact_surface_area;
     public int boxes_packed;
 
 
@@ -132,7 +135,6 @@ public class PackerHand : Agent
         }
         // Get bin info
         total_bin_volume = binSpawner.total_bin_volume;
-        total_bin_surface_area = binSpawner.total_bin_surface_area;
         origin_counter = binSpawner.total_bin_num;
         // initalize mesh scripts' agent
         foreach (CombineMesh script in binSpawner.m_BackMeshScripts)
@@ -209,7 +211,7 @@ public class PackerHand : Agent
                 // Add [box volume]/[bin volume] 
                 listVarObservation[boxSpawner.maxBoxQuantity +12] = (box.boxSize.x* box.boxSize.y *box.boxSize.z)/(total_bin_volume);
                 // Add [box surface area]/[bin surface area]
-                listVarObservation[boxSpawner.maxBoxQuantity +13] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_bin_surface_area);
+                listVarObservation[boxSpawner.maxBoxQuantity +13] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_box_surface_area);
                 // Add if box is placed already: 1 if placed already and 0 otherwise
                 listVarObservation[boxSpawner.maxBoxQuantity +14] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
@@ -318,25 +320,37 @@ public class PackerHand : Agent
         //     }
         // }
         // if all boxes packed, reset episode
-        if (maskedBoxIndices.Count == boxSpawner.maxBoxQuantity)
+        Debug.Log($"STEP COUNT {StepCount}");
+        if (percent_filled_bin_volume>75f)
         {
-            if (!useDenseReward)
+            if (percent_filled_bin_volume >95f)
             {
-                AddReward(percent_filled_bin_volume*10);
-                //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+                SetReward(1000f);
             }
-                EndEpisode();
+            else if (percent_filled_bin_volume >85f)
+            {
+                SetReward(900f);
+            }
+            else
+            {
+                SetReward(800f);
+            }
+            EndEpisode();
             curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
             isEpisodeStart = true;
-            Debug.Log($"ALL BOXES PACKED!!! EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
         }
         // to reset episode manually, need to reset a little before MaxStep is reached, or else episode will be reset automatically
         // (this loop is not reached if conditional check is StepCount >= MaxStep)
-        if (StepCount >= MaxStep-5) 
+        if (StepCount >= MaxStep-10) 
         {
             if (!useDenseReward)
             {
                 AddReward(percent_filled_bin_volume*10);
+                if (useStabilityReward)
+                {
+                    // [total surface area contact of all placed boxes] / [total surface area of all boxes]
+                    AddReward(percent_contact_surface_area*10);
+                }
                 //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
             }
             EndEpisode();
@@ -371,6 +385,9 @@ public class PackerHand : Agent
             // initialize local reference to box pool
             boxPool = boxSpawner.boxPool;
 
+            // initialize local reference to total box surface area
+            total_box_surface_area = boxSpawner.total_box_surface_area;
+
             isAfterOriginVertexSelected = false;
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
@@ -397,13 +414,23 @@ public class PackerHand : Agent
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
             percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
 
+            // calculate current contact surface area 
+            current_contact_surface_area = current_contact_surface_area + sensorCollision.totalContactSA;
+            percent_contact_surface_area = current_contact_surface_area/total_box_surface_area *100;
+
             // Add volume reward
             if (useDenseReward)
             {
                 AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
                 //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+                if (useStabilityReward)
+                {
+                    // stability reward is how stable the position is, takes into consideration how many sides are in contact with the bin and other boxes
+                    // this should also be scaled with respect to the box size. 
+                    AddReward(sensorCollision.totalContactSA/total_box_surface_area*1000f);
+                }
             }
-            
+
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
@@ -448,7 +475,6 @@ public class PackerHand : Agent
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     DropoffBox();
-                    AddReward(sensorCollision.totalContactSA/total_bin_surface_area*100f);
                     boxes_packed++;
                 }
                 else
@@ -457,19 +483,16 @@ public class PackerHand : Agent
                     if (useBoxReset)
                     {
                         BoxReset("failedPhysicsCheck");
-                    }
+                    }            
                     // if not to be repacked, episode will end
                     else
                     {
-                        if (useDenseReward)
+                        if (useStabilityReward)
                         {
-                            AddReward(-100f);
+                            // [total surface area contact of all placed boxes] / [total surface area of all boxes]
+                            AddReward(percent_contact_surface_area*10);
                         }
-                        else
-                        {
-                            AddReward(percent_filled_bin_volume*10);   
-                            //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-                        }
+                        AddReward(-100f);
                         EndEpisode();
                         curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
                         isEpisodeStart = true;
@@ -968,6 +991,9 @@ public class PackerHand : Agent
         // Reset current bin volume
         current_bin_volume = total_bin_volume;
 
+
+        current_contact_surface_area = 0;
+
         // Reset origin counter to the number of origins 
         origin_counter = binSpawner.total_bin_num;
 
@@ -1018,17 +1044,27 @@ public class PackerHand : Agent
             useDiscreteSolution = true;
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
-                boxSpawner.SetUpBoxes(box_type, seed);
+                boxSpawner.SetUpBoxes("uniform", seed);
                 //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
             {
-                boxSpawner.SetUpBoxes(box_type, seed+1);
+                boxSpawner.SetUpBoxes("uniform", seed+1);
                 //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
             {
-                boxSpawner.SetUpBoxes(box_type, seed+2);
+                boxSpawner.SetUpBoxes("mix", seed+2);
+                //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 3.0f) == 3.0f)
+            {
+                boxSpawner.SetUpBoxes("mix", seed+3);
+                //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 4.0f) == 4.0f)
+            {
+                boxSpawner.SetUpBoxes("mix", seed+4);
                 //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
         }

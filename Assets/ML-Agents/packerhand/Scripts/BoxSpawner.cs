@@ -60,6 +60,8 @@ public class BoxSpawner : MonoBehaviour
     
     public int maxBoxQuantity; // maximum box quantity (default set to 50)
 
+    public float total_box_surface_area;
+
     public BoxSize [] sizes; // array of box sizes
 
     [HideInInspector] public int idx_counter = 0; //counter for sizes array
@@ -76,6 +78,8 @@ public class BoxSpawner : MonoBehaviour
 
     public void SetUpBoxes(string box_type , int seed=123) 
     {
+        total_box_surface_area = 0;
+        boxPool.Clear();
         // randomly generates boxes
         if (box_type == "uniform" | box_type == "mix")
         {
@@ -135,6 +139,8 @@ public class BoxSpawner : MonoBehaviour
                 };
                 // Add box to box pool
                 boxPool.Add(newBox);  
+                // update total box surface rea
+                total_box_surface_area+=2*box_size.x*box_size.y + 2*box_size.y*box_size.z + 2* box_size.z*box_size.x;
                 idx+=1;     
             }
         }
