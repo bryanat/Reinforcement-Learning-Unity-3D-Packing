@@ -33,8 +33,8 @@ conftest.py
 /Logs/
 /[Tt]emp/
 /[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
+# /[Bb]uild/
+# /[Bb]uilds/
 /Assets/AssetStoreTools*
 /Assets/Plugins*
 /Assets/Demonstrations*
@@ -73,7 +73,7 @@ Project.sln.DotSettings
 # Unity3D Generated File On Crash Reports
 /sysinfo.txt
 
-# Builds
+# Builds outside of builds folder
 *.apk
 *.unitypackage
 *.app
@@ -118,3 +118,14 @@ ml-agents/tests/
 
 # hyperparameter.yaml file at root dir for convenience
 HandPPO_curriculum.yaml
+
+# DO track the builds folder, and everything inside
+!/[Bb]uilds/
+!/[Bb]uilds/*
+!/[Bb]uilds/*/*
+!/[Bb]uilds/*/*/*
+!/[Bb]uilds/*/*/*/*
+
+# Dont track the BurstDebugInformation_DoNotShip folder
+/builds/*/envdocktest01_BurstDebugInformation_DoNotShip/
+/builds/*/envdocktest01_BurstDebugInformation_DoNotShip/*
