@@ -269,8 +269,9 @@ public class PackerHand : Agent
         }
         else DestroyImmediate(m_Agent.GetComponent<BufferSensorComponent>());
 
-        if (useVerticesArray) verticesArray = new Vector3[2*maxBoxNum+1];
-        // if (useVerticesArray) verticesArray = new Vector3[8*maxBoxNum+4];
+        if (useVerticesArray) verticesArray = new Vector3[3*maxBoxNum]; // the 3x multiplication is to make sure enough space is allocated for the vertices of the bin
+        // if (useVerticesArray) verticesArray = new Vector3[2*(2*maxBoxNum+1)]; // the 2x multiplication is to make sure enough space is allocated for the vertices of the bin
+        // if (useVerticesArray) verticesArray = new Vector3[2*maxBoxNum+1]; // this is the exact space that the vertices array should need
         else                  verticesArray = new Vector3[0];
 
         Debug.Log("INITIALIZE ENDS");
@@ -407,10 +408,9 @@ public class PackerHand : Agent
         //
         // Thus, IN GENERAL:
         //     with    attention
-        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   5 + 0 * n + 3 * (2 * n + 1) = 8 + 6 * n        
-
+        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   5 + 0 * n + 3 * 3*n = 8 + 9 * n
         //     without attention
-        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   5 + 7 * n + 3 * (2 * n + 1) = 8 + 13 * n        
+        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   5 + 7 * n + 3 * 3*n = 8 + 16 * n
     }
 
 
@@ -595,8 +595,8 @@ public class PackerHand : Agent
             if (useCombinedReward)
             {
                 // float percent_filled_bin_combined = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
-                float percent_filled_bin_combined = (1 + sensorCollision.totalContactSA / box_surface_area) * ( box_volume / total_bin_volume );
-                AddReward(percent_filled_bin_combined * 1000f);
+                float percent_filled_bin_combined = (sensorCollision.totalContactSA / box_surface_area) * ( box_volume / total_bin_volume );
+                AddReward(percent_filled_bin_combined * 100f);
                 // Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_filled_bin_combined * 1000f} reward from surface area");
 
                 // Increment stats recorder to match reward
@@ -644,9 +644,9 @@ public class PackerHand : Agent
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
             {
                 if (useSparseReward){
-                    if      (current_empty_bin_volume/total_bin_volume < 0.15f) SetReward(2500f); 
-                    else if (current_empty_bin_volume/total_bin_volume < 0.10f) SetReward(5000f);
-                    else if (current_empty_bin_volume/total_bin_volume < 0.05f) SetReward(7500f);
+                    if      (current_empty_bin_volume/total_bin_volume < 0.15f) AddReward(2500f); 
+                    else if (current_empty_bin_volume/total_bin_volume < 0.10f) AddReward(5000f);
+                    else if (current_empty_bin_volume/total_bin_volume < 0.05f) AddReward(7500f);
                 }
 
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
@@ -662,7 +662,7 @@ public class PackerHand : Agent
 
                     if (usePenaltyReward)
                     {
-                        SetReward(current_empty_bin_volume/total_bin_volume * -1000f);
+                        SetReward(current_empty_bin_volume/total_bin_volume * -100f);
                     }
 
                     initiateNewEpisode();
