@@ -321,24 +321,6 @@ public class PackerHand : Agent
         // }
         // if all boxes packed, reset episode
         // Debug.Log($"STEP COUNT {StepCount}");
-        if ((1 - (current_bin_volume/total_bin_volume)) * 100>75f)
-        {
-            if ((1 - (current_bin_volume/total_bin_volume)) * 100 >95f)
-            {
-                SetReward(1000f);
-            }
-            else if ((1 - (current_bin_volume/total_bin_volume)) * 100 >85f)
-            {
-                SetReward(900f);
-            }
-            else
-            {
-                SetReward(800f);
-            }
-            EndEpisode();
-            curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
-            isEpisodeStart = true;
-        }
         // to reset episode manually, need to reset a little before MaxStep is reached, or else episode will be reset automatically
         // (this loop is not reached if conditional check is StepCount >= MaxStep)
         if (StepCount >= MaxStep-10) 
@@ -398,6 +380,25 @@ public class PackerHand : Agent
             // discrete or not, first box will be placed at a bin's origin
             origin_counter--;
             selectedVertex = binSpawner.origins[origin_counter];
+        }
+        // set final rewards
+        if ((1 - (current_bin_volume/total_bin_volume)) * 100>75f)
+        {
+            if ((1 - (current_bin_volume/total_bin_volume)) * 100 >95f)
+            {
+                SetReward(1000f);
+            }
+            else if ((1 - (current_bin_volume/total_bin_volume)) * 100 >85f)
+            {
+                SetReward(900f);
+            }
+            else
+            {
+                SetReward(800f);
+            }
+            EndEpisode();
+            curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
+            isEpisodeStart = true;
         }
         // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
@@ -1048,12 +1049,12 @@ public class PackerHand : Agent
             useDiscreteSolution = true;
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
-                boxSpawner.SetUpBoxes("uniform", seed);
+                boxSpawner.SetUpBoxes("mix", seed);
                 // Debug.Log($"CFA lesson 0");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
             {
-                boxSpawner.SetUpBoxes("uniform", seed+1);
+                boxSpawner.SetUpBoxes("mix", seed+1);
                 // Debug.Log($"CFA lesson 1");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)

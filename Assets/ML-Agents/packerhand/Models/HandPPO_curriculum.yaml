@@ -60,7 +60,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 800
+          threshold: 500
         value: 0.0
       - name: 2UniformLesson # The '-' is important as this is a list
         completion_criteria:
@@ -68,7 +68,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 800
+          threshold: 600
         value: 1.0
       - name: 3MixLesson # The '-' is important as this is a list
         completion_criteria:
