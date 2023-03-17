@@ -486,8 +486,8 @@ public class PackerHand : Agent
                             // [total surface area contact of all placed boxes] / [total surface area of all boxes]
                             AddReward(percent_contact_surface_area*10);
                         }
-                        // if box fails physics test, agent is punished for volume not packed
-                        AddReward(-current_bin_volume);
+                        // if box fails physics test, agent is punished for percent volume not packed
+                        AddReward(-(current_bin_volume/total_box_surface_area)*100f);
                         EndEpisode();
                         curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
                         isEpisodeStart = true;
