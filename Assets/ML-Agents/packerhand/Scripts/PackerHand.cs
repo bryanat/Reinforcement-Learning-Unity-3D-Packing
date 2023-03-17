@@ -319,10 +319,7 @@ public class PackerHand : Agent
         //         // stop mlagents-learn
         //     }
         // }
-        // if all boxes packed, reset episode
         // Debug.Log($"STEP COUNT {StepCount}");
-        // to reset episode manually, need to reset a little before MaxStep is reached, or else episode will be reset automatically
-        // (this loop is not reached if conditional check is StepCount >= MaxStep)
         if (StepCount >= MaxStep-10) 
         {
             if (!useDenseReward)
@@ -360,7 +357,7 @@ public class PackerHand : Agent
             }
             else
             {
-                    boxSpawner.SetUpBoxes(file_name);
+                boxSpawner.SetUpBoxes(file_name);
                 isAfterInitialization = true;
             }
             
@@ -381,8 +378,8 @@ public class PackerHand : Agent
             origin_counter--;
             selectedVertex = binSpawner.origins[origin_counter];
         }
-        // set final rewards
-        if ((1 - (current_bin_volume/total_bin_volume)) * 100>75f)
+        // // set final rewards for percent filled > 85%
+        if ((1 - (current_bin_volume/total_bin_volume)) * 100>85f)
         {
             if ((1 - (current_bin_volume/total_bin_volume)) * 100 >95f)
             {
@@ -392,13 +389,6 @@ public class PackerHand : Agent
             {
                 SetReward(900f);
             }
-            else
-            {
-                SetReward(800f);
-            }
-            EndEpisode();
-            curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
-            isEpisodeStart = true;
         }
         // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
@@ -494,7 +484,7 @@ public class PackerHand : Agent
                             // [total surface area contact of all placed boxes] / [total surface area of all boxes]
                             AddReward(percent_contact_surface_area*10);
                         }
-                        AddReward(-100f);
+                        AddReward(-500f+percent_filled_bin_volume*10);
                         EndEpisode();
                         curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
                         isEpisodeStart = true;

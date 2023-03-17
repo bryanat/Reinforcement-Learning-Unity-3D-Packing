@@ -37,10 +37,10 @@ behaviors:
           hidden_units: 256
           learning_rate: 0.0003
           num_layers: 2
-          memory:
-            use_recurrent: true
-            sequence_length: 128
-            memory_size: 512
+          # memory:
+          #   use_recurrent: true
+          #   sequence_length: 128
+          #   memory_size: 512
     keep_checkpoints: 5
     checkpoint_interval: 20000
     time_horizon: 16
@@ -60,7 +60,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 500
+          threshold: 850
         value: 0.0
       - name: 2UniformLesson # The '-' is important as this is a list
         completion_criteria:
@@ -68,7 +68,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 600
+          threshold: 850
         value: 1.0
       - name: 3MixLesson # The '-' is important as this is a list
         completion_criteria:
@@ -76,7 +76,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 700
+          threshold: 850
         value: 2.0
       - name: 4MixLesson # The '-' is important as this is a list
         completion_criteria:
@@ -84,7 +84,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 750
+          threshold: 850
         value: 3.0
       - name: 5MixLesson # The '-' is important as this is a list
         completion_criteria:
@@ -92,7 +92,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 800
+          threshold: 850
         value: 4.0
       
 
