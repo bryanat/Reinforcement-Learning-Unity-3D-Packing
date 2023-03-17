@@ -320,14 +320,14 @@ public class PackerHand : Agent
         //     }
         // }
         // if all boxes packed, reset episode
-        Debug.Log($"STEP COUNT {StepCount}");
-        if (percent_filled_bin_volume>75f)
+        // Debug.Log($"STEP COUNT {StepCount}");
+        if ((1 - (current_bin_volume/total_bin_volume)) * 100>75f)
         {
-            if (percent_filled_bin_volume >95f)
+            if ((1 - (current_bin_volume/total_bin_volume)) * 100 >95f)
             {
                 SetReward(1000f);
             }
-            else if (percent_filled_bin_volume >85f)
+            else if ((1 - (current_bin_volume/total_bin_volume)) * 100 >85f)
             {
                 SetReward(900f);
             }
@@ -384,7 +384,7 @@ public class PackerHand : Agent
             
             // initialize local reference to box pool
             boxPool = boxSpawner.boxPool;
-            Debug.Log($"BOX POOL COUNT {boxPool.Count}");
+            //Debug.Log($"BOX POOL COUNT {boxPool.Count}");
 
             // initialize local reference to total box surface area
             total_box_surface_area = boxSpawner.total_box_surface_area;
@@ -992,8 +992,11 @@ public class PackerHand : Agent
         // Reset current bin volume
         current_bin_volume = total_bin_volume;
 
-
+        // Reset current contact surface area
         current_contact_surface_area = 0;
+
+        // Reset percent surface area
+        percent_contact_surface_area = 0;
 
         // Reset origin counter to the number of origins 
         origin_counter = binSpawner.total_bin_num;
