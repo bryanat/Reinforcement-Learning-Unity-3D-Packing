@@ -54,23 +54,23 @@ behaviors:
 environment_parameters:
   discrete:
     curriculum:
-      - name: 1DiscreteLesson # The '-' is important as this is a list
+      - name: 1UniformLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 700
+          threshold: 800
         value: 0.0
-      - name: 2DiscreteLesson # The '-' is important as this is a list
+      - name: 2UniformLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 750
+          threshold: 800
         value: 1.0
-      - name: 3DiscreteLesson # The '-' is important as this is a list
+      - name: 3MixLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
           behavior: Discrete
@@ -78,7 +78,7 @@ environment_parameters:
           min_lesson_length: 100
           threshold: 700
         value: 2.0
-      - name: 4DiscreteLesson # The '-' is important as this is a list
+      - name: 4MixLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
           behavior: Discrete
@@ -86,6 +86,15 @@ environment_parameters:
           min_lesson_length: 100
           threshold: 750
         value: 3.0
+      - name: 5MixLesson # The '-' is important as this is a list
+        completion_criteria:
+          measure: reward
+          behavior: Discrete
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 800
+        value: 4.0
+      
 
 
       

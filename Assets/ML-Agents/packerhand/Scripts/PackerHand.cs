@@ -378,12 +378,13 @@ public class PackerHand : Agent
             }
             else
             {
-                boxSpawner.SetUpBoxes(file_name);
+                    boxSpawner.SetUpBoxes(file_name);
                 isAfterInitialization = true;
             }
             
             // initialize local reference to box pool
             boxPool = boxSpawner.boxPool;
+            Debug.Log($"BOX POOL COUNT {boxPool.Count}");
 
             // initialize local reference to total box surface area
             total_box_surface_area = boxSpawner.total_box_surface_area;
@@ -1045,27 +1046,27 @@ public class PackerHand : Agent
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
                 boxSpawner.SetUpBoxes("uniform", seed);
-                //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                // Debug.Log($"CFA lesson 0");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
             {
                 boxSpawner.SetUpBoxes("uniform", seed+1);
-                //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                // Debug.Log($"CFA lesson 1");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
             {
                 boxSpawner.SetUpBoxes("mix", seed+2);
-                //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                // Debug.Log($"CFA lesson 2");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 3.0f) == 3.0f)
             {
                 boxSpawner.SetUpBoxes("mix", seed+3);
-                //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                // Debug.Log($"CFA lesson 3");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 4.0f) == 4.0f)
             {
                 boxSpawner.SetUpBoxes("mix", seed+4);
-                //Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                // Debug.Log($"CFA lesson 4");
             }
         }
     }
