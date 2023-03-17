@@ -103,7 +103,7 @@ public class PackerHand : Agent
     [HideInInspector] public List<Vector3> historicalVerticesLog;
     [HideInInspector] public int VertexCount = 0;
     [HideInInspector] public Vector3 boxWorldScale;
-    [HideInInspector] public int maxBoxNum;
+    private int maxBoxNum;
    // [HideInInspector] public List<Blackbox> blackboxPool  = new List<Blackbox>();
 
     //public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
@@ -234,6 +234,7 @@ public class PackerHand : Agent
         boxPool = boxSpawner.boxPool;
 
         // Maximum possible number of boxes defined in a curriculum
+        Debug.Log($"MAX BOX NUM: {maxBoxNum} ");
         if (useCurriculum){
             // Use Curriculum; padding is applied
             maxBoxNum = boxSpawner.maxBoxQuantity;
@@ -243,6 +244,7 @@ public class PackerHand : Agent
             int box_counter = 0;
             foreach(BoxSize b in boxSpawner.sizes) box_counter += 1;
             maxBoxNum = box_counter;
+            Debug.Log($"MAX BOX NUM reloaded: {maxBoxNum}");
             // No curriculum; boxes generated randomly according to user-specified divisions along each dimension
             if (boxSpawner.useRandomGenerator){
                 num_boxes_x = boxSpawner.num_boxes.x;
@@ -268,6 +270,7 @@ public class PackerHand : Agent
         else DestroyImmediate(m_Agent.GetComponent<BufferSensorComponent>());
 
         if (useVerticesArray) verticesArray = new Vector3[2*maxBoxNum+1];
+        // if (useVerticesArray) verticesArray = new Vector3[8*maxBoxNum+4];
         else                  verticesArray = new Vector3[0];
 
         Debug.Log("INITIALIZE ENDS");
@@ -376,18 +379,17 @@ public class PackerHand : Agent
             int i = 0;
             foreach (Vector3 vertex in verticesArray) 
             {   
-                //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
-                if (useVerticesArray)
-                {
-                    Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-                    sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
-                }
-
-                // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
+                // vertices array is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
                 if (vertex == Vector3.zero)
                 {
                     //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
                     maskedVertexIndices.Add(i);
+                }
+                else
+                {
+                    //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
+                    Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+                    sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
                 }
 
                 i++;
@@ -414,7 +416,11 @@ public class PackerHand : Agent
 
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
+        Debug.Log("MASK");
+
         // vertices action mask
+        Debug.Log($"MASK VERTEX ARRAY size: {maskedVertexIndices.Count}");
+        Debug.Log($"VERTICES    ARRAY size: {verticesArray.Length}");
         if (useDiscreteSolution)
         {
             if (isAfterOriginVertexSelected) {
@@ -429,6 +435,7 @@ public class PackerHand : Agent
             }
         }
         // box action mask
+        Debug.Log($"MASK BOX ARRAY size: {maskedBoxIndices.Count}");
         foreach (int selectedBoxIdx in maskedBoxIndices)
         {
             //Debug.Log($"MASK BOX {selectedBoxIdx}");
@@ -636,6 +643,12 @@ public class PackerHand : Agent
             //if agent is close enough to the position, it should drop off the box
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
             {
+                if (useSparseReward){
+                    if      (current_empty_bin_volume/total_bin_volume < 0.15f) SetReward(2500f); 
+                    else if (current_empty_bin_volume/total_bin_volume < 0.10f) SetReward(5000f);
+                    else if (current_empty_bin_volume/total_bin_volume < 0.05f) SetReward(7500f);
+                }
+
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     DropoffBox();
@@ -650,12 +663,6 @@ public class PackerHand : Agent
                     if (usePenaltyReward)
                     {
                         SetReward(current_empty_bin_volume/total_bin_volume * -1000f);
-                    }
-
-                    if (useSparseReward){
-                        if      (current_empty_bin_volume/total_bin_volume < 0.15f) SetReward(2500f); 
-                        else if (current_empty_bin_volume/total_bin_volume < 0.10f) SetReward(5000f);
-                        else if (current_empty_bin_volume/total_bin_volume < 0.05f) SetReward(7500f);
                     }
 
                     initiateNewEpisode();
@@ -740,22 +747,23 @@ public class PackerHand : Agent
             if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
             if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
             if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
-                // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
+                // only if historicVerticesArray doesnt already contain the tripoint, add it to the vertices array
                 Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
                 //Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
                 //Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
 
-                // if the scaled_continuous_vertex is not already in the historicalVerticesLog, add it to the verticesArray
+                // if the scaled_continuous_vertex is not already in the historicalVerticesLog, add it to the vertices array
                 if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
                 {
                     // Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
 
-                    // Add scaled tripoint_vertex to verticesArray
+                    // Add scaled tripoint_vertex to vertices array
+                    Debug.Log($" VERTICES ARRAY lenght: {verticesArray.Length} | VertexCount: {VertexCount}");
                     verticesArray[VertexCount] = scaled_continuous_vertex;
                     historicalVerticesLog.Add(scaled_continuous_vertex);
                     
                     VertexCount ++;
-                    //Debug.Log($"VERTEX COUNT IS {VertexCount}");
+                    Debug.Log($"new VERTEX COUNT IS {VertexCount}");
 
                 }
             }
@@ -1277,7 +1285,7 @@ public class PackerHand : Agent
         {
             if (useDiscreteSolution)
             {
-                // Remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
+                // Remove consumed selectedVertex from vertices array (since another box cannot be placed there)
                 // only removed when a box is successfully placed, if box fails physics test, selected vertex will not be removed
                 // conditional check can be removed if failing physics test = end of episode
                 if (isAfterOriginVertexSelected)

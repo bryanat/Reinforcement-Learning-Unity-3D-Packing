@@ -88,7 +88,7 @@ public class BoxSpawner : MonoBehaviour
         }
         set{}
     }
-    public int maxBoxQuantity=40; // Size of "box vocabulary"; needed for padding when "useCategoricalBoxes" is activate in packerhand.cs
+    public int maxBoxQuantity; // Size of "box vocabulary"; needed for padding when "useCategoricalBoxes" is activate in packerhand.cs
     public BoxSize [] sizes;
     [HideInInspector] public List<Box> boxPool = new List<Box>();
     // The box area, which will be set manually in the Inspector
@@ -143,7 +143,7 @@ public class BoxSpawner : MonoBehaviour
             // Create boxPool array containing non-0-sized boxes as Box objects
             Vector3 box_size = new Vector3(s.box_size.x, s.box_size.y, s.box_size.z);
             // if box is not of size zeros
-            if (box_size.x != 0)        // QUESTION: how is the padding working if zero-boxes are neglected here?
+            if (box_size.x != 0)
             {
                 // Create GameObject box
                 var position = GetRandomSpawnPos();
