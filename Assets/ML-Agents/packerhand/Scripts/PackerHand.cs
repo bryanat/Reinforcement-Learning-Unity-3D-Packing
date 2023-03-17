@@ -320,23 +320,24 @@ public class PackerHand : Agent
         //     }
         // }
         // Debug.Log($"STEP COUNT {StepCount}");
-        if (StepCount >= MaxStep-10) 
-        {
-            if (!useDenseReward)
-            {
-                AddReward(percent_filled_bin_volume*10);
-                if (useStabilityReward)
-                {
-                    // [total surface area contact of all placed boxes] / [total surface area of all boxes]
-                    AddReward(percent_contact_surface_area*10);
-                }
-                //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-            }
-            EndEpisode();
-            curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
-            isEpisodeStart = true;
-            // Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
-        }
+        // if agent packs enough boxes consecutively without failing physics check, it'll get a reward based on volume packed
+        // if (boxPool!=null && StepCount >= boxPool.Count*2) 
+        // {
+        //     if (!useDenseReward)
+        //     {
+        //         AddReward(percent_filled_bin_volume*10);
+        //         if (useStabilityReward)
+        //         {
+        //             // [total surface area contact of all placed boxes] / [total surface area of all boxes]
+        //             AddReward(percent_contact_surface_area*10);
+        //         }
+        //         //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
+        //     }
+        //     EndEpisode();
+        //     curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
+        //     isEpisodeStart = true;
+        //     // Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
+        // }
         // start of episode
         if (isEpisodeStart)
         {
@@ -378,7 +379,8 @@ public class PackerHand : Agent
             origin_counter--;
             selectedVertex = binSpawner.origins[origin_counter];
         }
-        // // set final rewards for percent filled > 85%
+        // set final rewards for percent filled > 85%
+        // highest rewards to hardest goals
         if ((1 - (current_bin_volume/total_bin_volume)) * 100>85f)
         {
             if ((1 - (current_bin_volume/total_bin_volume)) * 100 >95f)
@@ -411,17 +413,17 @@ public class PackerHand : Agent
             percent_contact_surface_area = current_contact_surface_area/total_box_surface_area *100;
 
             // Add volume reward
-            if (useDenseReward)
-            {
-                AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
-                //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
-                if (useStabilityReward)
-                {
-                    // stability reward is how stable the position is, takes into consideration how many sides are in contact with the bin and other boxes
-                    // this should also be scaled with respect to the box size. 
-                    AddReward(sensorCollision.totalContactSA/total_box_surface_area*1000f);
-                }
-            }
+            // if (useDenseReward)
+            // {
+            //     AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
+            //     //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+            //     if (useStabilityReward)
+            //     {
+            //         // stability reward is how stable the position is, takes into consideration how many sides are in contact with the bin and other boxes
+            //         // this should also be scaled with respect to the box size. 
+            //         AddReward(sensorCollision.totalContactSA/total_box_surface_area*1000f);
+            //     }
+            // }
 
             // Increment stats recorder to match reward
             m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
@@ -472,24 +474,25 @@ public class PackerHand : Agent
                 else
                 {
                     // if box fails physics test and to be repacked, it will be reset and episde will continue
-                    if (useBoxReset)
-                    {
-                        BoxReset("failedPhysicsCheck");
-                    }            
-                    // if not to be repacked, episode will end
-                    else
-                    {
+                    // if (useBoxReset)
+                    // {
+                    //     BoxReset("failedPhysicsCheck");
+                    // }            
+                    // // if not to be repacked, episode will end
+                    // else
+                    // {
                         if (useStabilityReward)
                         {
                             // [total surface area contact of all placed boxes] / [total surface area of all boxes]
                             AddReward(percent_contact_surface_area*10);
                         }
-                        AddReward(-500f+percent_filled_bin_volume*10);
+                        // if box fails physics test, agent is punished for volume not packed
+                        AddReward(-current_bin_volume);
                         EndEpisode();
                         curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
                         isEpisodeStart = true;
                         //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
-                    }
+                    //}
                 }
             }
         }
@@ -1066,173 +1069,173 @@ public class PackerHand : Agent
     }
 
 
-       public void ReverseSideNames(int id) 
-    {
-        var sidesList = boxPool[id].rb.gameObject.GetComponentsInChildren<Transform>();
-        if (selectedRotation==new Vector3(90, 0, 0))
-        {
-            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
-            {
-                if (child.name=="bottom") 
-                {
-                    child.name = "front";
-                }
-                else if (child.name == "back") 
-                {
-                    child.name = "bottom";
-                }
+//        public void ReverseSideNames(int id) 
+//     {
+//         var sidesList = boxPool[id].rb.gameObject.GetComponentsInChildren<Transform>();
+//         if (selectedRotation==new Vector3(90, 0, 0))
+//         {
+//             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
+//             {
+//                 if (child.name=="bottom") 
+//                 {
+//                     child.name = "front";
+//                 }
+//                 else if (child.name == "back") 
+//                 {
+//                     child.name = "bottom";
+//                 }
 
-                else if (child.name == "top") 
-                {
-                    child.name = "back";
-                }
-                else if (child.name == "front") 
-                {
-                    child.name = "top";
-                }
-            }
-        }
-        else if (selectedRotation == new Vector3(0, 90, 0)) 
-        {
-            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
-            {
-                if (child.name=="left") 
-                {
-                    child.name = "front";
-                }
-                else if (child.name == "back") 
-                {
-                    child.name = "left";
-                }
+//                 else if (child.name == "top") 
+//                 {
+//                     child.name = "back";
+//                 }
+//                 else if (child.name == "front") 
+//                 {
+//                     child.name = "top";
+//                 }
+//             }
+//         }
+//         else if (selectedRotation == new Vector3(0, 90, 0)) 
+//         {
+//             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
+//             {
+//                 if (child.name=="left") 
+//                 {
+//                     child.name = "front";
+//                 }
+//                 else if (child.name == "back") 
+//                 {
+//                     child.name = "left";
+//                 }
 
-                else if (child.name == "right") 
-                {
-                    child.name = "back";
-                }
-                else if (child.name == "front") 
-                {
-                    child.name = "right";
-                }
-            }        
-        }
-        else if (selectedRotation == new Vector3(0, 0, 90))
-        {
-            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
-            {
-                if (child.name=="left") 
-                {
-                    child.name = "bottom";
-                }
-                else if (child.name == "top") 
-                {
-                    child.name = "left";
-                }
+//                 else if (child.name == "right") 
+//                 {
+//                     child.name = "back";
+//                 }
+//                 else if (child.name == "front") 
+//                 {
+//                     child.name = "right";
+//                 }
+//             }        
+//         }
+//         else if (selectedRotation == new Vector3(0, 0, 90))
+//         {
+//             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
+//             {
+//                 if (child.name=="left") 
+//                 {
+//                     child.name = "bottom";
+//                 }
+//                 else if (child.name == "top") 
+//                 {
+//                     child.name = "left";
+//                 }
 
-                else if (child.name == "right") 
-                {
-                    child.name = "top";
-                }
-                else if (child.name == "bottom") 
-                {
-                    child.name = "right";
-                }
-            }                
-        }
-        else if (selectedRotation== new Vector3(0, 90, 90)) 
-        {
-            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
-            {
-                if (child.name=="back") 
-                {
-                    child.name = "bottom";
-                }
-                else if (child.name == "right") 
-                {
-                    child.name = "back";
-                }
-                else if (child.name == "top") 
-                {
-                    child.name = "left";
-                }
-                else if (child.name == "front") 
-                {
-                    child.name = "top";
-                }
-                else if (child.name == "left") 
-                {
-                    child.name = "front";
-                }
-                else if (child.name == "bottom") 
-                {
-                    child.name = "right";
-                }
+//                 else if (child.name == "right") 
+//                 {
+//                     child.name = "top";
+//                 }
+//                 else if (child.name == "bottom") 
+//                 {
+//                     child.name = "right";
+//                 }
+//             }                
+//         }
+//         else if (selectedRotation== new Vector3(0, 90, 90)) 
+//         {
+//             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
+//             {
+//                 if (child.name=="back") 
+//                 {
+//                     child.name = "bottom";
+//                 }
+//                 else if (child.name == "right") 
+//                 {
+//                     child.name = "back";
+//                 }
+//                 else if (child.name == "top") 
+//                 {
+//                     child.name = "left";
+//                 }
+//                 else if (child.name == "front") 
+//                 {
+//                     child.name = "top";
+//                 }
+//                 else if (child.name == "left") 
+//                 {
+//                     child.name = "front";
+//                 }
+//                 else if (child.name == "bottom") 
+//                 {
+//                     child.name = "right";
+//                 }
 
-            }      
-        }
-        else if (selectedRotation == new Vector3(90, 0, 90))
-        {
-            foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
-            {
-               if (child.name=="top") 
-                {
-                    child.name = "back";
-                }
-                else if (child.name == "left") 
-                {
-                    child.name = "bottom";
-                }
-                else if (child.name == "front") 
-                {
-                    child.name = "left";
-                }
-                else if (child.name == "bottom") 
-                {
-                    child.name = "front";
-                }
-                else if (child.name == "right") 
-                {
-                    child.name = "top";
-                }
-                else if (child.name == "back") 
-                {
-                    child.name = "right";
-                }
-             }      
-        }
-    }
+//             }      
+//         }
+//         else if (selectedRotation == new Vector3(90, 0, 90))
+//         {
+//             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
+//             {
+//                if (child.name=="top") 
+//                 {
+//                     child.name = "back";
+//                 }
+//                 else if (child.name == "left") 
+//                 {
+//                     child.name = "bottom";
+//                 }
+//                 else if (child.name == "front") 
+//                 {
+//                     child.name = "left";
+//                 }
+//                 else if (child.name == "bottom") 
+//                 {
+//                     child.name = "front";
+//                 }
+//                 else if (child.name == "right") 
+//                 {
+//                     child.name = "top";
+//                 }
+//                 else if (child.name == "back") 
+//                 {
+//                     child.name = "right";
+//                 }
+//              }      
+//         }
+//     }
 
 
-    public void BoxReset(string cause)
-    {
-        if (cause == "failedPhysicsCheck") 
-        {
-            // Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
-            // detach box from agent
-            targetBox.parent = null;
-            // add back rigidbody and collider
-            Rigidbody rb = boxPool[selectedBoxIdx].rb;
-            BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
-            // not be affected by forces or collisions, position and rotation will be controlled directly through script
-            rb.isKinematic = true;
-            // reset to starting position
-            rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
-            rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
-            rb.transform.position = boxPool[selectedBoxIdx].startingPos;
-            ReverseSideNames(selectedBoxIdx);
-            // remove from organized list to be picked again
-            maskedBoxIndices.Remove(selectedBoxIdx);
-            // restore box information
-            boxPool[selectedBoxIdx].boxSize = boxPool[selectedBoxIdx].startingSize;
-            boxPool[selectedBoxIdx].boxRot = Quaternion.identity;
-            boxPool[selectedBoxIdx].boxBinScale = Vector3.zero;
-            boxPool[selectedBoxIdx].boxVertex = Vector3.zero;
-            boxPool[selectedBoxIdx].isOrganized = false;
-            // reset states
-            StateReset();
-            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
-            GetComponent<Agent>().RequestDecision();
-            Academy.Instance.EnvironmentStep();
-        }
-    }
+//     public void BoxReset(string cause)
+//     {
+//         if (cause == "failedPhysicsCheck") 
+//         {
+//             // Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
+//             // detach box from agent
+//             targetBox.parent = null;
+//             // add back rigidbody and collider
+//             Rigidbody rb = boxPool[selectedBoxIdx].rb;
+//             BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
+//             // not be affected by forces or collisions, position and rotation will be controlled directly through script
+//             rb.isKinematic = true;
+//             // reset to starting position
+//             rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
+//             rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
+//             rb.transform.position = boxPool[selectedBoxIdx].startingPos;
+//             ReverseSideNames(selectedBoxIdx);
+//             // remove from organized list to be picked again
+//             maskedBoxIndices.Remove(selectedBoxIdx);
+//             // restore box information
+//             boxPool[selectedBoxIdx].boxSize = boxPool[selectedBoxIdx].startingSize;
+//             boxPool[selectedBoxIdx].boxRot = Quaternion.identity;
+//             boxPool[selectedBoxIdx].boxBinScale = Vector3.zero;
+//             boxPool[selectedBoxIdx].boxVertex = Vector3.zero;
+//             boxPool[selectedBoxIdx].isOrganized = false;
+//             // reset states
+//             StateReset();
+//             // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+//             GetComponent<Agent>().RequestDecision();
+//             Academy.Instance.EnvironmentStep();
+//         }
+//     }
 
 }
