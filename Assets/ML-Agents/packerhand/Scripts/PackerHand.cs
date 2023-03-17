@@ -183,12 +183,12 @@ public class PackerHand : Agent
         {   
             if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+15];
+                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+21];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
                 // Add box dimensions, updated after placements 
-                // box size is zero after placement since this box cannot be placed again
+                // // box size is zero after placement since this box cannot be placed again
                 listVarObservation[boxSpawner.maxBoxQuantity] = box.boxSize.x;
                 listVarObservation[boxSpawner.maxBoxQuantity +1] = box.boxSize.y;
                 listVarObservation[boxSpawner.maxBoxQuantity +2] = box.boxSize.z;
@@ -196,24 +196,33 @@ public class PackerHand : Agent
                 listVarObservation[boxSpawner.maxBoxQuantity +3] = box.boxBinScale.x;
                 listVarObservation[boxSpawner.maxBoxQuantity +4] = box.boxBinScale.y;
                 listVarObservation[boxSpawner.maxBoxQuantity +5] = box.boxBinScale.z;
+
+                listVarObservation[boxSpawner.maxBoxQuantity +6] = box.boxSize.x*box.boxSize.y;
+                listVarObservation[boxSpawner.maxBoxQuantity +7] = box.boxSize.y*box.boxSize.z;
+                listVarObservation[boxSpawner.maxBoxQuantity +8] = box.boxSize.z*box.boxSize.x;
+
+                listVarObservation[boxSpawner.maxBoxQuantity +9] = box.boxBinScale.x*box.boxBinScale.y;
+                listVarObservation[boxSpawner.maxBoxQuantity +10] = box.boxBinScale.y*box.boxBinScale.z;
+                listVarObservation[boxSpawner.maxBoxQuantity +11] = box.boxBinScale.z*box.boxBinScale.x;
                 
+                listVarObservation[boxSpawner.maxBoxQuantity +12] = box.boxSize.x* box.boxSize.y *box.boxSize.z;
+                // Add [box volume]/[bin volume] 
+                listVarObservation[boxSpawner.maxBoxQuantity +13] = box.boxBinScale.x*box.boxBinScale.y*box.boxBinScale.z;
                 //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
                 //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
                 //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
                 // Add scaled vertex, (0, 0, 0) before placement
-                listVarObservation[boxSpawner.maxBoxQuantity +6] = box.boxVertex.x;
-                listVarObservation[boxSpawner.maxBoxQuantity +7] = box.boxVertex.y;
-                listVarObservation[boxSpawner.maxBoxQuantity +8] = box.boxVertex.z;
+                listVarObservation[boxSpawner.maxBoxQuantity +14] = box.boxVertex.x;
+                listVarObservation[boxSpawner.maxBoxQuantity +15] = box.boxVertex.y;
+                listVarObservation[boxSpawner.maxBoxQuantity +16] = box.boxVertex.z;
                 // Add rotation,  (0, 0, 0) before placement
-                listVarObservation[boxSpawner.maxBoxQuantity+9] = box.boxRot[0];
-                listVarObservation[boxSpawner.maxBoxQuantity+10] = box.boxRot[1];
-                listVarObservation[boxSpawner.maxBoxQuantity+11] = box.boxRot[2];
-                // Add [box volume]/[bin volume] 
-                listVarObservation[boxSpawner.maxBoxQuantity +12] = (box.boxSize.x* box.boxSize.y *box.boxSize.z)/(total_bin_volume);
+                listVarObservation[boxSpawner.maxBoxQuantity+17] = box.boxRot[0];
+                listVarObservation[boxSpawner.maxBoxQuantity+18] = box.boxRot[1];
+                listVarObservation[boxSpawner.maxBoxQuantity+19] = box.boxRot[2];
                 // Add [box surface area]/[bin surface area]
-                listVarObservation[boxSpawner.maxBoxQuantity +13] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_box_surface_area);
+                //listVarObservation[boxSpawner.maxBoxQuantity +13] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_box_surface_area);
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[boxSpawner.maxBoxQuantity +14] = box.isOrganized ? 1.0f : 0.0f;
+                listVarObservation[boxSpawner.maxBoxQuantity +20] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
             else{
@@ -320,24 +329,8 @@ public class PackerHand : Agent
         //     }
         // }
         // Debug.Log($"STEP COUNT {StepCount}");
-        // if agent packs enough boxes consecutively without failing physics check, it'll get a reward based on volume packed
-        // if (boxPool!=null && StepCount >= boxPool.Count*2) 
-        // {
-        //     if (!useDenseReward)
-        //     {
-        //         AddReward(percent_filled_bin_volume*10);
-        //         if (useStabilityReward)
-        //         {
-        //             // [total surface area contact of all placed boxes] / [total surface area of all boxes]
-        //             AddReward(percent_contact_surface_area*10);
-        //         }
-        //         //Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-        //     }
-        //     EndEpisode();
-        //     curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
-        //     isEpisodeStart = true;
-        //     // Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
-        // }
+        
+
         // start of episode
         if (isEpisodeStart)
         {
@@ -487,7 +480,7 @@ public class PackerHand : Agent
                             AddReward(percent_contact_surface_area*10);
                         }
                         // if box fails physics test, agent is punished for percent volume not packed
-                        AddReward(-(current_bin_volume/total_box_surface_area)*100f);
+                        AddReward(-(current_bin_volume/total_bin_volume)*1000f);
                         EndEpisode();
                         curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
                         isEpisodeStart = true;
@@ -988,9 +981,6 @@ public class PackerHand : Agent
 
         // Reset current contact surface area
         current_contact_surface_area = 0;
-
-        // Reset percent surface area
-        percent_contact_surface_area = 0;
 
         // Reset origin counter to the number of origins 
         origin_counter = binSpawner.total_bin_num;
