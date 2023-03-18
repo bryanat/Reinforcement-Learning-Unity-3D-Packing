@@ -27,10 +27,10 @@ public class PackerHand : Agent
     public bool runInference=false; 
     public bool useCurriculum=true; // if false, bin and box sizes and quantity will be read from a json file 
     public bool useAttention=true; // if use attention (default = true)
-    public bool useDenseReward=true;
+    //public bool useDenseReward=true;
     public bool useStabilityReward=false;
 
-    public bool useBoxReset=false; // if reset box when fails physics test and continue the episode (default=false, which means episode will restart)
+    //public bool useBoxReset=false; // if reset box when fails physics test and continue the episode (default=false, which means episode will restart)
     public bool useDiscreteSolution = true;
 
     BufferSensorComponent m_BufferSensor; // attention sensor
@@ -56,7 +56,7 @@ public class PackerHand : Agent
     [HideInInspector] public List<Box> boxPool; 
     [HideInInspector] public List<int> maskedVertexIndices; // list of taken vertex indices
     [HideInInspector] public List<int> maskedBoxIndices; // list of organzed box indices
-    [HideInInspector] public List<Vector3> historicalVerticesLog; // list of all used vertices
+    //[HideInInspector] public List<Vector3> historicalVerticesLog; // list of all used vertices
     [HideInInspector] public Vector3 boxWorldScale; //local scale of selected box
     float total_x_distance; //total x distance between agent and target
     float total_y_distance; //total y distance between agent and target
@@ -372,7 +372,7 @@ public class PackerHand : Agent
             origin_counter--;
             selectedVertex = binSpawner.origins[origin_counter];
         }
-        // delayed reward
+        // delayed reward for volume packed
         // highest rewards given to hardest goals
         if ((1 - (current_bin_volume/total_bin_volume)) * 100>50f)
         {
@@ -466,14 +466,21 @@ public class PackerHand : Agent
                 {
                     DropoffBox();
                     boxes_packed++;
-                }
-                else
-                {
+                    // small incentive to pack more boxes
+                    // AddReward(boxes_packed);
                     if (useStabilityReward)
                     {
                         // [total surface area contact of all placed boxes] / [total surface area of all boxes]
-                        AddReward(percent_contact_surface_area);
+                        AddReward(sensorCollision.totalContactSA/total_box_surface_area*100f);
                     }
+                }
+                else
+                {
+                    // if (useStabilityReward)
+                    // {
+                    //     // [total surface area contact of all placed boxes] / [total surface area of all boxes]
+                    //     AddReward(percent_contact_surface_area);
+                    // }
                     // if box fails physics test, agent is punished for percent volume not packed
                     AddReward(-(current_bin_volume/total_bin_volume)*1000f);
                     EndEpisode();
@@ -533,17 +540,17 @@ public class PackerHand : Agent
             //Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
             // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
             Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - binSpawner.origins[selectedBin].x)/binSpawner.binscales_x[selectedBin],  (tripoints_list[idx].y - binSpawner.origins[selectedBin].y)/binSpawner.binscales_y[selectedBin],  (tripoints_list[idx].z - binSpawner.origins[selectedBin].z)/binSpawner.binscales_z[selectedBin]);
-            Vector3 rounded_vertex = new Vector3((float)(Math.Round(scaled_continuous_vertex.x-0.005, 2)),(float)(Math.Round(scaled_continuous_vertex.y-0.005, 2)), (float)(Math.Round(scaled_continuous_vertex.z-0.005, 2)));
+            //Vector3 rounded_vertex = new Vector3((float)(Math.Round(scaled_continuous_vertex.x-0.005, 2)),(float)(Math.Round(scaled_continuous_vertex.y-0.005, 2)), (float)(Math.Round(scaled_continuous_vertex.z-0.005, 2)));
             //Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
-            if ( historicalVerticesLog.Exists(element => element == rounded_vertex) == false )
-            {
+            // if ( historicalVerticesLog.Exists(element => element == rounded_vertex) == false )
+            // {
                 // Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
                 // Add scaled tripoint_vertex to verticesArray
                 verticesArray[VertexCount] = new Vector4(scaled_continuous_vertex.x, scaled_continuous_vertex.y, scaled_continuous_vertex.z, selectedBin);
-                historicalVerticesLog.Add(rounded_vertex);
+                //historicalVerticesLog.Add(rounded_vertex);
                 VertexCount ++;
                 //Debug.Log($"VERTEX COUNT IS {VertexCount}");
-            }
+            //}
         }
     }
 
@@ -628,7 +635,7 @@ public class PackerHand : Agent
         GameObject testBoxChild = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
-        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.15f), (boxWorldScale.y - 0.15f), (boxWorldScale.z - 0.15f));
+        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x-0.099f), (boxWorldScale.y-0.099f), (boxWorldScale.z-0.099f));
         testBoxChild.transform.position = testPosition;
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
@@ -999,7 +1006,7 @@ public class PackerHand : Agent
             {
                 // Reset vertices array
                 Array.Clear(verticesArray, 0, verticesArray.Length);
-                historicalVerticesLog.Clear();
+                //historicalVerticesLog.Clear();
             }
         }   
     
