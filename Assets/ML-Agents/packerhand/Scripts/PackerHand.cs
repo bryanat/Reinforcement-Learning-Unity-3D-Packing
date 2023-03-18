@@ -668,8 +668,8 @@ public class PackerHand : Agent
 
         if (useSparseReward){
             if      (current_empty_bin_volume/total_bin_volume < 0.15f) AddReward(2500f); 
-            else if (current_empty_bin_volume/total_bin_volume < 0.10f) AddReward(5000f);
-            else if (current_empty_bin_volume/total_bin_volume < 0.05f) AddReward(7500f);
+            else if (current_empty_bin_volume/total_bin_volume < 0.10f) AddReward(2500f);
+            else if (current_empty_bin_volume/total_bin_volume < 0.05f) AddReward(2500f);
         }
 
         if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
