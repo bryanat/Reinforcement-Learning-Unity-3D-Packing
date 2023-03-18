@@ -57,7 +57,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 500
+          threshold: 700
         value: 0.0
       - name: 2MixLesson # The '-' is important as this is a list
         completion_criteria:
@@ -65,7 +65,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 600
+          threshold: 750
         value: 1.0
       - name: 3MixLesson # The '-' is important as this is a list
         completion_criteria:
@@ -73,7 +73,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 700
+          threshold: 800
         value: 2.0
       - name: 4MixLesson # The '-' is important as this is a list
         completion_criteria:
@@ -81,7 +81,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 750
+          threshold: 1000
         value: 3.0
       - name: 5MixLesson # The '-' is important as this is a list
         completion_criteria:
@@ -89,7 +89,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 800
+          threshold: 1000
         value: 4.0
       - name: 6MixLesson # The '-' is important as this is a list
         completion_criteria:
