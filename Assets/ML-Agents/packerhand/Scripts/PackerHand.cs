@@ -368,24 +368,27 @@ public class PackerHand : Agent
             Academy.Instance.EnvironmentStep();
 
             // overrides brain selected first box position
-            // discrete or not, first box will be placed at a bin's origin
+            // first box will be placed at a bin's origin
             origin_counter--;
             selectedVertex = binSpawner.origins[origin_counter];
         }
-        // set final rewards for percent filled > 85%
-        // highest rewards to hardest goals
-        if ((1 - (current_bin_volume/total_bin_volume)) * 100>85f)
+        // delayed reward
+        // highest rewards given to hardest goals
+        if ((1 - (current_bin_volume/total_bin_volume)) * 100>50f)
         {
             if ((1 - (current_bin_volume/total_bin_volume)) * 100 >95f)
             {
-                SetReward(1000f);
+                SetReward(2000f);
             }
             else if ((1 - (current_bin_volume/total_bin_volume)) * 100 >85f)
             {
-                SetReward(900f);
+                SetReward(1000f);
+            }
+            else 
+            {
+                SetReward(percent_filled_bin_volume*10f);
             }
         }
-        // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
             // Reset states for next round of picking
@@ -466,26 +469,17 @@ public class PackerHand : Agent
                 }
                 else
                 {
-                    // if box fails physics test and to be repacked, it will be reset and episde will continue
-                    // if (useBoxReset)
-                    // {
-                    //     BoxReset("failedPhysicsCheck");
-                    // }            
-                    // // if not to be repacked, episode will end
-                    // else
-                    // {
-                        if (useStabilityReward)
-                        {
-                            // [total surface area contact of all placed boxes] / [total surface area of all boxes]
-                            AddReward(percent_contact_surface_area*10);
-                        }
-                        // if box fails physics test, agent is punished for percent volume not packed
-                        AddReward(-(current_bin_volume/total_bin_volume)*1000f);
-                        EndEpisode();
-                        curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
-                        isEpisodeStart = true;
-                        //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
-                    //}
+                    if (useStabilityReward)
+                    {
+                        // [total surface area contact of all placed boxes] / [total surface area of all boxes]
+                        AddReward(percent_contact_surface_area);
+                    }
+                    // if box fails physics test, agent is punished for percent volume not packed
+                    AddReward(-(current_bin_volume/total_bin_volume)*1000f);
+                    EndEpisode();
+                    curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
+                    isEpisodeStart = true;
+                    //Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
                 }
             }
         }
@@ -1035,25 +1029,50 @@ public class PackerHand : Agent
                 boxSpawner.SetUpBoxes("mix", seed);
                 // Debug.Log($"CFA lesson 0");
             }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 1.0f) == 1.0f)
             {
                 boxSpawner.SetUpBoxes("mix", seed+1);
                 // Debug.Log($"CFA lesson 1");
             }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 2.0f) == 2.0f)
             {
                 boxSpawner.SetUpBoxes("mix", seed+2);
                 // Debug.Log($"CFA lesson 2");
             }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 3.0f) == 3.0f)
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 3.0f) == 3.0f)
             {
                 boxSpawner.SetUpBoxes("mix", seed+3);
                 // Debug.Log($"CFA lesson 3");
             }
-            if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 4.0f) == 4.0f)
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 4.0f) == 4.0f)
             {
                 boxSpawner.SetUpBoxes("mix", seed+4);
                 // Debug.Log($"CFA lesson 4");
+            }
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 5.0f) == 5.0f)
+            {
+                boxSpawner.SetUpBoxes("mix", seed+5);
+                // Debug.Log($"CFA lesson 5");
+            }
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 6.0f) == 6.0f)
+            {
+                boxSpawner.SetUpBoxes("mix", seed+6);
+                // Debug.Log($"CFA lesson 6");
+            }
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 7.0f) == 7.0f)
+            {
+                boxSpawner.SetUpBoxes("mix", seed+7);
+                // Debug.Log($"CFA lesson 7");
+            }
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 8.0f) == 8.0f)
+            {
+                boxSpawner.SetUpBoxes("mix", seed+8);
+                // Debug.Log($"CFA lesson 8");
+            }
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 9.0f) == 9.0f)
+            {
+                boxSpawner.SetUpBoxes("mix", seed+9);
+                // Debug.Log($"CFA lesson 9");
             }
         }
     }
