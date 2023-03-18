@@ -478,12 +478,6 @@ public class PackerHand : Agent
         {
             Debug.Log("All boxes packed!");
             
-            if (useSparseReward)
-            {
-                SetReward(10000f);
-                // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{percent_filled_bin_volume * 10f} reward | percent bin filled: {percent_filled_bin_volume}%");
-            }
-
             initiateNewEpisode();
         }
 
@@ -595,7 +589,7 @@ public class PackerHand : Agent
             if (useCombinedReward)
             {
                 // float percent_filled_bin_combined = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
-                float percent_filled_bin_combined = (sensorCollision.totalContactSA / box_surface_area) * ( box_volume / total_bin_volume );
+                float percent_filled_bin_combined = (2*sensorCollision.totalContactSA/box_surface_area) * ( box_volume/total_bin_volume );
                 AddReward(percent_filled_bin_combined * 100f);
                 // Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_filled_bin_combined * 1000f} reward from surface area");
 
@@ -643,12 +637,6 @@ public class PackerHand : Agent
             //if agent is close enough to the position, it should drop off the box
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
             {
-                if (useSparseReward){
-                    if      (current_empty_bin_volume/total_bin_volume < 0.15f) AddReward(2500f); 
-                    else if (current_empty_bin_volume/total_bin_volume < 0.10f) AddReward(5000f);
-                    else if (current_empty_bin_volume/total_bin_volume < 0.05f) AddReward(7500f);
-                }
-
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     DropoffBox();
@@ -677,6 +665,12 @@ public class PackerHand : Agent
         // Reset curriculum brain & box generation, end episode, reset flag for new episode
         
         Debug.Log($"Initiating new episode");
+
+        if (useSparseReward){
+            if      (current_empty_bin_volume/total_bin_volume < 0.15f) AddReward(2500f); 
+            else if (current_empty_bin_volume/total_bin_volume < 0.10f) AddReward(5000f);
+            else if (current_empty_bin_volume/total_bin_volume < 0.05f) AddReward(7500f);
+        }
 
         if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
         isEpisodeStart = true;
