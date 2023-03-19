@@ -1030,8 +1030,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 71
-  m_MaxNumObservables: 71
+  m_ObservableSize: 65
+  m_MaxNumObservables: 65
 --- !u!114 &107765262
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2543,8 +2543,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 71
-  m_MaxNumObservables: 71
+  m_ObservableSize: 65
+  m_MaxNumObservables: 65
 --- !u!114 &411503285
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3140,8 +3140,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 71
-  m_MaxNumObservables: 71
+  m_ObservableSize: 65
+  m_MaxNumObservables: 65
 --- !u!114 &468756376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5916,8 +5916,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 71
-  m_MaxNumObservables: 71
+  m_ObservableSize: 65
+  m_MaxNumObservables: 65
 --- !u!114 &970053408
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7947,8 +7947,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 71
-  m_MaxNumObservables: 71
+  m_ObservableSize: 65
+  m_MaxNumObservables: 65
 --- !u!114 &1519511937
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8871,8 +8871,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 71
-  m_MaxNumObservables: 71
+  m_ObservableSize: 65
+  m_MaxNumObservables: 65
 --- !u!114 &1693626690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9409,8 +9409,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 71
-  m_MaxNumObservables: 71
+  m_ObservableSize: 65
+  m_MaxNumObservables: 65
 --- !u!114 &1737650915
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12480,8 +12480,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 71
-  m_MaxNumObservables: 71
+  m_ObservableSize: 65
+  m_MaxNumObservables: 65
 --- !u!1001 &1149920266690001738
 PrefabInstance:
   m_ObjectHideFlags: 0
