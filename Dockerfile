@@ -1,28 +1,56 @@
-# From https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/supported-tags.md
-FROM nvidia/cuda:10.2-cudnn7-devel-ubuntu18.04
+# DOCKER FILE FOR g5 INSTANCE
+# note: run from repo root
 
-RUN yes | unminimize
+# Start from python 3.9.13 base image
+FROM python:3.9
+# note: possibly start FROM ami-dl-ubuntu-20 image
 
-RUN echo "deb http://packages.cloud.google.com/apt cloud-sdk-xenial main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-RUN wget https://packages.cloud.google.com/apt/doc/apt-key.gpg && apt-key add apt-key.gpg
+# Set working directory to root dir
+WORKDIR .
+
+# Add conda with python 3.9
 RUN apt-get update && \
-  apt-get install -y --no-install-recommends wget curl tmux vim git gdebi-core \
-  build-essential python3-pip unzip google-cloud-sdk htop mesa-utils xorg-dev xorg \
-  libglvnd-dev libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev xvfb && \
-  wget http://security.ubuntu.com/ubuntu/pool/main/libx/libxfont/libxfont1_1.5.1-1ubuntu0.16.04.4_amd64.deb && \
-  yes | gdebi libxfont1_1.5.1-1ubuntu0.16.04.4_amd64.deb
-RUN python3 -m pip install --upgrade pip
-RUN pip install setuptools==41.0.0
+    apt-get install -y wget && \
+    wget https://repo.anaconda.com/miniconda/Miniconda3-py39_23.1.0-1-Linux-x86_64.sh && \
+    sh Miniconda3-py39_23.1.0-1-Linux-x86_64.sh -bfp /usr/local && \
+    rm Miniconda3-py39_23.1.0-1-Linux-x86_64.sh && \
+    conda init && \
+    exec $SHELL
 
-ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+RUN conda list && echo $WUT
 
-#checkout ml-agents for SHA
-RUN mkdir /ml-agents
-WORKDIR /ml-agents
-ARG SHA
-RUN git init
-RUN git remote add origin https://github.com/Unity-Technologies/ml-agents.git
-RUN git fetch --depth 1 origin $SHA
-RUN git checkout FETCH_HEAD
-RUN pip install -e /ml-agents/ml-agents-envs
-RUN pip install -e /ml-agents/ml-agents
+# Copy the env file to the container root dir
+COPY environment.yaml .
+
+# Create the conda env and remove unused packages
+RUN conda env create -f environment.yaml && \
+    conda clean --all --yes
+
+# Create the Unity directory
+RUN mkdir -p /home/ubuntu/Unity
+
+RUN conda list && echo $WUT
+
+# Download and extract ml-agents release 20
+RUN cd /home/ubuntu/Unity && \
+    curl -L https://github.com/Unity-Technologies/ml-agents/archive/refs/tags/release_20.tar.gz | tar xz
+# note: could possibly COPY mlagents from repo instead of download
+
+# Install ml-agents-envs and ml-agents
+RUN pip3 install -e /home/ubuntu/Unity/ml-agents-release_20/ml-agents-envs && \
+    pip3 install -e /home/ubuntu/Unity/ml-agents-release_20/ml-agents
+
+RUN chmodpath=builds/$MY_ENV/$MY_ENV.x86_64
+
+# Copy build to container root dir
+COPY builds/$MY_ENV/ .
+
+# Give Unity build permission to be executable
+RUN chmod +x $chmodpath
+
+# Copy hyperparameter file to container
+COPY Assets/ML-Agents/packerhand/Models/HandPPO_curriculum.yaml .
+# note: can replace HandPPO_curriculum.yaml with $MY_HYPERPARAM variable later
+
+# Command to run mlagents-learn
+CMD ["mlagents-learn", "HandPPO_curriculum.yaml", "--env=builds/$MY_ENV/$MY_ENV", "--run-id=$MY_ENV", "--no-graphics"]
