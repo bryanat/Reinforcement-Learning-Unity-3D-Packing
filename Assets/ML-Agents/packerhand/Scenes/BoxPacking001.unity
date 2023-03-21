@@ -1444,7 +1444,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useBoxReset
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1594,12 +1594,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 151
-    NumStackedVectorObservations: 50
+    VectorObservationSize: 1153
+    NumStackedVectorObservations: 25
     m_ActionSpec:
       m_NumContinuousActions: 0
-      BranchSizes: 100000003000000006000000
-    VectorActionSize: 100000003000000006000000
+      BranchSizes: 800000008001000006000000
+    VectorActionSize: 800000008001000006000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -2448,9 +2448,121 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   box_type: uniform_random
   pickRandom: 0
-  _num_boxes: {x: 2, y: 2, z: 4}
-  maxBoxQuantity: 16
+  _num_boxes: {x: 4, y: 4, z: 8}
+  maxBoxQuantity: 128
   sizes:
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}

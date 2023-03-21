@@ -100,7 +100,7 @@ public class PackerHand : Agent
     private int selectedVertexIdx = -1; 
     [HideInInspector] public List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices;
-    [HideInInspector] public List<int> maskedBoxIndices; // list of organzed box indices
+    [HideInInspector] public List<int> maskedBoxIndices; // list of organized box indices
     [HideInInspector] public List<Vector3> historicalVerticesLog;
     [HideInInspector] public int VertexCount = 0;
     [HideInInspector] public Vector3 boxWorldScale;
@@ -229,7 +229,6 @@ public class PackerHand : Agent
         boxPool = boxSpawner.boxPool;
 
         // Maximum possible number of boxes defined in a curriculum
-        Debug.Log($"MAX BOX NUM: {maxBoxNum} ");
         if (useCurriculum){
             // Use Curriculum; padding is applied
             maxBoxNum = boxSpawner.maxBoxQuantity;
@@ -239,7 +238,7 @@ public class PackerHand : Agent
             int box_counter = 0;
             foreach(BoxSize b in boxSpawner.sizes) box_counter += 1;
             maxBoxNum = box_counter;
-            Debug.Log($"MAX BOX NUM reloaded: {maxBoxNum}");
+            // Debug.Log($"MAX BOX NUM reloaded: {maxBoxNum}");
             // No curriculum; boxes generated randomly according to user-specified divisions along each dimension
             if (boxSpawner.useRandomGenerator){
                 num_boxes_x = boxSpawner.num_boxes.x;
@@ -247,6 +246,7 @@ public class PackerHand : Agent
                 num_boxes_z = boxSpawner.num_boxes.z;
             }  
         }
+        // Debug.Log($"MAX BOX NUM: {maxBoxNum} ");
 
         isEpisodeStart = true;
 
@@ -392,8 +392,8 @@ public class PackerHand : Agent
         }
 
         // Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:
-        //          continuous solution: s_total = s_standard          = 7
-        //          discrete solution:   s_total = s_standard + s_vert = 7 + 9*maxBoxNum
+        //          continuous solution: s_total = s_standard          
+        //          discrete solution:   s_total = s_standard + s_vert 
     }
 
 
@@ -432,6 +432,7 @@ public class PackerHand : Agent
 
         var discreteActions   = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
+
 
         SelectBox(discreteActions[++j]); 
 
@@ -574,12 +575,12 @@ public class PackerHand : Agent
             if (useCombinedReward)
             {
                 // float percent_filled_bin_combined = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
-                float percent_filled_bin_combined = (2*sensorCollision.totalContactSA/box_surface_area) * ( box_volume/total_bin_volume );
-                AddReward(percent_filled_bin_combined * 100f);
+                float percent_filled_bin_combined = (sensorCollision.totalContactSA/box_surface_area) * ( box_volume/total_bin_volume );
+                AddReward(percent_filled_bin_combined * 10f);
                 // Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_filled_bin_combined * 1000f} reward from surface area");
 
                 // Increment stats recorder to match reward
-                m_statsRecorder.Add("% Bin Volume & Area Filled", percent_filled_bin_combined, StatAggregationMethod.Average);
+                m_statsRecorder.Add("% Bin Volume & Area Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
             }
             
             // Add volume reward
@@ -669,9 +670,9 @@ public class PackerHand : Agent
         Debug.Log($"Initiating new episode");
 
         if (useSparseReward){
-            if      (current_empty_bin_volume/total_bin_volume < 0.15f) AddReward(2500f); 
-            else if (current_empty_bin_volume/total_bin_volume < 0.10f) AddReward(2500f);
-            else if (current_empty_bin_volume/total_bin_volume < 0.05f) AddReward(2500f);
+            if      (current_empty_bin_volume / total_bin_volume < 0.15f) AddReward(2500f); 
+            else if (current_empty_bin_volume / total_bin_volume < 0.10f) AddReward(2500f);
+            else if (current_empty_bin_volume / total_bin_volume < 0.05f) AddReward(2500f);
         }
 
         if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
