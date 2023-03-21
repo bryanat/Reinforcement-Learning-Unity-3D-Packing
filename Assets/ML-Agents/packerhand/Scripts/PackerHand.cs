@@ -31,7 +31,7 @@ public class PackerHand : Agent
     public bool useStabilityReward=false;
 
     //public bool useBoxReset=false; // if reset box when fails physics test and continue the episode (default=false, which means episode will restart)
-    public bool useDiscreteSolution = true;
+    //public bool useDiscreteSolution = true;
 
     BufferSensorComponent m_BufferSensor; // attention sensor
     StatsRecorder m_statsRecorder; // adds stats to tensorboard
@@ -57,7 +57,8 @@ public class PackerHand : Agent
     [HideInInspector] public List<int> maskedVertexIndices; // list of taken vertex indices
     [HideInInspector] public List<int> maskedBoxIndices; // list of organzed box indices
     //[HideInInspector] public List<Vector3> historicalVerticesLog; // list of all used vertices
-    [HideInInspector] public List<float> boxHeights;
+    //
+    //[HideInInspector] public List<float> boxHeights;
     [HideInInspector] public Vector3 boxWorldScale; //local scale of selected box
     float total_x_distance; //total x distance between agent and target
     float total_y_distance; //total y distance between agent and target
@@ -80,13 +81,15 @@ public class PackerHand : Agent
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
     [HideInInspector] public float total_bin_volume; // sum of all bins' volume
-    public float total_box_surface_area;
+    //public float total_box_surface_area;
     public float current_contact_surface_area;
 
     float current_bin_volume;
     public float percent_filled_bin_volume;
     public float percent_contact_surface_area;
-    public float height_variance;
+    //spublic float height_variance;
+    //public float length_min;
+    //public float length_max;
     public int boxes_packed;
 
 
@@ -286,8 +289,8 @@ public class PackerHand : Agent
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // vertices action mask
-        if (useDiscreteSolution)
-        {
+        // if (useDiscreteSolution)
+        // {
             if (isAfterOriginVertexSelected) {
                 foreach (int vertexIdx in maskedVertexIndices) 
                 {
@@ -295,7 +298,7 @@ public class PackerHand : Agent
                     actionMask.SetActionEnabled(1, vertexIdx, false);
                 }
             }
-        }
+        //}
         // box action mask
         foreach (int selectedBoxIdx in maskedBoxIndices)
         {
@@ -348,21 +351,21 @@ public class PackerHand : Agent
                 {
                     ConfigureAgent(curriculum_ConfigurationGlobal);
                     curriculum_ConfigurationGlobal = -1;
-                    isAfterInitialization = true;
                 }
+                //isAfterInitialization = true;
             }
             else
             {
                 boxSpawner.SetUpBoxes(file_name);
-                isAfterInitialization = true;
             }
+            isAfterInitialization = true;
             
             // initialize local reference to box pool
             boxPool = boxSpawner.boxPool;
             //Debug.Log($"BOX POOL COUNT {boxPool.Count}");
 
             // initialize local reference to total box surface area
-            total_box_surface_area = boxSpawner.total_box_surface_area;
+            //total_box_surface_area = boxSpawner.total_box_surface_area;
 
             isAfterOriginVertexSelected = false;
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
@@ -397,10 +400,10 @@ public class PackerHand : Agent
             StateReset();
 
             // Update vertices array 
-            if (useDiscreteSolution)
-            {
+            // if (useDiscreteSolution)
+            // {
                 UpdateVerticesArray();
-            }
+            //}
 
             // recalculate bin volume and percent filled
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
@@ -408,7 +411,7 @@ public class PackerHand : Agent
 
             // calculate current contact surface area 
             current_contact_surface_area = current_contact_surface_area + sensorCollision.totalContactSA;
-            percent_contact_surface_area = current_contact_surface_area/total_box_surface_area *100;
+            percent_contact_surface_area = current_contact_surface_area/boxSpawner.total_box_surface_area *100;
 
             // Add volume reward
             // if (useDenseReward)
@@ -470,10 +473,17 @@ public class PackerHand : Agent
                     boxes_packed++;
                     if (useStabilityReward)
                     {
-                        // boxes packed + percent surface area contact - height bias
-                        double height_avg = boxHeights.Average();
-                        height_variance = (float) boxHeights.Average(v=>Math.Pow(v-height_avg,2));
-                        AddReward(boxes_packed + percent_contact_surface_area - (float)Math.Sqrt(height_variance));
+                        // boxes packed + percent surface area contact - height bias - length bias
+                        //double height_avg = boxHeights.Average();
+                        //double length_avg = boxLengths.Average();
+                        // height variance: variation in box heights
+                        // used to stimulate stacking layer by layer
+                        //height_variance = (float) boxHeights.Average(v=>Math.Pow(v-height_avg,2));
+                        // length variance: variation in box lengths
+                        // used to stimulate stacking from back to front
+                        //length_variance = (float) boxLengths.Average(v=>Math.Pow(v-length_avg,2));
+                        //float length_avg = (length_max - length_min)/2;
+                        AddReward(boxes_packed + percent_contact_surface_area);//- (float)Math.Sqrt(height_variance));
                         
                     }
 
@@ -550,6 +560,8 @@ public class PackerHand : Agent
                 VertexCount ++;
                 //Debug.Log($"VERTEX COUNT IS {VertexCount}");
             //}
+            // length_max = Math.Max(length_max, tripoints_list[idx].z);
+            // length_min = Math.Min(length_min, tripoints_list[idx].z);
         }
     }
 
@@ -859,7 +871,8 @@ public class PackerHand : Agent
              }      
         }
 
-        boxHeights.Add(boxWorldScale.y);
+        //boxHeights.Add(boxWorldScale.y);
+        //boxLengths.Add(boxWorldScale.z);
 
         // /////// NOTE: No Vector3(90, 90, 90) or Vector3(90, 90, 0) rotations as
         //               // Vector3(90, 90, 90) == Vector3(90, 0, 0) == xzy
@@ -936,17 +949,17 @@ public class PackerHand : Agent
     public void StateReset() 
     {
         // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) 
-        {
-            if (useDiscreteSolution)
-            {
+        // if (isBackMeshCombined | isSideMeshCombined | isBottomMeshCombined) 
+        // {
+            // if (useDiscreteSolution)
+            // {
                 if (isAfterOriginVertexSelected)
                 {
                     //Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
                     verticesArray[selectedVertexIdx] = Vector3.zero;               
                 }
-            }
-        }
+            //}
+        //}
         isBoxSelected = false;
         isBoxPlacementChecked = false;
         isPickedup = false;
@@ -978,6 +991,9 @@ public class PackerHand : Agent
         // Reset vertex count
         VertexCount = 0;
 
+        // length_max = 0;
+        // length_min = 1000;
+
         // Reset current bin volume
         current_bin_volume = total_bin_volume;
 
@@ -997,18 +1013,20 @@ public class PackerHand : Agent
             // Reset box pool
             boxPool.Clear();
 
+            //boxHeights.Clear();
+
             // Reset meshes
             for (int i=0; i< binSpawner.m_BackMeshScripts.Count; i++) {
                 binSpawner.m_BottomMeshScripts[i].MeshReset();
                 binSpawner.m_SideMeshScripts[i].MeshReset();
                 binSpawner.m_BackMeshScripts[i].MeshReset();
             }
-            if (useDiscreteSolution)
-            {
+            // if (useDiscreteSolution)
+            // {
                 // Reset vertices array
                 Array.Clear(verticesArray, 0, verticesArray.Length);
                 //historicalVerticesLog.Clear();
-            }
+            //}
         }   
     
         // Reset states;
@@ -1031,7 +1049,7 @@ public class PackerHand : Agent
                 SetModel(m_DiscreteBehaviorName, discreteBrain);
             }
             //Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
-            useDiscreteSolution = true;
+           // useDiscreteSolution = true;
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
             {
                 boxSpawner.SetUpBoxes("mix", seed);
