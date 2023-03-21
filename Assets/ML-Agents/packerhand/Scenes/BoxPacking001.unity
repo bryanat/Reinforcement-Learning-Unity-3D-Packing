@@ -1399,7 +1399,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: MaxStep
-      value: 15000
+      value: 2000
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1441,6 +1441,11 @@ PrefabInstance:
       propertyPath: boxSpawner
       value: 
       objectReference: {fileID: 4405564776043660150}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      propertyPath: useBoxReset
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: clearPlastic
@@ -1590,7 +1595,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_BrainParameters:
     VectorObservationSize: 151
-    NumStackedVectorObservations: 25
+    NumStackedVectorObservations: 50
     m_ActionSpec:
       m_NumContinuousActions: 0
       BranchSizes: 100000003000000006000000

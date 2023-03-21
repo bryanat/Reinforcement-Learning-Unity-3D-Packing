@@ -36,12 +36,13 @@ public class PackerHand : Agent
     [SerializeField] private bool _isFirstLayerContinuous; // Used to pack the first layer of boxes onto the bottom of the bin
 
     //  Reward switchers
-    public bool useSparseReward;        // Reward at the end of the episode: total volume ratio (total volume of the boxes / volume of the bin)
-    public bool usePenaltyReward;       // Penalty for every box misplaced and/or violating environemnt constraints
-    public bool useDenseReward;         // Reward for every box placed: volume ratio (volume of the box / volume of the bin)
-    public bool useSurfaceAreaReward;   // Reward for every box placed: surface area ratio (area of the box / area of the bin)
+    public bool useSparseReward;      // Reward at the end of the episode: total volume ratio (total volume of the boxes / volume of the bin)
+    public bool usePenaltyReward;     // Penalty for every box misplaced and/or violating environemnt constraints
+    public bool useDenseReward;       // Reward for every box placed: volume ratio (volume of the box / volume of the bin)
+    public bool useSurfaceAreaReward; // Reward for every box placed: surface area ratio (area of the box / area of the bin)
     public bool useCombinedReward;    // Reward for every box placed: combines the area & volume rewards (surface area ratio & volume ratio)
     public bool useDistanceReward;    // Reward for every box placed: distance ratio (distance between the box and the bin / distance between the agent and the bin)
+    public bool useBoxReset;          // Reset the box to its original position when it is misplaced (failed physics check)
 
     // Filters for lLocal features
     private bool useVerticesArray{ get{ return useDiscreteSolution;}}   // Padded container of all vertices generated from TriMesh
@@ -165,12 +166,6 @@ public class PackerHand : Agent
 
     public override void Initialize()
     {   
-        // m_BehaviorParameters = gameObject.GetComponent<BehaviorParameters>();
-        // m_BehaviorParameters.BehaviorName = m_BehaviorName;
-        // Unity.MLAgents.Sensors.VectorSensor sensor = new Unity.MLAgents.Sensors.VectorSensor(observable_size);
-        // var ObservationSpec = sensor.GetObservationSpec();
-        // m_BehaviorParameters.BrainParameters.VectorObservationSize = ObservationSpec.Shape[0];
-
         Academy.Instance.AutomaticSteppingEnabled = false;
 
         if (useCurriculum){
@@ -472,6 +467,7 @@ public class PackerHand : Agent
         {
             Debug.Log("Max step reached!");
 
+            if (usePenaltyReward) AddReward(-100f);
             initiateNewEpisode();
         }
 
@@ -638,14 +634,28 @@ public class PackerHand : Agent
                 {
                     Debug.Log("Box dropped off in wrong position! Failed physics checks!");
 
-                    if (usePenaltyReward)
-                    {
-                        box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
-                        // AddReward(box_volume / total_bin_volume * -100f);
-                        AddReward(-100f);
-                    }
+                    if (useBoxReset){
+                        // Penalize agent for dropping box in wrong position
+                        if (usePenaltyReward) AddReward(-1f);
+                        // {
+                        //     box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
+                        //     AddReward(box_volume / total_bin_volume);
+                        // }
 
-                    initiateNewEpisode();
+                        // Reset selected box
+                        BoxReset();
+
+                        // reset states
+                        StateReset();
+
+                        // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+                        GetComponent<Agent>().RequestDecision();
+                        Academy.Instance.EnvironmentStep();
+                    }
+                    else{ 
+                        if (usePenaltyReward) AddReward(-100f);
+                        initiateNewEpisode();
+                    }
                 }
             }
         }
@@ -667,8 +677,6 @@ public class PackerHand : Agent
         if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
         isEpisodeStart = true;
         // Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
-
-        EndEpisode();
     }
     
 
@@ -1105,13 +1113,13 @@ public class PackerHand : Agent
         Destroy(targetBox.GetComponent<BoxCollider>());  
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
-        m_BackMeshScript.isCollidedBlue = false;
+        m_BackMeshScript.isCollidedBlue    = false;
         m_BottomMeshScript.isCollidedGreen = false;
-        m_SideMeshScript.isCollidedRed = false;
-        isBackMeshCombined = false;
-        isBottomMeshCombined = false;
-        isSideMeshCombined = false;
-        isStateReset = false; // should be refactored into a end state reset function with isBlankMeshCombined's
+        m_SideMeshScript.isCollidedRed     = false;
+        isBackMeshCombined                 = false;
+        isBottomMeshCombined               = false;
+        isSideMeshCombined                 = false;
+        isStateReset                       = false; // should be refactored into a end state reset function with isBlankMeshCombined's
 
         //Debug.Log("PDB end of PickupBox()");
     }
@@ -1408,6 +1416,30 @@ public class PackerHand : Agent
                 // pending setup
             }  
         }
+    }
+
+    public void BoxReset()
+    {
+        // Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
+        // detach box from agent
+        targetBox.parent = null;
+        // add back rigidbody and collider
+        Rigidbody rb = boxPool[selectedBoxIdx].rb;
+        BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
+        // not be affected by forces or collisions, position and rotation will be controlled directly through script
+        rb.isKinematic = true;
+        // reset to starting position
+        rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
+        rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
+        rb.transform.position = boxPool[selectedBoxIdx].startingPos;
+        ReverseSideNames(selectedBoxIdx);
+        // remove from organized list to be picked again
+        maskedBoxIndices.Remove(selectedBoxIdx);
+        // restore box information
+        boxPool[selectedBoxIdx].boxSize = boxPool[selectedBoxIdx].startingSize;
+        boxPool[selectedBoxIdx].boxRot = Quaternion.identity;
+        boxPool[selectedBoxIdx].boxVertex = Vector3.zero;
+        boxPool[selectedBoxIdx].isOrganized = false;
     }
 
 }
