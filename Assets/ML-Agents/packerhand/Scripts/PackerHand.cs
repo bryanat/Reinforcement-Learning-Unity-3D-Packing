@@ -223,9 +223,9 @@ public class PackerHand : Agent
         //Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
 
         // Get scale of bin
-        binscale_x = areaBounds.extents.x*2;
-        binscale_y = areaBounds.extents.y*2;
-        binscale_z = areaBounds.extents.z*2;
+        binscale_x = 2 * areaBounds.extents.x;
+        binscale_y = 2 * areaBounds.extents.y;
+        binscale_z = 2 * areaBounds.extents.z;
         //origin = new Vector3(8.25f, 0.50f, 10.50f);
         origin = Origin.transform.position;
         //Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
@@ -292,18 +292,17 @@ public class PackerHand : Agent
     {
         Debug.Log("OBSERVATION");
         // Add updated bin volume
-        sensor.AddObservation(current_empty_bin_volume);
-        sensor.AddObservation(total_bin_volume);
-        sensor.AddObservation(new Vector3(binscale_x,binscale_y,binscale_z));
-
-        // Size of vector observation space: s1 = 1 + 1 + 1 * 3 = 5
+        sensor.AddObservation(current_empty_bin_volume / total_bin_volume);
 
         int j = -1;
         maskedBoxIndices = new List<int>();
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
         {   
-            Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
+            // Add normalized box size
+            float boxSize_norm_x = box.boxSize.x / binscale_x;
+            float boxSize_norm_y = box.boxSize.y / binscale_y;
+            float boxSize_norm_z = box.boxSize.z / binscale_z;
 
             // Box index; update it here due to the "continue" statement below
             j++;
@@ -316,16 +315,17 @@ public class PackerHand : Agent
             }
             else if (box.boxSize == Vector3.zero){
                 // Mask zero boxes that may end up here; normally shouldn't happen
-                    maskedBoxIndices.Add(j);
-                // Skip to next box
+                maskedBoxIndices.Add(j);
                 continue;
+            }
+            else{
+                box.boxVertex = new Vector3(-1f,-1f,-1f);
             }
 
             if (useAttention){
                 int idx_cntr = 0;
                 float[] listVarObservation = new float[max_observable_size];
                 
-
                 if (useOneHotEncoding){
                     // Used for variable size observations
                     int boxNum = int.Parse(box.rb.name);
@@ -334,42 +334,36 @@ public class PackerHand : Agent
                     // Counter for remaining observations
                     idx_cntr = maxBoxNum;
                 }
-                // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                listVarObservation[idx_cntr]    = scaled_continuous_boxsize.x;
-                listVarObservation[idx_cntr +1] = scaled_continuous_boxsize.y;
-                listVarObservation[idx_cntr +2] = scaled_continuous_boxsize.z;
-                // Add updated [volume]/[w*h*l] added to state vector
-                listVarObservation[idx_cntr +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
-                // Add updated box placement vertex
+
+                // Add normalized size of packed box to the variable state vector
+                listVarObservation[idx_cntr]    = boxSize_norm_x;
+                listVarObservation[idx_cntr +1] = boxSize_norm_y;
+                listVarObservation[idx_cntr +2] = boxSize_norm_z;
+
+                // Add position of already packed box inside the bin
                 listVarObservation[idx_cntr +4] = box.boxVertex.x;
                 listVarObservation[idx_cntr +5] = box.boxVertex.y;
                 listVarObservation[idx_cntr +6] = box.boxVertex.z;
+                
                 // Add if box is placed already: 1 if placed already and 0 otherwise
                 listVarObservation[idx_cntr +7] = box.isOrganized ? 1.0f : 0.0f;;
-                // Add updated box rotation
-                // listVarObservation[idx_cntr+7] = box.boxRot[0];
-                // listVarObservation[idx_cntr+8] = box.boxRot[1];
-                // listVarObservation[idx_cntr+9] = box.boxRot[2];
-                // listVarObservation[idx_cntr+10] = box.boxRot[3];
 
                 m_BufferSensor.AppendObservation(listVarObservation);
-
-                //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
-                //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
-                //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
-
-                // Size of vector observation space: s2 = 0
             }
-            else{
-                // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                sensor.AddObservation(scaled_continuous_boxsize);
-                // Add updated [volume]/[w*h*l] added to state vector
-                sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
-                sensor.AddObservation (box.boxVertex);
+            else{      
 
-                // Size of vector observation space: s2 = 1 * 3 + 1 + 1 * 3 = 7
-
+                // Add 0s to the fixed observation vector (for the already packed boxes)
+                sensor.AddObservation(new Vector3(boxSize_norm_x, 
+                                                  boxSize_norm_y, 
+                                                  boxSize_norm_z ));
+                sensor.AddObservation(new Vector3(box.boxVertex.x, 
+                                                  box.boxVertex.y, 
+                                                  box.boxVertex.z ));
             }
+
+            // Size of standard vector observation space
+            //      with    attention: s_standard = 1
+            //      without attention: s_standard = 7
         }
 
         // Add array of vertices (selected vertices are 0s)
@@ -394,23 +388,17 @@ public class PackerHand : Agent
                 }
 
                 i++;
-
-                // Size of vector observation space: s3 = 3
             }
 
-            // Size of vector observation space: s3 * verticesArray.Length
+            // Size of observation space for vertices: s_vert = 3 * verticesArray.Length
+            //                                                = 3 * 2*maxBoxNum+1
+            // To allocate enough space we increase (2*maxBoxNum+1) to (3*maxBoxNum)
+            // Thus, in total: s_vert = 9*maxBoxNum
         }
 
-        // Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   s1 + s2 * n + s3 * verticesArray.Length
-        //
-        // , where n = maxBoxNumber  
-        //   (i.e. number of boxes in the scene; note that when padding is used the number of boxes in the scene is larger than the number of boxes in the scene without padding)
-        //
-        // Thus, IN GENERAL:
-        //     with    attention
-        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   5 + 0 * n + 3 * 3*n = 8 + 9 * n
-        //     without attention
-        //          Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:   5 + 7 * n + 3 * 3*n = 8 + 16 * n
+        // Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:
+        //          continuous solution: s_total = s_standard          = 7
+        //          discrete solution:   s_total = s_standard + s_vert = 7 + 9*maxBoxNum
     }
 
 
@@ -419,8 +407,6 @@ public class PackerHand : Agent
         Debug.Log("MASK");
 
         // vertices action mask
-        Debug.Log($"MASK VERTEX ARRAY size: {maskedVertexIndices.Count}");
-        Debug.Log($"VERTICES    ARRAY size: {verticesArray.Length}");
         if (useDiscreteSolution)
         {
             if (isAfterOriginVertexSelected) {
@@ -454,6 +440,8 @@ public class PackerHand : Agent
 
         SelectBox(discreteActions[++j]); 
 
+        SelectRotation(discreteActions[++j]);
+
         if (useDiscreteSolution){
             // activate for discrete solution + adjust in Inspector by adding 1 more discrete branch
             SelectVertexDiscrete(discreteActions[++j]);
@@ -463,8 +451,6 @@ public class PackerHand : Agent
             var i = -1;
             SelectVertexContinuous(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
         }
-
-        SelectRotation(discreteActions[++j]);
     }
 
 
@@ -504,6 +490,7 @@ public class PackerHand : Agent
             AgentReset();
 
             // Initialize curriculum & brain and generate boxes
+            initializeBrain = true;
             if (useCurriculum)
             {
                 if (curriculum_ConfigurationGlobal != -1)
@@ -519,6 +506,8 @@ public class PackerHand : Agent
                 // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 2, 2, 2, seed, usePadding);
                 boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, num_boxes_x, num_boxes_y, num_boxes_z, seed, usePadding);
                 Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+
+                initializeBrain = false;
             }
 
             // For padding, make sure that the newly generated amount of boxes is not greater than the maxBoxNum memory allocated
@@ -600,7 +589,7 @@ public class PackerHand : Agent
             // Add volume reward
             if (useDenseReward)
             {
-                AddReward((box_volume/total_bin_volume) * 1000f);
+                AddReward((box_volume/total_bin_volume) * 100f);
                 // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{(box_volume/total_bin_volume) * 1000f} reward | current_empty_bin_volume: {current_empty_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
 
                 // Increment stats recorder to match reward
@@ -637,6 +626,7 @@ public class PackerHand : Agent
             //if agent is close enough to the position, it should drop off the box
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
             {
+                // if (sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     DropoffBox();
@@ -650,7 +640,9 @@ public class PackerHand : Agent
 
                     if (usePenaltyReward)
                     {
-                        SetReward(current_empty_bin_volume/total_bin_volume * -100f);
+                        box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
+                        // AddReward(box_volume / total_bin_volume * -100f);
+                        AddReward(-100f);
                     }
 
                     initiateNewEpisode();
@@ -782,11 +774,27 @@ public class PackerHand : Agent
 
     public void SelectVertexContinuous(float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
     {
+        // Tranform the action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z from [-1,1] to [0,1]
         action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
         action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
-        // Debug.Log($"action_SelectedVertex_x ================== {action_SelectedVertex_x}");
 
+        // Define min/max position of the box inside the bin (to avoid placing the box outside the bin)
+        Vector3 selectedBoxSize = boxPool[selectedBoxIdx].boxSize;
+        Vector3 min_pos = new Vector3(selectedBoxSize.x/2, 
+                                      selectedBoxSize.y/2, 
+                                      selectedBoxSize.z/2);
+        Vector3 max_pos = new Vector3(binscale_x - selectedBoxSize.x/2, 
+                                      binscale_y - selectedBoxSize.y/2, 
+                                      binscale_z - selectedBoxSize.z/2);
+
+        // Debug.Log("======================================================================================================================================================");
+        // Debug.Log($"selectedBoxSize: {selectedBoxSize}");
+        // Debug.Log($"min_pos: {min_pos} | max_pos: {max_pos}");
+        // Debug.Log($"action_SelectedVertex_x: {action_SelectedVertex_x} | action_SelectedVertex_y: {action_SelectedVertex_y} | action_SelectedVertex_z: {action_SelectedVertex_z}");
+        // Debug.Log($"origin: {origin} | binscale_x: {binscale_x} | binscale_y: {binscale_y} | binscale_z: {binscale_z}");
+
+        // listVarObservation[idx_cntr +3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
 
         if (isFirstLayerContinuous)
         {
@@ -795,9 +803,17 @@ public class PackerHand : Agent
             // Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
         }
         else{
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-            boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+            selectedVertex = new Vector3(((action_SelectedVertex_x * (max_pos.x - min_pos.x)) + min_pos.x + origin.x), 
+                                            0.5f,
+                                        //  ((action_SelectedVertex_y * (max_pos.y - min_pos.y)) + min_pos.y + origin.y), 
+                                         ((action_SelectedVertex_z * (max_pos.z - min_pos.z)) + min_pos.z + origin.z));
+            // selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
+            // boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
+            boxPool[selectedBoxIdx].boxVertex = new Vector3((selectedVertex.x - origin.x) / binscale_x, 
+                                                            (selectedVertex.y - origin.y) / binscale_y, 
+                                                            (selectedVertex.z - origin.z) / binscale_z);
             // Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
+            // Debug.Log($"SVX Continuous boxVertex: {boxPool[selectedBoxIdx].boxVertex}");
         }
     }
 
@@ -865,7 +881,7 @@ public class PackerHand : Agent
         GameObject testBoxChild = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
-        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.5f), (boxWorldScale.y - 0.5f), (boxWorldScale.z - 0.5f));
+        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.15f), (boxWorldScale.y - 0.15f), (boxWorldScale.z - 0.15f));
         testBoxChild.transform.position = testPosition;
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
