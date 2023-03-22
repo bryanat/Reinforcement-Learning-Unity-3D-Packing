@@ -82,7 +82,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 5000
+          threshold: 10000
         value: 0.0
       - name: Lesson02 # The '-' is important as this is a list
         completion_criteria:
@@ -90,7 +90,7 @@ environment_parameters:
           behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 5000
+          threshold: 10000
         value: 1.0
       - name: Lesson03 # The '-' is important as this is a list
         completion_criteria:
@@ -98,7 +98,7 @@ environment_parameters:
           behavior: Discete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 5000
+          threshold: 10000
         value: 2.0
       - name: Lesson04 # The '-' is important as this is a list
         completion_criteria:
@@ -106,7 +106,7 @@ environment_parameters:
           behavior: Discete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 5000
+          threshold: 10000
         value: 3.0
       - name: Lesson05 # The '-' is important as this is a list
         completion_criteria:
@@ -114,7 +114,7 @@ environment_parameters:
           behavior: Discete
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 5000
+          threshold: 10000
         value: 4.0
 #   Continuous:
 #     curriculum:
