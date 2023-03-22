@@ -105,11 +105,11 @@ public class BoxSpawner : MonoBehaviour
         else
         {
             // once sizes is populated, don't have to read from file again
-            if (sizes[0].box_size.x==0)
-            {
+            // if (sizes[0].box_size.x==0)
+            // {
                 ReadJson($"{homeDir}/Unity/data/{box_type}.json", seed);
                 PadZeros();
-            }
+            //}
         }
         // populate box pool
         var idx = 0;
