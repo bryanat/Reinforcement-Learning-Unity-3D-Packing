@@ -177,6 +177,21 @@ public class BoxSpawner : MonoBehaviour
                 boxPool.Add(newBox);  
                 idx+=1;     
             }
+            else{ 
+                var newBox = new Box
+                {
+                    rb = null, 
+                    startingPos = Vector3.zero,
+                    startingRot = Quaternion.identity,
+                    startingSize = Vector3.zero,
+                    boxSize = Vector3.zero,
+                    boxRot = Quaternion.identity,
+                    gameobjectBox = null,
+                };
+                // Add box to box pool
+                boxPool.Add(newBox);  
+                idx+=1;     
+            }
         }
         // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
         // // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm

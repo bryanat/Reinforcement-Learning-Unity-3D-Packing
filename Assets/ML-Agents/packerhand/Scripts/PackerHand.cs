@@ -410,7 +410,7 @@ public class PackerHand : Agent
                     foreach (int vertexIdx in maskedVertexIndices) 
                     {
                         //Debug.Log($"MASK VERTEX {vertexIdx}");
-                        actionMask.SetActionEnabled(1, vertexIdx, false);
+                        actionMask.SetActionEnabled(2, vertexIdx, false);
                     }
                 }
             }
@@ -670,14 +670,16 @@ public class PackerHand : Agent
         Debug.Log($"Initiating new episode");
 
         if (useSparseReward){
-            if      (current_empty_bin_volume / total_bin_volume < 0.15f) AddReward(2500f); 
-            else if (current_empty_bin_volume / total_bin_volume < 0.10f) AddReward(2500f);
-            else if (current_empty_bin_volume / total_bin_volume < 0.05f) AddReward(2500f);
+            if      (current_empty_bin_volume / total_bin_volume < 0.15f) AddReward(5000f); 
+            else if (current_empty_bin_volume / total_bin_volume < 0.10f) AddReward(5000f);
+            else if (current_empty_bin_volume / total_bin_volume < 0.05f) AddReward(5000f);
         }
 
         if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
         isEpisodeStart = true;
         // Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
+
+        EndEpisode();
     }
     
 
@@ -909,8 +911,6 @@ public class PackerHand : Agent
     public void SelectBox(int action_SelectedBox) 
     {
         selectedBoxIdx = action_SelectedBox;
-        // Debug.Log($"SBB Selected Box selectedBoxIdx: {selectedBoxIdx}");
-        // Debug.Log($"BOX POOL COUNT = {boxPool.Count()}");
         // Debug.Log($"action_selectedBox = {action_SelectedBox}");
         targetBox = boxPool[selectedBoxIdx].rb.transform;
         isBoxSelected = true;
@@ -1391,17 +1391,32 @@ public class PackerHand : Agent
         {
             if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 0.0f) == 0.0f)
             {
-                boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 4, 4, 6, seed, usePadding);
-                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxSpawner.SetUpBoxes(boxSpawner.box_type, false, 2, 2, 4, seed, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 2, 2, 4, seed, usePadding);
+                Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 1.0f) == 1.0f)
             {
-                boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 8, 8, 12, seed+1, usePadding);
+                boxSpawner.SetUpBoxes("uniform_random", false, 4, 4, 2, seed+1, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 8, 8, 12, seed+1, usePadding);
                 // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
             if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 2.0f) == 2.0f)
             {
-                boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 16, 16, 24, seed+2, usePadding);
+                boxSpawner.SetUpBoxes("uniform_random", false, 5, 4, 7, seed+2, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, true, 16, 16, 24, seed+2, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 3.0f) == 3.0f)
+            {
+                boxSpawner.SetUpBoxes("mix_random", true, 2, 4, 8, seed+3, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, true, 16, 16, 24, seed+2, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 4.0f) == 4.0f)
+            {
+                boxSpawner.SetUpBoxes("mix_random", true, 5, 4, 7, seed+4, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, true, 16, 16, 24, seed+2, usePadding);
                 // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
             }
         }
