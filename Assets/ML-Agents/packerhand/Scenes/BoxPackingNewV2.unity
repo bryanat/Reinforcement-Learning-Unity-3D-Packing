@@ -2571,7 +2571,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -2669,8 +2669,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &157107850
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2697,7 +2697,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -4201,7 +4201,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -4299,8 +4299,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &276280160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4327,7 +4327,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -4843,7 +4843,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -4941,8 +4941,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &295217889
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4969,7 +4969,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -5800,7 +5800,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -5898,8 +5898,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &405489930
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5926,7 +5926,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -6322,7 +6322,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -6420,8 +6420,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &436451490
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6448,7 +6448,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -6796,7 +6796,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -6894,8 +6894,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &468756376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6922,7 +6922,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -10627,7 +10627,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -10720,8 +10720,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &970053408
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10748,7 +10748,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -12398,7 +12398,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -12496,8 +12496,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &1120320525
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12524,7 +12524,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -13997,7 +13997,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -14095,8 +14095,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &1185738883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14123,7 +14123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -16347,7 +16347,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -16445,8 +16445,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &1423722553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16473,7 +16473,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -18295,7 +18295,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -18393,8 +18393,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &1552083841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18421,7 +18421,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -18685,7 +18685,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -18783,8 +18783,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &1579213349
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18811,7 +18811,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -20317,7 +20317,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -20415,8 +20415,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &1753630065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20443,7 +20443,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -22091,7 +22091,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -22189,8 +22189,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &1930466454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22217,7 +22217,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -24707,7 +24707,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -24805,8 +24805,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!114 &2109008167
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24833,7 +24833,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -25522,7 +25522,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useStabilityReward
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -25602,7 +25602,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -25658,8 +25658,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 71
+  m_MaxNumObservables: 71
 --- !u!1001 &1149920266690001738
 PrefabInstance:
   m_ObjectHideFlags: 0

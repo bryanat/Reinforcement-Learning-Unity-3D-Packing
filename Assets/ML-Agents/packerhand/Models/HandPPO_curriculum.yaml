@@ -18,7 +18,7 @@ behaviors:
       num_layers: 3
       # memory:
       #   use_recurrent: true
-      #   sequence_length: 4
+      #   sequence_length: 8
       #   memory_size: 256
     reward_signals:
       extrinsic:
@@ -28,7 +28,9 @@ behaviors:
         gamma: 0.99
         strength: 1
         network_settings:
-          hidden_units: 256
+          normalize: true
+          hidden_units: 512
+          num_layers: 3
         learning_rate: 0.0003
       rnd:
         gamma: 0.99
@@ -40,7 +42,7 @@ behaviors:
           num_layers: 3
     keep_checkpoints: 5
     checkpoint_interval: 20000
-    time_horizon: 64
+    time_horizon: 128
     max_steps: 3000000
     summary_freq: 2560
     

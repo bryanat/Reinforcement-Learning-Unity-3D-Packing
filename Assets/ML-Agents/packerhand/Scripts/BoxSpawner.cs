@@ -22,9 +22,6 @@ public class Box
 {
     public Color boxColor;  // stores box color, boxes of the same product_id will have same color (for front_end)
     public Rigidbody rb; // stores transform information
-    // public Vector3 startingPos; // for box reset, constant 
-    // public Quaternion startingRot; // for box reset, constant
-    // public Vector3 startingSize; // for box reset, constant 
     public Vector3 boxSize; // for sensor, changes after selected action
     public Quaternion boxRot = Quaternion.identity; // for sensor, changes after selected action
     public Vector3 boxVertex = Vector3.zero; // for sensor, changes after selected action
@@ -141,9 +138,6 @@ public class BoxSpawner : MonoBehaviour
                 {
                     rb = box.GetComponent<Rigidbody>(), 
                     boxColor = Colors[idx],
-                    // startingPos = box.transform.position,
-                    // startingRot = box.transform.rotation,
-                    // startingSize = box.transform.localScale,
                     boxSize = box.transform.localScale,
                     gameobjectBox = box,
                 };
