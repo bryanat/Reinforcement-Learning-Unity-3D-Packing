@@ -1399,7 +1399,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: MaxStep
-      value: 2000
+      value: 5000
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1434,7 +1434,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: packSpeed
-      value: 3
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1454,7 +1454,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useAttention
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1509,6 +1509,11 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: useDiscreteSolution
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      propertyPath: useAttentionVertices
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
@@ -1594,12 +1599,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1261
+    VectorObservationSize: 7
     NumStackedVectorObservations: 25
     m_ActionSpec:
       m_NumContinuousActions: 0
-      BranchSizes: 8c00000006000000a4010000
-    VectorActionSize: 8c00000006000000a4010000
+      BranchSizes: c20100009600000006000000
+    VectorActionSize: c20100009600000006000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -2449,8 +2454,18 @@ MonoBehaviour:
   box_type: uniform_random
   pickRandom: 0
   _num_boxes: {x: 2, y: 2, z: 4}
-  maxBoxQuantity: 140
+  maxBoxQuantity: 150
   sizes:
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
+  - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}

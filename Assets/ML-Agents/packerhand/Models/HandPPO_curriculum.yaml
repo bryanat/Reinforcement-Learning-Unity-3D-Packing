@@ -17,21 +17,21 @@ behaviors:
       hidden_units: 256
       num_layers: 3
       vis_encode_type: simple
-      # use_recurrent: true
-      # memory:
-      #   sequence_length: 64
-      #   memory_size: 256
+      use_recurrent: true
+      memory:
+        sequence_length: 64
+        memory_size: 256
     reward_signals:
       extrinsic:
         gamma: 0.995
         strength: 1.0
-      # Curiosity works only with sparse rewards
-      curiosity:  
-        gamma: 0.99
-        strength: 0.02
-        network_settings:
-          hidden_units: 256
-        learning_rate: 0.0003
+      # # Curiosity works only with sparse rewards
+      # curiosity:  
+      #   gamma: 0.99
+      #   strength: 0.02
+      #   network_settings:
+      #     hidden_units: 256
+      #   learning_rate: 0.0003
     keep_checkpoints: 5
     checkpoint_interval: 20000
     max_steps: 1000000
@@ -81,7 +81,7 @@ environment_parameters:
           measure: reward
           behavior: Discrete
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 2000
           threshold: 10000
         value: 0.0
       - name: Lesson02 # The '-' is important as this is a list
@@ -89,7 +89,7 @@ environment_parameters:
           measure: reward
           behavior: Discrete
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 2000
           threshold: 10000
         value: 1.0
       - name: Lesson03 # The '-' is important as this is a list
@@ -97,7 +97,7 @@ environment_parameters:
           measure: reward
           behavior: Discete
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 2000
           threshold: 10000
         value: 2.0
       - name: Lesson04 # The '-' is important as this is a list
@@ -105,7 +105,7 @@ environment_parameters:
           measure: reward
           behavior: Discete
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 2000
           threshold: 10000
         value: 3.0
       - name: Lesson05 # The '-' is important as this is a list
@@ -113,9 +113,49 @@ environment_parameters:
           measure: reward
           behavior: Discete
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 2000
           threshold: 10000
         value: 4.0
+      - name: Lesson06 # The '-' is important as this is a list
+        completion_criteria:
+          measure: reward
+          behavior: Discete
+          signal_smoothing: true
+          min_lesson_length: 2000
+          threshold: 10000
+        value: 5.0
+      - name: Lesson07 # The '-' is important as this is a list
+        completion_criteria:
+          measure: reward
+          behavior: Discete
+          signal_smoothing: true
+          min_lesson_length: 2000
+          threshold: 10000
+        value: 6.0
+      - name: Lesson08 # The '-' is important as this is a list
+        completion_criteria:
+          measure: reward
+          behavior: Discete
+          signal_smoothing: true
+          min_lesson_length: 2000
+          threshold: 10000
+        value: 7.0
+      - name: Lesson09 # The '-' is important as this is a list
+        completion_criteria:
+          measure: reward
+          behavior: Discete
+          signal_smoothing: true
+          min_lesson_length: 2000
+          threshold: 10000
+        value: 8.0
+      - name: Lesson10 # The '-' is important as this is a list
+        completion_criteria:
+          measure: reward
+          behavior: Discete
+          signal_smoothing: true
+          min_lesson_length: 2000
+          threshold: 10000
+        value: 9.0
 #   Continuous:
 #     curriculum:
 #       - name: Lesson01 # The '-' is important as this is a list
