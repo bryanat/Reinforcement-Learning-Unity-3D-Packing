@@ -806,7 +806,10 @@ public class PackerHand : Agent
         // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
         selectedVertexIdx = action_SelectedVertexIdx;
         var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
-        boxPool[selectedBoxIdx].boxVertex = scaled_selectedVertex;
+
+        boxPool[selectedBoxIdx].boxVertex = new Vector3(scaled_selectedVertex.x + (boxWorldScale.x/2) / binscale_x,
+                                                        scaled_selectedVertex.y + (boxWorldScale.y/2) / binscale_y,
+                                                        scaled_selectedVertex.z + (boxWorldScale.z/2) / binscale_z);
 
         selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
 
@@ -821,12 +824,9 @@ public class PackerHand : Agent
 
         // Define min/max position of the box inside the bin (to avoid placing the box outside the bin)
         Vector3 selectedBoxSize = boxPool[selectedBoxIdx].boxSize;
-        Vector3 min_pos = new Vector3(selectedBoxSize.x/2, 
-                                      selectedBoxSize.y/2, 
-                                      selectedBoxSize.z/2);
-        Vector3 max_pos = new Vector3(binscale_x - selectedBoxSize.x/2, 
-                                      binscale_y - selectedBoxSize.y/2, 
-                                      binscale_z - selectedBoxSize.z/2);
+        Vector3 max_pos = new Vector3(binscale_x - selectedBoxSize.x, 
+                                      binscale_y - selectedBoxSize.y, 
+                                      binscale_z - selectedBoxSize.z);
 
         if (isFirstLayerContinuous)
         {
@@ -834,12 +834,12 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
         }
         else{
-            selectedVertex = new Vector3(((action_SelectedVertex_x * (max_pos.x - min_pos.x)) + min_pos.x + origin.x), 
-                                         ((action_SelectedVertex_y * (max_pos.y - min_pos.y)) + min_pos.y + origin.y), 
-                                         ((action_SelectedVertex_z * (max_pos.z - min_pos.z)) + min_pos.z + origin.z));
-            boxPool[selectedBoxIdx].boxVertex = new Vector3((selectedVertex.x - origin.x) / binscale_x, 
-                                                            (selectedVertex.y - origin.y) / binscale_y, 
-                                                            (selectedVertex.z - origin.z) / binscale_z);
+            selectedVertex = new Vector3((action_SelectedVertex_x * max_pos.x + origin.x), 
+                                         (action_SelectedVertex_y * max_pos.y + origin.y), 
+                                         (action_SelectedVertex_z * max_pos.z + origin.z));
+            boxPool[selectedBoxIdx].boxVertex = new Vector3((selectedVertex.x + boxWorldScale.x/2 - origin.x) / binscale_x, 
+                                                            (selectedVertex.y + boxWorldScale.y/2 - origin.y) / binscale_y, 
+                                                            (selectedVertex.z + boxWorldScale.z/2 - origin.z) / binscale_z);
         }
     }
 
