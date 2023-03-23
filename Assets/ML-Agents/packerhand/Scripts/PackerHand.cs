@@ -26,7 +26,6 @@ public class PackerHand : Agent
     
     public bool runInference=false; 
     public bool useCurriculum=true; // if false, bin and box sizes and quantity will be read from a json file 
-    //public bool useAttention=true; // if use attention (default = true)
     public bool useStabilityReward=false;
 
     BufferSensorComponent m_BufferSensor; // attention sensor
@@ -144,9 +143,7 @@ public class PackerHand : Agent
             script.agent = this;
         }
 
-        //if (useAttention){
-            m_BufferSensor = GetComponent<BufferSensorComponent>();
-        //}
+        m_BufferSensor = GetComponent<BufferSensorComponent>();
 
         isEpisodeStart = true;
 
@@ -218,23 +215,6 @@ public class PackerHand : Agent
                 // Add if box is placed already: 1 if placed already and 0 otherwise
                 listVarObservation[boxSpawner.maxBoxQuantity +20] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
-            //}
-            // else{
-
-            //     // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-            //     // Add scaled box size 
-            //     sensor.AddObservation(box.boxSize);
-            //     // Add updated [volume]/[w*h*l] added to state vector
-            //     //sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
-            //     // Add scaled vertex
-            //     // Add associated bin dimensions
-            //     sensor.AddObservation(box.boxBinScale);
-            //     // if box has not been placed, they'll be zeros
-            //     sensor.AddObservation (box.boxVertex);
-            //     sensor.AddObservation(box.boxRot);
-            //     // Add if box is placed or not
-            //     sensor.AddObservation(box.isOrganized ? 1.0f : 0.0f);
-            // }
             // add placed boxes to action ask
             if (box.isOrganized)
             {
@@ -258,10 +238,6 @@ public class PackerHand : Agent
         {   
             Vector3 scaled_vertex = new Vector3(vertex.x, vertex.y, vertex.z);
             //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
-            // if (!useAttention)
-            // {
-            //sensor.AddObservation(scaled_vertex);
-            //}
             // origins after scaled and selected vertices will be (0, 0, 0)
             // since cannot be selected again, they will be masked in action space
             if (scaled_vertex == Vector3.zero)
