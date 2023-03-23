@@ -1434,7 +1434,7 @@ PrefabInstance:
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
       propertyPath: packSpeed
-      value: 30
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7213985576122438206, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
         type: 3}
@@ -1599,8 +1599,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 7
-    NumStackedVectorObservations: 25
+    VectorObservationSize: 901
+    NumStackedVectorObservations: 5
     m_ActionSpec:
       m_NumContinuousActions: 0
       BranchSizes: c20100009600000006000000
