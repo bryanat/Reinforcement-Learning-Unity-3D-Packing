@@ -83,8 +83,6 @@ public class BoxSpawner : MonoBehaviour
     }
     public void SetUpBoxes(string box_type , int seed=123) 
     {
-        // total_box_surface_area = 0;
-        // boxPool.Clear();
         Reset();
 
         // randomly generates boxes
@@ -102,11 +100,8 @@ public class BoxSpawner : MonoBehaviour
         else
         {
             // once sizes is populated, don't have to read from file again
-            // if (sizes[0].box_size.x==0)
-            // {
-                ReadJson($"{homeDir}/Unity/data/{box_type}.json", seed);
-                PadZeros();
-            //}
+            ReadJson($"{homeDir}/Unity/data/{box_type}.json", seed);
+            PadZeros();
         }
         // populate box pool
         var idx = 0;
@@ -164,7 +159,6 @@ public class BoxSpawner : MonoBehaviour
     {
         // Create a new object with the Items list
         List<Item> items = new List<Item>();
-        // Colors.Clear();
         UnityEngine.Random.InitState(seed);
         if (box_type == "uniform") 
         {
@@ -272,7 +266,6 @@ public class BoxSpawner : MonoBehaviour
     public void ReadJson(string filename, int seed) 
     {
         UnityEngine.Random.InitState(seed);
-        //idx_counter = 0;
         using (var inputStream = File.Open(filename, FileMode.Open)) {
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
             //var root = XElement.Load(jsonReader);
@@ -285,13 +278,19 @@ public class BoxSpawner : MonoBehaviour
                 float width = float.Parse(box.XPathSelectElement("./Width").Value);
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
                 int quantity = int.Parse(box.XPathSelectElement("./Quantity").Value);
-                Color randomColor = UnityEngine.Random.ColorHSV();
+                //Color randomColor = UnityEngine.Random.ColorHSV();
+                string htmlValue = box.XPathSelectElement("./Color").Value;
+                Color newCol;
                 //Debug.Log($"JSON BOX LENGTH {length} WIDTH {width} HEIGHT {height} QUANTITY {quantity}");
                 for (int n = 0; n<quantity; n++)
                 {
                     sizes[idx_counter].box_size = new Vector3(width, height, length);
                     // Set color of boxes (same id (same size) with same color)
-                    Colors.Add(randomColor);
+                    if (ColorUtility.TryParseHtmlString(htmlValue, out newCol))
+                    {
+                        Colors.Add(newCol);
+                    }               
+                    // Colors.Add(randomColor);
                     idx_counter++;
                 }   
             }

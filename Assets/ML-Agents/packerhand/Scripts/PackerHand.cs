@@ -80,6 +80,7 @@ public class PackerHand : Agent
     public float percent_filled_bin_volume;
     public float percent_contact_surface_area;
     public int boxes_packed;
+    public List<float> prev_back_placements;
 
 
 
@@ -130,6 +131,10 @@ public class PackerHand : Agent
         // Get bin info
         total_bin_volume = binSpawner.total_bin_volume;
         origin_counter = binSpawner.total_bin_num;
+        foreach (Vector4 origins in binSpawner.origins)
+        {
+            prev_back_placements.Add(origins.z);
+        }
         // initalize mesh scripts' agent
         foreach (CombineMesh script in binSpawner.m_BackMeshScripts)
         {
@@ -188,14 +193,6 @@ public class PackerHand : Agent
                 listVarObservation[boxSpawner.maxBoxQuantity +3] = box.boxBinScale.x;
                 listVarObservation[boxSpawner.maxBoxQuantity +4] = box.boxBinScale.y;
                 listVarObservation[boxSpawner.maxBoxQuantity +5] = box.boxBinScale.z;
-
-                // listVarObservation[boxSpawner.maxBoxQuantity +6] = box.boxSize.x*box.boxSize.y;
-                // listVarObservation[boxSpawner.maxBoxQuantity +7] = box.boxSize.y*box.boxSize.z;
-                // listVarObservation[boxSpawner.maxBoxQuantity +8] = box.boxSize.z*box.boxSize.x;
-
-                // listVarObservation[boxSpawner.maxBoxQuantity +9] = box.boxBinScale.x*box.boxBinScale.y;
-                // listVarObservation[boxSpawner.maxBoxQuantity +10] = box.boxBinScale.y*box.boxBinScale.z;
-                // listVarObservation[boxSpawner.maxBoxQuantity +11] = box.boxBinScale.z*box.boxBinScale.x;
                 
                 listVarObservation[boxSpawner.maxBoxQuantity +6] = box.boxSize.x* box.boxSize.y *box.boxSize.z;
                 // Add [box volume]/[bin volume] 
@@ -214,7 +211,6 @@ public class PackerHand : Agent
                 // Add [box surface area]/[bin surface area]
                 //listVarObservation[boxSpawner.maxBoxQuantity +13] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_box_surface_area);
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                //listVarObservation[boxSpawner.maxBoxQuantity+14] = 
                 listVarObservation[boxSpawner.maxBoxQuantity +14] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
             // add placed boxes to action ask
@@ -289,14 +285,14 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        if (runInference)
-        {
-            if (CompletedEpisodes==1)
-            {
-                binSpawner.ExportBins();
-                // stop mlagents-learn
-            }
-        }
+        // if (runInference)
+        // {
+        //     if (CompletedEpisodes==1)
+        //     {
+        //         binSpawner.ExportBins();
+        //         // stop mlagents-learn
+        //     }
+        // }
         // Debug.Log($"STEP COUNT {StepCount}");
         // if all boxes are packed
         if (maskedBoxIndices.Count == boxSpawner.maxBoxQuantity)
@@ -427,13 +423,14 @@ public class PackerHand : Agent
                     DropoffBox();
                     boxes_packed++;
                     if (useStabilityReward)
-                    {
-                        // //AddReward(boxes_packed + percent_contact_surface_area);    
-                        // AddReward(boxes_packed+percent_contact_surface_area);     
-                        // boxes packed + percent surface area contact - height variance
+                    {    
+                        // boxes packed + percent surface area contact - height variance - distance from previous back of bin
                         double height_avg = boxHeights.Average();
                         height_variance = (float) boxHeights.Average(v=>Math.Pow(v-height_avg,2));
-                        AddReward(boxes_packed + percent_contact_surface_area - height_variance);          
+                        float dist_from_back = selectedVertex.z-prev_back_placements[selectedBin];
+                        prev_back_placements[selectedBin] = selectedVertex.z;
+                        //Debug.Log($"DISTANCE FROM BACK {dist_from_back}");
+                        AddReward(boxes_packed + percent_contact_surface_area - height_variance - dist_from_back);          
                     }
 
                 }
@@ -500,7 +497,6 @@ public class PackerHand : Agent
             // Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
             // Add scaled tripoint_vertex to verticesArray
             verticesArray[VertexCount] = new Vector4(scaled_continuous_vertex.x, scaled_continuous_vertex.y, scaled_continuous_vertex.z, selectedBin);
-            //historicalVerticesLog.Add(rounded_vertex);
             VertexCount ++;
             //Debug.Log($"VERTEX COUNT IS {VertexCount}");
         }
@@ -832,7 +828,6 @@ public class PackerHand : Agent
         Destroy(targetBox.GetComponent<BoxCollider>());  
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
-        // find the bin that the box is put in
         for (int i=0; i< binSpawner.m_BackMeshScripts.Count; i++) {
             binSpawner.m_BackMeshScripts[i].isBoxPlaced = false;
             binSpawner.m_BottomMeshScripts[i].isBoxPlaced = false;
@@ -952,7 +947,15 @@ public class PackerHand : Agent
             // Reset vertices array
             Array.Clear(verticesArray, 0, verticesArray.Length);
 
+            // Reset box heights
             boxHeights.Clear();
+            
+            // Reset previous back placements
+            prev_back_placements.Clear();
+            foreach (Vector4 origins in binSpawner.origins)
+            {
+                prev_back_placements.Add(origins.z);
+            }
         }   
     
         // Reset states;
