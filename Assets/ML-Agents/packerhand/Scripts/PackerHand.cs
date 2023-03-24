@@ -289,14 +289,14 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        // if (runInference)
-        // {
-        //     if (CompletedEpisodes==1)
-        //     {
-        //         binSpawner.ExportBins();
-        //         // stop mlagents-learn
-        //     }
-        // }
+        if (runInference)
+        {
+            if (CompletedEpisodes==1)
+            {
+                binSpawner.ExportBins();
+                // stop mlagents-learn
+            }
+        }
         // Debug.Log($"STEP COUNT {StepCount}");
         // if all boxes are packed
         if (maskedBoxIndices.Count == boxSpawner.maxBoxQuantity)
