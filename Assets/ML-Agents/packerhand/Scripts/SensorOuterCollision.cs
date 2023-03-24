@@ -23,7 +23,7 @@ public class SensorOuterCollision : MonoBehaviour
             passedBoundCheck = false;
             //agent.AddReward(-1f);
             //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedBoundCheck: {passedBoundCheck}");
-            Debug.Log($"SCS {name} FAILED PROTRUSION TEST");
+            //Debug.Log($"SCS {name} FAILED PROTRUSION TEST");
         }  
     }  
 }

@@ -28,7 +28,7 @@ public class SensorOverlapCollision : MonoBehaviour
             passedOverlapCheck = false;
             //agent.AddReward(-1f);
             //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedOverlapCheck: {passedOverlapCheck}");
-            Debug.Log($"SCS {name} FAILED OVERLAP CHECK");
+            //Debug.Log($"SCS {name} FAILED OVERLAP CHECK");
             Destroy(gameObject);
         }         
     }  

@@ -10,71 +10,131 @@ using Unity.Barracuda;
 using Unity.MLAgentsExamples;
 using Unity.MLAgents.Policies;
 using Box = Boxes.Box;
-using Blackbox = Boxes.Blackbox;
 using Boxes;
 
 public class PackerHand : Agent 
 {
-    public int curriculum_ConfigurationGlobal;  // Depending on this value, different curriculum will be picked
-    int curriculum_ConfigurationLocal; // local reference of the above
-    public int packSpeed = 20;
-    public NNModel unitBoxBrain;   // Brain to use when all boxes are 1 by 1 by 1
-    public NNModel similarBoxBrain;     // Brain to use when boxes are of similar sizes
-    public NNModel regularBoxBrain;     // Brain to use when boxes size vary
+    // Miscellaneous environment parameters   
+    public int packSpeed=20;
+    public int seed=123;
 
-    string m_UnitBoxBehaviorName = "UnitBox"; // 
-    string m_SimilarBoxBehaviorName = "SimilarBox";
-    string m_RegularBoxBehaviorName = "RegularBox";
+    // Method switchers
+    public bool useCurriculum;
+    public bool useAttention; // use attention by default (default = true)
+    public bool useAttentionVertices; // use attention by default (default = true)
+    
+    public bool useDiscreteSolution;
+    public bool _useOneHotEncodingForAttention; 
+                            // _useOneHotEncodingForAttention means that we have a number of standard boxes (eg 50), each with unique attributes. For each training,
+                            // we would use only a subset of these boxes (eg 10). The rest of the boxes will be created but their sizes will be set to 
+                            // zero. This is done to ensure that the agent learns on boxes only in the training.
+                            // In other words, this implementation aims to create a "BOX VOCABULARY". This method is NOT COMPLETE yet as we have not yet
+                            // generated a standard box vocabulary.
+                            // Three points to caounter the use of this method:
+                            // 1. We don;t have a box vocabulary yet
+                            // 2. Even if we did, it is not really needed. The unique identifier of each box is its size which is already in the 
+                            //    observation stack. 
+                            // 3. OneHotEncoding drastically increases the size of the observation stack, making training far more difficult.
+    [SerializeField] private bool _isFirstLayerContinuous; // Used to pack the first layer of boxes onto the bottom of the bin
+
+    //  Reward switchers
+    public bool useSparseReward;      // Reward at the end of the episode: total volume ratio (total volume of the boxes / volume of the bin)
+    public bool usePenaltyReward;     // Penalty for every box misplaced and/or violating environemnt constraints
+    public bool useDenseReward;       // Reward for every box placed: volume ratio (volume of the box / volume of the bin)
+    public bool useSurfaceAreaReward; // Reward for every box placed: surface area ratio (area of the box / area of the bin)
+    public bool useCombinedReward;    // Reward for every box placed: combines the area & volume rewards (surface area ratio & volume ratio)
+    public bool useDistanceReward;    // Reward for every box placed: distance ratio (distance between the box and the bin / distance between the agent and the bin)
+    public bool useBoxReset;          // Reset the box to its original position when it is misplaced (failed physics check)
+
+    // Filters for lLocal features
+    private bool useVerticesArray{ get{ return useDiscreteSolution;}}   // Padded container of all vertices generated from TriMesh
+    private bool useContinuousSolution{ get{ return !useDiscreteSolution;}}
+    private bool isFirstLayerContinuous{    // Used to pack the first layer of boxes onto the bottom of the bin; only possible when useContinuousSolution is True
+        get{if (useContinuousSolution) return _isFirstLayerContinuous; else return false;}
+        set{}}
+    // Using OneHotEncoding in Attention entities; padding not required unless Curriculum learning is applied AND the same boxes are re-used
+    private bool useOneHotEncoding{ get{ return (useAttention && _useOneHotEncodingForAttention);}}  
+    private bool usePadding{                    // Padding is used when activating Curriculum Learning (with varying number of boxes between lessons).
+        get{                                    // Padding does not require one-hot encoding. That would only be useful when the same boxes are re-used in the next
+            if (useCurriculum) return true;     //   next Curriculum lesson. Otherwise, using OneHotEncoding just mixes up the identities of the boxes from the  
+            else return false;                  //   previous lesson with the boxes from the new lesson.
+        }                                       // When padding is used, take care to set the padding value to the maximum number of boxes out of all curriculum lessons.
+    }                                           // Also take care to pass that value to the available observations and actions, incl. the attention-related observations.
+    private int curriculum_ConfigurationGlobal{
+        get {
+            if (useCurriculum)
+                if (useDiscreteSolution) return 0;
+                else if (useContinuousSolution) return 2;
+                else return -1;
+            else return -1;
+        }
+        set {}
+    }
+    private int curriculum_ConfigurationLocal=-1; // used as temporary variable to store the curriculum configuration value
+
+
+    private BufferSensorComponent m_BufferSensor;
+    StatsRecorder m_statsRecorder; // adds stats to tensorboard
+
+    public NNModel brain;
+    private string m_BehaviorName{
+        get{
+            if (useDiscreteSolution) return "Discrete";
+            else if (useContinuousSolution) return "Continuous";
+            else return null;}
+        set{}
+    } 
+
     EnvironmentParameters m_ResetParams; // Environment parameters
     [HideInInspector] Rigidbody m_Agent; //cache agent rigidbody on initilization
     [HideInInspector] CombineMesh m_BackMeshScript;
     [HideInInspector] CombineMesh m_SideMeshScript;
     [HideInInspector] CombineMesh m_BottomMeshScript;
 
-    [HideInInspector] public Vector3 initialAgentPosition;
-    [HideInInspector] public Transform targetBox; // target box selected by agent
-    [HideInInspector] public Transform targetBin; // phantom target bin object where the box will be placed
+    private Vector3 initialAgentPosition;
+    private Transform targetBox; // Box selected (by agent) to be placed in the bin
+    private Transform targetBin; // Phantom target bin object where the box will be placed
 
-    public int selectedBoxIdx; // Box selected 
-    public Vector3 selectedRotation; // selectedRotation selected
-    public Vector3 selectedVertex; // Vertex selected
-    public Vector3 [] verticesArray; // space: 2n + 1 Vector3 vertices where n = num boxes
-    public Vector3 [] continuousVerticesArray;
-    [HideInInspector] public int selectedVertexIdx = -1; 
-    [HideInInspector] private List<Box> boxPool; // space: num boxes
+    [HideInInspector] public int selectedBoxIdx; // Box selected 
+    private Vector3 selectedRotation; // selectedRotation selected
+    [HideInInspector] public Vector3 selectedVertex; // Vertex selected
+    [HideInInspector] public Vector3 [] verticesArray; // (2*num_boxes + 1) vertices, each vertex a Vextor3 vector: total size = (2*num_boxes + 1)*3
+    private int selectedVertexIdx = -1; 
+    [HideInInspector] public List<Box> boxPool; // space: num boxes
     [HideInInspector] private List<int> maskedVertexIndices;
-    [HideInInspector] public List<int> maskedBoxIndices; // list of organzed box indices
+    [HideInInspector] public List<int> maskedBoxIndices; // list of organized box indices
     [HideInInspector] public List<Vector3> historicalVerticesLog;
     [HideInInspector] public int VertexCount = 0;
     [HideInInspector] public Vector3 boxWorldScale;
+    private int maxBoxNum;
    // [HideInInspector] public List<Blackbox> blackboxPool  = new List<Blackbox>();
 
     //public Dictionary<Vector3, int > allVerticesDictionary = new Dictionary<Vector3, int>();
     // [HideInInspector] public List<Vector3> backMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
     // [HideInInspector] public List<Vector3> sideMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
     // [HideInInspector] public List<Vector3> bottomMeshVertices = new List<Vector3>(); // space: 7n + 4 Vector3 vertices where n = num boxes
-    [HideInInspector] public float total_x_distance; //total x distance between agent and target
-    [HideInInspector] public float total_y_distance; //total y distance between agent and target
-    [HideInInspector] public float total_z_distance; //total z distance between agent and target
+    private float total_x_distance; //total x distance between agent and target
+    private float total_y_distance; //total y distance between agent and target
+    private float total_z_distance; //total z distance between agent and target
     
     public BoxSpawner boxSpawner; // Box Spawner
     [HideInInspector] public SensorCollision sensorCollision;
     [HideInInspector] public SensorOuterCollision sensorOuterCollision;
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision;
 
-    //public bool isdiscreteSolution = false;
-    [HideInInspector] public bool isEpisodeStart;
-    [HideInInspector] public bool isAfterOriginVertexSelected;
+    private bool initializeBrain = true;
+    private bool isEpisodeStart;
+    private bool isAfterOriginVertexSelected;
     //[HideInInspector] public bool isBlackboxUpdated;
     // public bool isVertexSelected;
-    public bool isBoxSelected;
-    public bool isRotationSelected;
-    public bool isPickedup;
-    public bool isDroppedoff;
-    public bool isStateReset;
-    public bool isBottomMeshCombined;
-    public bool isSideMeshCombined;
-    public bool isBackMeshCombined;
+    private bool isBoxSelected;
+    private bool isRotationSelected;
+    private bool isPickedup;
+    private bool isDroppedoff;
+    private bool isStateReset;
+    [HideInInspector] public bool isBottomMeshCombined;
+    [HideInInspector] public bool isSideMeshCombined;
+    [HideInInspector] public bool isBackMeshCombined;
     public GameObject binArea; // The bin container, which will be manually selected in the Inspector
     public GameObject binBottom;
     public GameObject binBack;
@@ -82,19 +142,31 @@ public class PackerHand : Agent
     public GameObject outerbinfront;
     public Material clearPlastic;
 
-    public float total_bin_volume; // regular bin's volume
-    public Bounds areaBounds; // regular bin's bounds
-    public float current_bin_volume;
-    public float percent_filled_bin_volume;
-    public float box_surface_area;
-    public float percent_contact_surface_area;
+    public GameObject Origin;
+
+    private float total_bin_volume; // regular bin's volume
+    private float total_bin_area; // regular bin's area
+    private Bounds areaBounds; // regular bin's bounds
+    private int boxes_packed = 0;
+    private float current_empty_bin_volume;
+    private float percent_filled_bin_volume;
+    private float box_volume;
     [HideInInspector] public float binscale_x;
     [HideInInspector] public float binscale_y;
     [HideInInspector] public float binscale_z;
     [HideInInspector] public Vector3 origin;
-
-    public bool useAttention=false;
-    BufferSensorComponent m_BufferSensor;
+    private int num_boxes_x;
+    private int num_boxes_y;
+    private int num_boxes_z;
+    private int observable_size=8; // The observable size of an entity used in the attention mechanism
+    private int max_observable_size; // The maximum possible observable size of an entity used in the attention mechanism
+                                     // Default        : observable_size
+                                     // OneHotEncoding : observable_size + number of boxes in current lesson
+                                     // Padding        : observable_size + maximum number of boxes in all lessons
+    // private BehaviorParameters m_BehaviorParameters;
+    private double totalPossibleContanArea;
+    private int boxes_in_lesson;
+    private bool takeDecision;
 
 
 
@@ -103,14 +175,19 @@ public class PackerHand : Agent
     {   
         Academy.Instance.AutomaticSteppingEnabled = false;
 
-        curriculum_ConfigurationLocal = curriculum_ConfigurationGlobal; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
-        
-        // initialize agent position
-        initialAgentPosition = this.transform.position;
+        if (useCurriculum){
+            curriculum_ConfigurationLocal = curriculum_ConfigurationGlobal; // local copy of curriculum configuration number, global will change to -1 but need original copy for state management
+        }
+
+        // initialize stats recorder to add stats to tensorboard
+        m_statsRecorder = Academy.Instance.StatsRecorder;
 
         // Cache the agent rigidbody
         m_Agent = GetComponent<Rigidbody>();
-        
+
+        initialAgentPosition = m_Agent.position;
+        //Debug.Log($"INITIAL AGENT POSITION {initialAgentPosition}");
+
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
@@ -122,18 +199,12 @@ public class PackerHand : Agent
         m_SideMeshScript.agent = this;
         m_BackMeshScript.agent = this;
 
-        // Update model references if we're overriding
+        // Update model references if we're overriding by adding a pre-trained brain
         var modelOverrider = GetComponent<ModelOverrider>();
         if (modelOverrider.HasOverrides)
         {
-            unitBoxBrain = modelOverrider.GetModelForBehaviorName(m_UnitBoxBehaviorName);
-            m_UnitBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_UnitBoxBehaviorName);
-
-            similarBoxBrain = modelOverrider.GetModelForBehaviorName(m_SimilarBoxBehaviorName);
-            m_SimilarBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_SimilarBoxBehaviorName);
-
-            regularBoxBrain = modelOverrider.GetModelForBehaviorName(m_RegularBoxBehaviorName);
-            m_RegularBoxBehaviorName = ModelOverrider.GetOverrideBehaviorName(m_RegularBoxBehaviorName);
+            brain = modelOverrider.GetModelForBehaviorName(m_BehaviorName);
+            m_BehaviorName = ModelOverrider.GetOverrideBehaviorName(m_BehaviorName);
         }
 
         // Make agent unaffected by collision
@@ -147,149 +218,225 @@ public class PackerHand : Agent
         {
             areaBounds.Encapsulate(renderers[i].bounds);
         }
-        Debug.Log($"BIN BOUNDS: {areaBounds}");
+        //Debug.Log($"BIN BOUNDS: {areaBounds}");
         // Get total bin volume 
         total_bin_volume = areaBounds.extents.x*2 * areaBounds.extents.y*2 * areaBounds.extents.z*2;
-        Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
+        total_bin_area   = 4 * areaBounds.extents.x * areaBounds.extents.y + 4 * areaBounds.extents.x * areaBounds.extents.z + 4 * areaBounds.extents.y * areaBounds.extents.z;
+        //Debug.Log($" TOTAL BIN VOLUME: {total_bin_volume}");
 
         // Get scale of bin
-        binscale_x = areaBounds.extents.x*2;
-        binscale_y = areaBounds.extents.y*2;
-        binscale_z = areaBounds.extents.z*2;
-        origin = new Vector3(8.25f, 0.50f, 10.50f);
-        Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
+        binscale_x = 2 * areaBounds.extents.x;
+        binscale_y = 2 * areaBounds.extents.y;
+        binscale_z = 2 * areaBounds.extents.z;
+        //origin = new Vector3(8.25f, 0.50f, 10.50f);
+        origin = Origin.transform.position;
+        //Debug.Log($"XYZ bin scale | x:{binscale_x} y:{binscale_y} z:{binscale_z}");
 
         // initialize local reference of box pool
-        boxPool = BoxSpawner.boxPool;
+        boxPool = boxSpawner.boxPool;
 
-        if (useAttention){
-            m_BufferSensor = GetComponent<BufferSensorComponent>();
+        // Maximum possible number of boxes defined in a curriculum
+        if (useCurriculum){
+            // Use Curriculum; padding is applied
+            maxBoxNum = boxSpawner.maxBoxQuantity;
+        }
+        else{
+            // No curriculum; one set of boxes; no need for padding
+            int box_counter = 0;
+            foreach(BoxSize b in boxSpawner.sizes) box_counter += 1;
+            maxBoxNum = box_counter;
+            // No curriculum; boxes generated randomly according to user-specified divisions along each dimension
+            if (boxSpawner.useRandomGenerator){
+                num_boxes_x = boxSpawner.num_boxes.x;
+                num_boxes_y = boxSpawner.num_boxes.y;
+                num_boxes_z = boxSpawner.num_boxes.z;
+            }  
         }
 
         isEpisodeStart = true;
+
+        // Initialize BufferSensor
+        if (useAttention){
+            m_BufferSensor = GetComponent<BufferSensorComponent>();
+
+            // Set (in the Inspector) the maximum number of observables entities that the BufferSensor can observe
+            m_BufferSensor.MaxNumObservables = maxBoxNum;
+
+            // Set (in the Inspector) the size of each observable entity
+            if (useOneHotEncoding) max_observable_size = maxBoxNum + observable_size;
+            else                   max_observable_size = observable_size;
+            m_BufferSensor.ObservableSize = max_observable_size;
+        }
+        else if (useAttentionVertices) {
+            m_BufferSensor = GetComponent<BufferSensorComponent>();
+            m_BufferSensor.MaxNumObservables = 3*maxBoxNum;
+            m_BufferSensor.ObservableSize    = 3;
+        }
+        else DestroyImmediate(m_Agent.GetComponent<BufferSensorComponent>());
+
+        if (useVerticesArray) verticesArray = new Vector3[3*maxBoxNum]; // the 3x multiplication is to make sure enough space is allocated for the vertices of the bin
+        else                  verticesArray = new Vector3[0];
+
+        takeDecision = false;
+
+        if (!useCurriculum) boxes_in_lesson = maxBoxNum;
+
+        Debug.Log("INITIALIZE ENDS");
     }
 
 
     public override void OnEpisodeBegin()
     {   
         Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
-
-        // Reset agent and rewards
-        SetResetParameters();
-
-        // Set up boxes
-        boxSpawner.SetUpBoxes();
-
-        if (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
-        {
-
-            selectedVertex = origin; // refactor to select first vertex
-            // isVertexSelected = true;
-        }        
     }
 
 
     /// <summary>
     /// Agent adds environment observations 
     /// </summary>
+
     public override void CollectObservations(VectorSensor sensor) 
     {
+        Debug.Log("OBSERVATION");
         // Add updated bin volume
-        sensor.AddObservation(current_bin_volume);
+        sensor.AddObservation(current_empty_bin_volume / total_bin_volume);
 
-        int j = 0;
+        int j = -1;
         maskedBoxIndices = new List<int>();
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
         {   
-            // Add updated box rotation
-            sensor.AddObservation(box.boxRot);
-            //Debug.Log($"XYY BOX ROTATION IS: {box.boxRot}");
-            
-            Vector3 scaled_continuous_boxsize = new Vector3((box.boxSize.x/binscale_x), (box.boxSize.y/binscale_y), (box.boxSize.z/binscale_z));
+            // Add normalized box size
+            float boxSize_norm_x = box.boxSize.x / binscale_x;
+            float boxSize_norm_y = box.boxSize.y / binscale_y;
+            float boxSize_norm_z = box.boxSize.z / binscale_z;
 
-            // Used for variable size observations
-            float[] listVarObservation = new float[4];
-            if (useAttention){
-                //Debug.Log($"XYW SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
-                // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                listVarObservation[0] = scaled_continuous_boxsize.x;
-                listVarObservation[1] = scaled_continuous_boxsize.y;
-                listVarObservation[2] = scaled_continuous_boxsize.z;
+            // Box index; update it here due to the "continue" statement below
+            j++;
 
-                // Add updated [volume]/[w*h*l] added to state vector
-                listVarObservation[3] = (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z);
+            // Add boxes to action mask. These boxes will be exempted from the next action/decision of the agent
+            if (box.isOrganized){           
+                // Already placed boxes are exempted from action but included in observation so that the agent "knows" about the 
+                // positions of the boxes inside the bin
+                maskedBoxIndices.Add(j);
+            }
+            else if (box.boxSize == Vector3.zero){
+                // Mask zero boxes that may end up here; normally shouldn't happen
+                maskedBoxIndices.Add(j);
+                continue;
             }
             else{
-                //Debug.Log($"XYW SCALED BOXSIZE IS : {scaled_continuous_boxsize}");
-                // Add updated box [x,y,z]/[w,h,l] dimensions added to state vector
-                sensor.AddObservation(scaled_continuous_boxsize);
-                // Add updated [volume]/[w*h*l] added to state vector
-                sensor.AddObservation( (box.boxSize.x/binscale_x)*(box.boxSize.y/binscale_y)*(box.boxSize.z/binscale_z) );
-                // sensor.AddObservation(box.boxSize); //add box size to sensor observations
-                sensor.AddObservation(continuousVerticesArray[int.Parse(box.rb.name)]);
+                box.boxVertex = new Vector3(-1f,-1f,-1f);
             }
-            
-            if (box.isOrganized)
-            {
-                maskedBoxIndices.Add(j);
-                Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
-            }
-            else if (useAttention){
+
+            if (useAttention){
+                int idx_cntr = 0;
+                float[] listVarObservation = new float[max_observable_size];
+
+                if (useOneHotEncoding){
+                    // Used for variable size observations
+                    int boxNum = int.Parse(box.rb.name);
+                    // The first boxPool.Count are one hot encoding of the box
+                    listVarObservation[boxNum] = 1.0f;
+                    // Counter for remaining observations
+                    idx_cntr = maxBoxNum;
+                }
+
+                // Add normalized size of packed box to the variable state vector
+                listVarObservation[idx_cntr]    = boxSize_norm_x;
+                listVarObservation[idx_cntr +1] = boxSize_norm_y;
+                listVarObservation[idx_cntr +2] = boxSize_norm_z;
+
+                // Add position of already packed box inside the bin
+                listVarObservation[idx_cntr +4] = box.boxVertex.x;
+                listVarObservation[idx_cntr +5] = box.boxVertex.y;
+                listVarObservation[idx_cntr +6] = box.boxVertex.z;
+                
+                // Add if box is placed already: 1 if placed already and 0 otherwise
+                listVarObservation[idx_cntr +7] = box.isOrganized ? 1.0f : 0.0f;;
+
                 m_BufferSensor.AppendObservation(listVarObservation);
             }
-            j++;
+            else{      
+
+                // Add 0s to the fixed observation vector (for the already packed boxes)
+                sensor.AddObservation(new Vector3(boxSize_norm_x, 
+                                                  boxSize_norm_y, 
+                                                  boxSize_norm_z ));
+                sensor.AddObservation(new Vector3(box.boxVertex.x, 
+                                                  box.boxVertex.y, 
+                                                  box.boxVertex.z ));
+            }
+
+            // Size of standard vector observation space
+            //      with    attention: s_standard = 1
+            //      without attention: s_standard = 1 + 6 * MaxNumBoxes
         }
 
         // Add array of vertices (selected vertices are 0s)
-        int i = 0;
-        maskedVertexIndices = new List<int>();
-        foreach (Vector3 vertex in verticesArray) 
-        {   
-            Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
-            //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
-            sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
-            // sensor.AddObservation(vertex); //add vertices to sensor observations
-            // verticesArray is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
-            if (vertex == Vector3.zero)
-            {
-                //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
-                maskedVertexIndices.Add(i);
+        if (useVerticesArray)
+        {
+            maskedVertexIndices = new List<int>();
+            
+            int i = 0;
+            foreach (Vector3 vertex in verticesArray) 
+            {   
+                // vertices array is still getting fed vertex: (0, 0, 0) which is scaled_continuous_vertex: (-0.35, -0.02, -0.18)
+                if (vertex == Vector3.zero)
+                {
+                    //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
+                    maskedVertexIndices.Add(i);
+                }
+                else
+                {
+                //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
+                Vector3 scaled_continuous_vertex = new Vector3(((vertex.x - origin.x)/binscale_x), ((vertex.y - origin.y)/binscale_y), ((vertex.z - origin.z)/binscale_z));
+
+                if (useAttentionVertices){
+                    float[] listVarObservation = new float[3];
+                    listVarObservation[0] = scaled_continuous_vertex.x;
+                    listVarObservation[1] = scaled_continuous_vertex.y;
+                    listVarObservation[2] = scaled_continuous_vertex.z;
+                    m_BufferSensor.AppendObservation(listVarObservation);
+                }
+                else sensor.AddObservation(scaled_continuous_vertex); //add vertices to sensor observations
+                }
+
+                i++;
             }
-            i++;
+
+            // Size of observation space for vertices: s_vert = 3 * verticesArray.Length
+            //                                                = 3 * 2*maxBoxNum+1
+            // To allocate enough space we increase (2*maxBoxNum+1) to (3*maxBoxNum)
+            // Thus, in total: s_vert = 9*maxBoxNum
         }
-        
 
-
-        // // array of blackboxes 
-        // foreach (Blackbox blackbox in blackboxPool)
-        // {
-        //     // float[][] blackbox_observation = new float[][]{};
-        //     // blackbox_observation = new float[][] {
-        //     //     new float[] {blackbox.size.x, blackbox.size.y, blackbox.size.z},
-        //     //     new float[] {blackbox.vertex.x, blackbox.vertex.y, blackbox.vertex.z},
-        //     // };
-        //     sensor.AddObservation(blackbox.size);
-        //     sensor.AddObservation(blackbox.vertex);
-        // }
-        // sensor.AddObservation(blackboxesArray); //add vertices to sensor observations
+        // Inspector --> Hand --> Behavior parameters --> Vector Observation --> Space size:
+        //          continuous solution: s_total = s_standard          
+        //          discrete solution:   s_total = s_standard + s_vert 
     }
 
 
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
+        Debug.Log("MASK");
+
         // vertices action mask
-        if (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+        if (useDiscreteSolution)
         {
             if (isAfterOriginVertexSelected) {
-                foreach (int vertexIdx in maskedVertexIndices) 
-                {
-                    //Debug.Log($"MASK VERTEX {vertexIdx}");
-                    actionMask.SetActionEnabled(0, vertexIdx, false);
+                if (useVerticesArray){
+                    // Debug.Log($"MASK VERTEX ARRAY size: {maskedVertexIndices.Count}");
+                    foreach (int vertexIdx in maskedVertexIndices) 
+                    {
+                        //Debug.Log($"MASK VERTEX {vertexIdx}");
+                        actionMask.SetActionEnabled(0, vertexIdx, false);
+                    }
                 }
             }
         }
         // box action mask
+        Debug.Log($"MASK BOX ARRAY size: {maskedBoxIndices.Count}");
         foreach (int selectedBoxIdx in maskedBoxIndices)
         {
             //Debug.Log($"MASK BOX {selectedBoxIdx}");
@@ -300,65 +447,119 @@ public class PackerHand : Agent
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
+        Debug.Log("ACTION");
         var j = -1;
-        var i = -1;
 
-        var discreteActions = actionBuffers.DiscreteActions;
+        var discreteActions   = actionBuffers.DiscreteActions;
         var continuousActions = actionBuffers.ContinuousActions;
 
-        // Debug.Log($"ON ACTION RECEIVED ACTION ZERO: {discreteActions[0]}");
-        // Debug.Log($"ON ACTION RECEIVED ACTION ONE: {discreteActions[1]}");
-        // Debug.Log($"ON ACTION RECEIVED ACTION TWO: {discreteActions[2]}");
-        SelectVertex(discreteActions[++j], continuousActions[++i], continuousActions[++i], continuousActions[++i]);      
-        //SelectContinuousVertex(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        if (useDiscreteSolution){
+            // activate for discrete solution + adjust in Inspector by adding 1 more discrete branch
+            SelectVertexDiscrete(discreteActions[++j]);
+        }
+        else if (useContinuousSolution){
+            // activate for continuous solution
+            var i = -1;
+            SelectVertexContinuous(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
+        }
+
         SelectBox(discreteActions[++j]); 
+
         SelectRotation(discreteActions[++j]);
     }
 
 
     /// <summary>
     /// This function is called at every time step
-    ///</summary>
+    /// <summary>
     void FixedUpdate() 
     {
-        if (maskedBoxIndices.Count == boxPool.Count)
+        // All boxes packed? Reset episode
+        if (boxPool.Count!=0 && ( boxes_packed == boxPool.Count || boxes_packed == maxBoxNum || boxes_packed == boxes_in_lesson) && takeDecision)
         {
-            EndEpisode();
-            isEpisodeStart = true;
-            Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER ALL BOXES PACKED");
+            Debug.Log("All boxes packed!");
+            
+            initiateNewEpisode();
         }
-        // if reaches max step or packed all boxes, reset episode 
-        if (StepCount >= MaxStep) 
+
+        // If reaches max step, reset episode 
+        if (StepCount >= MaxStep && takeDecision) 
         {
-            Debug.Log("TEBS MAX NO. OF STEPS EXCEEDED ");
-            EndEpisode();
-            isEpisodeStart = true;
-            Debug.Log($"EPISODE {CompletedEpisodes}  START TRUE AFTER MAXIMUM STEP");
+            Debug.Log("Max step reached!");
+
+            if (usePenaltyReward) AddReward(-10f);
+            initiateNewEpisode();
         }
-        // Initialize curriculum and brain
-        if (curriculum_ConfigurationGlobal != -1)
-        {
-            ConfigureAgent(curriculum_ConfigurationGlobal);
-            curriculum_ConfigurationGlobal = -1;
-        }
-        // start of episode
+
+        // Start of episode
         if (isEpisodeStart)
         {
+            Debug.Log("Reset new episode!");
+            
             isEpisodeStart = false;
-            // REQUEST DECISION FOR FIRST ROUND OF PICKING
-            if (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+
+            // Reset agent and rewards
+            SetResetParameters();
+            // Reset states;
+            StateReset();
+            // Reset agent
+            AgentReset();
+
+            // Initialize curriculum & brain and generate boxes
+            initializeBrain = true;
+            if (useCurriculum)
+            {
+                if (curriculum_ConfigurationGlobal != -1)
+                {
+                    ConfigureAgent(curriculum_ConfigurationGlobal);
+                    curriculum_ConfigurationGlobal = -1;
+                    initializeBrain = false;
+                }
+            }
+            else
+            {
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 0, 0, 0, seed, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 2, 2, 2, seed, usePadding);
+                boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, num_boxes_x, num_boxes_y, num_boxes_z, seed, usePadding);
+                boxes_in_lesson = num_boxes_x + num_boxes_y + num_boxes_z;
+                Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+
+                float bps=0f;
+                for (int i = 0; i < boxPool.Count; i++)
+                {
+                    Vector3 bsize = boxPool[i].boxSize;
+                    bps = bps + bsize.x * bsize.y * bsize.z;
+                }
+                Debug.Log($"BXS BOX POOL SIZE: {bps / 33141f} % of bin");
+
+                initializeBrain = false;
+            }
+
+            // For padding, make sure that the newly generated amount of boxes is not greater than the maxBoxNum memory allocated
+            if (usePadding && maxBoxNum < boxPool.Count)
+            {
+                Debug.Log($" Increase maxBoxNum from {maxBoxNum} to {boxPool.Count} to fit all padded boxes in the bin");
+                return;
+            }
+
+            if (useDiscreteSolution)
             { 
+                selectedVertex = origin;
                 isAfterOriginVertexSelected = false;
             }
-            //Debug.Log("BEFORE INITIAL ENVIRONEMTN STEP IN FIRST ROUND");   
-            GetComponent<Agent>().RequestDecision();
-            //Debug.Log("BEFORE ENVIRONEMTN STEP IN FIRST ROUND");    
+
+            //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
+            GetComponent<Agent>().RequestDecision(); 
             Academy.Instance.EnvironmentStep();
-            //Debug.Log("AFTER ENVIRONMENT STEP IN FIRST ROUND");
+
+            takeDecision = false;
         }
-        // if meshes are combined, reset states, update vertices and black box, and go for next round of box selection 
+
+        // if meshes are combined, reset states and go for next round of box selection 
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
         {
+            Debug.Log("Meshes combined!");
+
             // If a mesh didn't combine, force combine
             if (isBackMeshCombined==false)
             {
@@ -375,46 +576,71 @@ public class PackerHand : Agent
 
             StateReset();
 
-            if (curriculum_ConfigurationLocal == 1  && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
+            if (useDiscreteSolution)
             {
+                Debug.Log("Update vertices array");
+
                 isAfterOriginVertexSelected = true;
-                // vertices array of tripoints doesn't depend on the trimesh
-                // only update vertices list and vertices array when box is placed
+                // Vertices array of tripoints don't depend on the trimesh; Only update vertices list and vertices array when box is placed
                 UpdateVerticesArray();
             }
 
-            // side, back, and bottom vertices lists depends on the trimesh
-            // should be commented out if not using blackbox for better performance
-            //UpdateVerticesList();
-            // both vertices array and vertices list are used to find black boxes
-            //UpdateBlackBox();
+            Debug.Log("Add new vertices to vertices array");
 
-            if (curriculum_ConfigurationLocal != 1 | Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) != 0.0f)
-            {
-                // Add surface area reward
-                box_surface_area = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
-                percent_contact_surface_area = sensorCollision.totalContactSA/box_surface_area;
+
+            float box_surface_area    = 2*boxWorldScale.x*boxWorldScale.y + 2*boxWorldScale.y * boxWorldScale.z + 2*boxWorldScale.x *  boxWorldScale.z;
+            box_volume                = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
+            Debug.Log($"BXS boxWorldScale.x: {boxWorldScale.x} | boxWorldScale.y: {boxWorldScale.y} | boxWorldScale.z: {boxWorldScale.z}");
+            current_empty_bin_volume  = current_empty_bin_volume - box_volume;
+            percent_filled_bin_volume = (1 - (current_empty_bin_volume/total_bin_volume)) * 100;
+
+            // Add surface area reward
+            if (useSurfaceAreaReward){
+                float percent_contact_surface_area = sensorCollision.totalContactSA / box_surface_area;
                 AddReward(percent_contact_surface_area * 50f);
-                Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
+                // Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_contact_surface_area * 50f} reward from surface area");
             }
 
+            // Add combined area-volume reward
+            if (useCombinedReward)
+            {
+                // float percent_filled_bin_combined = sensorCollision.totalContactSA * box_volume / ( total_bin_area * total_bin_volume );
+                float percent_filled_bin_combined = (2 * sensorCollision.totalContactSA/box_surface_area) * ( box_volume/total_bin_volume );
+                AddReward(percent_filled_bin_combined * 1000f);
+                // Debug.Log($"RWDsa {GetCumulativeReward()} total reward | {percent_filled_bin_combined * 1000f} reward from surface area");
+
+                // Increment stats recorder to match reward
+                m_statsRecorder.Add("% Bin Volume & Area Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
+            }
+            
             // Add volume reward
-            current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
-            percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
-            AddReward(((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f);
-            Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{((boxWorldScale.x * boxWorldScale.y * boxWorldScale.z)/total_bin_volume) * 1000f} reward | current_bin_volume: {current_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
-        
-           // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+            if (useDenseReward)
+            {
+                AddReward((box_volume/total_bin_volume) * 100f);
+                // Debug.Log($"RWDx {GetCumulativeReward()} total reward | +{(box_volume/total_bin_volume) * 1000f} reward | current_empty_bin_volume: {current_empty_bin_volume} | percent bin filled: {percent_filled_bin_volume}%");
+
+                // Increment stats recorder to match reward
+                m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
+            }
+
+            takeDecision = true;
+        }
+        else if (takeDecision){
+            Debug.Log("Request decision for next box");
             GetComponent<Agent>().RequestDecision();
             Academy.Instance.EnvironmentStep();
+
+            takeDecision = false;
         }
 
-        // if agent selects a box, it should move towards the box
+        // If agent selects a box, it should move towards the box
         else if (isBoxSelected && isPickedup == false) 
         {
+            // Agent moves to position of the box
             UpdateAgentPosition(targetBox);
             if ( Math.Abs(total_x_distance) < 0.1f && Math.Abs(total_z_distance) < 0.1f ) 
             {
+                Debug.Log("Box picked up!");
                 PickupBox();
             }
         }
@@ -422,34 +648,74 @@ public class PackerHand : Agent
         //if agent is carrying a box it should move towards the selected position
         else if (isPickedup && isRotationSelected && isDroppedoff == false) 
         {
+
             UpdateBoxPosition();
+            // Agent moves (with the box) to selected position inside the bin
             UpdateAgentPosition(targetBin);
+
             UpdateTargetBox();
             //if agent is close enough to the position, it should drop off the box
             if ( Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f ) 
             {
+                // if (sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 if (sensorCollision.passedGravityCheck && sensorOuterCollision.passedBoundCheck && sensorOverlapCollision.passedOverlapCheck)
                 {
                     DropoffBox();
+                    boxes_packed++;
+                 
+                    Debug.Log("Box dropped off!");
                 }
                 else
                 {
-                    //BoxReset("failedPhysicsCheck");
-                    AddReward(-100f);
-                    EndEpisode();
-                    isEpisodeStart = true;
-                    Debug.Log($"EPISODE {CompletedEpisodes} START TRUE AFTER FAILING PHYSICS TEST");
+                    Debug.Log("Box dropped off in wrong position! Failed physics checks!");
+
+                    if (useBoxReset){
+                        // Penalize agent for dropping box in wrong position
+                        if (usePenaltyReward) AddReward(-1f);
+                        // {
+                        //     box_volume = boxWorldScale.x * boxWorldScale.y * boxWorldScale.z;
+                        //     AddReward(box_volume / total_bin_volume);
+                        // }
+
+                        // Reset selected box
+                        BoxReset();
+
+                        // reset states
+                        StateReset();
+
+                        // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
+                        GetComponent<Agent>().RequestDecision();
+                        Academy.Instance.EnvironmentStep();
+                    }
+                    else{ 
+                        if (usePenaltyReward) AddReward(-10f);
+                        initiateNewEpisode();
+                    }
                 }
             }
         }
 
-        //if agent drops off the box, it should pick another one
-        // else if (isBoxSelected==false) 
-        // {
-        //     AgentReset();
-        // }
-
         else { return;}
+    }
+
+    public void initiateNewEpisode(){
+        // Reset curriculum brain & box generation, end episode, reset flag for new episode
+        
+        Debug.Log($"Initiating new episode");
+
+        if (useSparseReward){
+            if (current_empty_bin_volume / total_bin_volume < 0.15f) AddReward(10000f); 
+            if (current_empty_bin_volume / total_bin_volume < 0.10f) AddReward(10000f);
+            if (current_empty_bin_volume / total_bin_volume < 0.05f) AddReward(10000f);
+        }
+
+        Debug.Log($"current_empty_bin_volume: {current_empty_bin_volume} | total_bin_volume: {total_bin_volume} | percent_filled_bin_volume: {percent_filled_bin_volume}%");
+        Debug.Log($"boxes_packed: {boxes_packed}");
+
+        if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
+        isEpisodeStart = true;
+
+        EndEpisode();
     }
     
 
@@ -458,16 +724,17 @@ public class PackerHand : Agent
     ///</summary>
     void UpdateAgentPosition(Transform target) 
     {
-        total_x_distance = target.position.x-this.transform.position.x;
-        total_y_distance = target.position.y-this.transform.position.y;
-        total_z_distance = target.position.z-this.transform.position.z;
-        var current_agent_x = this.transform.position.x;
-        var current_agent_y = this.transform.position.y;
-        var current_agent_z = this.transform.position.z;
-        // this.transform.position = new Vector3(current_agent_x + total_x_distance/100, 
-        // current_agent_y/100, current_agent_z+total_z_distance/100);    
+        // Move agent towards the target position with specified PackSpeed
+        total_x_distance = target.position.x- m_Agent.position.x;
+        total_y_distance = target.position.y- m_Agent.position.y;
+        total_z_distance = target.position.z- m_Agent.position.z;
+        var current_agent_x = m_Agent.position.x;
+        var current_agent_y = m_Agent.position.y;
+        var current_agent_z = m_Agent.position.z;   
         this.transform.position = new Vector3(current_agent_x + total_x_distance/packSpeed, 
-        target.position.y, current_agent_z+total_z_distance/packSpeed);   
+                                              target.position.y, 
+                                              current_agent_z + total_z_distance/packSpeed);   
+
     }
 
 
@@ -475,67 +742,20 @@ public class PackerHand : Agent
     /// Update carried object position relative to the agent position
     ///</summary>
     void UpdateTargetBox() 
-    {
-        // var box_x_length = targetBox.localScale.x;
-        // var box_z_length = targetBox.localScale.z;
-        // var dist = 0.2f; 
+    {   
          // distance from agent is relative to the box size
-        // targetBox.localPosition = new Vector3(box_x_length, dist, box_z_length);
         targetBox.localPosition = new Vector3(0,1,1);
         // stop box from rotating
         targetBox.rotation = Quaternion.identity;
     }
 
 
-    /// <summary>
-    /// Updates the vertices every time a new mesh is created
-    ///</summary>
-    // void UpdateVerticesList() 
-    // {
-    //     MeshFilter mf_back = binBack.GetComponent<MeshFilter>();
-    //     AddVertices(mf_back.mesh.vertices, backMeshVertices);
-    //     //Debug.Log($"OOO BACK MESH VERTICES COUNT IS {backMeshVertices.Count()}");
-    //     MeshFilter mf_bottom = binBottom.GetComponent<MeshFilter>();
-    //     AddVertices(mf_bottom.mesh.vertices, bottomMeshVertices);
-    //     //Debug.Log($"OOO BOTTOM MESH VERTICES COUNT IS {bottomMeshVertices.Count()}");
-    //     MeshFilter mf_side = binSide.GetComponent<MeshFilter>();
-    //     AddVertices(mf_side.mesh.vertices, sideMeshVertices);  
-    //     //Debug.Log($"OOO SIDE MESH VERTICES COUNT IS {sideMeshVertices.Count()}");
-    // }
-
-    /// <summary>
-    /// For every mesh, add each unique vertex to a mesh list and a counter dictionary
-    ///</summary>
-    // Vertices used for constructing blackbox
-    // AddVertices( input: ALL_LOCAL_VerticesFromMesh, output: UNIQUE_GLOBAL_VerticesFromMesh )
-    // void AddVertices(Vector3 [] vertices, List<Vector3> verticesList) 
-    // {
-    //     Matrix4x4 localToWorld = binArea.transform.localToWorldMatrix;
-    //     var tempHashSet = new HashSet<Vector3>();
-    //     // rounding part
-    //     foreach (Vector3 vertex in vertices) 
-    //     {
-    //         // first address vertices that are meant to be the same by rounding
-    //         var roundedVertex = new Vector3((float)(Math.Round(vertex.x, 2)), (float)(Math.Round(vertex.y, 2)), (float)(Math.Round(vertex.z, 2)));
-    //         // remove duplicates by using a hash set
-    //         tempHashSet.Add(roundedVertex);
-    //     }
-    //     // localtoworld part
-    //     foreach (Vector3 vertex in tempHashSet) 
-    //     {
-    //         // convert local scale to world position
-    //         Vector3 worldVertex = localToWorld.MultiplyPoint3x4(vertex);
-    //         verticesList.Add(worldVertex);
-    //     }
-    // }
-
-
     void UpdateVerticesArray() 
     {
         List<Vector3> tripoints_list = new List<Vector3>();
-        var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
-        var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
-        var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
+        var tripoint_redx   = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y,                 selectedVertex.z);                   // x red side tripoint
+        var tripoint_greeny = new Vector3(selectedVertex.x,                   selectedVertex.y+boxWorldScale.y, selectedVertex.z);                   // y green bottom tripoint 
+        var tripoint_bluez  = new Vector3(selectedVertex.x,                   selectedVertex.y,                 selectedVertex.z+boxWorldScale.z);   // z blue back tripoint 
 
         tripoints_list.Add(tripoint_redx);   
         tripoints_list.Add(tripoint_greeny);
@@ -556,24 +776,23 @@ public class PackerHand : Agent
 
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
         {
-            Debug.Log($"TPB tripoints_list[idx]: {tripoints_list[idx]} | areaBounds.min: {areaBounds.min} | areaBounds.max: {areaBounds.max} ");
             if (tripoints_list[idx].x >= areaBounds.min.x && tripoints_list[idx].x < areaBounds.max.x) {
             if (tripoints_list[idx].y >= areaBounds.min.y && tripoints_list[idx].y < areaBounds.max.y) {
             if (tripoints_list[idx].z >= areaBounds.min.z && tripoints_list[idx].z < areaBounds.max.z) {
-                // only if historicVerticesArray doesnt already contain the tripoint, add it to the verticesArray
-                // Vector3 scaled_continuous_vertex = new Vector3(((tripoints_list[idx].x - origin.x)/binscale_x), ((tripoints_list[idx].y - origin.y)/binscale_y), ((tripoints_list[idx].z - origin.z)/binscale_z));
-                //Vector3  = new Vector3((float)Math.Round(((tripoints_list[idx].x - origin.x)/binscale_x), 4), (float)Math.Round(((tripoints_list[idx].y - origin.y)/binscale_y), 4), (float)Math.Round(((tripoints_list[idx].z - origin.z)/binscale_z), 4));
+                // only if historicVerticesArray doesnt already contain the tripoint, add it to the vertices array
                 Vector3 scaled_continuous_vertex = new Vector3((tripoints_list[idx].x - origin.x)/binscale_x,  (tripoints_list[idx].y - origin.y)/binscale_y,  (tripoints_list[idx].z - origin.z)/binscale_z);
-                //Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x, 2), (float)Math.Round(scaled_continuous_vertex.y, 2), (float)Math.Round(scaled_continuous_vertex.y, 2));
-                Debug.Log($"VACx historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false: {historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false} | scaled_continuous_vertex: {scaled_continuous_vertex} ");
+                // Vector3 rounded_scaled_vertex = new Vector3((float)Math.Round(scaled_continuous_vertex.x-0.005, 2), (float)Math.Round(scaled_continuous_vertex.y-0.005, 2), (float)Math.Round(scaled_continuous_vertex.z-0.005, 2));
+
+                // if the scaled_continuous_vertex is not already in the historicalVerticesLog, add it to the vertices array
                 if ( historicalVerticesLog.Exists(element => element == scaled_continuous_vertex) == false )
                 {
-                    Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
-                    // Add scaled tripoint_vertex to verticesArray
+                    // Debug.Log($"TPX idx:{idx} | tripoint add to tripoints_list[idx]: {tripoints_list[idx]} | selectedVertex: {selectedVertex}") ;
+
+                    // Add scaled tripoint_vertex to vertices array
                     verticesArray[VertexCount] = scaled_continuous_vertex;
                     historicalVerticesLog.Add(scaled_continuous_vertex);
+                    
                     VertexCount ++;
-                    Debug.Log($"VERTEX COUNT IS {VertexCount}");
 
                 }
             }
@@ -582,156 +801,46 @@ public class PackerHand : Agent
         }
     }
 
-
-    // public void UpdateBlackBox() 
-    // {
-    //     Debug.Log($"UBX Update BlackboX running");
-
-        // foreach (Vector3 vertex in verticesArray) 
-        // {
-        //     //bottomVertices.Find(v=>  v[1]==vertex[1] && v[2]==vertex[2]).MinBy(v => Math.Abs(v[0]-vertex[0]));
-        //     Vector3 closest_x_vertex = backMeshVertices.Aggregate(new Vector3(float.MaxValue, 0, 0), (min, next) => 
-        //     vertex[0]<next[0] && Math.Abs(next[0]-vertex[0]) < Math.Abs(min[0] - vertex[0]) && next[1]==vertex[1] && next[2] == vertex[2] ? next : min);
-        //     //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES X VERTEX IS {closest_x_vertex}");
-
-        //     Vector3 closest_y_vertex = sideMeshVertices.Aggregate(new Vector3(0, float.MaxValue, 0), (min, next) => 
-        //     vertex[1]<next[1] && Math.Abs(next[1]-vertex[1]) < Math.Abs(min[1] - vertex[1]) && next[0]==vertex[0] && next[2] == vertex[2] ? next : min);
-        //     //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Y VERTEX IS {closest_y_vertex}");
-
-        //     Vector3 closest_z_vertex = sideMeshVertices.Aggregate(new Vector3(0, 0, float.MaxValue), (min, next) => 
-        //     vertex[2]<next[2] && Math.Abs(next[2]-vertex[2]) < Math.Abs(min[2] - vertex[2]) && next[1]==vertex[1] && next[0] == vertex[0] ? next : min);
-        //     //Debug.Log($"BCX BLACK BOX VERTEX IS {vertex} AND CLOSES Z VERTEX IS {closest_z_vertex}");
-
-        //     float blackbox_x_size = Math.Abs(closest_x_vertex[0] - vertex[0]);
-        //     float blackbox_y_size = Math.Abs(closest_y_vertex[1] - vertex[1]);
-        //     float blackbox_z_size = Math.Abs(closest_z_vertex[2] - vertex[2]);
-        //     Vector3 blackbox_position = new Vector3(blackbox_x_size*0.5f+vertex[0], blackbox_y_size*0.5f+vertex[1], blackbox_z_size*0.5f+vertex[2]);
-
-        //     if (blackbox_x_size<100f && blackbox_x_size>2f && blackbox_y_size<100f && blackbox_y_size > 2f && blackbox_z_size<100f && blackbox_z_size>2f) 
-        //     {
-        //         Debug.Log($"BPS BLACK BOX POSITION {blackbox_position} SIZES {blackbox_x_size}, {blackbox_y_size}, {blackbox_z_size}");
-        //         GameObject blackbox = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        //         blackbox.name = "blackbox";
-        //         blackbox.transform.position = blackbox_position;
-        //         blackbox.transform.localScale = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size);
-        //         Renderer cubeRenderer = blackbox.GetComponent<Renderer>();
-        //         cubeRenderer.material = clearPlastic;
-
-        //         Blackbox newBlackbox = new Blackbox
-        //         {
-        //             position = blackbox_position,
-        //             size = new Vector3(blackbox_x_size, blackbox_y_size, blackbox_z_size),
-        //             vertex = vertex,
-        //             gameobjectBlackbox = blackbox,
-        //             volume = blackbox_x_size * blackbox_y_size * blackbox_z_size,
-        //         };
-
-        //         blackboxPool.Add(newBlackbox);
-        //     }
-        // }
-        // isBlackboxUpdated = true;
-    // }
-
-    // public void SelectBlackboxVertex() 
-    // {
-        
-    //     Blackbox smallest_blackbox = null;
-    //     float minVolume = float.MaxValue;
-    //     foreach (Blackbox blackbox in blackboxPool)
-    //     {
-    //         if (blackbox.volume < minVolume)
-    //         {
-    //             minVolume = blackbox.volume;
-    //             smallest_blackbox = blackbox;
-    //         }
-    //     }
-    //     Debug.Log($"SBV SMALLEST BLACKBOX IS: {smallest_blackbox.gameobjectBlackbox} with volume {smallest_blackbox.volume} and vertex {smallest_blackbox.vertex}");
-    //     smallest_blackbox.gameobjectBlackbox.GetComponent<Renderer>().material.color = Color.black;
-    //     selectedVertex = smallest_blackbox.vertex;
-    //     isVertexSelected = true;
-
-    // }
-
-
-    // public void SelectContinuousVertex(float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z)
-    // {
-    //     action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
-    //     action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
-    //     action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
-    //     if (curriculum_ConfigurationLocal==1)
-    //     {
-    //         selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
-    //         Debug.Log($"SVX Selected VerteX: {selectedVertex}");
-    //     }
-    //     else if (curriculum_ConfigurationLocal==2)
-    //     {
-    //         selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-    //     }
-    //     // isVertexSelected = true;
-    // }
-
-
-    public void SelectVertex(int action_SelectedVertexIdx, float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
+    public void SelectVertexDiscrete(int action_SelectedVertexIdx) 
     {
+        // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
+        selectedVertexIdx = action_SelectedVertexIdx;
+        var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
+
+        boxPool[selectedBoxIdx].boxVertex = new Vector3(scaled_selectedVertex.x + (boxWorldScale.x/2) / binscale_x,
+                                                        scaled_selectedVertex.y + (boxWorldScale.y/2) / binscale_y,
+                                                        scaled_selectedVertex.z + (boxWorldScale.z/2) / binscale_z);
+
+        selectedVertex =  new Vector3(((scaled_selectedVertex.x* binscale_x) + origin.x), ((scaled_selectedVertex.y* binscale_y) + origin.y), ((scaled_selectedVertex.z* binscale_z) + origin.z));
+
+    }
+
+    public void SelectVertexContinuous(float action_SelectedVertex_x, float action_SelectedVertex_y, float action_SelectedVertex_z) 
+    {
+        // Tranform the action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z from [-1,1] to [0,1]
         action_SelectedVertex_x = (action_SelectedVertex_x + 1f) * 0.5f;
         action_SelectedVertex_y = (action_SelectedVertex_y + 1f) * 0.5f;
         action_SelectedVertex_z = (action_SelectedVertex_z + 1f) * 0.5f;
-        Debug.Log($"SVB brain selected vertex #: {action_SelectedVertexIdx} ");
-        if (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f)
-        {
-            // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
-            selectedVertexIdx = action_SelectedVertexIdx;
-            var unscaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
-            // reward_dense = inverse of exponential distance between discreteVertex and continuousVertex 
-            // reward_dense = 1/((discreteVertex - continuousVertex)**2)
-            float reward_dense_distance = (float) 
-            (1/(Math.Pow(action_SelectedVertex_x - unscaled_selectedVertex.x, 2) + Math.Pow(action_SelectedVertex_y - unscaled_selectedVertex.y, 2) + Math.Pow(action_SelectedVertex_z - unscaled_selectedVertex.z, 2)));
-            AddReward(reward_dense_distance);
-            Debug.Log($"RWDvtx {GetCumulativeReward()} total reward | {reward_dense_distance} reward from vertex distance");
-            selectedVertex =  new Vector3(((unscaled_selectedVertex.x* binscale_x) + origin.x), ((unscaled_selectedVertex.y* binscale_y) + origin.y), ((unscaled_selectedVertex.z* binscale_z) + origin.z));
-            Debug.Log($"SVX Discrete Selected VerteX: {selectedVertex}");
 
-            // isVertexSelected = true;
-            //AddReward(1f);
-            // Debug.Log($"RWD {GetCumulativeReward()} total reward | +1 reward from isVertexSelected: {isVertexSelected}");
-        }
-        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 1.0f) == 1.0f) |
-            (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 1.0f) == 1.0f))
+        // Define min/max position of the box inside the bin (to avoid placing the box outside the bin)
+        Vector3 selectedBoxSize = boxPool[selectedBoxIdx].boxSize;
+        Vector3 max_pos = new Vector3(binscale_x - selectedBoxSize.x, 
+                                      binscale_y - selectedBoxSize.y, 
+                                      binscale_z - selectedBoxSize.z);
+
+        if (isFirstLayerContinuous)
         {
             selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
-            ///// this selected vertex should be added back to the observation////
-            ////each box will have its own vertex 
-            continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
+            boxPool[selectedBoxIdx].boxVertex = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
         }
-        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 2.0f) == 2.0f) |
-        (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 2.0f) == 2.0f))
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-            continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
+        else{
+            selectedVertex = new Vector3((action_SelectedVertex_x * max_pos.x + origin.x), 
+                                         (action_SelectedVertex_y * max_pos.y + origin.y), 
+                                         (action_SelectedVertex_z * max_pos.z + origin.z));
+            boxPool[selectedBoxIdx].boxVertex = new Vector3((selectedVertex.x + boxWorldScale.x/2 - origin.x) / binscale_x, 
+                                                            (selectedVertex.y + boxWorldScale.y/2 - origin.y) / binscale_y, 
+                                                            (selectedVertex.z + boxWorldScale.z/2 - origin.z) / binscale_z);
         }
-            // isVertexSelected = true;
-
-    
-        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 1.0f) == 1.0f) |
-            (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 1.0f) == 1.0f))
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), 0.5f, ((action_SelectedVertex_z* binscale_z) + origin.z));
-            ///// this selected vertex should be added back to the observation////
-            ////each box will have its own vertex 
-            continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
-        }
-        else if ((curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 2.0f) == 2.0f) |
-        (curriculum_ConfigurationLocal == 2 && Academy.Instance.EnvironmentParameters.GetWithDefault("similar_box", 2.0f) == 2.0f))
-        {
-            selectedVertex = new Vector3(((action_SelectedVertex_x* binscale_x) + origin.x), ((action_SelectedVertex_y* binscale_y) + origin.y), ((action_SelectedVertex_z* binscale_z) + origin.z));
-            continuousVerticesArray[selectedBoxIdx] = new Vector3(action_SelectedVertex_x, action_SelectedVertex_y, action_SelectedVertex_z);
-            Debug.Log($"SVX Continuous Selected VerteX: {selectedVertex}");
-        }
-            // isVertexSelected = true;
-
     }
 
 
@@ -754,14 +863,10 @@ public class PackerHand : Agent
             int directionX = 1; 
             int directionY = 1;
             int directionZ = 1;
-
-            // var directionX = blackbox.position.x > 0 : 1 : -1; 
-            // var directionY = blackbox.position.y > 0 : 1 : -1;
-            // var directionZ = blackbox.position.z > 0 : 1 : -1;
                 
             // 3: Calc Position
             Vector3 position = new Vector3( (selectedVertex.x + (magnitudeX * directionX)), (selectedVertex.y + (magnitudeY * directionY)), (selectedVertex.z + (magnitudeZ * directionZ)) );
-            Debug.Log($"UVP Updated Vertex Position position: {position}");
+            // Debug.Log($"UVP Updated Box Position: {position}");
 
             CheckBoxPlacementPhysics(position);
 
@@ -778,9 +883,11 @@ public class PackerHand : Agent
         GameObject testBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         testBox.transform.localScale = boxWorldScale;
+
         // test position has to be slightly elevated or else raycast doesn't detect the layer directly below
         testBox.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
+
         // leave this in case we want to add more physics to the boxes
         // BoxCollider bc = testBox.GetComponent<BoxCollider>();
         // rb.mass = 300f;
@@ -791,6 +898,7 @@ public class PackerHand : Agent
         // bc.material.bounciness = 0f;
         // bc.material.dynamicFriction = 1f;
         // bc.material.staticFriction = 1f;
+
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         sensorCollision = testBox.AddComponent<SensorCollision>();
         // probably don't need agent  in the scripts
@@ -801,8 +909,9 @@ public class PackerHand : Agent
         // Setup child test boxes for physics check which check overlapping boxes (impossible placements)
         GameObject testBoxChild = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
+
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
-        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.5f), (boxWorldScale.y - 0.5f), (boxWorldScale.z - 0.5f));
+        testBoxChild.transform.localScale = new Vector3((boxWorldScale.x - 0.15f), (boxWorldScale.y - 0.15f), (boxWorldScale.z - 0.15f));
         testBoxChild.transform.position = testPosition;
         rbChild.constraints = RigidbodyConstraints.FreezeAll;
         rbChild.interpolation = RigidbodyInterpolation.Interpolate;
@@ -820,17 +929,7 @@ public class PackerHand : Agent
     ///</summary>
     public void SelectBox(int action_SelectedBox) 
     {
-        Debug.Log($"SBB boxPool count is: {boxPool.Count()}, action_selectedbox is {action_SelectedBox}");
-        // if (boxPool[action_SelectedBox].boxSize == new Vector3(0, 0, 0))
-        // {      
-        //     isBoxSelected = false; 
-        //     //AddReward(-1f);
-        //     // Debug.Log($"REWARD NEGATIVE SELECTED ORGANIZED BOX!!! Total reward: {GetCumulativeReward()}");
-        //     return; // to end function call
-        // }
-        // Check if a box has already been selected
         selectedBoxIdx = action_SelectedBox;
-        Debug.Log($"Selected Box selectedBoxIdx: {selectedBoxIdx}");
         targetBox = boxPool[selectedBoxIdx].rb.transform;
         isBoxSelected = true;
     }
@@ -843,7 +942,6 @@ public class PackerHand : Agent
     {   
         var childrenList = targetBox.GetComponentsInChildren<Transform>();
         boxWorldScale = targetBox.localScale;
-        Debug.Log($"BOXWORLDSCALE IS {boxWorldScale}");
         if (action == 0 ) 
         {
             selectedRotation = new Vector3(0, 0, 0);
@@ -854,7 +952,6 @@ public class PackerHand : Agent
         }  
         else if (action==1) 
         {
-            Debug.Log($"SelectRotation() called with rotation (90, 0, 0)");
             selectedRotation = new Vector3(90, 0, 0);
             boxWorldScale = new Vector3(boxWorldScale[0], boxWorldScale[2], boxWorldScale[1]); // actual rotation of object transform
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
@@ -883,7 +980,7 @@ public class PackerHand : Agent
         }
         else if (action==2) 
         {
-            Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
+            // Debug.Log($"SelectRotation() called with rotation (0, 90, 0)");
             selectedRotation = new Vector3(0, 90, 0);
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[1], boxWorldScale[0]); // actual rotation of object transform
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
@@ -912,7 +1009,7 @@ public class PackerHand : Agent
         }
         else if (action==3) 
         {
-            Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
+            // Debug.Log($"SelectRotation() called with rotation (0, 0, 90)");
             selectedRotation = new Vector3(0, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[0], boxWorldScale[2]); // actual rotation of object transform
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
@@ -941,7 +1038,7 @@ public class PackerHand : Agent
         }
         else if (action==4 ) 
         {
-            Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
+            // Debug.Log($"SelectRotation() called with rotation (0, 90, 90)");
             selectedRotation = new Vector3(0, 90, 90 ); 
             boxWorldScale = new Vector3(boxWorldScale[2], boxWorldScale[0], boxWorldScale[1]); // actual rotation of object transform
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
@@ -978,7 +1075,7 @@ public class PackerHand : Agent
         }
         else 
         {
-            Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
+            // Debug.Log($"SelectRotation() called with rotation (90, 0, 90)");
             selectedRotation = new Vector3(90, 0, 90);
             boxWorldScale = new Vector3(boxWorldScale[1], boxWorldScale[2], boxWorldScale[0]); // actual rotation of object transform
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
@@ -1016,8 +1113,6 @@ public class PackerHand : Agent
         // /////// NOTE: No Vector3(90, 90, 90) or Vector3(90, 90, 0) rotations as
         //               // Vector3(90, 90, 90) == Vector3(90, 0, 0) == xzy
         //               // Vector3(90, 90, 0)  == Vector3(90, 0, 90) == yzx 
-
-        Debug.Log($"SELECTED TARGET ROTATION FOR BOX {selectedBoxIdx}: {selectedRotation}");
         isRotationSelected = true;
     }
 
@@ -1028,22 +1123,23 @@ public class PackerHand : Agent
     public void PickupBox() 
     {
         // Attach the box as a child of the agent parent, effectively attaching the box's movement to the agent's movement  
-        targetBox.parent = this.transform;
+        //targetBox.parent = this.transform;
+        targetBox.parent = m_Agent.transform;
 
         isPickedup = true;
 
         Destroy(targetBox.GetComponent<BoxCollider>());  
 
         // Would be best if moved isCollidedColor=false state reset to StateReset(), but current issue
-        GameObject.Find("BinIso20Bottom").GetComponent<CombineMesh>().isCollidedGreen = false;
-        GameObject.Find("BinIso20Back").GetComponent<CombineMesh>().isCollidedBlue = false;
-        GameObject.Find("BinIso20Side").GetComponent<CombineMesh>().isCollidedRed = false;
-        isBackMeshCombined = false;
-        isBottomMeshCombined = false;
-        isSideMeshCombined = false;
-        isStateReset = false; // should be refactored into a end state reset function with isBlankMeshCombined's
+        m_BackMeshScript.isCollidedBlue    = false;
+        m_BottomMeshScript.isCollidedGreen = false;
+        m_SideMeshScript.isCollidedRed     = false;
+        isBackMeshCombined                 = false;
+        isBottomMeshCombined               = false;
+        isSideMeshCombined                 = false;
+        isStateReset                       = false; // should be refactored into a end state reset function with isBlankMeshCombined's
 
-        Debug.Log("PDB end of PickupBox()");
+        //Debug.Log("PDB end of PickupBox()");
     }
 
 
@@ -1055,7 +1151,7 @@ public class PackerHand : Agent
         // Detach box from agent, preventing the placed box from moving again when the agent moves to pickup a new box 
         targetBox.SetParent(null);
 
-        Collider [] m_cList = targetBox.GetComponentsInChildren<Collider>();
+        Collider [] m_cList = targetBox.GetComponentsInChildren<Collider>().Skip(1).ToArray();
 
         foreach (Collider m_c in m_cList) 
         {
@@ -1072,7 +1168,7 @@ public class PackerHand : Agent
 
         isDroppedoff = true;
 
-        Debug.Log($"PDB Box(): end of droppedoff function");
+        //Debug.Log($"PDB Box(): end of droppedoff function");
     }
 
 
@@ -1211,43 +1307,9 @@ public class PackerHand : Agent
         }
     }
 
-
-    public void BoxReset(string cause)
-    {
-        if (cause == "failedPhysicsCheck") 
-        {
-            Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
-            // detach box from agent
-            targetBox.parent = null;
-            // add back rigidbody and collider
-            Rigidbody rb = boxPool[selectedBoxIdx].rb;
-            BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
-            // not be affected by forces or collisions, position and rotation will be controlled directly through script
-            rb.isKinematic = true;
-            // reset to starting position
-            rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
-            rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
-            rb.transform.position = boxPool[selectedBoxIdx].startingPos;
-            ReverseSideNames(selectedBoxIdx);
-            // remove from organized list to be picked again
-            maskedBoxIndices.Remove(selectedBoxIdx);
-            // reset states
-            StateReset();
-            // REQUEST DECISION FOR THE NEXT ROUND OF PICKING
-// Why is the DecisionRequester() still active in the Hand gameObject?
-            GetComponent<Agent>().RequestDecision();
-            Academy.Instance.EnvironmentStep();
-            // settting isBlackboxUpdated to true allows another vertex to be selected
-            //isBlackboxUpdated = true;
-            // setting isVertexSelected to true keeps the current vertex and allows another box to be selected
-            // isVertexSelected = true;
-        }
-    }
-
-
     public void AgentReset() 
     {
-        this.transform.position = initialAgentPosition; // Vector3 of agents initial transform.position
+        m_Agent.position = initialAgentPosition;
         m_Agent.velocity = Vector3.zero;
         m_Agent.angularVelocity = Vector3.zero;
     }
@@ -1255,34 +1317,35 @@ public class PackerHand : Agent
 
     public void StateReset() 
     {
-        // remove consumed selectedVertex from verticesArray (since another box cannot be placed there)
-        // remove consumed selectedBoxIdx from boxPool (since the same box cannot be selected again)
-        // only removed when a box is successfully placed, if box fails physics test, selected vertex and box idx will not be removed
-        // conditional check can be removed if failing physics test = end of episode
         if (isBackMeshCombined && isSideMeshCombined && isBottomMeshCombined) 
         {
-            if (curriculum_ConfigurationLocal == 1 && Academy.Instance.EnvironmentParameters.GetWithDefault("regular_box", 0.0f) == 0.0f){
+            if (useDiscreteSolution)
+            {
+                // Remove consumed selectedVertex from vertices array (since another box cannot be placed there)
+                // only removed when a box is successfully placed, if box fails physics test, selected vertex will not be removed
+                // conditional check can be removed if failing physics test = end of episode
                 if (isAfterOriginVertexSelected)
                 {
-                    Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
-                    Vector3 default_vertex = Vector3.zero;
-                    verticesArray[selectedVertexIdx] = default_vertex;               
+                    //Debug.Log($"SRS SELECTED VERTEX IDX {selectedVertexIdx} RESET");
+                    verticesArray[selectedVertexIdx] = Vector3.zero;               
                 }
             }
             boxPool[selectedBoxIdx].isOrganized = true;
         }
-        //isBlackboxUpdated = false;
+
         // isVertexSelected = false;
-        isBoxSelected = false;
+        isBoxSelected      = false;
         isRotationSelected = false;
-        isPickedup = false;
-        isDroppedoff = false;
+        isPickedup         = false;
+        isDroppedoff       = false;
+
         if (targetBin!=null)
         {
             DestroyImmediate(targetBin.gameObject);
         }
         targetBox = null;
         outerbinfront.tag = "binopening";
+        
         isStateReset = true;
     }
 
@@ -1293,16 +1356,19 @@ public class PackerHand : Agent
         m_BottomMeshScript.MeshReset();
         m_SideMeshScript.MeshReset();
         m_BackMeshScript.MeshReset();
-
-        isBackMeshCombined = false;
-        isSideMeshCombined = false;
+    
+        isBackMeshCombined   = false;
+        isSideMeshCombined   = false;
         isBottomMeshCombined = false;
 
         // Reset reward
         SetReward(0f);
 
+        // Reset number of packed boxes
+        boxes_packed = 0;
+
         // Reset current bin volume
-        current_bin_volume = total_bin_volume;
+        current_empty_bin_volume = total_bin_volume;
 
         // Destroy old boxes
         foreach (Box box in boxPool)
@@ -1311,76 +1377,141 @@ public class PackerHand : Agent
         }        
         // Reset box pool
         boxPool.Clear();
-        // Reset vertices array
-        Array.Clear(verticesArray, 0, verticesArray.Length);
-        // Reset vertices list
-        // backMeshVertices.Clear();
-        // sideMeshVertices.Clear();
-        // bottomMeshVertices.Clear();
-        historicalVerticesLog.Clear();
-        
-        // Reset vertex count
-        VertexCount = 0;
+        if (useDiscreteSolution)
+        {
+            // Reset vertices array
+            Array.Clear(verticesArray, 0, verticesArray.Length);
+            // Reset vertices list
+            // backMeshVertices.Clear();
+            // sideMeshVertices.Clear();
+            // bottomMeshVertices.Clear();
+            historicalVerticesLog.Clear();
 
-        // Reset states;
-        StateReset();
-
-        // Reset agent
-        AgentReset();
+            // Reset vertex count
+            VertexCount = 0;
+        }
     }
 
 
-    /// <summary>
     /// Configures the agent. Given an integer config, difficulty level will be different and a different brain will be used.
-    /// A different reward system needs to be designed for each level
-    /// </summary>
     void ConfigureAgent(int n) 
     {
+        // Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_BehaviorName}");
+
+        if (useCurriculum && initializeBrain)
+        {
+            SetModel(m_BehaviorName, brain);  
+        }
+
         if (n==0) 
+        // DISCRETE
         {
-            SetModel(m_UnitBoxBehaviorName, unitBoxBrain);
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 0.0f) == 0.0f)
+            {
+                boxSpawner.SetUpBoxes("uniform_random", boxSpawner.pickRandom, 1, 1, 1, seed, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxes_in_lesson = 1;
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 1.0f) == 1.0f)
+            {
+                boxSpawner.SetUpBoxes("uniform_random", false, 1, 1, 2, seed+1, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 8, 8, 12, seed+1, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxes_in_lesson = 2;
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 2.0f) == 2.0f)
+            {
+                boxSpawner.SetUpBoxes("uniform_random", false, 1, 2, 2, seed+2, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 8, 8, 12, seed+1, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxes_in_lesson = 4;
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 3.0f) == 3.0f)
+            {
+                boxSpawner.SetUpBoxes("uniform_random", false, 2, 2, 2, seed+3, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 8, 8, 12, seed+1, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxes_in_lesson = 8;
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 4.0f) == 4.0f)
+            {
+                boxSpawner.SetUpBoxes("uniform_random", false, 3, 3, 3, seed+4, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, boxSpawner.pickRandom, 8, 8, 12, seed+1, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxes_in_lesson = 27;
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 5.0f) == 5.0f)
+            {
+                boxSpawner.SetUpBoxes("mix_random", true, 3, 3, 3, seed+5, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, true, 16, 16, 24, seed+2, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxes_in_lesson = 27;
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 6.0f) == 6.0f)
+            {
+                boxSpawner.SetUpBoxes("mix_random", true, 3, 4, 4, seed+6, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, true, 16, 16, 24, seed+2, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxes_in_lesson = 48;
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 7.0f) == 7.0f)
+            {
+                boxSpawner.SetUpBoxes("mix_random", true, 5, 3, 5, seed+7, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, true, 16, 16, 24, seed+2, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxes_in_lesson = 75;
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 8.0f) == 8.0f)
+            {
+                boxSpawner.SetUpBoxes("mix_random", true, 4, 5, 5, seed+8, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, true, 16, 16, 24, seed+2, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxes_in_lesson = 100;
+            }
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 9.0f) == 9.0f)
+            {
+                boxSpawner.SetUpBoxes("mix_random", true, 5, 5, 6, seed+9, usePadding);
+                // boxSpawner.SetUpBoxes(boxSpawner.box_type, true, 16, 16, 24, seed+2, usePadding);
+                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
+                boxes_in_lesson = 150;
+            }
         }
-        if (n==1) 
+        else if (n==2)
+        // CONTINUOUS
         {
-            SetModel(m_RegularBoxBehaviorName, regularBoxBrain);
-        }
-        else 
-        {
-            SetModel(m_SimilarBoxBehaviorName, similarBoxBrain);    
+            if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 1.0f) == 1.0f)
+            {
+                // pending setup
+            }
+            else if (Academy.Instance.EnvironmentParameters.GetWithDefault(m_BehaviorName, 2.0f) == 2.0f)
+            {
+                // pending setup
+            }  
         }
     }
 
-    /// <summary>
-    /// Agent moves according to selected action.
-    // public override void Heuristic(in ActionBuffers actionsOut)
-    // {
-    //     var discreteActionsOut = actionsOut.DiscreteActions;
-    //     //forward
-    //     if (Input.GetKey(KeyCode.W))
-    //     {
-    //         discreteActionsOut[1] = 1;
-    //     }
-    //     if (Input.GetKey(KeyCode.S))
-    //     {
-    //         discreteActionsOut[1] = 2;
-    //     }
-    //     //rotate
-    //     if (Input.GetKey(KeyCode.D))
-    //     {
-    //         discreteActionsOut[2] = 1;
-    //     }
-    //     if (Input.GetKey(KeyCode.A))
-    //     {
-    //         discreteActionsOut[2] = 2;
-    //     }
-    //     //right
-    //     if (Input.GetKey(KeyCode.E))
-    //     {
-    //         discreteActionsOut[3] = 1;
-    //     }
-    //     if (Input.GetKey(KeyCode.Q))
-    //     {
-    //         discreteActionsOut[3] = 2;
-    //     }
-    // }
+    public void BoxReset()
+    {
+        // Debug.Log($"SCS BOX {selectedBoxIdx} RESET LOOP, BOX POOL COUNT IS {boxPool.Count}");
+        // detach box from agent
+        targetBox.parent = null;
+        // add back rigidbody and collider
+        Rigidbody rb = boxPool[selectedBoxIdx].rb;
+        BoxCollider bc = boxPool[selectedBoxIdx].rb.gameObject.AddComponent<BoxCollider>();
+        // not be affected by forces or collisions, position and rotation will be controlled directly through script
+        rb.isKinematic = true;
+        // reset to starting position
+        rb.transform.localScale = boxPool[selectedBoxIdx].startingSize;
+        rb.transform.rotation = boxPool[selectedBoxIdx].startingRot;
+        rb.transform.position = boxPool[selectedBoxIdx].startingPos;
+        ReverseSideNames(selectedBoxIdx);
+        // remove from organized list to be picked again
+        maskedBoxIndices.Remove(selectedBoxIdx);
+        // restore box information
+        boxPool[selectedBoxIdx].boxSize = boxPool[selectedBoxIdx].startingSize;
+        boxPool[selectedBoxIdx].boxRot = Quaternion.identity;
+        boxPool[selectedBoxIdx].boxVertex = Vector3.zero;
+        boxPool[selectedBoxIdx].isOrganized = false;
+    }
+
 }
