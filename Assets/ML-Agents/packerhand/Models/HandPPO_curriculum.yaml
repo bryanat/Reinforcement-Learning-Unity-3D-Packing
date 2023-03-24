@@ -15,7 +15,7 @@ behaviors:
     network_settings:
       normalize: true
       hidden_units: 512
-      num_layers: 3
+      num_layers: 5
       # memory:
       #   use_recurrent: true
       #   sequence_length: 8
@@ -30,7 +30,7 @@ behaviors:
         network_settings:
           normalize: true
           hidden_units: 512
-          num_layers: 3
+          num_layers: 2
         learning_rate: 0.0003
       rnd:
         gamma: 0.99
@@ -39,7 +39,7 @@ behaviors:
           normalize: true
           hidden_units: 512
           learning_rate: 0.0003
-          num_layers: 3
+          num_layers: 2
     keep_checkpoints: 5
     checkpoint_interval: 20000
     time_horizon: 128

@@ -430,7 +430,7 @@ public class PackerHand : Agent
                     {
                         // //AddReward(boxes_packed + percent_contact_surface_area);    
                         // AddReward(boxes_packed+percent_contact_surface_area);     
-                        // boxes packed + percent surface area contact - height bias
+                        // boxes packed + percent surface area contact - height variance
                         double height_avg = boxHeights.Average();
                         height_variance = (float) boxHeights.Average(v=>Math.Pow(v-height_avg,2));
                         AddReward(boxes_packed + percent_contact_surface_area - height_variance);          
