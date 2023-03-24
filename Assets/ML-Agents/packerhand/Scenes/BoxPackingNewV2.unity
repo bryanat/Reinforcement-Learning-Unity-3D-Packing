@@ -4516,8 +4516,8 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 900ccd4c8818ed6f6bf6cd61fa215354, type: 3}
-  m_InferenceDevice: 3
-  m_BehaviorType: 2
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
@@ -9813,8 +9813,8 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 900ccd4c8818ed6f6bf6cd61fa215354, type: 3}
-  m_InferenceDevice: 3
-  m_BehaviorType: 2
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
@@ -10503,8 +10503,8 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 900ccd4c8818ed6f6bf6cd61fa215354, type: 3}
-  m_InferenceDevice: 3
-  m_BehaviorType: 2
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
@@ -12029,8 +12029,8 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 900ccd4c8818ed6f6bf6cd61fa215354, type: 3}
-  m_InferenceDevice: 3
-  m_BehaviorType: 2
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
@@ -18289,8 +18289,8 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 900ccd4c8818ed6f6bf6cd61fa215354, type: 3}
-  m_InferenceDevice: 3
-  m_BehaviorType: 2
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
@@ -23793,8 +23793,8 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 900ccd4c8818ed6f6bf6cd61fa215354, type: 3}
-  m_InferenceDevice: 3
-  m_BehaviorType: 2
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
@@ -27988,8 +27988,8 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 900ccd4c8818ed6f6bf6cd61fa215354, type: 3}
-  m_InferenceDevice: 3
-  m_BehaviorType: 2
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
@@ -33116,8 +33116,8 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 900ccd4c8818ed6f6bf6cd61fa215354, type: 3}
-  m_InferenceDevice: 3
-  m_BehaviorType: 2
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
@@ -36805,8 +36805,8 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 900ccd4c8818ed6f6bf6cd61fa215354, type: 3}
-  m_InferenceDevice: 3
-  m_BehaviorType: 2
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
@@ -38780,8 +38780,8 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 900ccd4c8818ed6f6bf6cd61fa215354, type: 3}
-  m_InferenceDevice: 3
-  m_BehaviorType: 2
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
