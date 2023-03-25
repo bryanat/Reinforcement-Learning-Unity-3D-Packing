@@ -180,7 +180,7 @@ public class PackerHand : Agent
         {   
             // if (useAttention){
                 // Used for variable size observations
-                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+15];
+                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+16];
                 int boxNum = int.Parse(box.rb.name);
                 // The first boxPool.Count are one hot encoding of the box
                 listVarObservation[boxNum] = 1.0f;
@@ -208,10 +208,11 @@ public class PackerHand : Agent
                 listVarObservation[boxSpawner.maxBoxQuantity+11] = box.boxRot[0];
                 listVarObservation[boxSpawner.maxBoxQuantity+12] = box.boxRot[1];
                 listVarObservation[boxSpawner.maxBoxQuantity+13] = box.boxRot[2];
+                listVarObservation[boxSpawner.maxBoxQuantity+14] = box.boxRot[3];
                 // Add [box surface area]/[bin surface area]
                 //listVarObservation[boxSpawner.maxBoxQuantity +13] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_box_surface_area);
                 // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[boxSpawner.maxBoxQuantity +14] = box.isOrganized ? 1.0f : 0.0f;
+                listVarObservation[boxSpawner.maxBoxQuantity +15] = box.isOrganized ? 1.0f : 0.0f;
                 m_BufferSensor.AppendObservation(listVarObservation);
             // add placed boxes to action ask
             if (box.isOrganized)

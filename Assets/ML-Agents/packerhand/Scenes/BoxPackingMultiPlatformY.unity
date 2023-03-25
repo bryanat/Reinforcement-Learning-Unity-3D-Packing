@@ -4349,8 +4349,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &157107850
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5187,8 +5187,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &167664451
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8183,8 +8183,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &276280160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8825,8 +8825,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &295217889
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10737,8 +10737,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &405321671
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11127,8 +11127,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &405489930
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11748,8 +11748,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &436451490
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12761,8 +12761,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &468756376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13151,8 +13151,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &481093464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14020,8 +14020,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &517291865
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14622,8 +14622,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &543302465
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16282,8 +16282,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &598066207
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22466,8 +22466,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &970053408
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24227,8 +24227,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1055655694
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24888,8 +24888,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1068584502
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26093,8 +26093,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1120320525
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -28796,8 +28796,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1185738883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31765,8 +31765,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1359063235
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33851,8 +33851,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1423722553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36724,8 +36724,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1552083841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37399,8 +37399,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1571282987
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38084,8 +38084,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1579213349
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -41571,8 +41571,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1737049601
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42140,8 +42140,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1753630065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43460,8 +43460,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1841594512
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44516,8 +44516,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1879365362
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46024,8 +46024,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &1930466454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48818,8 +48818,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &2054580346
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -49790,8 +49790,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &2093721495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50350,8 +50350,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &2109008167
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -51141,8 +51141,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!114 &2137350078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -51994,8 +51994,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!1001 &1149920266690001738
 PrefabInstance:
   m_ObjectHideFlags: 0
