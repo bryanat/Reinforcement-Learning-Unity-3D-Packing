@@ -907,6 +907,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 684828981271533033}
+    - targetCorrespondingSourceObject: {fileID: 3887830302607068171, guid: 2f2c1469c0f2c8453ab01d6d68f6526f,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 684828981271533034}
   m_SourcePrefab: {fileID: 100100000, guid: 2f2c1469c0f2c8453ab01d6d68f6526f, type: 3}
 --- !u!4 &684828981271533017 stripped
 Transform:
@@ -985,6 +989,22 @@ MonoBehaviour:
   m_SensorName: BufferSensor
   m_ObservableSize: 66
   m_MaxNumObservables: 66
+--- !u!114 &684828981271533034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1062051028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2902496c0120472b90269f94a0aec7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Record: 0
+  NumStepsToRecord: 10000
+  DemonstrationName: boxpackingdemo001
+  DemonstrationDirectory: /home/yueqi/DRL/UnityBox5/DRL-RNN-LSTM-BOX-SIM/Assets/ML-Agents/packerhand/Demos
 --- !u!1001 &1149920266690001738
 PrefabInstance:
   m_ObjectHideFlags: 0

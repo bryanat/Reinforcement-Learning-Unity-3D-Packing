@@ -12,10 +12,8 @@ using Unity.MLAgents.Policies;
 using Box = Boxes.Box;
 using Boxes;
 using Bins;
-using UnityEngine.SceneManagement;
 using Startup = Unity.MLAgentsExamples.Startup;
- using UnityEditor;
- using UnityEditor.SceneManagement;
+
 
 
 public class PackerHand : Agent 
@@ -28,7 +26,6 @@ public class PackerHand : Agent
     public string bin_type = "biniso20"; // bin type options: "random", "biniso20" (for curriculum) // future: add "pallet"
     public int bin_quantity = 1; // bin quantities (for curriculum)
     
-    public bool isInference; 
     public bool useCurriculum=true; // if false, bin and box sizes and quantity will be read from a json file 
     public bool useStabilityReward=false;
 
@@ -65,6 +62,7 @@ public class PackerHand : Agent
     [HideInInspector] public SensorCollision sensorCollision; // cache script for checking gravity
     [HideInInspector] public SensorOuterCollision sensorOuterCollision; // cache script for checking protrusion
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision; // cache script for checking overlap
+    [HideInInspector] public bool isInference = false; 
     [HideInInspector] public bool isAfterInitialization = false;
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
@@ -86,27 +84,13 @@ public class PackerHand : Agent
     public int boxes_packed;
     public List<float> prev_back_placements;
 
-    //public string k_BehaviorType;
-
 
 
 
     public override void Initialize()
     {   
-        // EditorSceneManager.LoadSceneInPlayMode("/home/yueqi/DRL/UnityBox5/DRL-RNN-LSTM-BOX-SIM/Assets/ML-Agents/packerhand/Scenes/BoxPackingInference.Unity",  new LoadSceneParameters(LoadSceneMode.Single));
         Startup m_Startup = GetComponent<Startup>();
         
-        var args = Environment.GetCommandLineArgs();
-        Debug.Log("Command line arguments passed: " + String.Join(" ", args));
-        for (int i = 0; i < args.Length; i++)
-        {
-            //Debug.Log($"{args[i]}");
-            if (args[i] == "inference")
-            {
-                //Debug.Log("INFERENCE");
-                isInference = true;
-            }
-        }
         // switching off automatic brain stepping for manual control
         Academy.Instance.AutomaticSteppingEnabled = false;
 
@@ -181,6 +165,16 @@ public class PackerHand : Agent
     public override void OnEpisodeBegin()
     {   
         //Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
+        var args = Environment.GetCommandLineArgs();
+        //Debug.Log("Command line arguments passed: " + String.Join(" ", args));
+        for (int i = 0; i < args.Length; i++)
+        {
+            //Debug.Log($"CXX args: {args[i]}");
+            if (args[i] == "inference")
+            {
+                isInference = true;
+            }
+        }
       
     }
 
@@ -310,7 +304,7 @@ public class PackerHand : Agent
         if (isInference)
         {
             //GetComponent<BehaviorParameters>().BehaviorType = BehaviorType.InferenceOnly;
-            if (CompletedEpisodes==1)
+            if (CompletedEpisodes==10)
             {
                 binSpawner.ExportBins();
                 // stop mlagents-learn

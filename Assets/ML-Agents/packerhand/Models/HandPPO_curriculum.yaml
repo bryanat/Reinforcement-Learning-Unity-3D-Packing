@@ -43,6 +43,18 @@ behaviors:
           hidden_units: 512
           learning_rate: 0.0003
           num_layers: 2
+      gail:
+        gamma: 0.99
+        strength: 0.01
+        network_settings:
+          normalize: true
+          hidden_units: 128
+          num_layers: 2
+          vis_encode_type: simple
+        learning_rate: 0.0003
+        use_actions: false
+        use_vail: false
+        demo_path: /home/yueqi/DRL/UnityBox5/DRL-RNN-LSTM-BOX-SIM/Assets/ML-Agents/packerhand/Demos/boxpackingdemo00.demo
     keep_checkpoints: 5
     checkpoint_interval: 20000
     time_horizon: 128
