@@ -938,7 +938,7 @@ MonoBehaviour:
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: e4b08b9ecb16613abbe9ec05d5a95e22, type: 3}
   m_InferenceDevice: 0
-  m_BehaviorType: 2
+  m_BehaviorType: 0
   m_BehaviorName: Discrete
   TeamId: 0
   m_UseChildSensors: 0
@@ -983,8 +983,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 65
-  m_MaxNumObservables: 65
+  m_ObservableSize: 66
+  m_MaxNumObservables: 66
 --- !u!1001 &1149920266690001738
 PrefabInstance:
   m_ObjectHideFlags: 0
