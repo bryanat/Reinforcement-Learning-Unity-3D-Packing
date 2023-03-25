@@ -14,7 +14,7 @@ behaviors:
       learning_rate_schedule: linear
     network_settings:
       normalize: true
-      hidden_units: 512
+      hidden_units: 256
       num_layers: 3
       # memory:
       #   use_recurrent: true
@@ -26,6 +26,7 @@ behaviors:
         strength: 1
         network_settings:
           normalize: true
+          hidden_units: 512
       curiosity:
         gamma: 0.99
         strength: 1
