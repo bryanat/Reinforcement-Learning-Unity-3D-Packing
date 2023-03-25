@@ -8,22 +8,16 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
   - enabled: 1
     path: Assets/ML-Agents/packerhand/Scenes/BoxPackingMultiPlatformY.unity
     guid: 16fa2dfe88bfccb5885bf9d1cfd20ec7
   - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
-  - enabled: 1
     path: Assets/ML-Agents/packerhand/Scenes/BoxPackingInference.unity
     guid: abc26bde91cb4cebc860e71cf544a9c3
-  - enabled: 1
-    path: Assets/ML-Agents/packerhand/Scenes/test.unity
-    guid: 1f100e94db186620ea7f1324cf7f8fe9
+  - enabled: 0
+    path: Assets/ML-Agents/packerhand/Scenes/BoxPackingMultiPlatformX.unity
+    guid: 0ff12e914425c5958b8e12bd28bb3390
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
   m_configObjects: {}

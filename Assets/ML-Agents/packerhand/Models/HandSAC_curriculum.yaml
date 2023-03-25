@@ -4,7 +4,7 @@ behaviors:
     hyperparameters:
       learning_rate: 0.0003
       learning_rate_schedule: constant
-      batch_size: 128
+      batch_size: 256
       buffer_size: 2560000
       buffer_init_steps: 10000
       tau: 0.005
@@ -23,7 +23,7 @@ behaviors:
         strength: 1.0
     keep_checkpoints: 5
     max_steps: 2000000
-    time_horizon: 128
+    time_horizon: 64
     summary_freq: 2560
 
 environment_parameters:

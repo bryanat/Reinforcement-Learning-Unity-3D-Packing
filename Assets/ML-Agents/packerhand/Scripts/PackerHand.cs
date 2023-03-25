@@ -83,6 +83,7 @@ public class PackerHand : Agent
     public float percent_contact_surface_area;
     public int boxes_packed;
     public List<float> prev_back_placements;
+    public List<float> prev_side_placements;
 
 
 
@@ -138,6 +139,7 @@ public class PackerHand : Agent
         foreach (Vector4 origins in binSpawner.origins)
         {
             prev_back_placements.Add(origins.z);
+            prev_side_placements.Add(origins.x);
         }
         // initalize mesh scripts' agent
         foreach (CombineMesh script in binSpawner.m_BackMeshScripts)
@@ -306,7 +308,7 @@ public class PackerHand : Agent
             //GetComponent<BehaviorParameters>().BehaviorType = BehaviorType.InferenceOnly;
             if (CompletedEpisodes==10)
             {
-                binSpawner.ExportBins();
+                //binSpawner.ExportBins();
                 // stop mlagents-learn
             }
         }
@@ -451,9 +453,11 @@ public class PackerHand : Agent
                         double height_avg = boxHeights.Average();
                         height_variance = (float) boxHeights.Average(v=>Math.Pow(v-height_avg,2));
                         float dist_from_back = selectedVertex.z-prev_back_placements[selectedBin];
+                        float side_dist = selectedVertex.x - prev_side_placements[selectedBin];
                         prev_back_placements[selectedBin] = selectedVertex.z;
+                        prev_side_placements[selectedBin] = selectedVertex.x;
                         //Debug.Log($"DISTANCE FROM BACK {dist_from_back}");
-                        AddReward(boxes_packed + percent_contact_surface_area - height_variance - dist_from_back);          
+                        AddReward(boxes_packed + percent_contact_surface_area - height_variance - dist_from_back - side_dist);          
                     }
 
                 }
@@ -975,9 +979,11 @@ public class PackerHand : Agent
             
             // Reset previous back placements
             prev_back_placements.Clear();
+            prev_side_placements.Clear();
             foreach (Vector4 origins in binSpawner.origins)
             {
                 prev_back_placements.Add(origins.z);
+                prev_side_placements.Add(origins.x);
             }
         }   
     
