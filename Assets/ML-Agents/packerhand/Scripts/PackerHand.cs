@@ -308,7 +308,7 @@ public class PackerHand : Agent
             //GetComponent<BehaviorParameters>().BehaviorType = BehaviorType.InferenceOnly;
             if (CompletedEpisodes==10)
             {
-                //binSpawner.ExportBins();
+                binSpawner.ExportBins();
                 // stop mlagents-learn
             }
         }
@@ -374,7 +374,7 @@ public class PackerHand : Agent
             else if ((1 - (current_bin_volume/total_bin_volume)) * 100 >85f)
             {
                 // export bin
-                // binSpawner.ExportBins();
+                //binSpawner.ExportBins();
                 // stop mlagents-learn
                 SetReward(900f);
             }
