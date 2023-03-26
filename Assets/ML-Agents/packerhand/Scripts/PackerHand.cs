@@ -513,8 +513,6 @@ public class PackerHand : Agent
         tripoints_list.Add(tripoint_redx);   
         tripoints_list.Add(tripoint_greeny);
         tripoints_list.Add(tripoint_bluez);
-        // for second layer, need this vertex for front to back placements
-        tripoints_list.Add(selectedVertex);
 
 
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
