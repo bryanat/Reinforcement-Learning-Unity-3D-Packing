@@ -31,14 +31,13 @@ public class CombineMesh : MonoBehaviour
 
     void Start() 
     {
-        // Debug.Log("CombineMesh.cs: Start()");
-
         m_BackMeshScript = binBack.GetComponent<CombineMesh>();
         m_SideMeshScript = binSide.GetComponent<CombineMesh>();
         m_BottomMeshScript = binBottom.GetComponent<CombineMesh>();
         parent_mr = gameObject.GetComponent<MeshRenderer>();
         parent_mf = gameObject.GetComponent<MeshFilter>();
         parent_mc = gameObject.GetComponent<MeshCollider>();
+
     }
 
 
@@ -125,8 +124,6 @@ public class CombineMesh : MonoBehaviour
 
     public void MeshReset()
     {
-        // Debug.Log("Reset the mesh");
-
         if (name == "BinIso20Bottom")
         {
             while (binBottom.transform.childCount > 2) 

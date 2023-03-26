@@ -28,7 +28,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.burst": {
-      "version": "1.7.4",
+      "version": "1.7.3",
       "depth": 2,
       "source": "registry",
       "dependencies": {
@@ -100,7 +100,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.ml-agents": "2.3.0-exp.3",
+        "com.unity.ml-agents": "2.3.0-exp.4",
         "com.unity.modules.physics": "1.0.0"
       }
     },
