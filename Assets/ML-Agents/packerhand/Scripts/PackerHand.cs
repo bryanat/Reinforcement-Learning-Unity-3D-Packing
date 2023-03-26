@@ -374,10 +374,8 @@ public class PackerHand : Agent
             else if ((1 - (current_bin_volume/total_bin_volume)) * 100 >85f)
             {
                 // export bin
-                // if (!runInference)
-                // {
-                    // binSpawner.ExportBins();
-                // }
+                // binSpawner.ExportBins();
+                // stop mlagents-learn
                 SetReward(900f);
             }
             else 
@@ -515,6 +513,8 @@ public class PackerHand : Agent
         tripoints_list.Add(tripoint_redx);   
         tripoints_list.Add(tripoint_greeny);
         tripoints_list.Add(tripoint_bluez);
+        // for second layer, need this vertex for front to back placements
+        tripoints_list.Add(selectedVertex);
 
 
         for (int idx = 0; idx<tripoints_list.Count(); idx++) 
