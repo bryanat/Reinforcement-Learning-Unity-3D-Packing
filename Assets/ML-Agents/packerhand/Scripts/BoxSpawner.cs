@@ -107,10 +107,9 @@ public class BoxSpawner : MonoBehaviour
         var idx = 0;
         foreach(BoxSize s in sizes) 
         {
-            // Create boxPool array containing non-0-sized boxes as Box objects
             Vector3 box_size = new Vector3(s.box_size.x, s.box_size.y, s.box_size.z);
             // if box is not of size zeros
-            if (box_size.x != 0)
+            if (box_size.x != 0) 
             {
                 // Create GameObject box
                 var position = GetRandomSpawnPos();
@@ -143,21 +142,6 @@ public class BoxSpawner : MonoBehaviour
                 total_box_surface_area+=2*box_size.x*box_size.y + 2*box_size.y*box_size.z + 2* box_size.z*box_size.x;
                 idx+=1;     
             }
-            else{ 
-                var newBox = new Box
-                {
-                    rb = null, 
-                    startingPos = Vector3.zero,
-                    startingRot = Quaternion.identity,
-                    startingSize = Vector3.zero,
-                    boxSize = Vector3.zero,
-                    boxRot = Quaternion.identity,
-                    gameobjectBox = null,
-                };
-                // Add box to box pool
-                boxPool.Add(newBox);  
-                idx+=1;     
-            }
         }
     }
 
@@ -171,7 +155,7 @@ public class BoxSpawner : MonoBehaviour
         return randomSpawnPos;
     }
 
-    public void RandomBoxGenerator(string box_type, bool pickRandomNumberofBoxes, int num_boxes_x, int num_boxes_y, int num_boxes_z, int seed)
+    public void RandomBoxGenerator(string box_type, int seed)
     {
         // Create a new object with the Items list
         List<Item> items = new List<Item>();

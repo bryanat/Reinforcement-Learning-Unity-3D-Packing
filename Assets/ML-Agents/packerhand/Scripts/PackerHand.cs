@@ -111,7 +111,7 @@ public class PackerHand : Agent
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
 
-        // Update model references if we're overriding by adding a pre-trained brain
+        // Update model references if we're overriding
         var modelOverrider = GetComponent<ModelOverrider>();
         if (modelOverrider.HasOverrides && useCurriculum)
         {
@@ -154,7 +154,6 @@ public class PackerHand : Agent
         {
             script.agent = this;
         }
-        else DestroyImmediate(m_Agent.GetComponent<BufferSensorComponent>());
 
         m_BufferSensor = GetComponent<BufferSensorComponent>();
         isInference = GetComponent<BehaviorParameters>().BehaviorType == BehaviorType.InferenceOnly;
@@ -185,14 +184,13 @@ public class PackerHand : Agent
     /// <summary>
     /// Agent adds environment observations 
     /// </summary>
-
     public override void CollectObservations(VectorSensor sensor) 
     {
         //Debug.Log("OBSERVATION");
         // Add updated bin volume
         //sensor.AddObservation(percent_filled_bin_volume);
 
-        int j = -1;
+        int j = 0;
         maskedBoxIndices = new List<int>();
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
@@ -239,6 +237,8 @@ public class PackerHand : Agent
                 maskedBoxIndices.Add(j);
                 //Debug.Log($"ORGANIZED BOX LIST SELECTED BOX IS: {j}");
             }
+            j++;
+        }
 
         // add all zero padded boxes to action mask
         for (int m=boxPool.Count(); m< boxSpawner.maxBoxQuantity; m++)
@@ -261,11 +261,7 @@ public class PackerHand : Agent
                 //Debug.Log($"MASK VERTEX LOOP INDEX:{i}");
                 maskedVertexIndices.Add(i);
             }
-
-            // Size of observation space for vertices: s_vert = 3 * verticesArray.Length
-            //                                                = 3 * 2*maxBoxNum+1
-            // To allocate enough space we increase (2*maxBoxNum+1) to (3*maxBoxNum)
-            // Thus, in total: s_vert = 9*maxBoxNum
+            i++;
         }
         
     }
@@ -273,8 +269,6 @@ public class PackerHand : Agent
 
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
-        Debug.Log("MASK");
-
         // vertices action mask
         if (isAfterOriginVertexSelected) {
             foreach (int vertexIdx in maskedVertexIndices) 
@@ -284,11 +278,10 @@ public class PackerHand : Agent
             }
         }
         // box action mask
-        Debug.Log($"MASK BOX ARRAY size: {maskedBoxIndices.Count}");
         foreach (int selectedBoxIdx in maskedBoxIndices)
         {
             //Debug.Log($"MASK BOX {selectedBoxIdx}");
-            actionMask.SetActionEnabled(1, selectedBoxIdx, false);
+            actionMask.SetActionEnabled(0, selectedBoxIdx, false);
         }
     }
 
@@ -299,16 +292,6 @@ public class PackerHand : Agent
 
         var discreteActions = actionBuffers.DiscreteActions;
 
-        if (useDiscreteSolution){
-            // activate for discrete solution + adjust in Inspector by adding 1 more discrete branch
-            SelectVertexDiscrete(discreteActions[++j]);
-        }
-        else if (useContinuousSolution){
-            // activate for continuous solution
-            var i = -1;
-            SelectVertexContinuous(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
-        }
-
         SelectBox(discreteActions[++j]); 
         SelectVertex(discreteActions[++j]);
         SelectRotation(discreteActions[++j]);
@@ -317,7 +300,7 @@ public class PackerHand : Agent
 
     /// <summary>
     /// This function is called at every time step
-    /// <summary>
+    ///</summary>
     void FixedUpdate() 
     {
         if (isInference)
@@ -345,19 +328,12 @@ public class PackerHand : Agent
         // start of episode
         if (isEpisodeStart)
         {
-            Debug.Log("Reset new episode!");
-            
             isEpisodeStart = false;
 
             // Reset agent and rewards
             SetResetParameters();
-            // Reset states;
-            StateReset();
-            // Reset agent
-            AgentReset();
 
-            // Initialize curriculum & brain and generate boxes
-            initializeBrain = true;
+            // Initialize curriculum and brain
             if (useCurriculum)
             {
                 if (curriculum_ConfigurationGlobal != -1)
@@ -445,14 +421,12 @@ public class PackerHand : Agent
             }
         }
 
-        // If agent selects a box, it should move towards the box
+        // if agent selects a box, it should move towards the box
         else if (isBoxSelected && isPickedup == false) 
         {
-            // Agent moves to position of the box
             UpdateAgentPosition(targetBox);
             if ( Math.Abs(total_x_distance) < 0.1f && Math.Abs(total_z_distance) < 0.1f ) 
             {
-                Debug.Log("Box picked up!");
                 PickupBox();
             }
         }
@@ -460,11 +434,8 @@ public class PackerHand : Agent
         //if agent is carrying a box it should move towards the selected position
         else if (isPickedup && isDroppedoff == false) 
         {
-
             UpdateBoxPosition();
-            // Agent moves (with the box) to selected position inside the bin
             UpdateAgentPosition(targetBin);
-
             UpdateTargetBox();
             //if agent is close enough to the position, it should drop off the box
             if (isBoxPlacementChecked && Math.Abs(total_x_distance) < 2f && Math.Abs(total_z_distance) < 2f) 
@@ -502,26 +473,6 @@ public class PackerHand : Agent
 
         else { return;}
     }
-
-    public void initiateNewEpisode(){
-        // Reset curriculum brain & box generation, end episode, reset flag for new episode
-        
-        Debug.Log($"Initiating new episode");
-
-        if (useSparseReward){
-            if (current_empty_bin_volume / total_bin_volume < 0.15f) AddReward(10000f); 
-            if (current_empty_bin_volume / total_bin_volume < 0.10f) AddReward(10000f);
-            if (current_empty_bin_volume / total_bin_volume < 0.05f) AddReward(10000f);
-        }
-
-        Debug.Log($"current_empty_bin_volume: {current_empty_bin_volume} | total_bin_volume: {total_bin_volume} | percent_filled_bin_volume: {percent_filled_bin_volume}%");
-        Debug.Log($"boxes_packed: {boxes_packed}");
-
-        if (useCurriculum){curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;}
-        isEpisodeStart = true;
-
-        EndEpisode();
-    }
     
 
     /// <summary>
@@ -529,7 +480,6 @@ public class PackerHand : Agent
     ///</summary>
     void UpdateAgentPosition(Transform target) 
     {
-        // Move agent towards the target position with specified PackSpeed
         total_x_distance = target.position.x- m_Agent.position.x;
         total_y_distance = target.position.y- m_Agent.position.y;
         total_z_distance = target.position.z- m_Agent.position.z;
@@ -537,8 +487,7 @@ public class PackerHand : Agent
         var current_agent_y = m_Agent.position.y;
         var current_agent_z = m_Agent.position.z;   
         this.transform.position = new Vector3(current_agent_x + total_x_distance/packSpeed, 
-                                              target.position.y, 
-                                              current_agent_z + total_z_distance/packSpeed);   
+        target.position.y, current_agent_z + total_z_distance/packSpeed);   
 
     }
 
@@ -557,9 +506,9 @@ public class PackerHand : Agent
     void UpdateVerticesArray() 
     {
         List<Vector3> tripoints_list = new List<Vector3>();
-        var tripoint_redx   = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y,                 selectedVertex.z);                   // x red side tripoint
-        var tripoint_greeny = new Vector3(selectedVertex.x,                   selectedVertex.y+boxWorldScale.y, selectedVertex.z);                   // y green bottom tripoint 
-        var tripoint_bluez  = new Vector3(selectedVertex.x,                   selectedVertex.y,                 selectedVertex.z+boxWorldScale.z);   // z blue back tripoint 
+        var tripoint_redx = new Vector3(selectedVertex.x + boxWorldScale.x, selectedVertex.y, selectedVertex.z); // x red side tripoint
+        var tripoint_greeny = new Vector3(selectedVertex.x, selectedVertex.y+boxWorldScale.y, selectedVertex.z); // y green bottom tripoint 
+        var tripoint_bluez = new Vector3(selectedVertex.x, selectedVertex.y, selectedVertex.z+boxWorldScale.z); // z blue back tripoint 
 
         tripoints_list.Add(tripoint_redx);   
         tripoints_list.Add(tripoint_greeny);
@@ -578,11 +527,6 @@ public class PackerHand : Agent
         }
     }
 
-    public void SelectVertexDiscrete(int action_SelectedVertexIdx) 
-    {
-        // assign selected vertex where next box will be placed, selected from brain's actionbuffer (inputted as action_SelectedVertex)
-        selectedVertexIdx = action_SelectedVertexIdx;
-        var scaled_selectedVertex = verticesArray[action_SelectedVertexIdx];
 
     public void SelectVertex(int action_SelectedVertexIdx) 
     {
@@ -649,7 +593,6 @@ public class PackerHand : Agent
         GameObject testBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rb = testBox.AddComponent<Rigidbody>();
         testBox.transform.localScale = boxWorldScale;
-
         // test position has to be slightly elevated or else raycast doesn't detect the layer directly below
         testBox.transform.position = new Vector3(testPosition.x, testPosition.y+0.1f, testPosition.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
@@ -664,7 +607,6 @@ public class PackerHand : Agent
         // Setup child test boxes for physics check which check overlapping boxes (impossible placements)
         GameObject testBoxChild = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Rigidbody rbChild = testBoxChild.AddComponent<Rigidbody>();
-
         // make child test box slightly smaller than parent test box, used to detect overlapping boxes on collision in SensorOverlapCollision.cs
         testBoxChild.transform.localScale = new Vector3((boxWorldScale.x-0.099f), (boxWorldScale.y-0.099f), (boxWorldScale.z-0.099f));
         testBoxChild.transform.position = testPosition;
@@ -954,6 +896,7 @@ public class PackerHand : Agent
 
 
 
+
     public void AgentReset() 
     {
         m_Agent.position = initialAgentPosition;
@@ -1002,7 +945,7 @@ public class PackerHand : Agent
         VertexCount = 0;
 
         // Reset current bin volume
-        current_empty_bin_volume = total_bin_volume;
+        current_bin_volume = total_bin_volume;
 
         // Reset current contact surface area
         current_contact_surface_area = 0;
@@ -1049,24 +992,17 @@ public class PackerHand : Agent
     }
 
 
+    /// <summary>
     /// Configures the agent. Given an integer config, difficulty level will be different and a different brain will be used.
+    /// </summary>
     void ConfigureAgent(int n) 
     {
-        // Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_BehaviorName}");
-
-        if (useCurriculum && initializeBrain)
-        {
-            SetModel(m_BehaviorName, brain);  
-        }
-
-        if (n==0) 
         // DISCRETE
+        if (n==0) 
         {
             if (isAfterInitialization==false)
             {
-                boxSpawner.SetUpBoxes("uniform_random", boxSpawner.pickRandom, 1, 1, 1, seed, usePadding);
-                // Debug.Log($"BXS BOX POOL COUNT: {boxPool.Count}");
-                boxes_in_lesson = 1;
+                SetModel(m_DiscreteBehaviorName, discreteBrain);
             }
             //Debug.Log($"BBN BRAIN BEHAVIOR NAME: {m_DiscreteBehaviorName}");
             if (Academy.Instance.EnvironmentParameters.GetWithDefault("discrete", 0.0f) == 0.0f)
