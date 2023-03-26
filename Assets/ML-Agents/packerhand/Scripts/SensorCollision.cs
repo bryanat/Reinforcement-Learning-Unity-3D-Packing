@@ -29,19 +29,15 @@ public class SensorCollision : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        //Debug.Log($"OCC COLLISION OBJECT NAME IS {collision.gameObject.name}");
         GetHitDistance();
         // get surface area of contact
         GetSurfaceArea(collision.gameObject.name);
-        //Debug.Log($"SCD {name} distance: {distance}");  
         // if fails gravity check, this loop should only be executed once
         if (distance> fallingThreshold) 
         {
             int failedBoxId = int.Parse(name.Substring(7));
             // reset box, through failing passedGravityCheck flag that agent uses to reset box and pickup a new box when false
             passedGravityCheck = false;
-            //agent.AddReward(-1f);
-            //Debug.Log($"RWD {agent.GetCumulativeReward()} total reward | -1 reward from passedGravityCheck: {passedGravityCheck}");
             //Debug.Log($"SCS {name} FAILED GRAVITY CHECK");  
             // destroy test box  
             Destroy(gameObject);
@@ -125,10 +121,31 @@ public class SensorCollision : MonoBehaviour
         int layerMask = 1 << 6;
         // This would cast rays only against colliders in layer 6.
         Vector3 boxBottomCenter = new Vector3(transform.position.x, transform.position.y-transform.localScale.y*0.5f, transform.position.z);
-        //Ray downRay = new Ray(boxBottomCenter, Vector3.down); // this is the downward ray from box bottom to ground
-        if (Physics.Raycast(boxBottomCenter, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, layerMask, QueryTriggerInteraction.Collide))
+        Vector3 leftRay = new Vector3(boxBottomCenter.x-transform.localScale.x*0.2f, boxBottomCenter.y, boxBottomCenter.z);
+        Vector3 rightRay = new Vector3(boxBottomCenter.x+transform.localScale.x*0.2f, boxBottomCenter.y, boxBottomCenter.z+transform.localScale.z*0.2f);
+        Vector3 frontRay = new Vector3(boxBottomCenter.x, boxBottomCenter.y, boxBottomCenter.z+transform.localScale.z*0.2f);
+        Vector3 backRay = new Vector3(boxBottomCenter.x, boxBottomCenter.y, boxBottomCenter.z-transform.localScale.z*0.2f);
+        if (Physics.Raycast(leftRay, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, layerMask, QueryTriggerInteraction.Collide))
         {
-            distance = hit.distance;
+            distance = Mathf.Max(distance, hit.distance);
+            //Debug.DrawRay(boxBottomCenter, transform.TransformDirection(Vector3.down), Color.yellow);
+            //Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
+        }
+        if (Physics.Raycast(rightRay, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, layerMask, QueryTriggerInteraction.Collide))
+        {
+            distance = Mathf.Max(hit.distance, distance);
+            //Debug.DrawRay(boxBottomCenter, transform.TransformDirection(Vector3.down), Color.yellow);
+            //Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
+        }
+        if (Physics.Raycast(frontRay, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, layerMask, QueryTriggerInteraction.Collide))
+        {
+            distance = Mathf.Max(hit.distance, distance);
+            //Debug.DrawRay(boxBottomCenter, transform.TransformDirection(Vector3.down), Color.yellow);
+            //Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
+        }
+        if (Physics.Raycast(backRay, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, layerMask, QueryTriggerInteraction.Collide))
+        {
+            distance = Mathf.Max(hit.distance, distance);
             //Debug.DrawRay(boxBottomCenter, transform.TransformDirection(Vector3.down), Color.yellow);
             //Debug.Log($"RCS ENTERED RAYCAST HIT DISTANCE FROM {gameObject.name} TO {hit.transform.name} IS: {distance}");
         }

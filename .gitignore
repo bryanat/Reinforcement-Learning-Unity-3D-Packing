@@ -13,6 +13,8 @@ com.unity.ml-agents.extensions/
 utils/
 ml-agents-envs/
 
+VSCode/env/
+
 *.txt
 *.json
 *.ini
