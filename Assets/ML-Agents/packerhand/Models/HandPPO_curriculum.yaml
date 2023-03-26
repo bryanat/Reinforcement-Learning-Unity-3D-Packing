@@ -64,9 +64,9 @@ behaviors:
 
 
   
-#   # Add this section
+  # Add this section
 environment_parameters:
-  Discrete:
+  discrete:
     curriculum:
       - name: 1MixLesson # The '-' is important as this is a list
         completion_criteria:
@@ -87,7 +87,7 @@ environment_parameters:
       - name: 3MixLesson # The '-' is important as this is a list
         completion_criteria:
           measure: reward
-          behavior: Discete
+          behavior: Discrete
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 600
