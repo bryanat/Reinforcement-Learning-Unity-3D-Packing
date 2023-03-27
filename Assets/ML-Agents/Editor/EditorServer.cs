@@ -20,7 +20,7 @@
             }
             if (args[i] == "training")
             {
-                EditorSceneManager.OpenScene("/home/yueqi/DRL/UnityBox5/DRL-RNN-LSTM-BOX-SIM/Assets/ML-Agents/packerhand/Scenes/BoxPackingMultiPlatformY.unity");
+                EditorSceneManager.OpenScene("/home/yueqi/DRL/UnityBox5/DRL-RNN-LSTM-BOX-SIM/Assets/ML-Agents/packerhand/Scenes/BoxPackingMultiPlatformX.unity");
             }
         }
         UnityEditor.EditorApplication.ExecuteMenuItem("Edit/Play");

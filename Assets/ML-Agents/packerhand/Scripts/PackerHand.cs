@@ -82,8 +82,8 @@ public class PackerHand : Agent
     public float percent_filled_bin_volume;
     public float percent_contact_surface_area;
     public int boxes_packed;
-    public List<float> prev_back_placements;
-    public List<float> prev_side_placements;
+    [HideInInspector] public List<float> prev_back_placements;
+    [HideInInspector] public List<float> prev_side_placements;
 
 
 
@@ -374,7 +374,7 @@ public class PackerHand : Agent
             else if ((1 - (current_bin_volume/total_bin_volume)) * 100 >85f)
             {
                 // export bin
-                //binSpawner.ExportBins();
+                binSpawner.ExportBins();
                 // stop mlagents-learn
                 SetReward(900f);
             }

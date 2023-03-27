@@ -43,6 +43,7 @@ public class Item
     public float Width { get; set; }
     public float Height { get; set; }
     public int Quantity { get; set; }
+    public string Color {get; set; }
 }
 
 
@@ -180,6 +181,7 @@ public class BoxSpawner : MonoBehaviour
                     Width = x_dimension,
                     Height = y_dimension,
                     Quantity = random_num_x*random_num_y*random_num_z,
+                    Color = ColorUtility.ToHtmlStringRGB(randomColor)
                 });
                 // Set color of the boxes
                 for (int i= 0; i<quantity; i++)
@@ -245,7 +247,8 @@ public class BoxSpawner : MonoBehaviour
                                 Length = z_dimensions[z],
                                 Width = x_dimensions[x],
                                 Height = y_dimensions[y],
-                                Quantity = 1
+                                Quantity = 1,
+                                Color = ColorUtility.ToHtmlStringRGB(randomColor)
 
                             }); id++;
                         }
