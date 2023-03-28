@@ -14,12 +14,12 @@ behaviors:
       learning_rate_schedule: linear
     network_settings:
       normalize: true
-      hidden_units: 512
-      num_layers: 3
+      hidden_units: 256
+      num_layers: 6
       # memory:
       #   use_recurrent: true
-      #   sequence_length: 8
-      #   memory_size: 256
+      #   sequence_length: 
+      #   memory_size: 512
     reward_signals:
       extrinsic:
         gamma: 0.999

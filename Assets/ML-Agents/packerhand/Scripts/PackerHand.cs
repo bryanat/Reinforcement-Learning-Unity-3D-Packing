@@ -187,8 +187,6 @@ public class PackerHand : Agent
     public override void CollectObservations(VectorSensor sensor) 
     {
         //Debug.Log("OBSERVATION");
-        // Add updated bin volume
-        //sensor.AddObservation(percent_filled_bin_volume);
 
         int j = 0;
         maskedBoxIndices = new List<int>();
@@ -253,6 +251,8 @@ public class PackerHand : Agent
         foreach (Vector4 vertex in verticesArray) 
         {   
             Vector3 scaled_vertex = new Vector3(vertex.x, vertex.y, vertex.z);
+            // Add sorted vertices
+            sensor.AddObservation(scaled_vertex);
             //Debug.Log($"XYX scaled_continuous_vertex: {scaled_continuous_vertex}");
             // origins after scaled and selected vertices will be (0, 0, 0)
             // since cannot be selected again, they will be masked in action space
@@ -308,7 +308,7 @@ public class PackerHand : Agent
             //GetComponent<BehaviorParameters>().BehaviorType = BehaviorType.InferenceOnly;
             if (CompletedEpisodes==10)
             {
-                binSpawner.ExportBins();
+                //binSpawner.ExportBins();
                 // stop mlagents-learn
             }
         }
@@ -374,7 +374,7 @@ public class PackerHand : Agent
             else if ((1 - (current_bin_volume/total_bin_volume)) * 100 >85f)
             {
                 // export bin
-                binSpawner.ExportBins();
+                //binSpawner.ExportBins();
                 // stop mlagents-learn
                 SetReward(900f);
             }
@@ -455,7 +455,7 @@ public class PackerHand : Agent
                         prev_back_placements[selectedBin] = selectedVertex.z;
                         prev_side_placements[selectedBin] = selectedVertex.x;
                         //Debug.Log($"DISTANCE FROM BACK {dist_from_back}");
-                        AddReward(boxes_packed + percent_contact_surface_area - height_variance - dist_from_back - side_dist);          
+                        AddReward(percent_contact_surface_area - height_variance - dist_from_back - side_dist);          
                     }
 
                 }
@@ -525,6 +525,9 @@ public class PackerHand : Agent
             VertexCount ++;
             //Debug.Log($"VERTEX COUNT IS {VertexCount}");
         }
+
+        // sort vertices array
+        verticesArray.OrderBy(n=>n.x).ThenBy(n=>n.y).ThenBy(n=>n.z);
     }
 
 

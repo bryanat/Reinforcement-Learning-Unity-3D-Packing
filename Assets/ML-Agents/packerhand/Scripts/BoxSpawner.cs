@@ -144,6 +144,8 @@ public class BoxSpawner : MonoBehaviour
                 idx+=1;     
             }
         }
+        // sort box pool
+        boxPool.OrderBy(n=>n.boxSize.x).ThenBy(n=>n.boxSize.y).ThenBy(n=>n.boxSize.z);
     }
 
 
