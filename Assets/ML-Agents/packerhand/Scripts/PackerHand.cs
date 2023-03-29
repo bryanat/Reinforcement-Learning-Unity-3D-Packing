@@ -12,7 +12,8 @@ using Unity.MLAgents.Policies;
 using Box = Boxes.Box;
 using Boxes;
 using Bins;
-using Startup = Unity.MLAgentsExamples.Startup;
+// using Startup = Unity.MLAgentsExamples.Startup;
+
 
 
 
@@ -77,6 +78,7 @@ public class PackerHand : Agent
     [HideInInspector] public float total_bin_volume; // sum of all bins' volume
    [HideInInspector] public List<float> boxHeights;
     [HideInInspector] public float current_contact_surface_area;
+    public float max_percent_volume;
     public float height_variance;
     float current_bin_volume;
     public float percent_filled_bin_volume;
@@ -305,23 +307,19 @@ public class PackerHand : Agent
     {
         if (isInference)
         {
-            //GetComponent<BehaviorParameters>().BehaviorType = BehaviorType.InferenceOnly;
             if (CompletedEpisodes==10)
             {
-                //binSpawner.ExportBins();
-                // stop mlagents-learn
+                binSpawner.ExportBins();
+                AppHelper.Quit();
             }
         }
-
         // Debug.Log($"STEP COUNT {StepCount}");
         // if all boxes are packed
         if (maskedBoxIndices.Count == boxSpawner.maxBoxQuantity)
         {
             Debug.Log("ALL BOXES ARE PACKED");
             SetReward(2000f);
-            EndEpisode();
-            curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
-            isEpisodeStart = true;
+            AppHelper.Quit();
 
         }
 
@@ -352,6 +350,9 @@ public class PackerHand : Agent
             boxPool = boxSpawner.boxPool;
             //Debug.Log($"BOX POOL COUNT {boxPool.Count}");
 
+            // initialize maximum percent volume that can be filled
+            max_percent_volume = boxSpawner.total_box_volume/total_bin_volume*100f;
+
             isAfterOriginVertexSelected = false;
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
             GetComponent<Agent>().RequestDecision(); 
@@ -364,19 +365,19 @@ public class PackerHand : Agent
         }
         // delayed reward for volume packed
         // highest rewards given to hardest goals
-        if ((1 - (current_bin_volume/total_bin_volume)) * 100>75f)
+        if (((1 - (current_bin_volume/total_bin_volume)) * 100)/max_percent_volume*100>75f)
         {
-            Debug.Log($"PERCENT PACKED: {percent_filled_bin_volume} % ");
-            if ((1 - (current_bin_volume/total_bin_volume)) * 100 >95f)
+            //Debug.Log($"PERCENT PACKED: {percent_filled_bin_volume} % ");
+            if (((1 - (current_bin_volume/total_bin_volume)) * 100)/max_percent_volume * 100 >95f)
             {
                 SetReward(1000f);
+                AppHelper.Quit();
             }
-            else if ((1 - (current_bin_volume/total_bin_volume)) * 100 >85f)
+            else if (((1 - (current_bin_volume/total_bin_volume)))/max_percent_volume * 100 >85f)
             {
-                // export bin
-                //binSpawner.ExportBins();
-                // stop mlagents-learn
                 SetReward(900f);
+                // export bin
+                binSpawner.ExportBins();
             }
             else 
             {
@@ -401,7 +402,9 @@ public class PackerHand : Agent
             percent_contact_surface_area = current_contact_surface_area/boxSpawner.total_box_surface_area *100;
 
             // Increment stats recorder to match reward
-            m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
+            //m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
+            m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume/max_percent_volume*100, StatAggregationMethod.Average);
+
 
             // REGUEST DECISION FOR NEXT ROUND OF PICKING
             if (origin_counter<=0) 
@@ -455,7 +458,7 @@ public class PackerHand : Agent
                         prev_back_placements[selectedBin] = selectedVertex.z;
                         prev_side_placements[selectedBin] = selectedVertex.x;
                         //Debug.Log($"DISTANCE FROM BACK {dist_from_back}");
-                        AddReward(percent_contact_surface_area - height_variance - dist_from_back - side_dist);          
+                        AddReward(boxes_packed + percent_contact_surface_area - height_variance - dist_from_back - side_dist);                                
                     }
 
                 }

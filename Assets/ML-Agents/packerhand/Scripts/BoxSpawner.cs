@@ -60,6 +60,8 @@ public class BoxSpawner : MonoBehaviour
 
     public float total_box_surface_area;
 
+    public float total_box_volume;
+
     public BoxSize [] sizes; // array of box sizes
 
     [HideInInspector] public int idx_counter = 0; //counter for sizes array
@@ -79,6 +81,7 @@ public class BoxSpawner : MonoBehaviour
         boxPool.Clear();
         Colors.Clear();
         total_box_surface_area = 0;
+        total_box_volume = 0;
         idx_counter = 0;
 
     }
@@ -141,6 +144,7 @@ public class BoxSpawner : MonoBehaviour
                 boxPool.Add(newBox);  
                 // update total box surface rea
                 total_box_surface_area+=2*box_size.x*box_size.y + 2*box_size.y*box_size.z + 2* box_size.z*box_size.x;
+                total_box_volume += box_size.x*box_size.y*box_size.z;
                 idx+=1;     
             }
         }
