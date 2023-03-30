@@ -1,9 +1,24 @@
-<!--  # DRL-RNN-LSTM-BOX-SIM -->
-<!-- - ## DRL - Deep Reinforcement Learning -->
-<!-- - ## RNN - Recurrent Neural Network -->
-<!-- - ## LSTM - Long Short Term Memory (RNN derivative) -->
-<!-- - ## BOX - Box. Box. Box. (RL Agent's existence) -->
-<!-- - ## SIM - Simulation in Unity/Gym (RL Environment) -->
+<p align="center">
+<img src="VSCode/docs/images/fourthbrain-logo.png" alt="drawing" width="100"/ padding-right:30px>
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+<img src="VSCode/docs/images/instadeep-logo.png" alt="drawing" width="100"/>
+</p>
+
 
 # PackerHand
 The scope of this algorithm is to tackle the problem of insufficient bin packing in the currently overwhelmed supply chains. The bin packing industry  faces itself a number of  challenges and costs related to finding more efficient packing solutions.
@@ -39,6 +54,9 @@ Step-by-step guide on using the app.
 - Retrieve output
 ## Installing 
 
+See here for [Unity installation](https://learn.unity.com/tutorial/install-the-unity-hub-and-editor) and [ML-agents installation](https://unity-technologies.github.io/ml-agents/Installation/).
+
+
 ## Deployment
 
 # UI Demo
@@ -52,30 +70,161 @@ Step-by-step guide on using the app.
 - Deployment
 - Fronted: Web app with React
 
-![](VSCode/docs/images/MLE-stack.png)
+![](VSCode/docs/images/ML_stack.png)
 
 ## Tensorboard
 ![](VSCode/docs/images/runidfffffffff.png)
 
 
 
-# Backend features
+# Features
 We train a Deep Reinforcement Learning (DRL) agent using a policy with specified reward and observation states. The goal is to teach the agent to pack as many boxes into the bin as possible.
 
-## Reinforcement Learning
+## Unity environment
+
+### Unity scene
+##### [scene](https://github.com/bryanat/Reinforcement-Learning-Unity-3D-Packing/tree/master/Assets/ML-Agents/packerhand/Scenes)
+
+A Unity scene is created, namely "BinPacking001". The scene is populated with:
+- A platform acting as the ground.
+- Walls surrounding the platform and effectively preventing the agent to "escape".
+- The industrial container bin with real-life dimensions.
+- An area that boxes are initially spawned, outside the bin.
+- The trainable PackerHand agent as a cylinder object.
+
+Collider objects are assigned to the boxes and the bin in order to simulate collision and contact.
+
+
+<br>
+<p align="center">
+<img src="VSCode/docs/images/Unity_1.png" alt="drawing" width="300"/ padding-right:30px>
+&nbsp;
+&nbsp;
+<img src="VSCode/docs/images/Unity_2.png" alt="drawing" width="300"/>
+</p>
+<br>
+
+
+### Customized environment in C#
+##### [scripts](https://github.com/bryanat/Reinforcement-Learning-Unity-3D-Packing/tree/master/Assets/ML-Agents/packerhand/Scripts)
+
+ The process of spawning boxes, agent training and physics simulation is customized with ~2000 lines of written code divided in 7 new classes:
+
+- PackerHand.cs
+
+  The trainable agent that acts in the environemnt and controls the learning process ([PackerHand agent](#agent)).
+
+- Binspawner.cs
+
+  Used for multi-platform learning. Spawns new container bins at proper distance, assigns the PackerHand.cs agent and spawns new boxes at the proper location using the Boxspawner.cs 
+
+- BoxSpawner.cs
+
+  Spawns boxes on the designated spawning area (outside the bin) with dimensions specified by the user.
+
+- CombineMesh.cs
+
+  Once a box is placed inside the bin it becomes its child object. This class combines the mesh of the box children to the mesh of the bin parent object.
+
+- SensorCollision.cs
+
+  Detects collision/contant between the box that is currently being packed and the current topology of the bin (the bin walls and the boxes already placed inside the bin). Additionally, it checks for violation of gravity; for example, when the bottom of the currently packed box is not properly supported (see [Physics Checks](#physics-checks)). The results regarding contact are also used for the [stability reward](#reward).  
+
+- SensorOuterCollision.cs
+
+  Detects collision/protrusion between the box currently being packed and the walls of the bin (see [Physics Checks](#physics-checks)).
+
+- SensorOverlapCollision.cs
+
+  Detects overlapping between the box currently being packed and the boxes already packed and already combined with the bin mesh/topology (see [Physics Checks](#physics-checks)).
+
+### Physics checks
+Rigidbody properties are assigned to all included bodies simulating the laws of physics.
+
+<p align="center">
+<img src="VSCode/docs/images/physics-check-protrusion.png" alt="drawing" width="300"/>
+&nbsp;
+<img src="VSCode/docs/images/physics-gravity-violated.png" alt="drawing" width="300"/>
+</p>
+
+There are 3 scenarios of physics violation:
+- The packed box is protruding outside the walls of the bin
+- The packed box is ovellapping with other already packed boxes
+- The packed box is not properly supported (vioalting gravity)
+
+To teach the agent to obey the above physics laws and to avoid applying heuristics - avoid constraining the freedom of the agent to learn its own way - we used reward shaping. Specifically, a penalty (negative) reward is applied every time the agent violates physics. Additionally, the learning episode is terminated. The bin is emptied, the boxes reset and packing begins again. (see [Rewards](#rewards))
+
+
+## Reinforcement Learning with ML-Agents
+##### [ML-Agents Toolkit](https://github.com/gzrjzcx/ML-agents/blob/master/docs/ML-Agents-Overview.md)
+
 Summary of Reinforcement Learning:
 - Our Agent receives state S0 from the Environment — we receive the first frame of our game (Environment).
 - Based on that state S0, the Agent takes action A0​ — our Agent will move to the right.
 - Environment goes to a new state S1​ — new frame.
 - The environment gives some reward R1​ to the Agent (positive/negative)
 
-![](VSCode/docs/images/RL_scheme.png)
+<br>
+<p align = "center" draggable=”false” ><img src="VSCode/docs/images/RL_scheme.png" 
+     width="500px"
+     height="auto"/>
+</p>
+<br>
+<!-- ![](VSCode/docs/images/RL_scheme.png) -->
 
-### Policy 
+Unity ML-Agents (Machine Learning Agents) is an open-source Unity plugin that allows developers to integrate artificial intelligence (AI) agents into their Unity games or simulations. It provides a platform for training and testing AI agents using reinforcement learning, imitation learning, and other machine learning algorithms. The toolkit includes various pre-built environments and examples to help developers get started, as well as support for custom environments and agents. Unity ML-Agents is designed to be accessible to both beginners and experienced AI developers, and can be used for a wide range of applications, from game development to robotics research.
+
+
+<p align = "center" draggable=”false” ><img src="VSCode/docs/images/unity_mlagents.png" 
+     width="500px"
+     height="auto"/>
+</p>
+<br>
+
+Trainng with ML-Agents is described [here](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Training-ML-Agents.md#training-with-mlagents-learn)
+
+### PackerHand Agent
+Each time a box needs to be packed from the spawning area into the bin, the agent:
+  1. observes the current state/enviroment of the bin
+  2. decides which action to take next: 
+     - wchich box to place next 
+     - at which position 
+     - with which specific rotation
+  3. picks up the box and carries it to the proper location
+  4. checks against physics: gravity, overlapping with other boxes, protrusion beyond the extents of the bin (see [Physics Checks](#physics-checks))
+  5. if the physics checks are passed, the agent repeats by taking a new decision
+
+### Configuration / Hyperparameters
+##### [.yaml](https://github.com/bryanat/Reinforcement-Learning-Unity-3D-Packing/tree/master/Assets/ML-Agents/packerhand/Models)
+
+Our policy is online and thus we want our agent to backpropagate and update its PPO policy rathen often. Therefore, we define:
+- "batch size"
+
+  the number of experiences to collect before updating the policy model. Our agent uses an online policy which means that it interacts with environment, collects runtime experience and updates regularly. Thus, small value needs to be set for the batch size.
+
+- "buffer size"
+
+  similar to the batch size and the online training principles, a small value is set here as well.
+
+- "gamma" 
+  
+   orresponds to the discount factor for future rewards. This can be thought of as how far into the future the agent should care about possible rewards. Our agentshould be acting in the present with the incentive of rewards in the distant future; that is the large reward when the bin is fully packed. Thus, a relatively large gamma value is used.
+
+
+<p align = "center" draggable=”false” ><img src="VSCode/docs/images/yaml.png" 
+     width="200px"
+     height="auto"/>
+</p>
+<br>
+
+For more exaplanation of the various parameters in the .yaml file see also 
+the [training config file](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Training-ML-Agents.md#training-ml-agents) section.
+
+#### Policy 
 Implement transformers (decision transformer / set transformer) in a multi-agent environment
-### Observations
+#### Observations
 Observations are the information our agent gets from the environment.
-### Actions
+#### Actions
 The Action space is the set of all possible actions in an environment. The action of our agent come from a discrete environment. Every time the agent is called to make a decision, simulteously the 3 following actions are decided:
 
 1. The available positions vector:
@@ -90,22 +239,30 @@ The Action space is the set of all possible actions in an environment. The actio
 
    Always 6 available rotations since we are only fitting cubic boxes for our baseline model
 
-
-#### Masking
-### Reward
+*** masking
+#### Rewards
 Shape/Tune reward towards a more sparse behavior
+#### Attention mechanism
 
-### Curriculum learning
+#### Memory-enhancement using RNN
+##### [](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Feature-Memory.md)
+Deciding what the agents should remember in order to solve a task is not easy to do by hand, but our training algorithm can learn to keep track of what is important to remember with LSTM. To use the LSTM, training "remembers" a sequence of experiences instead of single experiences. The downside is that the training of the agents slows down.
 
-### Multi-platform training
-Automate running on the cloud
-Randomization of environment to ensure scalability
-### Attention mechanism
+#### Curriculum learning
+##### [Training ML-Agents with Curriculum Learning](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Training-Curriculum-Learning.md)
+***description missing
 
+#### Multi-platform training
+***description missing
+<br>
+<p align = "center" draggable=”false” ><img src="VSCode/docs/images/drl-unity-api-io-sensor-actuator.png" 
+     width="400px"
+     height="auto"/>
+</p>
 <br>
 
-![](VSCode/docs/images/drl-unity-api-io-sensor-actuator.png)
-# Training workflow
+<!-- ![](VSCode/docs/images/drl-unity-api-io-sensor-actuator.png) -->
+## Training workflow
 
 The workflow is the following:
 1. State S0
@@ -132,13 +289,12 @@ The workflow is the following:
     - Physics are violated (negative reward)
     - More than 15000 steps have been utilized per episode (negative reward)
 
-![](VSCode/docs/images/Screenshot%20from%202022-12-12%2016-40-31.png)
-
-## DRL
-![](VSCode/docs/images/Screenshot%20from%202022-12-03%2023-56-10.png)
-### Bryan: `mlagents_envs` (environment state) RL-side of DRL (RL Simulation/Environment-driven) (red)
-### Yueqi: `mlagents` (learning algorithms) DL-side of DRL (DL Model/Policy-driven) (blue)
-Unity ML-Agents: "`mlagents` provides a set of reinforcement and imitation learning algorithms designed to be used with Unity environments. The algorithms interface with the Python API provided by `mlagents_envs`."
+<br>
+<p align = "center" draggable=”false” ><img src="VSCode/docs/images/scribble-policy-state-action-reward.png" 
+     width="400px"
+     height="auto"/>
+</p>
+<br>
 
 # Limitations & Remedies
 
@@ -152,12 +308,15 @@ Unity ML-Agents: "`mlagents` provides a set of reinforcement and imitation learn
 - Increase computational performance by switching to Offline Reinforcement Learning using a [Decision Transformer](https://github.com/kzl/decision-transformer). 
 
 # DRL stack evolution
-he system consists of five components, each undergoing its own process of evolution through performance and problem-solving decisions. Our implementation diagram (blue frame) shows the stages and future improvements. 
+The system consists of five components, each undergoing its own process of evolution through performance and problem-solving decisions. Our implementation diagram (blue frame) shows the stages and future improvements. 
 
 The Policy component is the "brain" that seeks to maximize rewards by packing boxes into a bin. We established a baseline model using Proximal Policy Optimization for better performance than other DRL algorithms. To address the problem's combinatorial complexity, we applied Curriculum Learning with lessons of increasing difficulty. We introduced the multi-headed attention mechanism to handle dynamic action/state space. The computational performance runs on multiple platforms in parallel on AWS, training one agent. Initially, reward shaping had dense rewards. We later implemented the stability reward, rewarding agent stacking boxes with adjacent boxes, and introducing penalties to prevent environment manipulation. The goal is to sparse out the reward component. We use a hybrid of discrete and continuous state/action space to generalize modeling compared to the initial options and heuristics. Feature engineering is a major part of our efforts. We are generalizing the agent by sparsing out our reward policy and reducing heuristics used for modeling state/action space while attempting to implement Transformers.
 
 
 ![](VSCode/docs/images/EvolutionTree2.drawio.png)
+
+## Progression Demo
+***add progression demo videos from Slides
 
 # Responsible AI
 We take care that our AI system is built upon ethical and responsible development, deployment, and use of artificial intelligence technologies. This is why we make sure that:
@@ -172,43 +331,5 @@ This product was developed by [Bryan Boyett](https://github.com/bryanat) & [Yueq
 
 # Acknowledgements
 Hat tip to our FourthBrain-MLE11 instructors [Anna Marek](linkedin.com/in/anna-marek), [Milica Cvetkovic](linkedin.com/in/iammilica) and [Chris Alexiuk](linkedin.com/in/csalexiuk) for contributing to this project with their contructive feedback and inspiration. 
-
-<!-- ## Data: State generated through RL environment
-### <ins>Constant: Data that’s provided</ins>
-- 3d size of the container, 3d size of the boxes, quantity of boxes, id of each box 
-- Position of the truck
-- Gravity and mass of boxes
-
-### <ins>Dynamic: Data that the RL agent can change</ins>
-- State: data observed by the RL agent, input to the agent brain’s policy
-  - State tensor: [[[x1, y1, z1], [x2, y2, z2], etc.], [[l1, w1, h1], [l2, w2, h2], etc], [m1, m2, etc]]
-    - 1st dimension describes the 3d position of the boxes
-    - 2nd dimension describes the size of the boxes
-    - 3rd dimension describes the mass of the boxes
-- Action: data changed by the RL agent, output from the agent brain’s policy
-  - Action-space tensor: [[0, 1], [+1x, -1x, +1y, -1y, +1z, -1z]]
-    - This 2d tensor consists of 2 dimensions of action
-    - 1st dimension is a discrete action space that describes a boolean whether a box is picked up or dropped
-    - 2nd dimension is a discrete action space that describes 6 directions the agent can take
-
-
-## Model: Policy generated through DL(+RL) patterns
-<ins>Deep Learning: Agent brain’s policy</ins>
-- Learning options: 
-  - Heuristics
-  - LSTM
-  - Pointer Network
-  - Attention-based RNN
-  - Transformer
-
-#### Attention mechanisms are probabilistic mechanisms
-## Multiple different Agent Models/"Brains": turn our problem of "which model may lead to most optimization?" as apart of the final solution
-- ### in the same environment, state space, and action space for agents, have agents with different "brains" (models generating thier policy and thus actions)
-  - #### such as lines of trucks with each agent packing the truck, like agent parallelism, but plotting/visualizing the metrics of efficiency and model performance (stretch: if can plot/visualize above each truck or on the ground along with a name on the ground of each agents model type, alternative is a UI that can be expanded or collapsed with an arrow)
-- ### stretch goal: multi-agent learning. could an agent with a core lesser model (such as non-transformer) + learning from observing other agents actions sequence learn from an agent who has a core greater model (such as transformer)
-#### (decision) transformers: optimal inference, non-optimal training
-  - #### transformers are great off the shelf for inference once trained, but they require a lot of data to train (optimal inference, non-optimal training)
-  - #### this may be because they are sequence based (and visiting all the possible sequences of state space is effectively combinatorial or !)
-  - #### recent 100,000 timesteps will influence network more than previous 100,000 timesteps (sequences with decay create adaptive bias) -->
 
  
