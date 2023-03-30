@@ -4,7 +4,6 @@ DevProject/
 colab/
 *.yamato/
 colab/
-docs/
 protobuf-definitions/
 unity-volume/
 ml-agents-plugin-examples
