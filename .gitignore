@@ -5,6 +5,7 @@ colab/
 *.yamato/
 colab/
 docs/
+!VSCode/docs/
 protobuf-definitions/
 unity-volume/
 ml-agents-plugin-examples
