@@ -74,7 +74,7 @@
      public static void LogStatus()
      {
         string lines = $"FBX exported on {DateTime.Now.ToString("HH:mm:ss tt")  + Environment.NewLine}";
-        string path = Path.Combine(Application.dataPath, "Logs/fbxexport_log.txt");
+        string path = Path.Combine(Application.dataPath, "log/fbxexport_log.txt");
         if (!File.Exists(path))
         {
 
