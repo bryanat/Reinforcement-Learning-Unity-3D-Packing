@@ -18,6 +18,7 @@
         if (Application.isEditor)
         {
             UnityEditor.EditorApplication.isPlaying = false;
+            UnityEditor.EditorApplication.Exit(0);
         }
          else if (Application.platform == RuntimePlatform.WebGLPlayer)
          {
