@@ -325,7 +325,20 @@ We take care that our AI system is built upon ethical and responsible developmen
 - We consider data privacy, bias mitigation, human oversight, and ethical decision-making.
 - We practise ongoing monitoring and evaluation of the system to ensure that it continues to operate in a responsible and ethical manner. 
 
-Ultimately, the goal of our AI system is to harness the potential of AI technology for the benefit of all, while minimizing its risks and negative impacts.
+Some specific considerations for responsibilities of our AI system:
+- Human oversight: If companies rely too heavily on AI for container packing without adequate human oversight and intervention, it could result in errors or unexpected outcomes. For example, the AI algorithm may prioritize efficiency over safety and pack boxes in a way that compromises the integrity of the shipment.
+
+- Fairness: If the AI algorithm is trained on biased or incomplete data, it could result in discriminatory outcomes. For example, if the algorithm is only trained on data from a particular region or demographic group, it may not be effective at packing boxes for a more diverse set of customers.
+
+- Transparency: If the AI algorithm is not transparent and does not provide explanations for its decisions, it could be difficult to detect and correct errors or biases. This could also lead to mistrust from customers and other stakeholders.
+
+- Security and Privacy: If the AI algorithm is not properly secured, it could be vulnerable to cyber attacks or unauthorized access. This could result in the theft or misuse of sensitive customer data.
+
+- Environmental Impact: If the AI algorithm is only focused on optimizing container packing for efficiency and cost savings, it may not take into account the environmental impact of transportation. This could result in increased carbon emissions and contribute to climate change.
+
+- Support Labor Displacement: If the AI algorithm is too effective at container packing, it could potentially displace human workers in the industry. This could have negative social and economic impacts if there are not adequate measures in place to support displaced workers.
+
+Overall, it is important to approach AI in the container packing industry with caution and to ensure that responsible AI practices are being followed to mitigate these risks.
 
 # Team members
 This product was developed by [Bryan Boyett](https://github.com/bryanat) & [Yueqi Peng](https://github.com/happinessbaby) & [Pano Evangeliou](https://github.com/PanoEvJ).
