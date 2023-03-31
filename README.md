@@ -306,6 +306,7 @@ The workflow is the following:
 - Expand the training of the agent to higher quantity and various sizes of boxes; effectively build a "box dictionary". Each item in the "box dictionary" would have characteristic size (raning in the order of 10 cm) and and shape (x,y,z acis). Shape should remain cubic. The PPO will recognize each box using one-hot encodings in the observation vector. 
 - Treat the box "dictionary" as a language model and the reinforcement learning as a sequence model. To achievet this, train a permutation equivariant transformer ([SET transformer](https://github.com/juho-lee/set_transformer)) on the tokenized vocabulary.
 - Increase computational performance by switching to Offline Reinforcement Learning using a [Decision Transformer](https://github.com/kzl/decision-transformer). 
+- Implement cooperative multi agent training. Thereby, multiple agents will cooperate in the decision making process. Each agent will become expert to a specific decision, thus effectively decomposing the 3-fold action space. Cooperation between the agents, using each for the corresponding decision in each environment step, will lead to improved performance and generalization. 
 
 # DRL stack evolution
 The system consists of five components, each undergoing its own process of evolution through performance and problem-solving decisions. Our implementation diagram (blue frame) shows the stages and future improvements. 
