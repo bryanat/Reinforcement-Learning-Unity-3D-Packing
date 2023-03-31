@@ -1123,7 +1123,7 @@ public class PackerHand : Agent
         {
             // if file has not been exported, export fbx
             string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
-            if (!File.Exists(Path.Combine(Application.dataPath, "Models", $"{file_name}.fbx")))
+            if (!File.Exists(Path.Combine(Application.dataPath, "fbx", $"{file_name}.fbx")))
             {
                 // why multiplatform's file is corrupted
                 binSpawner.ExportBins();
