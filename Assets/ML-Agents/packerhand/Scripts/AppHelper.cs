@@ -35,7 +35,7 @@
             // shut down environment 3 minutes from now
             if (exporting_end_time==DateTime.MinValue)
             {
-                exporting_end_time = DateTime.Now.AddMinutes(3);
+                exporting_end_time = DateTime.Now.AddSeconds(30);
             }
             exporting_remaining_time = exporting_end_time - DateTime.Now;
             if  (exporting_remaining_time.TotalSeconds<=0)

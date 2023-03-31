@@ -47,6 +47,8 @@ public class BinSpawner : MonoBehaviour {
     public float biniso_y = 23.9f;
     public int total_bin_num;
     public float total_bin_volume;
+
+    public List<GameObject> bin_list = new List<GameObject>();
     
 
     // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
@@ -102,6 +104,7 @@ public class BinSpawner : MonoBehaviour {
             // update total volume
             total_bin_volume += binscale_x * binscale_y * binscale_z;
             idx++;
+            bin_list.Add(container);
         }
         // set total bin volume
         total_bin_num = idx;
@@ -177,7 +180,9 @@ public class BinSpawner : MonoBehaviour {
         UnityEngine.Object[] objects = new UnityEngine.Object[total_bin_num];
         for (int n=0; n<total_bin_num;n++)
         {
-            objects[n] = GameObject.Find($"Bin{n}");
+            //objects[n] = GameObject.Find($"Bin{n}");
+            objects[n] = bin_list[n];
+
         }
         var x = ModelExporter.ExportObjects(filePath, objects);
     }
