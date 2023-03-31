@@ -12,7 +12,9 @@ using Unity.MLAgents.Policies;
 using Box = Boxes.Box;
 using Boxes;
 using Bins;
-// using Startup = Unity.MLAgentsExamples.Startup;
+using UnityEditor;
+
+
 
 
 
@@ -64,6 +66,7 @@ public class PackerHand : Agent
     [HideInInspector] public SensorOuterCollision sensorOuterCollision; // cache script for checking protrusion
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision; // cache script for checking overlap
     [HideInInspector] public bool isInference = false; 
+    [HideInInspector] public bool isTraining = false;
     [HideInInspector] public bool isAfterInitialization = false;
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
@@ -75,8 +78,9 @@ public class PackerHand : Agent
     [HideInInspector] public bool isBottomMeshCombined;
     [HideInInspector] public bool isSideMeshCombined;
     [HideInInspector] public bool isBackMeshCombined;
-    [HideInInspector] public float total_bin_volume; // sum of all bins' volume
    [HideInInspector] public List<float> boxHeights;
+    [HideInInspector] public List<float> prev_back_placements;
+    [HideInInspector] public List<float> prev_side_placements;
     [HideInInspector] public float current_contact_surface_area;
     public float max_percent_volume;
     public float height_variance;
@@ -84,8 +88,9 @@ public class PackerHand : Agent
     public float percent_filled_bin_volume;
     public float percent_contact_surface_area;
     public int boxes_packed;
-    [HideInInspector] public List<float> prev_back_placements;
-    [HideInInspector] public List<float> prev_side_placements;
+    [HideInInspector] int episode_to_export = 0; 
+    [HideInInspector] bool ready_for_export = false;
+  
 
 
 
@@ -136,7 +141,7 @@ public class PackerHand : Agent
             binSpawner.SetUpBins(bin_type, bin_quantity, seed);
         }
         // Get bin info
-        total_bin_volume = binSpawner.total_bin_volume;
+        //total_bin_volume = binSpawner.total_bin_volume;
         origin_counter = binSpawner.total_bin_num;
         foreach (Vector4 origins in binSpawner.origins)
         {
@@ -178,6 +183,21 @@ public class PackerHand : Agent
             {
                 isInference = true;
             }
+            if (args[i] == "training")
+            {
+                isTraining = true;
+            }
+            if (args[i].StartsWith("volume"))
+            {
+                AppHelper.threshold_volume = float.Parse(args[i+1]);
+                AppHelper.early_stopping = "volume";
+            }
+            if (args[i].StartsWith("time"))
+            {
+                AppHelper.training_time = float.Parse(args[i+1]);
+                AppHelper.early_stopping = "time";
+            }
+            
         }
       
     }
@@ -195,42 +215,41 @@ public class PackerHand : Agent
         // Add all boxes sizes (selected boxes have sizes of 0s)
         foreach (Box box in boxPool) 
         {   
-            // if (useAttention){
-                // Used for variable size observations
-                float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+16];
-                int boxNum = int.Parse(box.rb.name);
-                // The first boxPool.Count are one hot encoding of the box
-                listVarObservation[boxNum] = 1.0f;
-                // Add box dimensions, updated after placements 
-                // // box size is zero after placement since this box cannot be placed again
-                listVarObservation[boxSpawner.maxBoxQuantity] = box.boxSize.x;
-                listVarObservation[boxSpawner.maxBoxQuantity +1] = box.boxSize.y;
-                listVarObservation[boxSpawner.maxBoxQuantity +2] = box.boxSize.z;
-                // relative ratio of placed box and bin size will appear after placement
-                listVarObservation[boxSpawner.maxBoxQuantity +3] = box.boxBinScale.x;
-                listVarObservation[boxSpawner.maxBoxQuantity +4] = box.boxBinScale.y;
-                listVarObservation[boxSpawner.maxBoxQuantity +5] = box.boxBinScale.z;
-                
-                listVarObservation[boxSpawner.maxBoxQuantity +6] = box.boxSize.x* box.boxSize.y *box.boxSize.z;
-                // Add [box volume]/[bin volume] 
-                listVarObservation[boxSpawner.maxBoxQuantity +7] = box.boxBinScale.x*box.boxBinScale.y*box.boxBinScale.z;
-                //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
-                //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
-                //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
-                // Add scaled vertex, (0, 0, 0) before placement
-                listVarObservation[boxSpawner.maxBoxQuantity +8] = box.boxVertex.x;
-                listVarObservation[boxSpawner.maxBoxQuantity +9] = box.boxVertex.y;
-                listVarObservation[boxSpawner.maxBoxQuantity +10] = box.boxVertex.z;
-                // Add rotation,  (0, 0, 0) before placement
-                listVarObservation[boxSpawner.maxBoxQuantity+11] = box.boxRot[0];
-                listVarObservation[boxSpawner.maxBoxQuantity+12] = box.boxRot[1];
-                listVarObservation[boxSpawner.maxBoxQuantity+13] = box.boxRot[2];
-                listVarObservation[boxSpawner.maxBoxQuantity+14] = box.boxRot[3];
-                // Add [box surface area]/[bin surface area]
-                //listVarObservation[boxSpawner.maxBoxQuantity +13] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_box_surface_area);
-                // Add if box is placed already: 1 if placed already and 0 otherwise
-                listVarObservation[boxSpawner.maxBoxQuantity +15] = box.isOrganized ? 1.0f : 0.0f;
-                m_BufferSensor.AppendObservation(listVarObservation);
+            // Used for variable size observations
+            float[] listVarObservation = new float[boxSpawner.maxBoxQuantity+16];
+            int boxNum = int.Parse(box.rb.name);
+            // The first boxPool.Count are one hot encoding of the box
+            listVarObservation[boxNum] = 1.0f;
+            // Add box dimensions, updated after placements 
+            // // box size is zero after placement since this box cannot be placed again
+            listVarObservation[boxSpawner.maxBoxQuantity] = box.boxSize.x;
+            listVarObservation[boxSpawner.maxBoxQuantity +1] = box.boxSize.y;
+            listVarObservation[boxSpawner.maxBoxQuantity +2] = box.boxSize.z;
+            // relative ratio of placed box and bin size will appear after placement
+            listVarObservation[boxSpawner.maxBoxQuantity +3] = box.boxBinScale.x;
+            listVarObservation[boxSpawner.maxBoxQuantity +4] = box.boxBinScale.y;
+            listVarObservation[boxSpawner.maxBoxQuantity +5] = box.boxBinScale.z;
+            
+            listVarObservation[boxSpawner.maxBoxQuantity +6] = box.boxSize.x* box.boxSize.y *box.boxSize.z;
+            // Add [box volume]/[bin volume] 
+            listVarObservation[boxSpawner.maxBoxQuantity +7] = box.boxBinScale.x*box.boxBinScale.y*box.boxBinScale.z;
+            //Debug.Log($"XVD box:{box.rb.name}  |  vertex:{box.boxVertex}  |  x: {box.boxVertex.x * 23.5}  |  y: {box.boxVertex.y * 23.9}  |  z: {box.boxVertex.z * 59}");
+            //Debug.Log($"XVB box:{box.rb.name}  |  vertex:{box.boxVertex}  |  dx: {scaled_continuous_boxsize.x*23.5}  |  dy: {scaled_continuous_boxsize.y*23.9}  |  dz: {scaled_continuous_boxsize.z*59}");
+            //Debug.Log($"XVR box:{box.rb.name}  |  vertex:{box.boxVertex}  |  1: {box.boxRot[0]}  |  2: {box.boxRot[1]}  |  3: {box.boxRot[2]} | 4: {box.boxRot[3]}");
+            // Add scaled vertex, (0, 0, 0) before placement
+            listVarObservation[boxSpawner.maxBoxQuantity +8] = box.boxVertex.x;
+            listVarObservation[boxSpawner.maxBoxQuantity +9] = box.boxVertex.y;
+            listVarObservation[boxSpawner.maxBoxQuantity +10] = box.boxVertex.z;
+            // Add rotation,  (0, 0, 0) before placement
+            listVarObservation[boxSpawner.maxBoxQuantity+11] = box.boxRot[0];
+            listVarObservation[boxSpawner.maxBoxQuantity+12] = box.boxRot[1];
+            listVarObservation[boxSpawner.maxBoxQuantity+13] = box.boxRot[2];
+            listVarObservation[boxSpawner.maxBoxQuantity+14] = box.boxRot[3];
+            // Add [box surface area]/[bin surface area]
+            //listVarObservation[boxSpawner.maxBoxQuantity +13] = (2*box.boxSize.x*box.boxSize.y + 2*box.boxSize.z*box.boxSize.x + 2*box.boxSize.y*box.boxSize.z)/(total_box_surface_area);
+            // Add if box is placed already: 1 if placed already and 0 otherwise
+            listVarObservation[boxSpawner.maxBoxQuantity +15] = box.isOrganized ? 1.0f : 0.0f;
+            m_BufferSensor.AppendObservation(listVarObservation);
             // add placed boxes to action ask
             if (box.isOrganized)
             {
@@ -305,24 +324,32 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        if (isInference)
+        if (isTraining && AppHelper.early_stopping == "time")
         {
-            if (CompletedEpisodes==10)
+            if (AppHelper.StartTimer("training"))
             {
-                binSpawner.ExportBins();
-                AppHelper.Quit();
+                //ready_for_export = true;
+                ExportFBXAndStopEnvironment();
             }
         }
-        // Debug.Log($"STEP COUNT {StepCount}");
-        // if all boxes are packed
-        if (maskedBoxIndices.Count == boxSpawner.maxBoxQuantity)
+        else if (isTraining && AppHelper.early_stopping == "volume")
         {
-            Debug.Log("ALL BOXES ARE PACKED");
-            SetReward(2000f);
-            AppHelper.Quit();
-
+            if (percent_filled_bin_volume > AppHelper.threshold_volume)
+            {
+                //min_episode_len-=1;
+                ready_for_export = true;  
+            } 
+            if (ready_for_export)
+            {
+                ExportFBXAndStopEnvironment();
+            }
         }
-
+        else if (isInference)
+        {
+            //ready_for_export = true;
+            ExportFBXAndStopEnvironment();
+        }
+        // Debug.Log($"STEP COUNT {StepCount}");
         // start of episode
         if (isEpisodeStart)
         {
@@ -351,7 +378,7 @@ public class PackerHand : Agent
             //Debug.Log($"BOX POOL COUNT {boxPool.Count}");
 
             // initialize maximum percent volume that can be filled
-            max_percent_volume = boxSpawner.total_box_volume/total_bin_volume*100f;
+            max_percent_volume = boxSpawner.total_box_volume/binSpawner.total_bin_volume*100f;
 
             isAfterOriginVertexSelected = false;
             //Debug.Log("REQUEST DECISION AT START OF EPISODE"); 
@@ -365,24 +392,22 @@ public class PackerHand : Agent
         }
         // delayed reward for volume packed
         // highest rewards given to hardest goals
-        if (((1 - (current_bin_volume/total_bin_volume)) * 100)/max_percent_volume*100>75f)
+        if (((1 - (current_bin_volume/binSpawner.total_bin_volume)) * 100)/max_percent_volume*100>75f)
         {
             //Debug.Log($"PERCENT PACKED: {percent_filled_bin_volume} % ");
-            if (((1 - (current_bin_volume/total_bin_volume)) * 100)/max_percent_volume * 100 >95f)
-            {
-                SetReward(1000f);
-                AppHelper.Quit();
-            }
-            else if (((1 - (current_bin_volume/total_bin_volume)))/max_percent_volume * 100 >85f)
-            {
-                SetReward(900f);
-                // export bin
-                binSpawner.ExportBins();
-            }
-            else 
-            {
-                SetReward(percent_filled_bin_volume*10f);
-            }
+            // if (((1 - (current_bin_volume/binSpawner.total_bin_volume)) * 100)/max_percent_volume * 100 >95f)
+            // {
+            //     SetReward(1000f);
+            //     AppHelper.Quit();
+            // }
+            // else if (((1 - (current_bin_volume/binSpawner.total_bin_volume)))/max_percent_volume * 100 >85f)
+            // {
+            //     SetReward(900f);
+                
+            // }
+            // else 
+            // {
+            SetReward(percent_filled_bin_volume*10f);
         }
         // if a box is placed, same process is repeated
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
@@ -395,7 +420,7 @@ public class PackerHand : Agent
 
             // recalculate bin volume and percent filled
             current_bin_volume = current_bin_volume - (boxWorldScale.x * boxWorldScale.y * boxWorldScale.z);
-            percent_filled_bin_volume = (1 - (current_bin_volume/total_bin_volume)) * 100;
+            percent_filled_bin_volume = (1 - (current_bin_volume/binSpawner.total_bin_volume))*100 / max_percent_volume * 100;
 
             // calculate current contact surface area 
             current_contact_surface_area = current_contact_surface_area + sensorCollision.totalContactSA;
@@ -403,7 +428,7 @@ public class PackerHand : Agent
 
             // Increment stats recorder to match reward
             //m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
-            m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume/max_percent_volume*100, StatAggregationMethod.Average);
+            m_statsRecorder.Add("% Bin Volume Filled", percent_filled_bin_volume, StatAggregationMethod.Average);
 
 
             // REGUEST DECISION FOR NEXT ROUND OF PICKING
@@ -465,7 +490,7 @@ public class PackerHand : Agent
                 else
                 {
                     // percent volume filled - percent volume not packed
-                    AddReward((percent_filled_bin_volume-(current_bin_volume/total_bin_volume)*100f)*10f);
+                    AddReward((2*percent_filled_bin_volume- 100)*10f);
                     EndEpisode();
                     curriculum_ConfigurationGlobal = curriculum_ConfigurationLocal;
                     isEpisodeStart = true;
@@ -951,7 +976,7 @@ public class PackerHand : Agent
         VertexCount = 0;
 
         // Reset current bin volume
-        current_bin_volume = total_bin_volume;
+        current_bin_volume = binSpawner.total_bin_volume;
 
         // Reset current contact surface area
         current_contact_surface_area = 0;
@@ -1061,6 +1086,34 @@ public class PackerHand : Agent
                 boxSpawner.SetUpBoxes("mix", seed+9);
                 // Debug.Log($"CFA lesson 9");
             }
+        }
+    }
+
+    public void ExportFBXAndStopEnvironment()
+    {
+        if (isInference)
+        {
+            // when running inference, first episode's result will be exported
+            episode_to_export = 1;
+        }
+        if (CompletedEpisodes == episode_to_export)
+        {
+            // if file has not been exported, export fbx
+            if (!System.IO.File.Exists(System.IO.Path.Combine(Application.dataPath, "Models/Bins.fbx")))
+            {
+                Debug.Log("exporting");
+                binSpawner.ExportBins();
+                AppHelper.LogStatus(); 
+            }
+        }
+        if (AppHelper.StartTimer("exporting"))
+        {
+            AppHelper.Quit();
+        }
+        // for training, get which end of episode to export
+        if (episode_to_export == 0)
+        {
+            episode_to_export = CompletedEpisodes+2;
         }
     }
 
