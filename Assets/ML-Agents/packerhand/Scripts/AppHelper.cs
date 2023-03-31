@@ -10,6 +10,7 @@
      public static float training_time;
     public static float threshold_volume=75f;
     public static string early_stopping;
+    public static string file_path;
 
      public static void Quit()
      {

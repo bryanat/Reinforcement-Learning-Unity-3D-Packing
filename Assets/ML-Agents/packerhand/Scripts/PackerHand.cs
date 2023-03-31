@@ -65,8 +65,8 @@ public class PackerHand : Agent
     [HideInInspector] public SensorCollision sensorCollision; // cache script for checking gravity
     [HideInInspector] public SensorOuterCollision sensorOuterCollision; // cache script for checking protrusion
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision; // cache script for checking overlap
-    [HideInInspector] public bool isInference = false; 
-    [HideInInspector] public bool isTraining = false;
+    [HideInInspector] public bool isInference=false; 
+    [HideInInspector] public bool isTraining=false;
     [HideInInspector] public bool isAfterInitialization = false;
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
@@ -88,8 +88,9 @@ public class PackerHand : Agent
     public float percent_filled_bin_volume;
     public float percent_contact_surface_area;
     public int boxes_packed;
-    [HideInInspector] int episode_to_export = 0; 
-    [HideInInspector] bool ready_for_export = false;
+    int episode_to_export = 0; 
+    bool ready_for_export = false;
+    string homeDir;
   
 
 
@@ -117,6 +118,8 @@ public class PackerHand : Agent
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
+        homeDir = Environment.GetEnvironmentVariable("HOME"); // AWS: /home/ubuntu/
+
 
         // Update model references if we're overriding
         var modelOverrider = GetComponent<ModelOverrider>();
@@ -131,10 +134,17 @@ public class PackerHand : Agent
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
+        GetCommandLineArgs();
+
         // Set up bins
-        if (!useCurriculum)
+        if (isInference | isTraining)
         {
-            binSpawner.SetUpBins(file_name);
+            binSpawner.SetUpBins(AppHelper.file_path);
+        }
+        else if (!useCurriculum)
+        {
+            string filename = $"{homeDir}/Unity/data/{file_name}.json";
+            binSpawner.SetUpBins(filename);
         }
         else 
         {
@@ -163,17 +173,14 @@ public class PackerHand : Agent
         }
 
         m_BufferSensor = GetComponent<BufferSensorComponent>();
-        isInference = GetComponent<BehaviorParameters>().BehaviorType == BehaviorType.InferenceOnly;
 
         isEpisodeStart = true;
 
         //Debug.Log("INITIALIZE ENDS");
     }
 
-
-    public override void OnEpisodeBegin()
-    {   
-        //Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
+    public void GetCommandLineArgs()
+    {
         var args = Environment.GetCommandLineArgs();
         //Debug.Log("Command line arguments passed: " + String.Join(" ", args));
         for (int i = 0; i < args.Length; i++)
@@ -197,8 +204,19 @@ public class PackerHand : Agent
                 AppHelper.training_time = float.Parse(args[i+1]);
                 AppHelper.early_stopping = "time";
             }
+            if (args[i] == "path")
+            {
+                AppHelper.file_path = args[i+1];
+            }
             
         }
+
+    }
+
+
+    public override void OnEpisodeBegin()
+    {   
+        //Debug.Log("-----------------------NEW EPISODE STARTS------------------------------");
       
     }
 
@@ -336,7 +354,6 @@ public class PackerHand : Agent
         {
             if (percent_filled_bin_volume > AppHelper.threshold_volume)
             {
-                //min_episode_len-=1;
                 ready_for_export = true;  
             } 
             if (ready_for_export)
@@ -358,8 +375,12 @@ public class PackerHand : Agent
             // Reset agent and rewards
             SetResetParameters();
 
-            // Initialize curriculum and brain
-            if (useCurriculum)
+            // Initialize boxes
+            if (isInference | isTraining)
+            {
+                boxSpawner.SetUpBoxes(AppHelper.file_path);
+            }
+            else if (useCurriculum)
             {
                 if (curriculum_ConfigurationGlobal != -1)
                 {
@@ -369,7 +390,8 @@ public class PackerHand : Agent
             }
             else
             {
-                boxSpawner.SetUpBoxes(file_name);
+                string filename = $"{homeDir}/Unity/data/{file_name}.json";
+                boxSpawner.SetUpBoxes(filename);
             }
             isAfterInitialization = true;
             

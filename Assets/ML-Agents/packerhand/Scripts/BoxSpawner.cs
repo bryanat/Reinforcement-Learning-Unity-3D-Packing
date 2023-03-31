@@ -85,16 +85,16 @@ public class BoxSpawner : MonoBehaviour
         idx_counter = 0;
 
     }
-    public void SetUpBoxes(string box_type , int seed=123) 
+    public void SetUpBoxes(string name , int seed=123) 
     {
         Reset();
 
         // randomly generates boxes
-        if (box_type == "uniform" | box_type == "mix")
+        if (name == "uniform" | name == "mix")
         {
-            RandomBoxGenerator(box_type, seed);
+            RandomBoxGenerator(name, seed);
             // Read random boxes using existing ReadJson function
-            ReadJson($"{homeDir}/Unity/data/Boxes_Random.json", seed);
+            ReadJson($"{homeDir}/Unity/data/Boxes_Random.json");
             PadZeros();
             // Delete the created json file to reuse the name next iteration
             File.Delete($"{homeDir}/Unity/data/Boxes_Random.json");
@@ -104,7 +104,7 @@ public class BoxSpawner : MonoBehaviour
         else
         {
             // once sizes is populated, don't have to read from file again
-            ReadJson($"{homeDir}/Unity/data/{box_type}.json", seed);
+            ReadJson(name);
             PadZeros();
         }
         // populate box pool
@@ -272,9 +272,8 @@ public class BoxSpawner : MonoBehaviour
 
     // Read from json file and construct box, then add box to sizes array of boxes
     // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },
-    public void ReadJson(string filename, int seed) 
+    public void ReadJson(string filename) 
     {
-        UnityEngine.Random.InitState(seed);
         using (var inputStream = File.Open(filename, FileMode.Open)) {
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
             //var root = XElement.Load(jsonReader);
