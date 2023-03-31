@@ -176,7 +176,8 @@ public class BinSpawner : MonoBehaviour {
     public void ExportBins()
     {
         // set the path and name for the exported file
-        string filePath = Path.Combine(Application.dataPath, $"Models/Bins.fbx");
+        string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
+        string filePath = Path.Combine(Application.dataPath, "Models", $"{file_name}.fbx");
         UnityEngine.Object[] objects = new UnityEngine.Object[total_bin_num];
         for (int n=0; n<total_bin_num;n++)
         {

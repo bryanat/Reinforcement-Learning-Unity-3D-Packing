@@ -1,5 +1,6 @@
  using UnityEngine;
  using System;
+ using System.IO;
  public static class AppHelper
  {
     public static string webplayerQuitURL = "http://google.com";
@@ -73,18 +74,18 @@
      public static void LogStatus()
      {
         string lines = $"FBX exported on {DateTime.Now.ToString("HH:mm:ss tt")  + Environment.NewLine}";
-        string path = System.IO.Path.Combine(Application.dataPath, "Logs/fbxexport_log.txt");
-        if (!System.IO.File.Exists(path))
+        string path = Path.Combine(Application.dataPath, "Logs/fbxexport_log.txt");
+        if (!File.Exists(path))
         {
 
             // Write the string to a file.
-            System.IO.StreamWriter file = new System.IO.StreamWriter(path);
+            StreamWriter file = new StreamWriter(path);
             file.WriteLine(lines);
             file.Close();
         }
         else 
         {
-            using (System.IO.StreamWriter w = System.IO.File.AppendText(path))
+            using (StreamWriter w = File.AppendText(path))
             {
                 w.WriteLine(lines);
 

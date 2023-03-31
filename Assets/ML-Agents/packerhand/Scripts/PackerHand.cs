@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
@@ -91,7 +92,7 @@ public class PackerHand : Agent
     int episode_to_export = 0; 
     bool ready_for_export = false;
     string homeDir;
-  
+
 
 
 
@@ -1116,14 +1117,15 @@ public class PackerHand : Agent
         if (isInference)
         {
             // when running inference, first episode's result will be exported
-            episode_to_export = 1;
+            episode_to_export = 2;
         }
         if (CompletedEpisodes == episode_to_export)
         {
             // if file has not been exported, export fbx
-            if (!System.IO.File.Exists(System.IO.Path.Combine(Application.dataPath, "Models/Bins.fbx")))
+            string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
+            if (!File.Exists(Path.Combine(Application.dataPath, "Models", $"{file_name}.fbx")))
             {
-                Debug.Log("exporting");
+                // why multiplatform's file is corrupted
                 binSpawner.ExportBins();
                 AppHelper.LogStatus(); 
             }
