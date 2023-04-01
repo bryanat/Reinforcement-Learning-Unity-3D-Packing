@@ -32,9 +32,6 @@ Thereby, there is a large opportunity to decrease shipping & enviromental costs 
 
 Scientifically, this is an NP-hard combinatorial optimization problem which heuristiscs methods yet have to effectively solve.
 
-## Logic
-***lock example
-
 ## Objective
 
 The PackerHand app is an AI-driven solution that delivers exact box placement instructions which the packing expert or robotic arm can use to pack the available boxes with specific order into designated positions of the container. In specific, the AI agent is trained using Deep Reinforcement Learning techniques in a customizable physics-simulating environment. The frontend provides a user-friendly web interface where the user may seemlessly add the number and sizes of boxes to be packed and in a matter of seconds acquire the output with the placement of these boxes inside an industrial container.
