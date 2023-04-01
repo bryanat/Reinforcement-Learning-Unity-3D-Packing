@@ -418,19 +418,19 @@ public class PackerHand : Agent
         if (((1 - (current_bin_volume/binSpawner.total_bin_volume)) * 100)/max_percent_volume*100>75f)
         {
             //Debug.Log($"PERCENT PACKED: {percent_filled_bin_volume} % ");
-            // if (((1 - (current_bin_volume/binSpawner.total_bin_volume)) * 100)/max_percent_volume * 100 >95f)
-            // {
-            //     SetReward(1000f);
-            //     AppHelper.Quit();
-            // }
-            // else if (((1 - (current_bin_volume/binSpawner.total_bin_volume)))/max_percent_volume * 100 >85f)
-            // {
-            //     SetReward(900f);
-                
-            // }
-            // else 
-            // {
-            SetReward(percent_filled_bin_volume*10f);
+            if (percent_filled_bin_volume >95f)
+            {
+                SetReward(1000f);
+                AppHelper.Quit();
+            }
+            else if (percent_filled_bin_volume >85f)
+            {
+                SetReward(900f);        
+            }
+            else 
+            {
+                SetReward(percent_filled_bin_volume*10f);
+            }
         }
         // if a box is placed, same process is repeated
         if ((isBackMeshCombined | isBottomMeshCombined | isSideMeshCombined) && isStateReset==false) 
