@@ -28,6 +28,8 @@ public class Box
     public Vector3 boxBinScale = Vector3.zero; //for sensor, changes after selected actiong
     public bool isOrganized = false; // for sensor, changes after selected action
     public GameObject gameobjectBox; // stores gameobject box reference created during box creation, for destroying old boxes
+    public Vector3 boxRotEuler;
+    public string boxId;
 }
 
 [System.Serializable]
@@ -51,6 +53,8 @@ public class BoxSpawner : MonoBehaviour
 {
     [HideInInspector] public List<Box> boxPool = new List<Box>(); //list of Box class objects that stores most of the box information
     public List<Color> Colors = new List<Color>(); // stores local box colors
+
+    public List<string> Ids = new List<string>();
 
     // The box area, which will be set manually in the Inspector
     public GameObject boxArea; // place where boxes are spawned
@@ -139,6 +143,7 @@ public class BoxSpawner : MonoBehaviour
                     boxColor = Colors[idx],
                     boxSize = box.transform.localScale,
                     gameobjectBox = box,
+                    boxId = Ids[idx]
                 };
                 // Add box to box pool
                 boxPool.Add(newBox);  
@@ -281,7 +286,7 @@ public class BoxSpawner : MonoBehaviour
             var boxes = root.XPathSelectElement("//Items").Elements();
             foreach (XElement box in boxes)
             {
-                int id = int.Parse(box.XPathSelectElement("./Product_id").Value);
+                string id = box.XPathSelectElement("./Product_id").Value;
                 float length = float.Parse(box.XPathSelectElement("./Length").Value);
                 float width = float.Parse(box.XPathSelectElement("./Width").Value);
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
@@ -297,7 +302,8 @@ public class BoxSpawner : MonoBehaviour
                     if (ColorUtility.TryParseHtmlString(htmlValue, out newCol))
                     {
                         Colors.Add(newCol);
-                    }               
+                    }   
+                    Ids.Add(id);            
                     // Colors.Add(randomColor);
                     idx_counter++;
                 }   
@@ -311,6 +317,24 @@ public class BoxSpawner : MonoBehaviour
         {
             // pad with zeros
             sizes[m].box_size = Vector3.zero;
+        }
+    }
+
+
+    public void ExportBoxInstruction()
+    {
+        string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
+        string path = Path.Combine(Application.dataPath, "instructions", $"{file_name}.txt");
+        using(StreamWriter writetext = new StreamWriter(path))
+        {
+            foreach (Box box in boxPool)
+            {
+                if (box.isOrganized)
+                {
+                    string box_info = $"Product_id: {box.boxId}, rotation: ({box.boxRotEuler.x}, {box.boxRotEuler.y}, {box.boxRotEuler.z}), position: ({box.boxVertex.x}, {box.boxVertex.y}, {box.boxVertex.z})";
+                    writetext.WriteLine(box_info);
+                }
+            }
         }
     }
 }

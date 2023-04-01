@@ -348,7 +348,7 @@ public class PackerHand : Agent
             if (AppHelper.StartTimer("training"))
             {
                 //ready_for_export = true;
-                ExportFBXAndStopEnvironment();
+                ExportResultAndStopEnvironment();
             }
         }
         else if (isTraining && AppHelper.early_stopping == "volume")
@@ -359,13 +359,13 @@ public class PackerHand : Agent
             } 
             if (ready_for_export)
             {
-                ExportFBXAndStopEnvironment();
+                ExportResultAndStopEnvironment();
             }
         }
         else if (isInference)
         {
             //ready_for_export = true;
-            ExportFBXAndStopEnvironment();
+            ExportResultAndStopEnvironment();
         }
         // Debug.Log($"STEP COUNT {StepCount}");
         // start of episode
@@ -706,6 +706,7 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
+            boxPool[selectedBoxIdx].boxRotEuler = selectedRotation;
             foreach (Transform child in sidesList)
             {
                 child.tag = "pickupbox";
@@ -721,6 +722,7 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
+            boxPool[selectedBoxIdx].boxRotEuler = selectedRotation;
             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -753,6 +755,7 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
+            boxPool[selectedBoxIdx].boxRotEuler = selectedRotation;
             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -785,6 +788,7 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
+            boxPool[selectedBoxIdx].boxRotEuler = selectedRotation;
             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -817,6 +821,7 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
+            boxPool[selectedBoxIdx].boxRotEuler = selectedRotation;
             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -857,6 +862,7 @@ public class PackerHand : Agent
             boxPool[selectedBoxIdx].boxRot = Quaternion.Euler(selectedRotation);
             boxPool[selectedBoxIdx].boxBinScale = new Vector3(boxWorldScale.x/binSpawner.binscales_x[selectedBin], boxWorldScale.y/binSpawner.binscales_y[selectedBin], boxWorldScale.z/binSpawner.binscales_z[selectedBin]);
             boxPool[selectedBoxIdx].boxSize = Vector3.zero;
+            boxPool[selectedBoxIdx].boxRotEuler = selectedRotation;
             foreach (Transform child in sidesList) // only renames the side NAME to correspond with the rotation
             {
                 child.tag = "pickupbox";
@@ -1112,7 +1118,7 @@ public class PackerHand : Agent
         }
     }
 
-    public void ExportFBXAndStopEnvironment()
+    public void ExportResultAndStopEnvironment()
     {
         if (isInference)
         {
@@ -1127,7 +1133,12 @@ public class PackerHand : Agent
             {
                 // why multiplatform's file is corrupted
                 binSpawner.ExportBins();
-                AppHelper.LogStatus(); 
+                AppHelper.LogStatus("fbx"); 
+            }
+            if (!File.Exists(Path.Combine(Application.dataPath, "instructions", $"{file_name}.txt")))
+            {
+                boxSpawner.ExportBoxInstruction();
+                AppHelper.LogStatus("instructions");
             }
         }
         if (AppHelper.StartTimer("exporting"))

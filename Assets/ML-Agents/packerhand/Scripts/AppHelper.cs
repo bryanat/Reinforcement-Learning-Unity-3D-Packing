@@ -72,24 +72,34 @@
 
      
 
-     public static void LogStatus()
+     public static void LogStatus(string type)
      {
         string filename = Path.GetFileNameWithoutExtension(file_path);
-        string lines = $"FBX {filename} exported on {DateTime.Now.ToString("HH:mm:ss tt")  + Environment.NewLine}";
-        string path = Path.Combine(Application.dataPath, "log/fbxexport_log.txt");
+        string line = "";
+        string path = "";
+
+        if (type=="fbx")
+        {
+            line = $"FBX {filename} exported on {DateTime.Now.ToString("HH:mm:ss tt")  + Environment.NewLine}";
+            path = Path.Combine(Application.dataPath, "log/fbx_export_log.txt");
+        }
+        if (type == "instructions")
+        {
+            line = $"INSTRUCTION {filename} exported on {DateTime.Now.ToString("HH:mm:ss tt")  + Environment.NewLine}";
+            path = Path.Combine(Application.dataPath, "log/instruction_export_log.txt");
+        }
         if (!File.Exists(path))
         {
-
             // Write the string to a file.
             StreamWriter file = new StreamWriter(path);
-            file.WriteLine(lines);
+            file.WriteLine(line);
             file.Close();
         }
         else 
         {
             using (StreamWriter w = File.AppendText(path))
             {
-                w.WriteLine(lines);
+                w.WriteLine(line);
 
             }
         }
