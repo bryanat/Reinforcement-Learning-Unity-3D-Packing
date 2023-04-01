@@ -68,11 +68,6 @@ See here for [Unity installation](https://learn.unity.com/tutorial/install-the-u
 
 ![](VSCode/docs/images/ML_stack.png)
 
-## Tensorboard
-![](VSCode/docs/images/runidfffffffff.png)
-
-
-
 # Features
 We train a Deep Reinforcement Learning (DRL) agent using a policy with specified reward and observation states. The goal is to teach the agent to pack as many boxes into the bin as possible.
 
@@ -235,7 +230,8 @@ The Action space is the set of all possible actions in an environment. The actio
 
    Always 6 available rotations since we are only fitting cubic boxes for our baseline model
 
-*** masking
+Masking of actions is aso implemented preventing boxes that are already packed to be available in the action selection.
+
 #### Rewards
 Shape/Tune reward towards a more sparse behavior
 #### Attention mechanism
@@ -246,10 +242,8 @@ Deciding what the agents should remember in order to solve a task is not easy to
 
 #### Curriculum learning
 ##### [Training ML-Agents with Curriculum Learning](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Training-Curriculum-Learning.md)
-***description missing
 
 #### Multi-platform training
-***description missing
 <br>
 <p align = "center" draggable=”false” ><img src="VSCode/docs/images/drl-unity-api-io-sensor-actuator.png" 
      width="400px"
@@ -258,6 +252,10 @@ Deciding what the agents should remember in order to solve a task is not easy to
 <br>
 
 <!-- ![](VSCode/docs/images/drl-unity-api-io-sensor-actuator.png) -->
+
+## Tensorboard
+![](VSCode/docs/images/runidfffffffff.png)
+
 ## Training workflow
 
 The workflow is the following:
