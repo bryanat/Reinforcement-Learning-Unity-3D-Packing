@@ -80,12 +80,12 @@
 
         if (type=="fbx")
         {
-            line = $"FBX {filename} exported on {DateTime.Now.ToString("HH:mm:ss tt")  + Environment.NewLine}";
+            line = $"FBX {filename} exported on {DateTime.Now.ToString("HH:mm:ss tt")}";
             path = Path.Combine(Application.dataPath, "log/fbx_export_log.txt");
         }
         if (type == "instructions")
         {
-            line = $"INSTRUCTION {filename} exported on {DateTime.Now.ToString("HH:mm:ss tt")  + Environment.NewLine}";
+            line = $"INSTRUCTION {filename} exported on {DateTime.Now.ToString("HH:mm:ss tt")}";
             path = Path.Combine(Application.dataPath, "log/instruction_export_log.txt");
         }
         if (!File.Exists(path))

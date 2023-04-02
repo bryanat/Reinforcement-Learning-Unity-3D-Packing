@@ -328,7 +328,7 @@ public class BoxSpawner : MonoBehaviour
         string path = Path.Combine(Application.dataPath, "instructions", $"{file_name}.txt");
         using(StreamWriter writetext = new StreamWriter(path))
         {
-            writetext.WriteLine(percent_filled);
+            writetext.WriteLine($"{percent_filled}" + Environment.NewLine);
             foreach (Box box in boxPool_copy)
             {
                 if (box.isOrganized)

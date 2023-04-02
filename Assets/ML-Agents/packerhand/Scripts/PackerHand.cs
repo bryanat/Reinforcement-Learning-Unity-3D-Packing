@@ -1124,6 +1124,10 @@ public class PackerHand : Agent
         {
             // when running inference, first episode's result will be exported
             episode_to_export = 2;
+            if (AppHelper.StartTimer("exporting"))
+            {
+                AppHelper.Quit();
+            }
         }
         if (CompletedEpisodes == episode_to_export)
         {
@@ -1140,10 +1144,6 @@ public class PackerHand : Agent
                 boxSpawner.ExportBoxInstruction(percent_filled_bin_volume);
                 AppHelper.LogStatus("instructions");
             }
-        }
-        if (AppHelper.StartTimer("exporting"))
-        {
-            AppHelper.Quit();
         }
         // for training, get which end of episode to export
         if (episode_to_export == 0)

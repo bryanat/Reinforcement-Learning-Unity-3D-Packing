@@ -937,7 +937,7 @@ MonoBehaviour:
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: cf5c594a0c1b36faf86d6ab753618a99, type: 3}
-  m_InferenceDevice: 0
+  m_InferenceDevice: 1
   m_BehaviorType: 2
   m_BehaviorName: Discrete
   TeamId: 0
