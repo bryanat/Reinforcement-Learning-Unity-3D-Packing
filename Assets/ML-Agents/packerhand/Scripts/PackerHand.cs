@@ -1137,7 +1137,7 @@ public class PackerHand : Agent
             }
             if (!File.Exists(Path.Combine(Application.dataPath, "instructions", $"{file_name}.txt")))
             {
-                boxSpawner.ExportBoxInstruction();
+                boxSpawner.ExportBoxInstruction(percent_filled_bin_volume);
                 AppHelper.LogStatus("instructions");
             }
         }

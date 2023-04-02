@@ -321,13 +321,14 @@ public class BoxSpawner : MonoBehaviour
     }
 
 
-    public void ExportBoxInstruction()
+    public void ExportBoxInstruction(float percent_filled)
     {
         var boxPool_copy = boxPool;
         string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
         string path = Path.Combine(Application.dataPath, "instructions", $"{file_name}.txt");
         using(StreamWriter writetext = new StreamWriter(path))
         {
+            writetext.WriteLine(percent_filled);
             foreach (Box box in boxPool_copy)
             {
                 if (box.isOrganized)
