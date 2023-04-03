@@ -348,7 +348,8 @@ public class PackerHand : Agent
             if (AppHelper.StartTimer("training"))
             {
                 //ready_for_export = true;
-                ExportResultAndStopEnvironment();
+                ExportResult();
+                EndTraining();
             }
         }
         else if (isTraining && AppHelper.early_stopping == "volume")
@@ -359,13 +360,15 @@ public class PackerHand : Agent
             } 
             if (ready_for_export)
             {
-                ExportResultAndStopEnvironment();
+                ExportResult();
+                EndTraining();
             }
         }
         else if (isInference)
         {
             //ready_for_export = true;
-            ExportResultAndStopEnvironment();
+            ExportResult();
+            EndTraining();
         }
         // Debug.Log($"STEP COUNT {StepCount}");
         // start of episode
@@ -1118,16 +1121,12 @@ public class PackerHand : Agent
         }
     }
 
-    public void ExportResultAndStopEnvironment()
+    public void ExportResult()
     {
         if (isInference)
         {
             // when running inference, first episode's result will be exported
             episode_to_export = 2;
-            if (AppHelper.StartTimer("exporting"))
-            {
-                AppHelper.Quit();
-            }
         }
         if (CompletedEpisodes == episode_to_export)
         {
@@ -1151,5 +1150,13 @@ public class PackerHand : Agent
             episode_to_export = CompletedEpisodes+2;
         }
     }
+
+    public void EndTraining()
+    {
+        if (AppHelper.StartTimer("exporting"))
+        {
+            AppHelper.Quit();
+        }
+}
 
 }
