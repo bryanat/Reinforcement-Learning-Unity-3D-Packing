@@ -177,14 +177,6 @@ Unity ML-Agents (Machine Learning Agents) is an open-source Unity plugin that al
 
 Training with ML-Agents is further described [here](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Training-ML-Agents.md#training-with-mlagents-learn)
 
-### Proximal Policy Optimization
-ML-Agents provide an implementation of two reinforcement learning algorithms:
-
-- Proximal Policy Optimization (PPO)
-- Soft Actor-Critic (SAC)
-The default algorithm is PPO. This is a method that has been shown to be more general purpose and stable than many other RL algorithms.
-
-In contrast with PPO, SAC is off-policy, which means it can learn from experiences collected at any time during the past. This a main reason that PPO is implemented for PackerHand. PPO in an on-policy which means taht it learns directly from real-time experiences collected from the environment. For more information on the PPO, see [here](https://openai.com/research/openai-baselines-ppo).
 
 ### PackerHand Agent
 Each time a box needs to be packed from the spawning area into the bin, the agent:
@@ -223,11 +215,19 @@ Our policy is online and thus we want our agent to backpropagate and update its 
 For more exaplanation of the various parameters in the .yaml file see also 
 the [training config file](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Training-ML-Agents.md#training-ml-agents) section.
 
-#### Policy 
-Implement transformers (decision transformer / set transformer) in a multi-agent environment
-#### Observations
+
+### Proximal Policy Optimization (PPO) policy
+ML-Agents provide an implementation of two reinforcement learning algorithms:
+
+- Proximal Policy Optimization (PPO)
+- Soft Actor-Critic (SAC)
+The default algorithm is PPO. This is a method that has been shown to be more general purpose and stable than many other RL algorithms.
+
+In contrast with PPO, SAC is off-policy, which means it can learn from experiences collected at any time during the past. This a main reason that PPO is implemented for PackerHand. PPO in an on-policy which means taht it learns directly from real-time experiences collected from the environment. For more information on the PPO, see [here](https://openai.com/research/openai-baselines-ppo).
+
+### Observations
 Observations are the information our agent gets from the environment.
-#### Actions
+### Actions
 The Action space is the set of all possible actions in an environment. The action of our agent come from a discrete environment. Every time the agent is called to make a decision, simulteously the 3 following actions are decided:
 
 1. The available positions vector:
@@ -244,15 +244,15 @@ The Action space is the set of all possible actions in an environment. The actio
 
 Masking of actions is aso implemented preventing boxes that are already packed to be available in the action selection.
 
-#### Rewards
+### Rewards
 Shape/Tune reward towards a more sparse behavior
-#### Attention mechanism
+### Attention mechanism
 
-#### Memory-enhancement using RNN
+### Memory-enhancement using RNN
 ##### [](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Feature-Memory.md)
 Deciding what the agents should remember in order to solve a task is not easy to do by hand, but our training algorithm can learn to keep track of what is important to remember with LSTM. To use the LSTM, training "remembers" a sequence of experiences instead of single experiences. The downside is that the training of the agents slows down.
 
-#### Curriculum learning
+### Curriculum learning
 Curriculum learning is a way of training a machine learning model where more difficult aspects of a problem are gradually introduced in such a way that the model is always optimally challenged. This idea has been around for a long time, and it is how we humans typically learn. If you imagine any childhood primary school education, there is an ordering of classes and topics. Arithmetic is taught before algebra, for example. Likewise, algebra is taught before calculus. The skills and knowledge learned in the earlier subjects provide a scaffolding for later lessons. The same principle can be applied to machine learning, where training on easier tasks can provide a scaffolding for harder tasks in the future.
 
 The [Wall Jump](https://github.com/Unity-Technologies/ml-agents/blob/develop/docs/Learning-Environment-Examples.md#wall-jump) example shows a simple implementation of Curriculum Learning with Unity ML-Agents.
@@ -261,7 +261,7 @@ For PackerHand we tested our agent with curriculum learning. For curriculum to b
 
 The Curriculum Learning lessons are configured in the [.yaml file](https://github.com/bryanat/Reinforcement-Learning-Unity-3D-Packing/tree/master/Assets/ML-Agents/packerhand/Models).
 
-#### Multi-platform training
+### Multi-platform training
 
 Multi-platform - With multi-platform,  we found PPO performs better overall with more consistency, better convergence, and improved stability and speed using 1-2 platforms per CPU core with added GPU power. Having parallel environments also gives us the capability to set up different box sets on different platforms for greater data variability
 
