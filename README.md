@@ -174,7 +174,17 @@ Unity ML-Agents (Machine Learning Agents) is an open-source Unity plugin that al
 </p>
 <br>
 
-Trainng with ML-Agents is described [here](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Training-ML-Agents.md#training-with-mlagents-learn)
+
+Training with ML-Agents is further described [here](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Training-ML-Agents.md#training-with-mlagents-learn)
+
+### Proximal Policy Optimization
+ML-Agents provide an implementation of two reinforcement learning algorithms:
+
+- Proximal Policy Optimization (PPO)
+- Soft Actor-Critic (SAC)
+The default algorithm is PPO. This is a method that has been shown to be more general purpose and stable than many other RL algorithms.
+
+In contrast with PPO, SAC is off-policy, which means it can learn from experiences collected at any time during the past. This a main reason that PPO is implemented for PackerHand. PPO in an on-policy which means taht it learns directly from real-time experiences collected from the environment. For more information on the PPO, see [here](https://openai.com/research/openai-baselines-ppo).
 
 ### PackerHand Agent
 Each time a box needs to be packed from the spawning area into the bin, the agent:
@@ -271,7 +281,7 @@ The figure below is a Tensorboard dashboard showing the results of one of the ve
 
 ![](VSCode/docs/images/runidfffffffff.png)
 
-## Training workflow
+## Training loop in Unity ML-Agents
 
 The workflow is the following:
 1. State S0
@@ -299,7 +309,7 @@ The workflow is the following:
     - More than 15000 steps have been utilized per episode (negative reward)
 
 <br>
-<p align = "center" draggable=”false” ><img src="VSCode/docs/images/scribble-policy-state-action-reward.png" 
+<p align = "center" draggable=”false” ><img src="VSCode/docs/images/rl_model.png" 
      width="400px"
      height="auto"/>
 </p>
