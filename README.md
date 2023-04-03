@@ -252,6 +252,9 @@ For PackerHand we tested our agent with curriculum learning. For curriculum to b
 The Curriculum Learning lessons are configured in the [.yaml file](https://github.com/bryanat/Reinforcement-Learning-Unity-3D-Packing/tree/master/Assets/ML-Agents/packerhand/Models).
 
 #### Multi-platform training
+
+Multi-platform - With multi-platform,  we found PPO performs better overall with more consistency, better convergence, and improved stability and speed using 1-2 platforms per CPU core with added GPU power. Having parallel environments also gives us the capability to set up different box sets on different platforms for greater data variability
+
 <br>
 <p align = "center" draggable=”false” ><img src="VSCode/docs/images/drl-unity-api-io-sensor-actuator.png" 
      width="400px"
