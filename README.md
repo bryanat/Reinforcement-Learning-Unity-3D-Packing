@@ -310,9 +310,6 @@ The Policy component is the "brain" that seeks to maximize rewards by packing bo
 
 ![](VSCode/docs/images/EvolutionTree2.drawio.png)
 
-## Progression Demo
-***add progression demo videos from Slides
-
 # Responsible AI
 We take care that our AI system is built upon ethical and responsible development, deployment, and use of artificial intelligence technologies. This is why we make sure that:
 - Our AI system is fair, transparent, and accountable; ensuring no harm to individuals or society. 
