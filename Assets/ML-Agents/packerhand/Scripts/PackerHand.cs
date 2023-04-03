@@ -89,8 +89,8 @@ public class PackerHand : Agent
     public float percent_filled_bin_volume;
     public float percent_contact_surface_area;
     public int boxes_packed;
-    int episode_to_export = 0; 
-    bool ready_for_export = false;
+    // int episode_to_export = 0; 
+    //bool ready_for_export = false;
     string homeDir;
 
 
@@ -347,26 +347,27 @@ public class PackerHand : Agent
         {
             if (AppHelper.StartTimer("training"))
             {
-                //ready_for_export = true;
-                ExportResult();
+                //ExportResult();
                 EndTraining();
+                // switch to inference for production: run commands on same run-id with inference flag
             }
         }
         else if (isTraining && AppHelper.early_stopping == "volume")
         {
             if (percent_filled_bin_volume > AppHelper.threshold_volume)
             {
-                ready_for_export = true;  
-            } 
-            if (ready_for_export)
-            {
-                ExportResult();
+                //ready_for_export = true; 
                 EndTraining();
-            }
+                // switch to inference for production
+            } 
+            //if (ready_for_export)
+            // {
+            //     //ExportResult();
+            //     EndTraining();
+            // }
         }
         else if (isInference)
         {
-            //ready_for_export = true;
             ExportResult();
             EndTraining();
         }
@@ -1123,12 +1124,14 @@ public class PackerHand : Agent
 
     public void ExportResult()
     {
-        if (isInference)
-        {
-            // when running inference, first episode's result will be exported
-            episode_to_export = 2;
-        }
-        if (CompletedEpisodes == episode_to_export)
+        // if (isInference)
+        // {
+        //     // when running inference, first episode's result will be exported
+        //     episode_to_export = 2;
+        // }
+        // if (CompletedEpisodes == episode_to_export)
+        // {
+        if (CompletedEpisodes == 2)
         {
             // if file has not been exported, export fbx
             string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
@@ -1145,10 +1148,10 @@ public class PackerHand : Agent
             }
         }
         // for training, get which end of episode to export
-        if (episode_to_export == 0)
-        {
-            episode_to_export = CompletedEpisodes+2;
-        }
+        // if (episode_to_export == 0)
+        // {
+        //     episode_to_export = CompletedEpisodes+2;
+        // }
     }
 
     public void EndTraining()
