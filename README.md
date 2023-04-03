@@ -243,7 +243,13 @@ Shape/Tune reward towards a more sparse behavior
 Deciding what the agents should remember in order to solve a task is not easy to do by hand, but our training algorithm can learn to keep track of what is important to remember with LSTM. To use the LSTM, training "remembers" a sequence of experiences instead of single experiences. The downside is that the training of the agents slows down.
 
 #### Curriculum learning
-##### [Training ML-Agents with Curriculum Learning](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Training-Curriculum-Learning.md)
+Curriculum learning is a way of training a machine learning model where more difficult aspects of a problem are gradually introduced in such a way that the model is always optimally challenged. This idea has been around for a long time, and it is how we humans typically learn. If you imagine any childhood primary school education, there is an ordering of classes and topics. Arithmetic is taught before algebra, for example. Likewise, algebra is taught before calculus. The skills and knowledge learned in the earlier subjects provide a scaffolding for later lessons. The same principle can be applied to machine learning, where training on easier tasks can provide a scaffolding for harder tasks in the future.
+
+The [Wall Jump](https://github.com/Unity-Technologies/ml-agents/blob/develop/docs/Learning-Environment-Examples.md#wall-jump) example shows a simple implementation of Curriculum Learning with Unity ML-Agents.
+
+For PackerHand we tested our agent with curriculum learning. For curriculum to be most effective, we created a random box and a random bin generator. Thus, we could train our agent on a random set of boxes that potentially would fill up the entire bin. The first lessons of curriculum learning were simple enough that the agent could be taught on how to observe the space, learn not to violate physics, learn about the total reward that can be collected. If, instead, the first lesson was complex, then the agent might never reach the total reward and might also never learn compying to physics laws. Combined with multiplatform, curriculum learning has the potential of allowing a model to reach greater degree of generalization.
+
+The Curriculum Learning lessons are configured in the [.yaml file](https://github.com/bryanat/Reinforcement-Learning-Unity-3D-Packing/tree/master/Assets/ML-Agents/packerhand/Models).
 
 #### Multi-platform training
 <br>
