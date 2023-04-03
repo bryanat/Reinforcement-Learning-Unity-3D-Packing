@@ -264,7 +264,11 @@ Multi-platform - With multi-platform,  we found PPO performs better overall with
 
 <!-- ![](VSCode/docs/images/drl-unity-api-io-sensor-actuator.png) -->
 
-## Tensorboard
+## Viewing results with Tensorboard
+The ML-Agents Toolkit saves statistics during learning session that you can view with a TensorFlow utility named, TensorBoard. Check [here](https://unity-technologies.github.io/ml-agents/Using-Tensorboard/) on how to perform visualization of training results.
+
+The figure below is a Tensorboard dashboard showing the results of one of the very first successful PackerHand trainings. It is obvious that as the episodes number progresses, the agent collects monotoneously more rewards. This means that the agent is continuously learning how to pack boxes better.  
+
 ![](VSCode/docs/images/runidfffffffff.png)
 
 ## Training workflow
