@@ -214,7 +214,8 @@ For more exaplanation of the various parameters in the .yaml file see also
 the [training config file](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Training-ML-Agents.md#training-ml-agents) section.
 
 #### Policy 
-Implement transformers (decision transformer / set transformer) in a multi-agent environment
+We use PPO as our baseline model with an addition of 'curiosity' to promote better exploration.
+PPO, being an on-policy network with safe gradient updates, helps to ensure that eventual convergence happens relatively quickly. One of its shortcoming is that it is not permutation invariant, which makes solving combinatorial problems such as 3D bin packing very difficult. We found ways to combat this to a certain degree through feature engineering. We added both Curiosity Module ([Curiosity-driven Exploration by Self-supervised Prediction](https://arxiv.org/pdf/1705.05363.pdf)) and Random Walk Distillation ([RND](https://arxiv.org/pdf/1810.12894.pdf)) onto PPO. We found curiosity an intrinsic driving force in our environment where exploration is much needed before exploitation and rewards are both sparse and dense. (see section on hyperparameters and reward shaping )
 #### Observations
 Observations are the information our agent gets from the environment.
 #### Actions
@@ -234,10 +235,11 @@ The Action space is the set of all possible actions in an environment. The actio
 
 Masking of actions is aso implemented preventing boxes that are already packed to be available in the action selection.
 
-#### Rewards
-Shape/Tune reward towards a more sparse behavior
-#### Attention mechanism
+#### Reward shaping
+We found a combination of dense (extrinsic) and sparse (intrinsic) rewards work best at maximizing percent volume packed without compromising good box placements. For improved box placements, we gave a stability score, which helps set some basic rules to packing, such as packing boxes close together in a back to front, bottom to top manner. We gave hard penalty for failing physics check and a substantial larger reward when the percent volume filled is above a certain threshold
 
+#### Attention mechanism
+We used “observation buffers” provided in MlAgents toolkit to tackle the problem of having a varying number of observation due to the need to pack different sets of boxes. The build-in Attention Module for observation buffers allows our agent to pay more attention to changes in the environment and less to the constants. In practice, using one-hot-encoding, each box has its own package of information saved inside the buffer that is updated every frame. 
 #### Memory-enhancement using RNN
 ##### [](https://github.com/gzrjzcx/ML-agents/blob/master/docs/Feature-Memory.md)
 Deciding what the agents should remember in order to solve a task is not easy to do by hand, but our training algorithm can learn to keep track of what is important to remember with LSTM. To use the LSTM, training "remembers" a sequence of experiences instead of single experiences. The downside is that the training of the agents slows down.
