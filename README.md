@@ -62,12 +62,12 @@ See Dockerfile
 [demo](/VSCode/docs/images/packingdemo.gif)
 
 # Tech stack
-- Conceptual: scribbles & drawings
+- Data input: JSON
+- Output visualization: Unity graphics
+- Monitoring: Tensorboard
 - Simulation environment: Unity & C#
-- Box input: JSON
 - DRL model: ML-Agents & PyTorch
-- Visualization: Unity graphics & Tensorboard performance
-- Deployment
+- Deployment: Docker, AWS
 - Fronted: Web app with React
 
 ![](VSCode/docs/images/ML_stack.png)
