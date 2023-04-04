@@ -54,10 +54,12 @@ See here for [Unity installation](https://learn.unity.com/tutorial/install-the-u
 
 
 ## Deployment
+See Dockerfile
 
 ## Website
 
 # UI Demo
+[demo](/VSCode/docs/images/packingdemo.gif)
 
 # Tech stack
 - Conceptual: scribbles & drawings
@@ -218,6 +220,7 @@ We use PPO as our baseline model with an addition of 'curiosity' to promote bett
 PPO, being an on-policy network with safe gradient updates, helps to ensure that eventual convergence happens relatively quickly. One of its shortcoming is that it is not permutation invariant, which makes solving combinatorial problems such as 3D bin packing very difficult. We found ways to combat this to a certain degree through feature engineering. We added both Curiosity Module ([Curiosity-driven Exploration by Self-supervised Prediction](https://arxiv.org/pdf/1705.05363.pdf)) and Random Walk Distillation ([RND](https://arxiv.org/pdf/1810.12894.pdf)) onto PPO. We found curiosity an intrinsic driving force in our environment where exploration is much needed before exploitation and rewards are both sparse and dense. (see section on hyperparameters and reward shaping )
 #### Observations
 Observations are the information our agent gets from the environment.
+We implemented regular sensors composed of vertices information alongside attention-imbued buffer sensors as explained in the "attention mechanims" section. For ease of training, we provided our agent with a vertices array from which to select box positions. The vertices array is constructed using “tripoints”, which are the 3 concave vertices from a previously placed box. This leaves the agent with a limited number of choices to base its selection from. We padded both regular sensors and sensor buffers with a maximum box quantity so that the sizes of action and state spaces can stay constant. In turn, we were able to automate the process of training without having to manually adjust the sizes of brain parameters for each different box set.
 #### Actions
 The Action space is the set of all possible actions in an environment. The action of our agent come from a discrete environment. Every time the agent is called to make a decision, simulteously the 3 following actions are decided:
 
@@ -257,12 +260,12 @@ The Curriculum Learning lessons are configured in the [.yaml file](https://githu
 
 Multi-platform - With multi-platform,  we found PPO performs better overall with more consistency, better convergence, and improved stability and speed using 1-2 platforms per CPU core with added GPU power. Having parallel environments also gives us the capability to set up different box sets on different platforms for greater data variability
 
-<br>
+<!-- <br>
 <p align = "center" draggable=”false” ><img src="VSCode/docs/images/drl-unity-api-io-sensor-actuator.png" 
      width="400px"
      height="auto"/>
 </p>
-<br>
+<br> -->
 
 <!-- ![](VSCode/docs/images/drl-unity-api-io-sensor-actuator.png) -->
 
