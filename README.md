@@ -39,9 +39,6 @@ The PackerHand app is an AI-driven solution that delivers exact box placement in
 
 # Getting started
 
-
-## Prerequisites
-
 ## How to use
 Step-by-step guide on using the app. 
 - Website screenshot
