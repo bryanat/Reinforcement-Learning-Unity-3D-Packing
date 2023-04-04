@@ -41,7 +41,7 @@ The PackerHand app is an AI-driven solution that delivers exact box placement in
 
 ## How to use
 Step-by-step guide on using the app. 
-- Website screenshot
+- Go to web UI
 - Fill up with box sizes
 - Press submit
 - Retrieve output
@@ -52,8 +52,6 @@ See here for [Unity installation](https://learn.unity.com/tutorial/install-the-u
 
 ## Deployment
 See Dockerfile
-
-## Website
 
 # UI Demo
 [demo](/VSCode/docs/images/packingdemo.gif)
