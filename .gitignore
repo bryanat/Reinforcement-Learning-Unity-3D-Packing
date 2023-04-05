@@ -44,6 +44,8 @@ conftest.py
 /Assets/ML-Agents/Timers*
 /csharp_timers.json
 /Assets/
+/Assets/**/*.meta
+
 
 /Recordings/
 /UserSettings/
