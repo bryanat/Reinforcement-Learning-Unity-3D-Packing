@@ -23,6 +23,8 @@ VSCode/env/
 *.yml
 *.editorconfig
 *.cfg
+*.blob
+*.meta
 conftest.py
 
 # Unity demo files
@@ -41,6 +43,7 @@ conftest.py
 /Assets/Demonstrations*
 /Assets/ML-Agents/Timers*
 /csharp_timers.json
+/Assets/
 
 /Recordings/
 /UserSettings/
