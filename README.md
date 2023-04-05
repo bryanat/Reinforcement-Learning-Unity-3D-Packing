@@ -39,12 +39,9 @@ The PackerHand app is an AI-driven solution that delivers exact box placement in
 
 # Getting started
 
-
-## Prerequisites
-
 ## How to use
 Step-by-step guide on using the app. 
-- Website screenshot
+- Go to web UI
 - Fill up with box sizes
 - Press submit
 - Retrieve output
@@ -56,18 +53,16 @@ See here for [Unity installation](https://learn.unity.com/tutorial/install-the-u
 ## Deployment
 See Dockerfile
 
-## Website
-
 # UI Demo
 [demo](/VSCode/docs/images/packingdemo.gif)
 
 # Tech stack
-- Conceptual: scribbles & drawings
+- Data input: JSON
+- Output visualization: Unity graphics
+- Monitoring: Tensorboard
 - Simulation environment: Unity & C#
-- Box input: JSON
 - DRL model: ML-Agents & PyTorch
-- Visualization: Unity graphics & Tensorboard performance
-- Deployment
+- Deployment: Docker, AWS
 - Fronted: Web app with React
 
 ![](VSCode/docs/images/ML_stack.png)
