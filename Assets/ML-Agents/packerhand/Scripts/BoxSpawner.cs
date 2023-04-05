@@ -28,6 +28,8 @@ public class Box
     public Vector3 boxBinScale = Vector3.zero; //for sensor, changes after selected actiong
     public bool isOrganized = false; // for sensor, changes after selected action
     public GameObject gameobjectBox; // stores gameobject box reference created during box creation, for destroying old boxes
+    public Vector3 boxRotEuler;
+    public string boxId;
 }
 
 [System.Serializable]
@@ -52,6 +54,8 @@ public class BoxSpawner : MonoBehaviour
     [HideInInspector] public List<Box> boxPool = new List<Box>(); //list of Box class objects that stores most of the box information
     public List<Color> Colors = new List<Color>(); // stores local box colors
 
+    public List<string> Ids = new List<string>();
+
     // The box area, which will be set manually in the Inspector
     public GameObject boxArea; // place where boxes are spawned
     public GameObject unitBox; // prefab for box generation
@@ -59,6 +63,8 @@ public class BoxSpawner : MonoBehaviour
     public int maxBoxQuantity; // maximum box quantity (default set to 50)
 
     public float total_box_surface_area;
+
+    public float total_box_volume;
 
     public BoxSize [] sizes; // array of box sizes
 
@@ -79,19 +85,20 @@ public class BoxSpawner : MonoBehaviour
         boxPool.Clear();
         Colors.Clear();
         total_box_surface_area = 0;
+        total_box_volume = 0;
         idx_counter = 0;
 
     }
-    public void SetUpBoxes(string box_type , int seed=123) 
+    public void SetUpBoxes(string name , int seed=123) 
     {
         Reset();
 
         // randomly generates boxes
-        if (box_type == "uniform" | box_type == "mix")
+        if (name == "uniform" | name == "mix")
         {
-            RandomBoxGenerator(box_type, seed);
+            RandomBoxGenerator(name, seed);
             // Read random boxes using existing ReadJson function
-            ReadJson($"{homeDir}/Unity/data/Boxes_Random.json", seed);
+            ReadJson($"{homeDir}/Unity/data/Boxes_Random.json");
             PadZeros();
             // Delete the created json file to reuse the name next iteration
             File.Delete($"{homeDir}/Unity/data/Boxes_Random.json");
@@ -101,7 +108,7 @@ public class BoxSpawner : MonoBehaviour
         else
         {
             // once sizes is populated, don't have to read from file again
-            ReadJson($"{homeDir}/Unity/data/{box_type}.json", seed);
+            ReadJson(name);
             PadZeros();
         }
         // populate box pool
@@ -136,14 +143,18 @@ public class BoxSpawner : MonoBehaviour
                     boxColor = Colors[idx],
                     boxSize = box.transform.localScale,
                     gameobjectBox = box,
+                    boxId = Ids[idx]
                 };
                 // Add box to box pool
                 boxPool.Add(newBox);  
                 // update total box surface rea
                 total_box_surface_area+=2*box_size.x*box_size.y + 2*box_size.y*box_size.z + 2* box_size.z*box_size.x;
+                total_box_volume += box_size.x*box_size.y*box_size.z;
                 idx+=1;     
             }
         }
+        // sort box pool
+        boxPool.OrderBy(n=>n.boxSize.x).ThenBy(n=>n.boxSize.y).ThenBy(n=>n.boxSize.z);
     }
 
 
@@ -266,9 +277,8 @@ public class BoxSpawner : MonoBehaviour
 
     // Read from json file and construct box, then add box to sizes array of boxes
     // Schema of .json: { "Product_id": string, "Length": float, "Width": float, "Height": float, "Quantity": int },
-    public void ReadJson(string filename, int seed) 
+    public void ReadJson(string filename) 
     {
-        UnityEngine.Random.InitState(seed);
         using (var inputStream = File.Open(filename, FileMode.Open)) {
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
             //var root = XElement.Load(jsonReader);
@@ -276,7 +286,7 @@ public class BoxSpawner : MonoBehaviour
             var boxes = root.XPathSelectElement("//Items").Elements();
             foreach (XElement box in boxes)
             {
-                int id = int.Parse(box.XPathSelectElement("./Product_id").Value);
+                string id = box.XPathSelectElement("./Product_id").Value;
                 float length = float.Parse(box.XPathSelectElement("./Length").Value);
                 float width = float.Parse(box.XPathSelectElement("./Width").Value);
                 float height = float.Parse(box.XPathSelectElement("./Height").Value);
@@ -292,7 +302,8 @@ public class BoxSpawner : MonoBehaviour
                     if (ColorUtility.TryParseHtmlString(htmlValue, out newCol))
                     {
                         Colors.Add(newCol);
-                    }               
+                    }   
+                    Ids.Add(id);            
                     // Colors.Add(randomColor);
                     idx_counter++;
                 }   
@@ -306,6 +317,26 @@ public class BoxSpawner : MonoBehaviour
         {
             // pad with zeros
             sizes[m].box_size = Vector3.zero;
+        }
+    }
+
+
+    public void ExportBoxInstruction(float percent_filled)
+    {
+        var boxPool_copy = boxPool;
+        string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
+        string path = Path.Combine(Application.dataPath, "instructions", $"{file_name}.txt");
+        using(StreamWriter writetext = new StreamWriter(path))
+        {
+            writetext.WriteLine($"{percent_filled}" + Environment.NewLine);
+            foreach (Box box in boxPool_copy)
+            {
+                if (box.isOrganized)
+                {
+                    string box_info = $"Product_id: {box.boxId}, rotation: ({box.boxRotEuler.x}, {box.boxRotEuler.y}, {box.boxRotEuler.z}), position: ({box.boxVertex.x}, {box.boxVertex.y}, {box.boxVertex.z})";
+                    writetext.WriteLine(box_info);
+                }
+            }
         }
     }
 }

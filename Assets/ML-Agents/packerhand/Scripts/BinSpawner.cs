@@ -47,22 +47,24 @@ public class BinSpawner : MonoBehaviour {
     public float biniso_y = 23.9f;
     public int total_bin_num;
     public float total_bin_volume;
+
+    public List<GameObject> bin_list = new List<GameObject>();
     
 
     // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
     // // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
     // // Create sizes_AmericanEuropeanAsian_pallets = new float[][] { ... }  42" X 42" = 10.67dm X 10.67dm
-    public void SetUpBins(string bin_type, int bin_quantity=0, int seed=123)
+    public void SetUpBins(string name, int bin_quantity=0, int seed=123)
     {
-        if (bin_type == "biniso20" | bin_type == "random")
+        if (name == "biniso20" | name == "random")
         {
             // generate bin
-            RandomBinGenerator(bin_type, bin_quantity, seed);
+            RandomBinGenerator(name, bin_quantity, seed);
         }
         else
         {
             // read bin from file
-            ReadJson(bin_type);            
+            ReadJson(name);            
         }
         Vector3 localOrigin = Origin.transform.position;
         int idx = 0;
@@ -102,6 +104,7 @@ public class BinSpawner : MonoBehaviour {
             // update total volume
             total_bin_volume += binscale_x * binscale_y * binscale_z;
             idx++;
+            bin_list.Add(container);
         }
         // set total bin volume
         total_bin_num = idx;
@@ -145,10 +148,10 @@ public class BinSpawner : MonoBehaviour {
 
 
 
-    public void ReadJson(string box_file) 
+    public void ReadJson(string filename) 
     {
-        var homeDir = Environment.GetEnvironmentVariable("HOME");
-        string filename = $"{homeDir}/Unity/data/{box_file}.json";
+        // var homeDir = Environment.GetEnvironmentVariable("HOME");
+        // string filename = $"{homeDir}/Unity/data/{box_file}.json";
         using (var inputStream = File.Open(filename, FileMode.Open)) {
             var jsonReader = JsonReaderWriterFactory.CreateJsonReader(inputStream, new System.Xml.XmlDictionaryReaderQuotas()); 
             //var root = XElement.Load(jsonReader);
@@ -173,11 +176,16 @@ public class BinSpawner : MonoBehaviour {
     public void ExportBins()
     {
         // set the path and name for the exported file
-        string filePath = Path.Combine(Application.dataPath, "Bins.fbx");
+        string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
+        string homeDir = Environment.GetEnvironmentVariable("HOME"); // AWS: /home/ubuntu/
+        //string filePath = Path.Combine(Application.dataPath, "fbx", $"{file_name}.fbx");
+        string filePath =Path.Combine($"{homeDir}", "React3D/public/", "fbx", $"{file_name}.fbx");
         UnityEngine.Object[] objects = new UnityEngine.Object[total_bin_num];
         for (int n=0; n<total_bin_num;n++)
         {
-            objects[n] = GameObject.Find($"Bin{n}");
+            //objects[n] = GameObject.Find($"Bin{n}");
+            objects[n] = bin_list[n];
+
         }
         var x = ModelExporter.ExportObjects(filePath, objects);
     }

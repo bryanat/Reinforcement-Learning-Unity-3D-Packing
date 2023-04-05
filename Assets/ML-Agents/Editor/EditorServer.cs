@@ -2,6 +2,7 @@
  using UnityEngine;
  using UnityEditor.SceneManagement;
  using UnityEngine.SceneManagement;
+ using System.IO;
  
  class EditorServer: MonoBehaviour
  {
@@ -15,12 +16,19 @@
             //Debug.Log($"CXX args: {args[i]}");
             if (args[i] == "inference")
             {
-                EditorSceneManager.OpenScene("/home/yueqi/DRL/UnityBox5/DRL-RNN-LSTM-BOX-SIM/Assets/ML-Agents/packerhand/Scenes/BoxPackingInference.unity");
-                
+                string currentDirectory = Application.dataPath;
+                string basePath = Path.GetDirectoryName(currentDirectory);
+                string relativePath = Path.Combine("Assets", "ML-Agents", "packerhand", "Scenes", "BoxPackingInference.unity");
+                string fullPath = Path.Combine(basePath, relativePath);
+                EditorSceneManager.OpenScene(fullPath);                
             }
             if (args[i] == "training")
             {
-                EditorSceneManager.OpenScene("/home/yueqi/DRL/UnityBox5/DRL-RNN-LSTM-BOX-SIM/Assets/ML-Agents/packerhand/Scenes/BoxPackingMultiPlatformY.unity");
+                string currentDirectory = Application.dataPath;
+                string basePath = Path.GetDirectoryName(currentDirectory);
+                string relativePath = Path.Combine("Assets", "ML-Agents", "packerhand", "Scenes", "BoxPackingMultiPlatformX.unity");
+                string fullPath = Path.Combine(basePath, relativePath);
+                EditorSceneManager.OpenScene(fullPath);
             }
         }
         UnityEditor.EditorApplication.ExecuteMenuItem("Edit/Play");
