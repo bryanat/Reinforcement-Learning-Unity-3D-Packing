@@ -1573,10 +1573,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 1007675958}
   unitBox: {fileID: 11955529}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -2297,7 +2299,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -3081,10 +3083,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 638787264}
   unitBox: {fileID: 1121765436}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -3967,7 +3971,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -4788,7 +4792,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -5394,7 +5398,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -5768,10 +5772,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 422091222}
   unitBox: {fileID: 2006218915}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -7956,10 +7962,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 657732220}
   unitBox: {fileID: 304286915}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -8690,7 +8698,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -9654,10 +9662,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 2101886007}
   unitBox: {fileID: 1516172236}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -10288,7 +10298,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -11840,7 +11850,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -13259,10 +13269,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 33518234}
   unitBox: {fileID: 1179382229}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -13418,10 +13430,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 1436188694}
   unitBox: {fileID: 862463835}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -13847,7 +13861,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -14912,7 +14926,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -16337,10 +16351,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 1026317945}
   unitBox: {fileID: 93999615}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -16766,7 +16782,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -16928,10 +16944,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 112651653}
   unitBox: {fileID: 1426556890}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -17650,10 +17668,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 1038088351}
   unitBox: {fileID: 1620324092}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -18249,7 +18269,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -18416,10 +18436,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 1128100668}
   unitBox: {fileID: 145958077}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
@@ -19018,7 +19040,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 450
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -19665,10 +19687,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Colors: []
+  Ids: []
   boxArea: {fileID: 868628914}
   unitBox: {fileID: 9098616314326610961}
   maxBoxQuantity: 50
   total_box_surface_area: 0
+  total_box_volume: 0
   sizes:
   - box_size: {x: 0, y: 0, z: 0}
   - box_size: {x: 0, y: 0, z: 0}
