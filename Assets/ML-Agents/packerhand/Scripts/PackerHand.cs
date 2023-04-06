@@ -26,7 +26,6 @@ public class PackerHand : Agent
     int curriculum_ConfigurationLocal; // local reference of the above
     public int packSpeed = 20;
     public int seed = 123; // same seed means same set of randomly generated boxes
-    public string file_name = "Boxes_30"; // jason file name used in non-curriculum such as production, bin and box information will be read this file
     public string bin_type = "biniso20"; // bin type options: "random", "biniso20" (for curriculum) // future: add "pallet"
     public int bin_quantity = 1; // bin quantities (for curriculum)
     
