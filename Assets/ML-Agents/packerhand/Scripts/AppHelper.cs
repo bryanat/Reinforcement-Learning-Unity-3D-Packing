@@ -116,19 +116,19 @@
             if (args[i] == "path")
             {
                 file_path = args[i+1];
-                uuid = Path.GetFileNameWithoutExtension(AppHelper.file_path);
+                uuid = Path.GetFileNameWithoutExtension(file_path);
             }         
         }
-        AppHelper.fbx_file_path = Path.Combine($"{homeDir}", "React3D/public/", "fbx", $"{AppHelper.uuid}.fbx");
-        AppHelper.instructions_file_path = Path.Combine($"{homeDir}", "React3D/public/", "instructions", $"{AppHelper.uuid}.txt");
-        AppHelper.log_base_path = Path.Combine($"{homeDir}", "React3D/public/log/");
+        fbx_file_path = Path.Combine($"{homeDir}", "React3D/public/", "fbx", $"{uuid}.fbx");
+        instructions_file_path = Path.Combine($"{homeDir}", "React3D/public/", "instructions", $"{uuid}.txt");
+        log_base_path = Path.Combine($"{homeDir}", "React3D/public/log/");
     }
 
      public static void EndTraining()
     {
-        if (AppHelper.StartTimer("exporting"))
+        if (StartTimer("exporting"))
         {
-            AppHelper.Quit();
+            Quit();
         }
     }
 
