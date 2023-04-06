@@ -65,8 +65,6 @@ public class PackerHand : Agent
     [HideInInspector] public SensorCollision sensorCollision; // cache script for checking gravity
     [HideInInspector] public SensorOuterCollision sensorOuterCollision; // cache script for checking protrusion
     [HideInInspector] public SensorOverlapCollision sensorOverlapCollision; // cache script for checking overlap
-    [HideInInspector] public bool isInference=false; 
-    [HideInInspector] public bool isTraining=false;
     [HideInInspector] public bool isAfterInitialization = false;
     [HideInInspector] public bool isEpisodeStart;
     [HideInInspector] public bool isAfterOriginVertexSelected;
@@ -116,9 +114,6 @@ public class PackerHand : Agent
         // Set environment parameters
         m_ResetParams = Academy.Instance.EnvironmentParameters;
 
-        homeDir = Environment.GetEnvironmentVariable("HOME"); // AWS: /home/ubuntu/
-
-
         // Update model references if we're overriding
         var modelOverrider = GetComponent<ModelOverrider>();
         if (modelOverrider.HasOverrides && useCurriculum)
@@ -133,7 +128,7 @@ public class PackerHand : Agent
         m_c.isTrigger = true;
 
         // Get flags and paths from command line args
-        GetCommandLineArgs();
+        AppHelper.GetCommandLineArgs();
 
         // Set up bins
         if (useCurriculum)
@@ -172,42 +167,6 @@ public class PackerHand : Agent
         isEpisodeStart = true;
 
         //Debug.Log("INITIALIZE ENDS");
-    }
-
-    public void GetCommandLineArgs()
-    {
-        var args = Environment.GetCommandLineArgs();
-        //Debug.Log("Command line arguments passed: " + String.Join(" ", args));
-        for (int i = 0; i < args.Length; i++)
-        {
-            //Debug.Log($"CXX args: {args[i]}");
-            if (args[i] == "inference")
-            {
-                isInference = true;
-            }
-            if (args[i] == "training")
-            {
-                isTraining = true;
-            }
-            if (args[i].StartsWith("volume"))
-            {
-                AppHelper.threshold_volume = float.Parse(args[i+1]);
-                AppHelper.early_stopping = "volume";
-            }
-            if (args[i].StartsWith("time"))
-            {
-                AppHelper.training_time = float.Parse(args[i+1]);
-                AppHelper.early_stopping = "time";
-            }
-            if (args[i] == "path")
-            {
-                AppHelper.file_path = args[i+1];
-                AppHelper.uuid = Path.GetFileNameWithoutExtension(AppHelper.file_path);
-            }         
-        }
-        AppHelper.fbx_file_path = Path.Combine($"{homeDir}", "React3D/public/", "fbx", $"{AppHelper.uuid}.fbx");
-        AppHelper.instructions_file_path = Path.Combine($"{homeDir}", "React3D/public/", "instructions", $"{AppHelper.uuid}.txt");
-        AppHelper.log_base_path = Path.Combine($"{homeDir}", "React3D/public/log/");
     }
 
 
@@ -339,26 +298,26 @@ public class PackerHand : Agent
     ///</summary>
     void FixedUpdate() 
     {
-        if (isTraining && AppHelper.early_stopping == "time")
+        if (AppHelper.running_training && AppHelper.early_stopping == "time")
         {
             if (AppHelper.StartTimer("training"))
             {
-                EndTraining();
+                AppHelper.EndTraining();
                 // switch to inference for production: run commands on same run-id with inference flag
             }
         }
-        else if (isTraining && AppHelper.early_stopping == "volume")
+        else if (AppHelper.running_training && AppHelper.early_stopping == "volume")
         {
             if (percent_filled_bin_volume > AppHelper.threshold_volume)
             {
-                EndTraining();
+                AppHelper.EndTraining();
                 // switch to inference for production
             } 
         }
-        else if (isInference)
+        else if (AppHelper.running_inference)
         {
             ExportResult();
-            EndTraining();
+            AppHelper.EndTraining();
         }
         // Debug.Log($"STEP COUNT {StepCount}");
         // start of episode
@@ -1123,13 +1082,5 @@ public class PackerHand : Agent
             }
         }
     }
-
-    public void EndTraining()
-    {
-        if (AppHelper.StartTimer("exporting"))
-        {
-            AppHelper.Quit();
-        }
-}
 
 }

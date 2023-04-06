@@ -21,6 +21,12 @@
 
     public static string uuid;
 
+    public static bool running_inference = false;
+
+    public static bool running_training = false;
+
+    public static string homeDir;
+
 
 
     
@@ -79,8 +85,52 @@
                 return false;
             }
         }
-
      }
+
+    public static void GetCommandLineArgs()
+    {
+        var args = Environment.GetCommandLineArgs();
+        homeDir = Environment.GetEnvironmentVariable("HOME"); // AWS: /home/ubuntu/
+        //Debug.Log("Command line arguments passed: " + String.Join(" ", args));
+        for (int i = 0; i < args.Length; i++)
+        {
+            //Debug.Log($"CXX args: {args[i]}");
+            if (args[i] == "inference")
+            {
+                running_inference = true;
+            }
+            if (args[i] == "training")
+            {
+                running_training = true;
+            }
+            if (args[i].StartsWith("volume"))
+            {
+                threshold_volume = float.Parse(args[i+1]);
+                early_stopping = "volume";
+            }
+            if (args[i].StartsWith("time"))
+            {
+                training_time = float.Parse(args[i+1]);
+                early_stopping = "time";
+            }
+            if (args[i] == "path")
+            {
+                file_path = args[i+1];
+                uuid = Path.GetFileNameWithoutExtension(AppHelper.file_path);
+            }         
+        }
+        AppHelper.fbx_file_path = Path.Combine($"{homeDir}", "React3D/public/", "fbx", $"{AppHelper.uuid}.fbx");
+        AppHelper.instructions_file_path = Path.Combine($"{homeDir}", "React3D/public/", "instructions", $"{AppHelper.uuid}.txt");
+        AppHelper.log_base_path = Path.Combine($"{homeDir}", "React3D/public/log/");
+    }
+
+     public static void EndTraining()
+    {
+        if (AppHelper.StartTimer("exporting"))
+        {
+            AppHelper.Quit();
+        }
+    }
 
      
 
@@ -114,4 +164,5 @@
             }
         }
      }
+
  }
