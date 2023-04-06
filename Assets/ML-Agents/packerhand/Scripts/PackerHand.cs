@@ -133,22 +133,19 @@ public class PackerHand : Agent
         CapsuleCollider m_c = GetComponent<CapsuleCollider>();
         m_c.isTrigger = true;
 
+        // Get flags and paths from command line args
         GetCommandLineArgs();
 
         // Set up bins
-        if (isInference | isTraining)
-        {
-            binSpawner.SetUpBins(AppHelper.file_path);
-        }
-        else if (!useCurriculum)
-        {
-            string filename = $"{homeDir}/Unity/data/{file_name}.json";
-            binSpawner.SetUpBins(filename);
-        }
-        else 
+        if (useCurriculum)
         {
             binSpawner.SetUpBins(bin_type, bin_quantity, seed);
         }
+        else
+        {
+            binSpawner.SetUpBins(AppHelper.file_path);
+        }
+
         // Get bin info
         //total_bin_volume = binSpawner.total_bin_volume;
         origin_counter = binSpawner.total_bin_num;
@@ -206,10 +203,12 @@ public class PackerHand : Agent
             if (args[i] == "path")
             {
                 AppHelper.file_path = args[i+1];
-            }
-            
+                AppHelper.uuid = Path.GetFileNameWithoutExtension(AppHelper.file_path);
+            }         
         }
-
+        AppHelper.fbx_file_path = Path.Combine($"{homeDir}", "React3D/public/", "fbx", $"{AppHelper.uuid}.fbx");
+        AppHelper.instructions_file_path = Path.Combine($"{homeDir}", "React3D/public/", "instructions", $"{AppHelper.uuid}.txt");
+        AppHelper.log_base_path = Path.Combine($"{homeDir}", "React3D/public/log/");
     }
 
 
@@ -372,11 +371,7 @@ public class PackerHand : Agent
             SetResetParameters();
 
             // Initialize boxes
-            if (isInference | isTraining)
-            {
-                boxSpawner.SetUpBoxes(AppHelper.file_path);
-            }
-            else if (useCurriculum)
+           if (useCurriculum)
             {
                 if (curriculum_ConfigurationGlobal != -1)
                 {
@@ -386,8 +381,7 @@ public class PackerHand : Agent
             }
             else
             {
-                string filename = $"{homeDir}/Unity/data/{file_name}.json";
-                boxSpawner.SetUpBoxes(filename);
+                boxSpawner.SetUpBoxes(AppHelper.file_path);
             }
             isAfterInitialization = true;
             
@@ -1113,20 +1107,17 @@ public class PackerHand : Agent
         }
     }
 
+    // for production
     public void ExportResult()
     {
         if (CompletedEpisodes == 2)
         {
-            // if file has not been exported, export fbx
-            string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
-            //if (!File.Exists(Path.Combine(Application.dataPath, "fbx", $"{file_name}.fbx")))
-            if (!File.Exists( Path.Combine($"{homeDir}", "React3D/public/", "fbx", $"{file_name}.fbx")))
+            if (!File.Exists(AppHelper.fbx_file_path))
             {
-                // why multiplatform's file is corrupted
                 binSpawner.ExportBins();
                 AppHelper.LogStatus("fbx"); 
             }
-            if (!File.Exists(Path.Combine(Application.dataPath, "instructions", $"{file_name}.txt")))
+            if (!File.Exists(AppHelper.instructions_file_path))
             {
                 boxSpawner.ExportBoxInstruction(percent_filled_bin_volume);
                 AppHelper.LogStatus("instructions");

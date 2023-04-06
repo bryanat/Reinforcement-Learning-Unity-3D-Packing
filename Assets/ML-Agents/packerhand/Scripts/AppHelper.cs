@@ -13,6 +13,18 @@
     public static string early_stopping;
     public static string file_path;
 
+    public static string fbx_file_path;
+
+    public static string instructions_file_path;
+
+    public static string log_base_path;
+
+    public static string uuid;
+
+
+
+    
+
      public static void Quit()
      {
         if (Application.isEditor)
@@ -74,19 +86,17 @@
 
      public static void LogStatus(string type)
      {
-        string filename = Path.GetFileNameWithoutExtension(file_path);
         string line = "";
         string path = "";
-
         if (type=="fbx")
         {
-            line = $"FBX {filename} exported on {DateTime.Now.ToString("HH:mm:ss tt")}";
-            path = Path.Combine(Application.dataPath, "log/fbx_export_log.txt");
+            line = $"FBX {uuid} exported on {DateTime.Now.ToString("HH:mm:ss tt")}";
+            path = Path.Combine(log_base_path, "fbx_log.txt");;
         }
-        if (type == "instructions")
+        else if (type == "instructions")
         {
-            line = $"INSTRUCTION {filename} exported on {DateTime.Now.ToString("HH:mm:ss tt")}";
-            path = Path.Combine(Application.dataPath, "log/instruction_export_log.txt");
+            line = $"INSTRUCTION {uuid} exported on {DateTime.Now.ToString("HH:mm:ss tt")}";
+            path =  Path.Combine(log_base_path, "instruction_log.txt");
         }
         if (!File.Exists(path))
         {

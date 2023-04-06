@@ -324,9 +324,7 @@ public class BoxSpawner : MonoBehaviour
     public void ExportBoxInstruction(float percent_filled)
     {
         var boxPool_copy = boxPool;
-        string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
-        string path = Path.Combine(Application.dataPath, "instructions", $"{file_name}.txt");
-        using(StreamWriter writetext = new StreamWriter(path))
+        using(StreamWriter writetext = new StreamWriter(AppHelper.instructions_file_path))
         {
             writetext.WriteLine($"{percent_filled}" + Environment.NewLine);
             foreach (Box box in boxPool_copy)

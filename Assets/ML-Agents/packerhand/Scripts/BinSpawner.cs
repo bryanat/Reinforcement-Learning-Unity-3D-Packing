@@ -45,18 +45,22 @@ public class BinSpawner : MonoBehaviour {
     public float biniso_z = 59f;
     public float biniso_x = 23.5f;
     public float biniso_y = 23.9f;
+
+    public float americanpallet_x = 10.16f;
+    public float americanpallet_y = 12.19f;
+    public float americanpallet_z = 15.2f; 
     public int total_bin_num;
     public float total_bin_volume;
 
     public List<GameObject> bin_list = new List<GameObject>();
     
 
-    // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm 
+    // // Create sizes_American_pallets = new float[][] { ... }  48" X 40" = 12.19dm X 10.16dm , safety limit is 60in or 15.2dm
     // // Create sizes_EuropeanAsian_pallets = new float[][] { ... }  47.25" X 39.37" = 12dm X 10dm
     // // Create sizes_AmericanEuropeanAsian_pallets = new float[][] { ... }  42" X 42" = 10.67dm X 10.67dm
     public void SetUpBins(string name, int bin_quantity=0, int seed=123)
     {
-        if (name == "biniso20" | name == "random")
+        if (name == "biniso20" | name == "random" | name == "americanpallet" )
         {
             // generate bin
             RandomBinGenerator(name, bin_quantity, seed);
@@ -144,6 +148,22 @@ public class BinSpawner : MonoBehaviour {
                 });   
             }      
         }
+        else if (bin_type == "americanpallet")
+        {
+             for (int i = 0; i<quantity;i++)
+            {
+                float length = americanpallet_z;
+                float width = americanpallet_x;
+                float height = americanpallet_y;
+                Containers.Add(new Container
+                {
+                    Length = length,
+                    Width = width,
+                    Height = height,
+                });   
+            }      
+            
+        }
     }
 
 
@@ -175,11 +195,6 @@ public class BinSpawner : MonoBehaviour {
 
     public void ExportBins()
     {
-        // set the path and name for the exported file
-        string file_name = Path.GetFileNameWithoutExtension(AppHelper.file_path);
-        string homeDir = Environment.GetEnvironmentVariable("HOME"); // AWS: /home/ubuntu/
-        //string filePath = Path.Combine(Application.dataPath, "fbx", $"{file_name}.fbx");
-        string filePath =Path.Combine($"{homeDir}", "React3D/public/", "fbx", $"{file_name}.fbx");
         UnityEngine.Object[] objects = new UnityEngine.Object[total_bin_num];
         for (int n=0; n<total_bin_num;n++)
         {
@@ -187,8 +202,7 @@ public class BinSpawner : MonoBehaviour {
             objects[n] = bin_list[n];
 
         }
-        var x = ModelExporter.ExportObjects(filePath, objects);
+        var x = ModelExporter.ExportObjects(AppHelper.fbx_file_path, objects);
     }
-
 }
 }
