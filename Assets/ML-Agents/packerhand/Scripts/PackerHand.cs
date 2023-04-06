@@ -303,7 +303,6 @@ public class PackerHand : Agent
             if (AppHelper.StartTimer("training"))
             {
                 AppHelper.EndTraining();
-                // switch to inference for production: run commands on same run-id with inference flag
             }
         }
         else if (AppHelper.running_training && AppHelper.early_stopping == "volume")
@@ -311,7 +310,6 @@ public class PackerHand : Agent
             if (percent_filled_bin_volume > AppHelper.threshold_volume)
             {
                 AppHelper.EndTraining();
-                // switch to inference for production
             } 
         }
         else if (AppHelper.running_inference)
