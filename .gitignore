@@ -4,7 +4,7 @@ DevProject/
 colab/
 *.yamato/
 colab/
-docs/
+unitymlagents-docs
 !VSCode/docs/
 protobuf-definitions/
 unity-volume/
