@@ -1,5 +1,5 @@
 <p align="center">
-<img src="VSCode/docs/images/fourthbrain-logo.png" alt="drawing" width="100"/ padding-right:30px>
+<img src="docs/images/fourthbrain-logo.png" alt="drawing" width="100"/ padding-right:30px>
 &nbsp;
 &nbsp;
 &nbsp;
@@ -16,7 +16,7 @@
 &nbsp;
 &nbsp;
 &nbsp;
-<img src="VSCode/docs/images/instadeep-logo.png" alt="drawing" width="100"/>
+<img src="docs/images/instadeep-logo.png" alt="drawing" width="100"/>
 </p>
 
 
