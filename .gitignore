@@ -126,3 +126,6 @@ ml-agents/tests/
 !HandPPO_curriculum.yaml
 !HandSAC_curriculum.yaml
 !HandPPO.yaml
+
+# requirements.txt
+!requirements.txt
