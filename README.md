@@ -54,7 +54,7 @@ See here for [Unity installation](https://learn.unity.com/tutorial/install-the-u
 See Dockerfile
 
 # UI Demo
-[demo](/VSCode/docs/images/packingdemo.gif)
+[demo](/docs/images/packingdemo.gif)
 
 # Tech stack
 - Data input: JSON
@@ -87,10 +87,10 @@ Collider objects are assigned to the boxes and the bin in order to simulate coll
 
 <br>
 <p align="center">
-<img src="VSCode/docs/images/Unity_1.png" alt="drawing" width="300"/ padding-right:30px>
+<img src="docs/images/Unity_1.png" alt="drawing" width="300"/ padding-right:30px>
 &nbsp;
 &nbsp;
-<img src="VSCode/docs/images/Unity_2.png" alt="drawing" width="300"/>
+<img src="docs/images/Unity_2.png" alt="drawing" width="300"/>
 </p>
 <br>
 
@@ -132,9 +132,9 @@ Collider objects are assigned to the boxes and the bin in order to simulate coll
 Rigidbody properties are assigned to all included bodies simulating the laws of physics.
 
 <p align="center">
-<img src="VSCode/docs/images/physics-check-protrusion.png" alt="drawing" width="300"/>
+<img src="docs/images/physics-check-protrusion.png" alt="drawing" width="300"/>
 &nbsp;
-<img src="VSCode/docs/images/physics-gravity-violated.png" alt="drawing" width="300"/>
+<img src="docs/images/physics-gravity-violated.png" alt="drawing" width="300"/>
 </p>
 
 There are 3 scenarios of physics violation:
@@ -155,7 +155,7 @@ Summary of Reinforcement Learning:
 - The environment gives some reward R1​ to the Agent (positive/negative)
 
 <br>
-<p align = "center" draggable=”false” ><img src="VSCode/docs/images/RL_scheme.png" 
+<p align = "center" draggable=”false” ><img src="docs/images/RL_scheme.png" 
      width="500px"
      height="auto"/>
 </p>
@@ -165,7 +165,7 @@ Summary of Reinforcement Learning:
 Unity ML-Agents (Machine Learning Agents) is an open-source Unity plugin that allows developers to integrate artificial intelligence (AI) agents into their Unity games or simulations. It provides a platform for training and testing AI agents using reinforcement learning, imitation learning, and other machine learning algorithms. The toolkit includes various pre-built environments and examples to help developers get started, as well as support for custom environments and agents. Unity ML-Agents is designed to be accessible to both beginners and experienced AI developers, and can be used for a wide range of applications, from game development to robotics research.
 
 
-<p align = "center" draggable=”false” ><img src="VSCode/docs/images/unity_mlagents.png" 
+<p align = "center" draggable=”false” ><img src="docs/images/unity_mlagents.png" 
      width="500px"
      height="auto"/>
 </p>
@@ -185,7 +185,7 @@ Each time a box needs to be packed from the spawning area into the bin, the agen
   5. if the physics checks are passed, the agent repeats by taking a new decision
 
 ### Configuration / Hyperparameters
-##### [.yaml](https://github.com/bryanat/Reinforcement-Learning-Unity-3D-Packing/tree/master/Assets/ML-Agents/packerhand/Models)
+##### [YAML](https://github.com/bryanat/Reinforcement-Learning-Unity-3D-Packing/tree/master/config)
 
 Our policy is online and thus we want our agent to backpropagate and update its PPO policy rathen often. Therefore, we define:
 - "batch size"
@@ -201,7 +201,7 @@ Our policy is online and thus we want our agent to backpropagate and update its 
    orresponds to the discount factor for future rewards. This can be thought of as how far into the future the agent should care about possible rewards. Our agentshould be acting in the present with the incentive of rewards in the distant future; that is the large reward when the bin is fully packed. Thus, a relatively large gamma value is used.
 
 
-<p align = "center" draggable=”false” ><img src="VSCode/docs/images/yaml.png" 
+<p align = "center" draggable=”false” ><img src="docs/images/yaml.png" 
      width="200px"
      height="auto"/>
 </p>
@@ -249,7 +249,7 @@ The [Wall Jump](https://github.com/Unity-Technologies/ml-agents/blob/develop/doc
 
 For PackerHand we tested our agent with curriculum learning. For curriculum to be most effective, we created a random box and a random bin generator. Thus, we could train our agent on a random set of boxes that potentially would fill up the entire bin. The first lessons of curriculum learning were simple enough that the agent could be taught on how to observe the space, learn not to violate physics, learn about the total reward that can be collected. If, instead, the first lesson was complex, then the agent might never reach the total reward and might also never learn compying to physics laws. Combined with multiplatform, curriculum learning has the potential of allowing a model to reach greater degree of generalization.
 
-The Curriculum Learning lessons are configured in the [.yaml file](https://github.com/bryanat/Reinforcement-Learning-Unity-3D-Packing/tree/master/Assets/ML-Agents/packerhand/Models).
+The Curriculum Learning lessons are configured in the [YAML file](https://github.com/bryanat/Reinforcement-Learning-Unity-3D-Packing/tree/master/config).
 
 #### Multi-platform training
 
@@ -295,7 +295,7 @@ The workflow is the following:
     - More than 15000 steps have been utilized per episode (negative reward)
 
 <br>
-<p align = "center" draggable=”false” ><img src="VSCode/docs/images/scribble-policy-state-action-reward.png" 
+<p align = "center" draggable=”false” ><img src="docs/images/scribble-policy-state-action-reward.png" 
      width="400px"
      height="auto"/>
 </p>

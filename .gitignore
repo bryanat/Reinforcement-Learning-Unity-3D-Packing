@@ -43,7 +43,7 @@ conftest.py
 /Assets/Demonstrations*
 /Assets/ML-Agents/Timers*
 /csharp_timers.json
-/Assets/
+# /Assets/
 /Assets/**/*.meta
 
 
@@ -123,4 +123,6 @@ results/
 ml-agents/tests/
 
 # hyperparameter.yaml file at root dir for convenience
-HandPPO_curriculum.yaml
+!HandPPO_curriculum.yaml
+!HandSAC_curriculum.yaml
+!HandPPO.yaml
