@@ -6,3 +6,4 @@
 */communicator_objects/* binary
 *.md text
 Demo4thMLECapstonePresentation_Pitch.pptx filter=lfs diff=lfs merge=lfs -text
+*.svg filter=lfs diff=lfs merge=lfs -text

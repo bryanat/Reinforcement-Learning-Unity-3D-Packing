@@ -1,5 +1,5 @@
 <p align="center">
-<img src="docs/images/fourthbrain-logo.png" alt="drawing" width="100"/ padding-right:30px>
+<img src="docs/images/fourthbrain-logo.png" alt="drawing" width="100"/>
 &nbsp;
 &nbsp;
 &nbsp;
@@ -36,6 +36,30 @@ Scientifically, this is an NP-hard combinatorial optimization problem which heur
 
 The PackerHand app is an AI-driven solution that delivers exact box placement instructions which the packing expert or robotic arm can use to pack the available boxes with specific order into designated positions of the container. In specific, the AI agent is trained using Deep Reinforcement Learning techniques in a customizable physics-simulating environment. The frontend provides a user-friendly web interface where the user may seemlessly add the number and sizes of boxes to be packed and in a matter of seconds acquire the output with the placement of these boxes inside an industrial container.
 
+![](docs/images/Slide_00.svg)
+![](docs/images/Slide_01.svg)
+![](docs/images/Slide_02.svg)
+![](docs/images/Slide_03.svg)
+![](docs/images/Slide_04.svg)
+![](docs/images/Slide_05.svg)
+![](docs/images/Slide_06.svg)
+![](docs/images/Slide_07.svg)
+![](docs/images/Slide_08.svg)
+![](docs/images/Slide_09.svg)
+![](docs/images/Slide_10.svg)
+![](docs/images/Slide_11.svg)
+![](docs/images/Slide_12.svg)
+![](docs/images/Slide_13.svg)
+![](docs/images/Slide_14.svg)
+![](docs/images/Slide_15.svg)
+![](docs/images/Slide_16.svg)
+![](docs/images/Slide_17.svg)
+![](docs/images/Slide_18.svg)
+![](docs/images/Slide_19.svg)
+![](docs/images/Slide_20.svg)
+![](docs/images/Slide_21.svg)
+![](docs/images/Slide_22.svg)
+![](docs/images/Slide_23.svg)
 
 # Getting started
 
