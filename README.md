@@ -78,7 +78,7 @@ See here for [Unity installation](https://learn.unity.com/tutorial/install-the-u
 See Dockerfile
 
 # UI Demo
-[demo](/docs/images/packingdemo.gif)
+![demo](/docs/images/packingdemo.gif)
 
 # Tech stack
 - Data input: JSON
